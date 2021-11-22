@@ -12,6 +12,9 @@
 #include "ModelsMP/Player/SeriousSam/Head.h"
 extern INDEX ent_bReportBrokenChains;
 
+// [Cecil]
+#include "EntitiesMP/Cecil/Materials.h"
+
 void CCompMessageID::Clear(void)
 {
   cmi_fnmFileName.Clear();
@@ -247,17 +250,46 @@ CEntityPointer SpawnReminder(CEntity *penOwner, FLOAT fWaitTime, INDEX iValue) {
 EffectParticlesType GetParticleEffectTypeForSurface(INDEX iSurfaceType)
 {
   EffectParticlesType eptType = EPT_BULLET_STONE;
-  switch( iSurfaceType)
-  {
-    case SURFACE_SAND:     {eptType=EPT_BULLET_SAND; break;}
-    case SURFACE_RED_SAND: {eptType=EPT_BULLET_RED_SAND; break;}
-    case SURFACE_WATER:    {eptType=EPT_BULLET_WATER; break;}
+
+  switch (iSurfaceType) {
+    case SURFACE_SAND:
+      eptType = EPT_BULLET_SAND;
+      break;
+    case SURFACE_RED_SAND:
+      eptType = EPT_BULLET_RED_SAND;
+      break;
+    case SURFACE_WATER:
+      eptType = EPT_BULLET_WATER;
+      break;
     case SURFACE_GRASS:    
     case SURFACE_GRASS_SLIDING:
     case SURFACE_GRASS_NOIMPACT:
-      {eptType=EPT_BULLET_GRASS; break;}
-    case SURFACE_WOOD:     {eptType=EPT_BULLET_WOOD; break;}
-    case SURFACE_SNOW:     {eptType=EPT_BULLET_SNOW; break;}
+      eptType = EPT_BULLET_GRASS;
+      break;
+    case SURFACE_WOOD:
+    // [Cecil]
+    case SURFACE_WOOD_SLIDING:
+    case SURFACE_WOOD_SLOPE:
+      eptType = EPT_BULLET_WOOD;
+      break;
+    case SURFACE_SNOW:
+      eptType = EPT_BULLET_SNOW;
+      break;
+
+    // [Cecil]
+    case MATERIAL_CASES(METAL):
+    case MATERIAL_CASES(METAL_GRATE):
+    case MATERIAL_CASES(CHAINLINK):
+      eptType = EPT_BULLET_METAL;
+      break;
+
+    case MATERIAL_CASES(TILES):
+      eptType = EPT_BULLET_STONE;
+      break;
+
+    case MATERIAL_CASES(GLASS):
+      eptType = EPT_BULLET_GLASS;
+      break;
   }
   return eptType;
 }
@@ -265,27 +297,57 @@ EffectParticlesType GetParticleEffectTypeForSurface(INDEX iSurfaceType)
 BulletHitType GetBulletHitTypeForSurface(INDEX iSurfaceType)
 {
   BulletHitType bhtType = BHT_BRUSH_STONE;
-  switch( iSurfaceType)
-  {
-    case SURFACE_SAND:     {bhtType=BHT_BRUSH_SAND; break;}
-    case SURFACE_RED_SAND: {bhtType=BHT_BRUSH_RED_SAND; break;}
-    case SURFACE_WATER:    {bhtType=BHT_BRUSH_WATER; break;}
+
+  switch (iSurfaceType) {
+    case SURFACE_SAND:
+      bhtType = BHT_BRUSH_SAND;
+      break;
+    case SURFACE_RED_SAND:
+      bhtType = BHT_BRUSH_RED_SAND; break;
+    case SURFACE_WATER:
+      bhtType = BHT_BRUSH_WATER; break;
     case SURFACE_GRASS:
     case SURFACE_GRASS_SLIDING:
     case SURFACE_GRASS_NOIMPACT:
-      {bhtType=BHT_BRUSH_GRASS; break;}
-    case SURFACE_WOOD:     {bhtType=BHT_BRUSH_WOOD; break;}
-    case SURFACE_SNOW:     {bhtType=BHT_BRUSH_SNOW; break;}
+      bhtType = BHT_BRUSH_GRASS;
+      break;
+    case SURFACE_WOOD:
+    // [Cecil]
+    case SURFACE_WOOD_SLIDING:
+    case SURFACE_WOOD_SLOPE:
+      bhtType = BHT_BRUSH_WOOD;
+      break;
+    case SURFACE_SNOW:
+      bhtType = BHT_BRUSH_SNOW;
+      break;
+
+    // [Cecil]
+    case MATERIAL_CASES(METAL):
+    case MATERIAL_CASES(METAL_GRATE):
+      bhtType = BHT_BRUSH_METAL;
+      break;
+
+    case MATERIAL_CASES(CHAINLINK):
+      bhtType = BHT_BRUSH_CHAINLINK;
+      break;
+
+    case MATERIAL_CASES(TILES):
+      bhtType = BHT_BRUSH_TILES;
+      break;
+
+    case MATERIAL_CASES(GLASS):
+      bhtType = BHT_BRUSH_GLASS;
+      break;
   }
   return bhtType;
 }
 
+// [Cecil] Returns spawned effect
 // spawn effect from hit type
 void SpawnHitTypeEffect(CEntity *pen, enum BulletHitType bhtType, BOOL bSound, FLOAT3D vHitNormal, FLOAT3D vHitPoint,
-  FLOAT3D vIncommingBulletDir, FLOAT3D vDistance)
+                        FLOAT3D vIncommingBulletDir, FLOAT3D vDistance, CEntity **penReturn)
 {
-  switch (bhtType)
-  {
+  switch (bhtType) {
     case BHT_BRUSH_STONE:
     case BHT_BRUSH_SAND:
     case BHT_BRUSH_RED_SAND:
@@ -294,34 +356,92 @@ void SpawnHitTypeEffect(CEntity *pen, enum BulletHitType bhtType, BOOL bSound, F
     case BHT_BRUSH_GRASS:
     case BHT_BRUSH_WOOD:
     case BHT_BRUSH_SNOW:
-    {
+    case BHT_BRUSH_METAL:
+    case BHT_BRUSH_CHAINLINK:
+    case BHT_BRUSH_TILES:
+    case BHT_BRUSH_GLASS: {
       // bullet stain
       ESpawnEffect ese;
-      if( bSound)
-      {
-        if( bhtType == BHT_BRUSH_STONE)         {ese.betType = BET_BULLETSTAINSTONE;};
-        if( bhtType == BHT_BRUSH_SAND)          {ese.betType = BET_BULLETSTAINSAND;};
-        if( bhtType == BHT_BRUSH_RED_SAND)      {ese.betType = BET_BULLETSTAINREDSAND;};
-        if( bhtType == BHT_BRUSH_WATER)         {ese.betType = BET_BULLETSTAINWATER;};
-        if( bhtType == BHT_BRUSH_UNDER_WATER)   {ese.betType = BET_BULLETSTAINUNDERWATER;};
-        if( bhtType == BHT_BRUSH_GRASS)         {ese.betType = BET_BULLETSTAINGRASS;};
-        if( bhtType == BHT_BRUSH_WOOD)          {ese.betType = BET_BULLETSTAINWOOD;};
-        if( bhtType == BHT_BRUSH_SNOW)          {ese.betType = BET_BULLETSTAINSNOW;};
-      }
-      else
-      {
-        if( bhtType == BHT_BRUSH_STONE)         {ese.betType = BET_BULLETSTAINSTONENOSOUND;};
-        if( bhtType == BHT_BRUSH_SAND)          {ese.betType = BET_BULLETSTAINSANDNOSOUND;};
-        if( bhtType == BHT_BRUSH_RED_SAND)      {ese.betType = BET_BULLETSTAINREDSANDNOSOUND;};
-        if( bhtType == BHT_BRUSH_WATER)         {ese.betType = BET_BULLETSTAINWATERNOSOUND;};
-        if( bhtType == BHT_BRUSH_UNDER_WATER)   {ese.betType = BET_BULLETSTAINUNDERWATERNOSOUND;};
-        if( bhtType == BHT_BRUSH_GRASS)         {ese.betType = BET_BULLETSTAINGRASSNOSOUND;};
-        if( bhtType == BHT_BRUSH_WOOD)          {ese.betType = BET_BULLETSTAINWOODNOSOUND;};
-        if( bhtType == BHT_BRUSH_SNOW)          {ese.betType = BET_BULLETSTAINSNOWNOSOUND;};
+
+      // [Cecil] Replaced with switch-case
+      switch (bhtType) {
+        case BHT_BRUSH_STONE:
+          ese.betType = (bSound ? BET_BULLETSTAINSTONE : BET_BULLETSTAINSTONENOSOUND);
+          break;
+
+        case BHT_BRUSH_SAND:
+          ese.betType = (bSound ? BET_BULLETSTAINSAND : BET_BULLETSTAINSANDNOSOUND);
+          break;
+
+        case BHT_BRUSH_RED_SAND:
+          ese.betType = (bSound ? BET_BULLETSTAINREDSAND : BET_BULLETSTAINREDSANDNOSOUND);
+          break;
+
+        case BHT_BRUSH_WATER: {
+          ese.betType = (bSound ? BET_BULLETSTAINWATER : BET_BULLETSTAINWATERNOSOUND);
+
+          // [Cecil] Extra wave effect
+          ESpawnEffect eseWave;
+          eseWave.betType = BET_BULLET_WATERWAVE;
+          eseWave.vNormal = vHitNormal;
+          eseWave.colMuliplier = C_WHITE|CT_OPAQUE;
+          
+          FLOAT fWaveNx = vHitNormal(1);
+          FLOAT fWaveNy = vHitNormal(2);
+          FLOAT fWaveNz = vHitNormal(3);
+          FLOAT fWaveNV  = fWaveNx*vIncommingBulletDir(1) + fWaveNy*vIncommingBulletDir(2) + fWaveNz*vIncommingBulletDir(3);
+          FLOAT fWaveRVx = vIncommingBulletDir(1) - 2*fWaveNx*fWaveNV;
+          FLOAT fWaveRVy = vIncommingBulletDir(2) - 2*fWaveNy*fWaveNV;
+          FLOAT fWaveRVz = vIncommingBulletDir(3) - 2*fWaveNz*fWaveNV;
+          eseWave.vStretch = FLOAT3D(fWaveRVx, fWaveRVy, fWaveRVz);
+
+          try {
+            CPlacement3D plWave = CPlacement3D(vHitPoint-vIncommingBulletDir * 0.011f, pen->GetPlacement().pl_OrientationAngle);
+            CEntityPointer penWave = pen->GetWorld()->CreateEntity_t(plWave, CTFILENAME("Classes\\BasicEffect.ecl"));
+            penWave->Initialize(eseWave);
+
+          } catch (char *strError) {
+            FatalError(TRANS("Cannot create basic effect class: %s"), strError);
+          }
+        } break;
+
+        case BHT_BRUSH_UNDER_WATER:
+          ese.betType = (bSound ? BET_BULLETSTAINUNDERWATER : BET_BULLETSTAINUNDERWATERNOSOUND);
+          break;
+
+        case BHT_BRUSH_GRASS:
+          ese.betType = (bSound ? BET_BULLETSTAINGRASS : BET_BULLETSTAINGRASSNOSOUND);
+          break;
+
+        case BHT_BRUSH_WOOD:
+          ese.betType = (bSound ? BET_BULLETSTAINWOOD : BET_BULLETSTAINWOODNOSOUND);
+          break;
+
+        case BHT_BRUSH_SNOW:
+          ese.betType = (bSound ? BET_BULLETSTAINSNOW : BET_BULLETSTAINSNOWNOSOUND);
+          break;
+
+        // [Cecil] Own types
+        case BHT_BRUSH_METAL:
+          ese.betType = (bSound ? BET_BULLET_METAL : BET_BULLET_METAL_NOSOUND);
+          break;
+
+        case BHT_BRUSH_CHAINLINK:
+          ese.betType = (bSound ? BET_BULLET_CHAINLINK : BET_BULLET_CHAINLINK_NOSOUND);
+          break;
+
+        case BHT_BRUSH_TILES:
+          ese.betType = (bSound ? BET_BULLET_TILES : BET_BULLET_TILES_NOSOUND);
+          break;
+
+        case BHT_BRUSH_GLASS:
+          ese.betType = (bSound ? BET_BULLET_GLASS : BET_BULLET_GLASS_NOSOUND);
+          break;
       }
 
       ese.vNormal = vHitNormal;
       ese.colMuliplier = C_WHITE|CT_OPAQUE;
+
       // reflect direction arround normal
       FLOAT fNx = vHitNormal(1);
       FLOAT fNy = vHitNormal(2);
@@ -330,58 +450,69 @@ void SpawnHitTypeEffect(CEntity *pen, enum BulletHitType bhtType, BOOL bSound, F
       FLOAT fRVx = vIncommingBulletDir(1) - 2*fNx*fNV;
       FLOAT fRVy = vIncommingBulletDir(2) - 2*fNy*fNV;
       FLOAT fRVz = vIncommingBulletDir(3) - 2*fNz*fNV;
-      ese.vStretch = FLOAT3D( fRVx, fRVy, fRVz);
+      ese.vStretch = FLOAT3D(fRVx, fRVy, fRVz);
 
-      try
-      {
-        // spawn effect
-        CPlacement3D plHit = CPlacement3D(vHitPoint-vIncommingBulletDir*0.1f, pen->GetPlacement().pl_OrientationAngle);
-        CEntityPointer penHit = pen->GetWorld()->CreateEntity_t(plHit , CTFILENAME("Classes\\BasicEffect.ecl"));
+      try {
+        // [Cecil] Random depth
+        FLOAT fDepth = pen->FRnd() * 0.009f + 0.001f;
+
+        CPlacement3D plHit = CPlacement3D(vHitPoint-vIncommingBulletDir * fDepth, pen->GetPlacement().pl_OrientationAngle);
+        CEntityPointer penHit = pen->GetWorld()->CreateEntity_t(plHit, CTFILENAME("Classes\\BasicEffect.ecl"));
         penHit->Initialize(ese);
-      }
-      catch (char *strError)
-      {
+
+        if (penReturn != NULL) {
+          *penReturn = penHit;
+        }
+
+      } catch (char *strError) {
         FatalError(TRANS("Cannot create basic effect class: %s"), strError);
       }
       break;
     }
+
+    // [Cecil] New type
+    case BHT_GOO:
     case BHT_FLESH:
-    case BHT_ACID:
-    {
+    case BHT_ACID: {
       // spawn bullet entry wound
       ESpawnEffect ese;
       ese.colMuliplier = C_WHITE|CT_OPAQUE;
+
       // if there is exit wound blood spill place
       FLOAT fDistance = vDistance.Length();
-      if( fDistance>0.01f && !(pen->IRnd()%2) )
-      {
+      if (fDistance>0.01f && !(pen->IRnd() % 2)) {
         // spawn bullet exit wound blood patch
         ese.betType = BET_BLOODSPILL;
-        if( bhtType == BHT_ACID)
-        {
+
+        // [Cecil] Goo type
+        if (bhtType == BHT_GOO) {
+          ese.colMuliplier = RGBAToColor(250, 250, 23, 255);
+        } else if (bhtType == BHT_ACID) {
           ese.colMuliplier = BLOOD_SPILL_GREEN;
-        }
-        else
-        {
+        } else {
           ese.colMuliplier = BLOOD_SPILL_RED;
         }
+
         ese.vNormal = vHitNormal;
-        if (fDistance<25.0f)
-        {
+
+        if (fDistance < 25.0f) {
           GetNormalComponent( vDistance/fDistance, vHitNormal, ese.vDirection);
           FLOAT fLength = ese.vDirection.Length();
           fLength   = Clamp( fLength*3, 1.0f, 3.0f);
-          fDistance = Clamp( (FLOAT)log10(fDistance), 0.5f, 2.0f);
+          fDistance = Clamp( log10(fDistance), 0.5, 2.0);
           ese.vStretch = FLOAT3D( fDistance, fLength*fDistance, 1.0f);
-          try
-          {
+
+          try {
             // spawn effect
             CPlacement3D plHit = CPlacement3D(vHitPoint-vIncommingBulletDir*0.1f, pen->GetPlacement().pl_OrientationAngle);
             CEntityPointer penHit = pen->GetWorld()->CreateEntity_t(plHit , CTFILENAME("Classes\\BasicEffect.ecl"));
             penHit->Initialize(ese);
-          }
-          catch (char *strError)
-          {
+
+            if (penReturn != NULL) {
+              *penReturn = penHit;
+            }
+
+          } catch (char *strError) {
             FatalError(TRANS("Cannot create basic effect class: %s"), strError);
           }
         }
@@ -389,7 +520,7 @@ void SpawnHitTypeEffect(CEntity *pen, enum BulletHitType bhtType, BOOL bSound, F
       break;
     }
   }
-}
+};
 
 // spawn flame
 CEntityPointer SpawnFlame(CEntity *penOwner, CEntity *penAttach, const FLOAT3D &vSource)
@@ -1256,7 +1387,7 @@ FLOAT DamageStrength(EntityInfoBodyType eibtBody, enum DamageType dtDamage)
     case DMT_FREEZING:  return 0.0f;
     }
     return 1.0f;
-  case EIBT_WOOD :
+  case EIBT_WOOD:
     switch(dtDamage) {
     case DMT_FREEZING:  return 0.0f;
     }
@@ -1282,9 +1413,7 @@ FLOAT DamageStrength(EntityInfoBodyType eibtBody, enum DamageType dtDamage)
 }
 
 // Print center screen message
-void PrintCenterMessage(CEntity *penThis, CEntity *penCaused, 
-  const CTString &strMessage, TIME tmLength, enum MessageSound mssSound)
-{
+void PrintCenterMessage(CEntity *penThis, CEntity *penCaused, const CTString &strMessage, TIME tmLength, enum MessageSound mssSound) {
   penCaused = FixupCausedToPlayer(penThis, penCaused);
 
   ECenterMessage eMsg;
@@ -1292,15 +1421,12 @@ void PrintCenterMessage(CEntity *penThis, CEntity *penCaused,
   eMsg.tmLength = tmLength;
   eMsg.mssSound = mssSound;
   penCaused->SendEvent(eMsg);
-}
-
+};
 
 // i.e. weapon sound when fireing or exploding
-void SpawnRangeSound( CEntity *penPlayer, CEntity *penPos, enum SoundType st, FLOAT fRange)
-{
-  // if not really player
-  if (!IsDerivedFromClass(penPlayer, "Player")) {
-    // do nothing
+void SpawnRangeSound( CEntity *penPlayer, CEntity *penPos, enum SoundType st, FLOAT fRange) {
+  // do nothing if not really player
+  if (!IS_PLAYER(penPlayer)) {
     return;
   }
   // sound event
@@ -1308,12 +1434,12 @@ void SpawnRangeSound( CEntity *penPlayer, CEntity *penPos, enum SoundType st, FL
   eSound.EsndtSound = st;
   eSound.penTarget = penPlayer;
   penPos->SendEventInRange( eSound, FLOATaabbox3D(penPos->GetPlacement().pl_PositionVector, fRange));
-}
+};
 
 // get some player for trigger source if any is existing
 CEntity *FixupCausedToPlayer(CEntity *penThis, CEntity *penCaused, BOOL bWarning/*=TRUE*/)
 {
-  if (penCaused!=NULL && IsOfClass(penCaused, "Player")) {
+  if (penCaused!=NULL && IS_PLAYER(penCaused)) {
     return penCaused;
   }
 
@@ -1324,7 +1450,7 @@ CEntity *FixupCausedToPlayer(CEntity *penThis, CEntity *penCaused, BOOL bWarning
       (const char*)penThis->GetClass()->GetName());
   }
 
-  INDEX ctPlayers = penThis->GetMaxPlayers();
+  INDEX ctPlayers = CECIL_GetMaxPlayers();
   if (ctPlayers==0) {
     return NULL;
   }
@@ -1333,8 +1459,8 @@ CEntity *FixupCausedToPlayer(CEntity *penThis, CEntity *penCaused, BOOL bWarning
   FLOAT fClosestPlayer = UpperLimit(0.0f);
 
   // for all players
-  for (INDEX iPlayer=0; iPlayer<penThis->GetMaxPlayers(); iPlayer++) {
-    CEntity *penPlayer = penThis->GetPlayerEntity(iPlayer);
+  for (INDEX iPlayer=0; iPlayer<CECIL_GetMaxPlayers(); iPlayer++) {
+    CEntity *penPlayer = CECIL_GetPlayerEntity(iPlayer);
     // if player exists
     if (penPlayer!=NULL) {
       // calculate distance to player
@@ -1413,3 +1539,85 @@ class CWorldSettingsController *GetWSC(CEntity *pen)
   return pwsc;
 }
 
+// [Cecil] Find entity by its ID
+/*CEntity *FindEntityByID(CWorld *pwo, const INDEX &iEntityID) {
+  // for each entity
+  FOREACHINDYNAMICCONTAINER(pwo->wo_cenEntities, CEntity, iten) {
+    CEntity *pen = &*iten;
+    // if it exists
+    if (!(pen->GetFlags() & ENF_DELETED)) {
+      // if same ID
+      if (pen->en_ulID == iEntityID) {
+        // return it
+        return pen;
+      }
+    }
+  }
+  // otherwise, none exists
+  return NULL;
+};*/
+
+// [Cecil] Get certain vertex position
+FLOAT3D GetVertexPosition(CModelObject *pmo, const INDEX &iVtxIndex) {
+  FLOAT3D f3dVertex;
+  INDEX iFrame0, iFrame1;
+  FLOAT fLerpRatio;
+  CModelData *pmd = pmo->GetData();
+
+  struct ModelFrameVertex16 *pFrame16_0, *pFrame16_1;
+  struct ModelFrameVertex8 *pFrame8_0, *pFrame8_1;
+
+  // get lerp information
+  pmo->GetFrame(iFrame0, iFrame1, fLerpRatio);
+
+  // set pFrame to point to last and next frames' vertices
+  if (pmd->md_Flags & MF_COMPRESSED_16BIT) {
+    pFrame16_0 = &pmd->md_FrameVertices16[iFrame0 * pmd->md_VerticesCt];
+    pFrame16_1 = &pmd->md_FrameVertices16[iFrame1 * pmd->md_VerticesCt];
+  } else {
+    pFrame8_0 = &pmd->md_FrameVertices8[iFrame0 * pmd->md_VerticesCt];
+    pFrame8_1 = &pmd->md_FrameVertices8[iFrame1 * pmd->md_VerticesCt];
+  }
+
+  // Apply stretch factors
+  FLOAT3D &vDataStretch = pmd->md_Stretch;
+  FLOAT3D &vObjectStretch = pmo->mo_Stretch;
+  FLOAT3D vStretch;
+  vStretch(1) = vDataStretch(1)*vObjectStretch(1);
+  vStretch(2) = vDataStretch(2)*vObjectStretch(2);
+  vStretch(3) = vDataStretch(3)*vObjectStretch(3);
+
+  // get current mip model using mip factor
+  INDEX iMipLevel = 0;
+  struct ModelMipInfo *pmmiMip = &pmd->md_MipInfos[iMipLevel];
+
+  FLOAT3D vVertex = FLOAT3D(0.0f, 0.0f, 0.0f);
+
+  // Transform a vertex in model with lerping
+  if (pmd->md_Flags & MF_COMPRESSED_16BIT) {
+    // get destination for unpacking
+    INDEX iMdlVx = pmmiMip->mmpi_auwMipToMdl[iVtxIndex];
+    ModelFrameVertex16 &mfv0 = pFrame16_0[iMdlVx];
+    ModelFrameVertex16 &mfv1 = pFrame16_1[iMdlVx];
+
+    vVertex(1) = (Lerp((FLOAT)mfv0.mfv_SWPoint(1), (FLOAT)mfv1.mfv_SWPoint(1), fLerpRatio))*vStretch(1);
+    vVertex(2) = (Lerp((FLOAT)mfv0.mfv_SWPoint(2), (FLOAT)mfv1.mfv_SWPoint(2), fLerpRatio))*vStretch(2);
+    vVertex(3) = (Lerp((FLOAT)mfv0.mfv_SWPoint(3), (FLOAT)mfv1.mfv_SWPoint(3), fLerpRatio))*vStretch(3);
+
+  } else {
+    // for each vertex in mip
+    for( INDEX iMipVx=0; iMipVx<pmmiMip->mmpi_ctMipVx; iMipVx++) {
+      // get destination for unpacking
+      INDEX iMdlVx = pmmiMip->mmpi_auwMipToMdl[iMipVx];
+      // get 16 bit packed vertices
+      ModelFrameVertex8 &mfv0 = pFrame8_0[iMdlVx];
+      ModelFrameVertex8 &mfv1 = pFrame8_1[iMdlVx];
+
+      vVertex(1) = (Lerp((FLOAT)mfv0.mfv_SBPoint(1), (FLOAT)mfv1.mfv_SBPoint(1), fLerpRatio))*vStretch(1);
+      vVertex(2) = (Lerp((FLOAT)mfv0.mfv_SBPoint(2), (FLOAT)mfv1.mfv_SBPoint(2), fLerpRatio))*vStretch(2);
+      vVertex(3) = (Lerp((FLOAT)mfv0.mfv_SBPoint(3), (FLOAT)mfv1.mfv_SBPoint(3), fLerpRatio))*vStretch(3);
+    }
+  }
+
+  return vVertex;
+};

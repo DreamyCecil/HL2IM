@@ -1,39 +1,38 @@
 // common headers for flesh entity classes
 
-
-#define SURFACE_SAND 9
-#define SURFACE_WATER 12
-#define SURFACE_RED_SAND 13
-#define SURFACE_GRASS 17
-#define SURFACE_GRASS_SLIDING 19
+#define SURFACE_STONE           0 // [Cecil] For convenience
+#define SURFACE_SAND            9
+#define SURFACE_WATER          12
+#define SURFACE_RED_SAND       13
+#define SURFACE_GRASS          17
+#define SURFACE_GRASS_SLIDING  19
 #define SURFACE_GRASS_NOIMPACT 20
-#define SURFACE_WOOD 18
-#define SURFACE_SNOW 21
-
-// Max ammo
-#define MAX_BULLETS INDEX(500)
-#define MAX_SHELLS INDEX(100)
-#define MAX_ROCKETS INDEX(50)
-#define MAX_GRENADES INDEX(50)
-#define MAX_NAPALM INDEX(500)
-#define MAX_ELECTRICITY INDEX(400)
-#define MAX_IRONBALLS INDEX(30)
-//#define MAX_NUKEBALLS INDEX(3)
-#define MAX_SNIPERBULLETS INDEX(50)
+#define SURFACE_WOOD           18
+#define SURFACE_SNOW           21
+// [Cecil] Special types
+#define SURFACE_WOOD_SLIDING 22
+#define SURFACE_WOOD_SLOPE   23
+// [Cecil] Last default surface
+#define SURFACE_LAST 24
 
 // Bit shifters for ammo
-#define AMMO_BULLETS       0
-#define AMMO_SHELLS        1
-#define AMMO_ROCKETS       2
-#define AMMO_GRENADES      3
-#define AMMO_NAPALM        4
-#define AMMO_ELECTRICITY   5
-//#define AMMO_NUKEBALLS   6
-#define AMMO_IRONBALLS     7
-#define AMMO_SNIPERBULLETS 8
+#define AMMO_NAPALM        4 // [Cecil] 357
+#define AMMO_BULLETS       0 // [Cecil] SMG1
+#define AMMO_ELECTRICITY   5 // [Cecil] AR2
+#define AMMO_SNIPERBULLETS 8 // [Cecil] Crossbow
+#define AMMO_SHELLS        1 // [Cecil] SPAS
+#define AMMO_GRENADES      3 // [Cecil] Grenades
+#define AMMO_IRONBALLS     7 // [Cecil] RPG
+#define AMMO_ROCKETS       2 // [Cecil] SMG1 Grenades & AR2 Energy Balls
 
 #define BLOOD_SPILL_RED RGBAToColor(250,20,20,255)
 #define BLOOD_SPILL_GREEN RGBAToColor(0,250,0,255)
+
+// [Cecil] Own definitions
+#define ONE_TICK _pTimer->TickQuantum
+
+// [Cecil] Own damage types (start with 19)
+#define DMT_RIFLE 19 // AR2
 
 // Ammo mana Value
 #define AV_SHELLS         INDEX(70)
@@ -130,8 +129,7 @@ struct DECL_DLL PlayerStats {
   INDEX ps_iSecrets;
   TIME  ps_tmTime;
 
-  PlayerStats(void)
-  {
+  PlayerStats(void) {
     ps_iScore = 0;
     ps_iKills = 0;
     ps_iDeaths = 0;
@@ -168,7 +166,6 @@ DECL_DLL void RemoveAttachmentFromModel(CModelObject &mo, INDEX iAttachment);
 
 // Kick entity
 DECL_DLL void KickEntity(CEntity *penTarget, FLOAT3D vSpeed);
-
 
 // lens flare variables
 extern CLensFlareType _lftStandard;
@@ -296,8 +293,16 @@ DECL_DLL inline FLOAT DistanceTo(CEntity *penE1, CEntity *penE2) {
 
 BulletHitType GetBulletHitTypeForSurface(INDEX iSurfaceType);
 EffectParticlesType GetParticleEffectTypeForSurface(INDEX iSurfaceType);
+
+// [Cecil] Returns spawned effect
 // spawn effect from hit type
 void SpawnHitTypeEffect(CEntity *pen, enum BulletHitType bhtType, BOOL bSound, FLOAT3D vHitNormal, FLOAT3D vHitPoint,
-  FLOAT3D vIncommingBulletDir, FLOAT3D vDistance);
+                        FLOAT3D vIncommingBulletDir, FLOAT3D vDistance, CEntity **penReturn = NULL);
 
 #define FRndIn(a, b) (a + FRnd()*(b - a))
+
+// [Cecil] Find entity by its ID
+//DECL_DLL CEntity *FindEntityByID(CWorld *pwo, const INDEX &iEntityID);
+
+// [Cecil] Get certain vertex position
+FLOAT3D GetVertexPosition(CModelObject *pmo, const INDEX &iVtxIndex);

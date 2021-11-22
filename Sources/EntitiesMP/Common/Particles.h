@@ -27,7 +27,7 @@ void DECL_DLL Particles_LavaTrail(CEntity *pen);
 void DECL_DLL Particles_LavaTrail_Prepare(CEntity *pen);
 void DECL_DLL Particles_LavaBombTrail(CEntity *pen, FLOAT fSizeMultiplier);
 void DECL_DLL Particles_LavaBombTrail_Prepare(CEntity *pen);
-void DECL_DLL Particles_RocketTrail(CEntity *pen, FLOAT fStretch);
+void DECL_DLL Particles_RocketTrail(CEntity *pen, FLOAT fStretch, COLOR colBlend = 0xFFFFFFFF);
 void DECL_DLL Particles_RocketTrail_Prepare(CEntity *pen);
 void DECL_DLL Particles_ExplosionDebris1(CEntity *pen, FLOAT tmStart, FLOAT3D vStretch, COLOR colMultiply=C_WHITE|CT_OPAQUE);
 void DECL_DLL Particles_ExplosionDebris2(CEntity *pen, FLOAT tmStart, FLOAT3D vStretch, COLOR colMultiply=C_WHITE|CT_OPAQUE);
@@ -157,3 +157,9 @@ void DECL_DLL Particles_RunAfterBurner(CEntity *pen, FLOAT tmEnd, FLOAT fStretch
 void DECL_DLL Particles_Fireworks01(CEmiter &em);
 void DECL_DLL Particles_ModelGlow2( CModelObject *mo,  CPlacement3D pl, FLOAT tmEnd, enum ParticleTexture ptTexture, FLOAT fSize, FLOAT iVtxStep, FLOAT fAnimSpd, COLOR iCol);
 void DECL_DLL Particles_RunAfterBurner(CEntity *pen, FLOAT tmEnd, FLOAT fStretch, INDEX iGradientType);
+
+// [Cecil] Gravity Gun launch effect
+DECL_DLL void Particles_GravityGunCharge(FLOAT3D vSource, FLOAT3D vTarget);
+
+// [Cecil] Explosion sparks on some placement
+DECL_DLL void Particles_ExplosionSparksPlace(const CPlacement3D &plPos, FLOAT tmStart, FLOAT3D vStretch, COLOR colMultiply);

@@ -2,6 +2,11 @@
 #include <GameMP/SessionProperties.h>
 #include <GameMP/PlayerSettings.h>
 
+// [Cecil]
+#include <string>
+#include <fstream>
+using namespace std;
+
 /* rcg10042001 protect against Visual C-isms. */
 #ifdef _MSC_VER
 #define DECL_DLL _declspec(dllexport)
@@ -17,3 +22,5 @@
 #include "..\Common\Particles.h"
 #include "..\Common\EmanatingParticles.h"
 #include "..\Common\GameInterface.h"
+// [Cecil] 2021-06-19: Bot Mod
+#include "Bots/_BotMod.h"

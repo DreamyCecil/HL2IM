@@ -102,6 +102,9 @@ static CTextureObject _toSummonerStaffGradient;
 static CTextureObject _toMeteorTrail;
 static CTextureObject _toFireworks01Gradient;
 
+// [Cecil] Gravity Gun launch effect
+static CTextureObject _toGGCharge;
+
 struct FlameThrowerParticleRenderingData {
   INDEX ftprd_iFrameX;
   INDEX ftprd_iFrameY;
@@ -260,7 +263,6 @@ void InitParticles(void)
     _toFireworks01Gradient.SetData_t(CTFILENAME("TexturesMP\\Effects\\Particles\\Fireworks01Gradient.tex"));
     _toSEStar01.SetData_t(CTFILENAME("TexturesMP\\Effects\\Particles\\Star01.tex"));
     _toMeteorTrail.SetData_t(CTFILENAME("TexturesMP\\Effects\\Particles\\MeteorTrail.tex"));
-
     
     ((CTextureData*)_toLavaTrailGradient              .GetData())->Force(TEX_STATIC|TEX_CONSTANT);
     ((CTextureData*)_toLavaBombTrailGradient          .GetData())->Force(TEX_STATIC|TEX_CONSTANT);
@@ -283,6 +285,10 @@ void InitParticles(void)
     ((CTextureData*)_toSummonerDisappearGradient      .GetData())->Force(TEX_STATIC|TEX_CONSTANT);
     ((CTextureData*)_toSummonerStaffGradient          .GetData())->Force(TEX_STATIC|TEX_CONSTANT);
     ((CTextureData*)_toFireworks01Gradient            .GetData())->Force(TEX_STATIC|TEX_CONSTANT);
+
+    // [Cecil] Gravity Gun launch effect
+    _toGGCharge.SetData_t(CTFILENAME("Models\\Weapons\\GravityGun\\Charge.tex"));
+    ((CTextureData*)_toGGCharge.GetData())->Force(TEX_STATIC|TEX_CONSTANT);
   }
   catch(char *strError)
   {
@@ -389,6 +395,9 @@ void CloseParticles(void)
   _toFireworks01Gradient.SetData(NULL);
   _toSEStar01.SetData(NULL);
   _toMeteorTrail.SetData(NULL);
+
+  // [Cecil] Gravity Gun launch effect
+  _toGGCharge.SetData(NULL);
 }
 
 void SetupParticleTexture(enum ParticleTexture ptTexture)
@@ -1111,12 +1120,11 @@ void Particles_BeastBigProjectileTrail( CEntity *pen, FLOAT fSize, FLOAT fZOffse
 
 #define ROCKET_TRAIL_POSITIONS 16
 #define ROCKET_TRAIL_INTERPOSITIONS 3
-void Particles_RocketTrail_Prepare(CEntity *pen)
-{
+void Particles_RocketTrail_Prepare(CEntity *pen) {
   pen->GetLastPositions(ROCKET_TRAIL_POSITIONS);
-}
-void Particles_RocketTrail(CEntity *pen, FLOAT fStretch)
-{
+};
+
+void Particles_RocketTrail(CEntity *pen, FLOAT fStretch, COLOR colBlend) {
   CLastPositions *plp = pen->GetLastPositions(ROCKET_TRAIL_POSITIONS);
   FLOAT fSeconds = _pTimer->GetLerpedCurrentTick();
   
@@ -1146,8 +1154,8 @@ void Particles_RocketTrail(CEntity *pen, FLOAT fStretch)
 
       UBYTE ub = 255-(UBYTE)((ULONG)iParticle*255/iParticlesLiving);
       FLOAT fLerpFactor = FLOAT(iPos)/ROCKET_TRAIL_POSITIONS;
-      COLOR colColor = LerpColor( C_WHITE, C_BLACK, fLerpFactor);
-      Particle_RenderSquare( vPos, fSize, fAngle, colColor|ub);
+      COLOR colColor = LerpColor(colBlend, C_BLACK, fLerpFactor);
+      Particle_RenderSquare(vPos, fSize, fAngle, colColor|ub);
       iParticle++;
     }
   }
@@ -1166,7 +1174,7 @@ void Particles_RocketTrail(CEntity *pen, FLOAT fStretch)
     }
     UBYTE ub = UBYTE(255-iPos*256/plp->lp_ctUsed);
     FLOAT fSize = iPos*0.01f*fStretch+0.005f;
-    Particle_RenderLine( vPos, vOldPos, fSize, RGBToColor(ub,ub,ub)|ub);
+    Particle_RenderLine(vPos, vOldPos, fSize, MulColors(colBlend, RGBToColor(ub,ub,ub)|ub));
     vOldPos=vPos;
   }
   // all done
@@ -1311,6 +1319,61 @@ void Particles_ExplosionDebris3(CEntity *pen, FLOAT tmStart, FLOAT3D vStretch, C
     col=MulColors(col, colMultiply);
 
     FLOAT fSize=(0.1f+afStarsPositions[iRnd2][0]*0.15f)*fStretchSize;
+    Particle_RenderLine( vOldPos, vPos, fSize, col);
+  }
+  // all done
+  Particle_Flush();
+}
+
+// [Cecil] Explosion sparks on some placement
+void Particles_ExplosionSparksPlace(const CPlacement3D &plPos, FLOAT tmStart, FLOAT3D vStretch, COLOR colMultiply)
+{
+  Particle_PrepareTexture( &_toExplosionSpark, PBT_ADDALPHA);
+  Particle_SetTexturePart( 1024, 1024, 0, 0);
+  CTextureData *pTD = (CTextureData *) _toExplosionDebrisGradient.GetData();
+  
+  FLOATmatrix3D m;
+  MakeRotationMatrixFast(m, plPos.pl_OrientationAngle);
+
+  FLOAT3D vY( m(1,2), m(2,2), m(3,2));
+  FLOAT3D vCenter = plPos.pl_PositionVector;
+  FLOAT tmNow = _pTimer->GetLerpedCurrentTick();
+  FLOAT fG=0.0f;
+  FLOAT fStretchSize=(vStretch(1)+vStretch(2)+vStretch(3))/3.0f;
+
+  for( INDEX iDebris=0; iDebris<CT_EXPLOSIONDEBRIS3; iDebris++)
+  {
+    INDEX iRnd =(iDebris+INDEX(tmStart*317309.14521f))%CT_MAX_PARTICLES_TABLE;
+    INDEX iRnd2=(iDebris+INDEX(tmStart*421852.46521f))%CT_MAX_PARTICLES_TABLE;
+    FLOAT3D vSpeed=FLOAT3D(afStarsPositions[iRnd][0],afStarsPositions[iRnd][1],afStarsPositions[iRnd][2])*1.25f;
+    FLOAT fT = (tmNow-tmStart) * 1.5f;
+    FLOAT fRatio=Clamp(fT/TM_EXPLOSIONDEBRISLIFE3, 0.0f, 1.0f);
+    FLOAT fTimeDeccelerator=Clamp(1.0f-(fT/2.0f)*(fT/2.0f), 0.75f, 1.0f);
+    FLOAT fSpeed=(afStarsPositions[iRnd][0]+afStarsPositions[iRnd][1]+afStarsPositions[iRnd][2]+0.5f*3)/3.0f*50.0f;
+    fSpeed*=fTimeDeccelerator * 2.0f;
+    FLOAT fTOld = fT - 0.025f - 0.1f * fRatio;
+    
+    FLOAT3D vRel=vSpeed*fSpeed*fT-vY*fG*fT*fT;
+    vRel(1)*=vStretch(1);
+    vRel(2)*=vStretch(2);
+    vRel(3)*=vStretch(3);
+    FLOAT3D vPos=vCenter+vRel;
+
+    FLOAT3D vRelOld=vSpeed*fSpeed*fTOld-vY*fG*fTOld*fTOld;
+    vRelOld(1)*=vStretch(1);
+    vRelOld(2)*=vStretch(2);
+    vRelOld(3)*=vStretch(3);
+    FLOAT3D vOldPos=vCenter+vRelOld;
+    if( (vPos - vOldPos).Length() == 0.0f) {continue;}
+    
+    UBYTE ubR = 255;
+    UBYTE ubG = 200+afStarsPositions[iRnd][1]*32;
+    UBYTE ubB = 150+afStarsPositions[iRnd][2]*32;
+    COLOR colAlpha = pTD->GetTexel(PIX(ClampUp(fRatio*1024.0f, 1023.0f)), 0);
+    COLOR col= RGBToColor( ubR, ubG, ubB) | (colAlpha&0x000000FF);
+    col=MulColors(col, colMultiply);
+
+    FLOAT fSize=(0.1f+afStarsPositions[iRnd2][0]*0.15f)*fStretchSize * 3.0f;
     Particle_RenderLine( vOldPos, vPos, fSize, col);
   }
   // all done
@@ -3508,30 +3571,35 @@ void Particles_BulletSpray(INDEX iRndBase, FLOAT3D vSource, FLOAT3D vGDir, enum 
 {
   FLOAT fFadeStart = BULLET_SPRAY_FADEOUT_START;
   FLOAT fLifeTotal = BULLET_SPRAY_TOTAL_TIME;
-  FLOAT fFadeLen   = fLifeTotal-fFadeStart;
+  FLOAT fFadeLen = fLifeTotal - fFadeStart;
   COLOR colStones = C_WHITE;
 
   FLOAT fMipFactor = Particle_GetMipFactor();
   FLOAT fDisappear = 1.0f;
-  if( fMipFactor>8.0f) return;
-  if( fMipFactor>6.0f)
-  {
-    fDisappear = 1.0f-(fMipFactor-6.0f)/2.0f;
+
+  if (fMipFactor > 8.0f) {
+    return;
+  }
+
+  if (fMipFactor > 6.0f) {
+    fDisappear = 1.0f - (fMipFactor - 6.0f)/2.0f;
   }
 
   FLOAT fNow = _pTimer->GetLerpedCurrentTick();
-  FLOAT fT=(fNow-tmSpawn);
-  if( fT>fLifeTotal) return;
-  INDEX iRnd = INDEX( (tmSpawn*1000.0f)+iRndBase) &63;
+  FLOAT fT = (fNow - tmSpawn);
+
+  if (fT > fLifeTotal) {
+    return;
+  }
+
+  INDEX iRnd = INDEX((tmSpawn*1000.0f) + iRndBase) & 63;
   FLOAT fSizeStart;
   FLOAT fSpeedStart;
   FLOAT fConeMultiplier = 1.0f;
   COLOR colSmoke;
 
-  switch( eptType)
-  {
-    case EPT_BULLET_WATER:
-    {
+  switch(eptType) {
+    case EPT_BULLET_WATER: {
       Particle_PrepareTexture(&_toBulletWater, PBT_BLEND);
       fSizeStart = 0.08f;
       fSpeedStart = 1.75f;
@@ -3540,52 +3608,60 @@ void Particles_BulletSpray(INDEX iRndBase, FLOAT3D vSource, FLOAT3D vGDir, enum 
       FLOAT fFadeStart = BULLET_SPRAY_WATER_FADEOUT_START;
       FLOAT fLifeTotal = BULLET_SPRAY_WATER_TOTAL_TIME;
       FLOAT fFadeLen   = fLifeTotal-fFadeStart;
+    } break;
 
-      break;
-    }
-    case EPT_BULLET_SAND:
-    {
+    case EPT_BULLET_SAND: {
       colSmoke = 0xFFE8C000;
       Particle_PrepareTexture(&_toBulletSand, PBT_BLEND);
       fSizeStart = 0.15f;
       fSpeedStart = 0.75f;
-      break;
-    }
-    case EPT_BULLET_RED_SAND:
-    {
+    } break;
+
+    case EPT_BULLET_RED_SAND: {
       colSmoke = 0xA0402000;
       colStones = 0x80503000;
       Particle_PrepareTexture(&_toBulletSand, PBT_BLEND);
       fSizeStart = 0.15f;
       fSpeedStart = 0.75f;
-      break;
-    }
-    case EPT_BULLET_GRASS:
-    {
+    } break;
+
+    case EPT_BULLET_GRASS: {
       colSmoke = 0xFFE8C000;
       Particle_PrepareTexture(&_toBulletGrass, PBT_BLEND);
-      fSizeStart = 0.15f;
+      fSizeStart = 0.1f; //0.15f;
       fSpeedStart = 1.75f;
-      break;
-    }
-    case EPT_BULLET_WOOD:
-    {
+    } break;
+
+    case EPT_BULLET_WOOD: {
       colSmoke = 0xFFE8C000;
       Particle_PrepareTexture(&_toBulletWood, PBT_BLEND);
-      fSizeStart = 0.15f;
+      fSizeStart = 0.05f; //0.15f;
       fSpeedStart = 1.25f;
-      break;
-    }
-    case EPT_BULLET_SNOW:
-    {
+    } break;
+
+    case EPT_BULLET_SNOW: {
       colSmoke = 0xFFE8C000;
       Particle_PrepareTexture(&_toBulletSnow, PBT_BLEND);
       fSizeStart = 0.15f;
       fSpeedStart = 1.25f;
-      break;
-    }
-    default:
-    {
+    } break;
+
+    // [Cecil] NOTE: Add corresponding particles for own types
+    case EPT_BULLET_METAL: {
+      colSmoke = 0xAA905000;
+      Particle_PrepareTexture(&_toBulletStone, PBT_BLEND);
+      fSizeStart = 0.005f;
+      fSpeedStart = 1.5f;
+    } break;
+
+    case EPT_BULLET_GLASS: {
+      colSmoke = C_WHITE;
+      Particle_PrepareTexture(&_toBulletStone, PBT_BLEND);
+      fSizeStart = 0.005f;
+      fSpeedStart = 1.5f;
+    } break;
+
+    default: {
       colSmoke = C_WHITE;
       Particle_PrepareTexture(&_toBulletStone, PBT_BLEND);
       fSizeStart = 0.05f;
@@ -3596,9 +3672,10 @@ void Particles_BulletSpray(INDEX iRndBase, FLOAT3D vSource, FLOAT3D vGDir, enum 
   FLOAT fGA = 10.0f;
 
   // render particles
-  for( INDEX iSpray=0; iSpray<12*fDisappear; iSpray++)
-  {
-    Particle_SetTexturePart( 512, 512, iSpray&3, 0);
+  INDEX ctParticles = 30; //12;
+
+  for (INDEX iSpray = 0; iSpray < ctParticles*fDisappear; iSpray++) {
+    Particle_SetTexturePart(512, 512, iSpray & 3, 0);
 
     FLOAT3D vRandomAngle = FLOAT3D(
       afStarsPositions[ iSpray+iRnd][0]*3.0f* fConeMultiplier,
@@ -3607,31 +3684,30 @@ void Particles_BulletSpray(INDEX iRndBase, FLOAT3D vSource, FLOAT3D vGDir, enum 
     FLOAT fSpeedRnd = fSpeedStart+afStarsPositions[ iSpray+iRnd*2][3];
     FLOAT3D vPos = vSource + (vDirection+vRandomAngle)*(fT*fSpeedRnd)+vGDir*(fT*fT*fGA);
 
-    if( (eptType == EPT_BULLET_WATER) && (vPos(2) < vSource(2)) )
-    {
+    if ((eptType == EPT_BULLET_WATER) && (vPos(2) < vSource(2))) {
       continue;
     }
 
-    FLOAT fSize = (fSizeStart + afStarsPositions[ iSpray*2+iRnd*3][0]/20.0f)*fStretch;
+    FLOAT fSize = (fSizeStart + afStarsPositions[iSpray*2 + iRnd*3][0]/20.0f)*fStretch;
     FLOAT fRotation = fT*500.0f;
     FLOAT fColorFactor = 1.0f;
-    if( fT>=fFadeStart)
-    {
-      fColorFactor = 1-fFadeLen*(fT-fFadeStart);
+
+    if (fT >= fFadeStart) {
+      fColorFactor = 1 - fFadeLen*(fT - fFadeStart);
     }
+
     UBYTE ubColor = UBYTE(CT_OPAQUE*fColorFactor);
     COLOR col = colStones|ubColor;
-    Particle_RenderSquare( vPos, fSize, fRotation, col);
+    Particle_RenderSquare(vPos, fSize, fRotation, col);
   }
+
   Particle_Flush();
   
-  //---------------------------------------
-  if( (fT<BULLET_SPARK_TOTAL_TIME) && (eptType != EPT_BULLET_WATER) && (eptType != EPT_BULLET_UNDER_WATER) )
-  {
+  // [Cecil] Not needed for now
+  /*if ((fT<BULLET_SPARK_TOTAL_TIME) && (eptType != EPT_BULLET_WATER) && (eptType != EPT_BULLET_UNDER_WATER)) {
     // render spark lines
     Particle_PrepareTexture(&_toBulletSpark, PBT_ADD);
-    for( INDEX iSpark=0; iSpark<8*fDisappear; iSpark++)
-    {
+    for (INDEX iSpark = 0; iSpark < 8*fDisappear; iSpark++) {
       FLOAT3D vRandomAngle = FLOAT3D(
         afStarsPositions[ iSpark+iRnd][0]*0.75f,
         afStarsPositions[ iSpark+iRnd][1]*0.75f,
@@ -3639,20 +3715,20 @@ void Particles_BulletSpray(INDEX iRndBase, FLOAT3D vSource, FLOAT3D vGDir, enum 
       FLOAT3D vPos0 = vSource + (vDirection+vRandomAngle)*(fT+0.00f)*12.0f;
       FLOAT3D vPos1 = vSource + (vDirection+vRandomAngle)*(fT+0.05f)*12.0f;
       FLOAT fColorFactor = 1.0f;
-      if( fT>=BULLET_SPARK_FADEOUT_START)
-      {
+
+      if (fT >= BULLET_SPARK_FADEOUT_START) {
         fColorFactor = 1-BULLET_SPARK_FADEOUT_LEN*(fT-BULLET_SPARK_FADEOUT_START);
       }
+
       UBYTE ubColor = UBYTE(CT_OPAQUE*fColorFactor);
       COLOR col = RGBToColor(ubColor,ubColor,ubColor)|CT_OPAQUE;
-      Particle_RenderLine( vPos0, vPos1, 0.05f, col);
+      Particle_RenderLine(vPos0, vPos1, 0.05f, col);
     }
     Particle_Flush();
-  }
+  }*/
 
-  //---------------------------------------
-  if( (fT<BULLET_SMOKE_TOTAL_TIME) && (eptType != EPT_BULLET_WATER) && (eptType != EPT_BULLET_UNDER_WATER) )
-  {
+  // [Cecil] Not needed for now
+  /*if ((fT<BULLET_SMOKE_TOTAL_TIME) && (eptType != EPT_BULLET_WATER) && (eptType != EPT_BULLET_UNDER_WATER)) {
     // render smoke
     Particle_PrepareTexture( &_toBulletSmoke, PBT_BLEND);
     Particle_SetTexturePart( 512, 512, iRnd%3, 0);
@@ -3664,7 +3740,7 @@ void Particles_BulletSpray(INDEX iRndBase, FLOAT3D vSource, FLOAT3D vGDir, enum 
     UBYTE ubAlpha = UBYTE(CT_OPAQUE*fColorFactor*fDisappear);
     Particle_RenderSquare( vPos, fSize, fRotation, colSmoke|ubAlpha);
     Particle_Flush();
-  }
+  }*/
 }
 
 void MakeBaseFromVector(const FLOAT3D &vY, FLOAT3D &vX, FLOAT3D &vZ)
@@ -4217,9 +4293,10 @@ void Particles_BloodSpray(enum SprayParticlesType sptType, FLOAT3D vSource, FLOA
                           FLOATaabbox3D boxOwner, FLOAT3D vSpilDirection, FLOAT tmStarted, FLOAT fDamagePower,
                           COLOR colMultiply)
 {
-  INDEX ctSprays=BLOOD_SPRAYS;
+  // [Cecil]
+  INDEX ctSprays = 4; //BLOOD_SPRAYS;
   FLOAT fBoxSize = boxOwner.Size().Length()*0.1f;
-  FLOAT fEnemySizeModifier = (fBoxSize-0.2)/1.0f+1.0f;
+  FLOAT fEnemySizeModifier = (fBoxSize - 0.2)/1.0f + 1.0f;
   FLOAT fRotation = 0.0f;
 
   // readout blood type
@@ -4228,281 +4305,283 @@ void Particles_BloodSpray(enum SprayParticlesType sptType, FLOAT3D vSource, FLOA
   // determine time difference
   FLOAT fNow = _pTimer->GetLerpedCurrentTick();
   FLOAT fSpeedModifier = 0;
-  FLOAT fT=(fNow-tmStarted);
+  FLOAT fT = (fNow-tmStarted);
 
   // prepare texture
   switch(sptType) {
     case SPT_BLOOD:
     case SPT_SLIME:
-    case SPT_GOO:
-    {
-      if( iBloodType<1) return;
-      if( iBloodType==3) Particle_PrepareTexture( &_toFlowerSprayTexture, PBT_BLEND);
-      else               Particle_PrepareTexture( &_toBloodSprayTexture,  PBT_BLEND);
+    case SPT_GOO: {
+      if (iBloodType < 1) {
+        return;
+      }
+
+      if (iBloodType == 3) {
+        Particle_PrepareTexture(&_toFlowerSprayTexture, PBT_BLEND);
+      } else {
+        Particle_PrepareTexture(&_toBloodSprayTexture,  PBT_BLEND);
+      }
       break;
     }
-    case SPT_BONES:
-    {
-      Particle_PrepareTexture( &_toBonesSprayTexture, PBT_BLEND);
+
+    case SPT_BONES: {
+      Particle_PrepareTexture(&_toBonesSprayTexture, PBT_BLEND);
       break;
     }
-    case SPT_FEATHER:
-    {
-      Particle_PrepareTexture( &_toFeatherSprayTexture, PBT_BLEND);
-      fDamagePower*=2.0f;
+
+    case SPT_FEATHER: {
+      Particle_PrepareTexture(&_toFeatherSprayTexture, PBT_BLEND);
+      fDamagePower *= 2.0f;
       break;
     }
-    case SPT_STONES:
-    {
-      Particle_PrepareTexture( &_toStonesSprayTexture, PBT_BLEND);
-      fDamagePower*=3.0f;
+
+    case SPT_STONES: {
+      Particle_PrepareTexture(&_toStonesSprayTexture, PBT_BLEND);
+      fDamagePower *= 3.0f;
       break;
     }
-    case SPT_COLOREDSTONE:
-    {
-      Particle_PrepareTexture( &_toStonesSprayTexture, PBT_BLEND);
-      fDamagePower*=2.0f;
-      fGA*=2.0f;
+
+    case SPT_COLOREDSTONE: {
+      Particle_PrepareTexture(&_toStonesSprayTexture, PBT_BLEND);
+      fDamagePower *= 2.0f;
+      fGA *= 2.0f;
       break;
     }
-    case SPT_WOOD:
-    {
-      Particle_PrepareTexture( &_toWoodSprayTexture, PBT_BLEND);
-      fDamagePower*=6.0f;
-      fGA*=3.0f;
+
+    case SPT_WOOD: {
+      Particle_PrepareTexture(&_toWoodSprayTexture, PBT_BLEND);
+      fDamagePower *= 6.0f;
+      fGA *= 3.0f;
       break;
     }
-    case SPT_TREE01:
-    {
+
+    case SPT_TREE01: {
       ctSprays*=1;
-      Particle_PrepareTexture( &_toWoodSprayTexture, PBT_BLEND);
-      fDamagePower*=1;
-      fSpeedModifier+=20;
+      Particle_PrepareTexture(&_toWoodSprayTexture, PBT_BLEND);
+      fDamagePower *= 1;
+      fSpeedModifier += 20;
       fRotation = fT*1000.0f;
-      fGA*=4.0f;
+      fGA *= 4.0f;
       break;
     }
-    case SPT_SMALL_LAVA_STONES:
-    {
-      Particle_PrepareTexture( &_toLavaSprayTexture, PBT_BLEND);
+
+    case SPT_SMALL_LAVA_STONES: {
+      Particle_PrepareTexture(&_toLavaSprayTexture, PBT_BLEND);
       fDamagePower *= 0.75f;
       break;
     }
-    case SPT_LAVA_STONES:
-    {
-      Particle_PrepareTexture( &_toLavaSprayTexture, PBT_BLEND);
-      fDamagePower *=3.0f;
+
+    case SPT_LAVA_STONES: {
+      Particle_PrepareTexture(&_toLavaSprayTexture, PBT_BLEND);
+      fDamagePower *= 3.0f;
       break;
     }
-    case SPT_BEAST_PROJECTILE_SPRAY:
-    {
-      Particle_PrepareTexture( &_toBeastProjectileSprayTexture, PBT_BLEND);
-      fDamagePower*=3.0f;
+
+    case SPT_BEAST_PROJECTILE_SPRAY: {
+      Particle_PrepareTexture(&_toBeastProjectileSprayTexture, PBT_BLEND);
+      fDamagePower *= 3.0f;
       break;
     }
-    case SPT_ELECTRICITY_SPARKS:
-    {
-      Particle_PrepareTexture( &_toMetalSprayTexture, PBT_BLEND);
+
+    case SPT_ELECTRICITY_SPARKS: {
+      Particle_PrepareTexture(&_toMetalSprayTexture, PBT_BLEND);
       break;
     }
-    case SPT_AIRSPOUTS:
-    {
-      Particle_PrepareTexture( &_toAirSprayTexture, PBT_BLEND);
+
+    case SPT_AIRSPOUTS: {
+      Particle_PrepareTexture(&_toAirSprayTexture, PBT_BLEND);
       break;
     }
-    case SPT_PLASMA:
-    {
-      Particle_PrepareTexture( &_toLarvaProjectileSpray, PBT_BLEND);
-      fDamagePower*=2.0f;
+
+    case SPT_PLASMA: {
+      Particle_PrepareTexture(&_toLarvaProjectileSpray, PBT_BLEND);
+      fDamagePower *= 2.0f;
       break;
     }
-    case SPT_NONE:
-    {
+
+    case SPT_NONE: {
       return;
     }
+
     default: ASSERT(FALSE);
       return;
-    }
+  }
 
-  for( INDEX iSpray=0; iSpray<ctSprays; iSpray++)
-  {
-    if( (sptType==SPT_FEATHER) && (iSpray==ctSprays/2) )
-    {
+  for (INDEX iSpray = 0; iSpray < ctSprays; iSpray++) {
+    if (sptType == SPT_FEATHER && iSpray == ctSprays/2) {
       Particle_Flush();
-      if( iBloodType==3) Particle_PrepareTexture( &_toFlowerSprayTexture, PBT_BLEND);
-      else               Particle_PrepareTexture( &_toBloodSprayTexture,  PBT_BLEND);
-      fDamagePower/=2.0f;
+
+      if (iBloodType == 3) {
+        Particle_PrepareTexture(&_toFlowerSprayTexture, PBT_BLEND);
+      } else {
+        Particle_PrepareTexture(&_toBloodSprayTexture, PBT_BLEND);
+      }
+
+      fDamagePower /= 2.0f;
     }
 
-    INDEX iFrame=((int(tmStarted*100.0f))%8+iSpray)%8;
-    Particle_SetTexturePart( 256, 256, iFrame, 0);
+    INDEX iFrame = ((int(tmStarted*100.0f)) % 8 + iSpray) % 8;
+    Particle_SetTexturePart(256, 256, iFrame, 0);
 
     FLOAT fFade, fSize;
     // apply fade
-    if( fT<BLOOD_SPRAY_FADE_IN_END)
-    {
-      fSize=fT/BLOOD_SPRAY_FADE_IN_END;
+    if (fT < BLOOD_SPRAY_FADE_IN_END) {
+      fSize = fT/BLOOD_SPRAY_FADE_IN_END;
       fFade = 1.0f;
-    }
-    else if (fT>BLOOD_SPRAY_FADE_OUT_START)
-    {
-      fSize=(-1/(BLOOD_SPRAY_TOTAL_TIME-BLOOD_SPRAY_FADE_OUT_START))*(fT-BLOOD_SPRAY_TOTAL_TIME);
+    } else if (fT > BLOOD_SPRAY_FADE_OUT_START) {
+      fSize = (-1/(BLOOD_SPRAY_TOTAL_TIME-BLOOD_SPRAY_FADE_OUT_START))*(fT-BLOOD_SPRAY_TOTAL_TIME);
+      fFade = fSize;
+    } else if (fT > BLOOD_SPRAY_TOTAL_TIME) {
+      fSize = 0.0f;
+      fFade = 0.0f;
+    } else {
+      fSize = 1.0f;
       fFade = fSize;
     }
-    else if( fT>BLOOD_SPRAY_TOTAL_TIME)
-    {
-      fSize=0.0f;
-      fFade =0.0f;
-    }
-    else
-    {
-      fSize=1.0f;
-      fFade = fSize;
-    }
+
     FLOAT fMipFactor = Particle_GetMipFactor();
-    FLOAT fMipSizeAffector = Clamp( fMipFactor/4.0f, 0.05f, 1.0f);
+    FLOAT fMipSizeAffector = Clamp(fMipFactor/4.0f, 0.05f, 1.0f);
     fSize *= fMipSizeAffector*fDamagePower*fEnemySizeModifier;
 
-    INDEX iRnd=(iSpray+INDEX(tmStarted*123.456))%CT_MAX_PARTICLES_TABLE;
-    FLOAT3D vRandomAngle = FLOAT3D(
-      afStarsPositions[ iRnd][0]*1.75f,
-      (afStarsPositions[ iRnd][1]+1.0f)*1.0f,
-      afStarsPositions[ iRnd][2]*1.75f);
-    FLOAT fSpilPower=vSpilDirection.Length();
-    vRandomAngle=vRandomAngle.Normalize()*fSpilPower;
-    fSpeedModifier+=afStarsPositions[ iSpray+ctSprays][0]*0.5f;
+    INDEX iRnd = (iSpray + INDEX(tmStarted*123.456)) % CT_MAX_PARTICLES_TABLE;
+    FLOAT3D vRandomAngle = FLOAT3D(afStarsPositions[iRnd][0] * 1.75f, afStarsPositions[iRnd][1] + 1.0f, afStarsPositions[iRnd][2] * 1.75f);
+
+    FLOAT fSpilPower = vSpilDirection.Length();
+    vRandomAngle = vRandomAngle.Normalize()*fSpilPower;
+    fSpeedModifier += afStarsPositions[iSpray + ctSprays][0] * 0.5f;
 
     FLOAT fSpeed = BLOOD_SPRAY_SPEED_MIN+(BLOOD_SPRAY_TOTAL_TIME-fT)/BLOOD_SPRAY_TOTAL_TIME;
-    FLOAT3D vPos = vSource+ (vSpilDirection+vRandomAngle)*(fT*(fSpeed+fSpeedModifier))+vGDir*(fT*fT*fGA/4.0f);
+    FLOAT3D vPos = vSource + (vSpilDirection + vRandomAngle) * (fT * (fSpeed + fSpeedModifier)) + vGDir * (fT * fT * fGA/4.0f);
   
-    UBYTE ubAlpha = UBYTE(CT_OPAQUE*fFade);
-    FLOAT fSizeModifier = afStarsPositions[ int(iSpray+tmStarted*50)%CT_MAX_PARTICLES_TABLE][1]*0.5+1.0f;
+    UBYTE ubAlpha = UBYTE(CT_OPAQUE * fFade);
+    FLOAT fSizeModifier = afStarsPositions[int(iSpray + tmStarted*50) % CT_MAX_PARTICLES_TABLE][1] * 0.5 + 1.0f;
 
     COLOR col = C_WHITE|CT_OPAQUE;
-  // prepare texture
-  switch(sptType) {
-    case SPT_BLOOD:
-    {
-      UBYTE ubRndCol = UBYTE( 128+afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*64);
-      if( iBloodType==2) col = RGBAToColor( ubRndCol, 0, 0, ubAlpha);
-      if( iBloodType==1) col = RGBAToColor( 0, ubRndCol, 0, ubAlpha);
-      break;
-    }
-    case SPT_SLIME:
-    {
-      UBYTE ubRndCol = UBYTE( 128+afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*64);
-      if( iBloodType!=3) col = RGBAToColor(0, ubRndCol, 0, ubAlpha);
-      break;
-    }
-    case SPT_GOO:
-    {
-      UBYTE ubRndCol = UBYTE( 128+afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*64);
-      if( iBloodType!=3) col = RGBAToColor(ubRndCol, 128, 12, ubAlpha);
-      break;
-    }
-    case SPT_BONES:
-    {
-      UBYTE ubRndH = UBYTE( 8+afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*16);
-      UBYTE ubRndS = UBYTE( 96+(afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][1]+0.5)*64);
-      UBYTE ubRndV = UBYTE( 64+(afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][2])*64);
-      col = HSVToColor(ubRndH, ubRndS, ubRndV)|ubAlpha;
-      fSize/=1.5f;
-      break;
-    }
-    case SPT_FEATHER:
-    {
-      if(iSpray>=ctSprays/2)
-      {
-        UBYTE ubRndCol = UBYTE( 128+afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*64);
-        if( iBloodType==2) col = RGBAToColor( ubRndCol, 0, 0, ubAlpha);
-        if( iBloodType==1) col = RGBAToColor( 0, ubRndCol, 0, ubAlpha);
-      }
-      else
-      {
-        UBYTE ubRndH = UBYTE( 32+afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*16);
-        UBYTE ubRndS = UBYTE( 127+(afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][1]+0.5)*128);
-        UBYTE ubRndV = UBYTE( 159+(afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][2])*192);
-        col = HSVToColor(ubRndH, 0, ubRndV)|ubAlpha;
-        fSize/=2.0f;
+
+    // prepare texture
+    switch(sptType) {
+      case SPT_BLOOD: {
+        UBYTE ubRndCol = UBYTE(128+afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*64);
+
+        switch (iBloodType) {
+          case 1: col = RGBAToColor(0, ubRndCol, 0, ubAlpha); break;
+          case 2: col = RGBAToColor(ubRndCol, 0, 0, ubAlpha); break;
+        }
+        
+        // [Cecil] Own size
+        fSize /= 2.5f;
+      } break;
+
+      case SPT_SLIME: {
+        UBYTE ubRndCol = UBYTE( 128+afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*64);
+        if (iBloodType != 3) col = RGBAToColor(0, ubRndCol, 0, ubAlpha);
+        
+        // [Cecil] Own size
+        fSize /= 2.5f;
+      } break;
+
+      case SPT_GOO: {
+        UBYTE ubRndCol = UBYTE( 128+afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*64);
+        if (iBloodType != 3) col = RGBAToColor(ubRndCol, 128, 12, ubAlpha);
+        
+        // [Cecil] Own size
+        fSize /= 2.5f;
+      } break;
+
+      case SPT_BONES: {
+        UBYTE ubRndH = UBYTE( 8+afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*16);
+        UBYTE ubRndS = UBYTE( 96+(afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][1]+0.5)*64);
+        UBYTE ubRndV = UBYTE( 64+(afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][2])*64);
+        col = HSVToColor(ubRndH, ubRndS, ubRndV)|ubAlpha;
+        fSize /= 1.5f;
+      } break;
+
+      case SPT_FEATHER: {
+        if(iSpray >= ctSprays/2) {
+          UBYTE ubRndCol = UBYTE(128+afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*64);
+          if( iBloodType==2) col = RGBAToColor( ubRndCol, 0, 0, ubAlpha);
+          if( iBloodType==1) col = RGBAToColor( 0, ubRndCol, 0, ubAlpha);
+        } else {
+          UBYTE ubRndH = UBYTE(32+afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*16);
+          UBYTE ubRndS = UBYTE(127+(afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][1]+0.5)*128);
+          UBYTE ubRndV = UBYTE(159+(afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][2])*192);
+          col = HSVToColor(ubRndH, 0, ubRndV)|ubAlpha;
+          fSize /= 2.0f;
+          fRotation = fT*200.0f;
+        }
+        
+        // [Cecil] Own size
+        fSize /= 2.5f;
+      } break;
+
+      case SPT_STONES: {
+        UBYTE ubRndH = UBYTE(24+afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*16);
+        UBYTE ubRndS = UBYTE(32+(afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][1]+0.5)*64);
+        UBYTE ubRndV = UBYTE(196+(afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][2])*128);
+        col = HSVToColor(ubRndH, ubRndS, ubRndV)|ubAlpha;
+        fSize *= 0.10f;
         fRotation = fT*200.0f;
-      }
-      break;
+      } break;
+
+      case SPT_COLOREDSTONE: {
+        UBYTE ubH,ubS,ubV;
+        ColorToHSV( colMultiply, ubH, ubS, ubV);
+        UBYTE ubRndH = Clamp(ubH+INDEX(afStarsPositions[int(iSpray+tmStarted*6)%CT_MAX_PARTICLES_TABLE][0]*16),INDEX(0),INDEX(255));
+        UBYTE ubRndS = Clamp(ubS+INDEX(afStarsPositions[int(iSpray+tmStarted*7)%CT_MAX_PARTICLES_TABLE][1]*64),INDEX(0),INDEX(255));
+        UBYTE ubRndV = Clamp(ubV+INDEX(afStarsPositions[int(iSpray+tmStarted*8)%CT_MAX_PARTICLES_TABLE][2]*64),INDEX(0),INDEX(255));
+        col = HSVToColor(ubRndH, ubRndS, ubRndV)|ubAlpha;
+        fSize *= 0.10f/2.0f;
+        fRotation = fT*50.0f;
+      } break;
+
+      case SPT_WOOD: {
+        UBYTE ubRndH = UBYTE(16+afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*16);
+        UBYTE ubRndS = UBYTE(96+(afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][1]+0.5)*32);
+        UBYTE ubRndV = UBYTE(96+(afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][2])*96);
+        col = HSVToColor(ubRndH, ubRndS, ubRndV)|ubAlpha;
+        fSize *= 0.15f;
+        fRotation = fT*300.0f;
+      } break;
+
+      case SPT_TREE01: {
+        UBYTE ubRndH = UBYTE(16+afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*16);
+        UBYTE ubRndS = UBYTE(96+(afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][1]+0.5)*32);
+        UBYTE ubRndV = UBYTE(96+(afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][2])*96);
+        col = HSVToColor(ubRndH, ubRndS, ubRndV)|ubAlpha;
+        fSize *= 0.2f;
+      } break;
+
+      case SPT_LAVA_STONES:
+      case SPT_SMALL_LAVA_STONES: {
+        col = C_WHITE|ubAlpha;
+        fSize /= 12.0f;
+        fRotation = fT*200.0f;
+      } break;
+
+      case SPT_BEAST_PROJECTILE_SPRAY: {
+        col = C_WHITE|ubAlpha;
+        fSize /= 12.0f;
+        fRotation = fT*200.0f;
+      } break;
+
+      case SPT_ELECTRICITY_SPARKS: {
+        UBYTE ubRndH = UBYTE(180+afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*16);
+        UBYTE ubRndS = UBYTE(32+(afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][1]+0.5)*16);
+        UBYTE ubRndV = UBYTE(192+(afStarsPositions[int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][2])*64);
+        ubRndS = 0;
+        ubRndV = 255;
+        col = HSVToColor(ubRndH, ubRndS, ubRndV)|ubAlpha;
+        fSize /= 32.0f;
+        fRotation = fT*200.0f;
+      } break;
+
+      case SPT_AIRSPOUTS: {
+        col = C_WHITE | (ubAlpha>>1);
+      } break;
     }
-    case SPT_STONES:
-    {
-      UBYTE ubRndH = UBYTE( 24+afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*16);
-      UBYTE ubRndS = UBYTE( 32+(afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][1]+0.5)*64);
-      UBYTE ubRndV = UBYTE( 196+(afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][2])*128);
-      col = HSVToColor(ubRndH, ubRndS, ubRndV)|ubAlpha;
-      fSize*=0.10f;
-      fRotation = fT*200.0f;
-      break;
-    }
-    case SPT_COLOREDSTONE:
-    {
-      UBYTE ubH,ubS,ubV;
-      ColorToHSV( colMultiply, ubH, ubS, ubV);
-      UBYTE ubRndH = Clamp(ubH+INDEX(afStarsPositions[ int(iSpray+tmStarted*6)%CT_MAX_PARTICLES_TABLE][0]*16),INDEX(0),INDEX(255));
-      UBYTE ubRndS = Clamp(ubS+INDEX(afStarsPositions[ int(iSpray+tmStarted*7)%CT_MAX_PARTICLES_TABLE][1]*64),INDEX(0),INDEX(255));
-      UBYTE ubRndV = Clamp(ubV+INDEX(afStarsPositions[ int(iSpray+tmStarted*8)%CT_MAX_PARTICLES_TABLE][2]*64),INDEX(0),INDEX(255));
-      col = HSVToColor(ubRndH, ubRndS, ubRndV)|ubAlpha;
-      fSize*=0.10f/2.0f;
-      fRotation = fT*50.0f;
-      break;
-    }
-    case SPT_WOOD:
-    {
-      UBYTE ubRndH = UBYTE( 16+afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*16);
-      UBYTE ubRndS = UBYTE( 96+(afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][1]+0.5)*32);
-      UBYTE ubRndV = UBYTE( 96+(afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][2])*96);
-      col = HSVToColor(ubRndH, ubRndS, ubRndV)|ubAlpha;
-      fSize*=0.15f;
-      fRotation = fT*300.0f;
-      break;
-    }
-    case SPT_TREE01:
-    {
-      UBYTE ubRndH = UBYTE( 16+afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*16);
-      UBYTE ubRndS = UBYTE( 96+(afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][1]+0.5)*32);
-      UBYTE ubRndV = UBYTE( 96+(afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][2])*96);
-      col = HSVToColor(ubRndH, ubRndS, ubRndV)|ubAlpha;
-      fSize*=0.2f;
-      break;
-    }
-    case SPT_LAVA_STONES:
-    case SPT_SMALL_LAVA_STONES:
-    {
-      col = C_WHITE|ubAlpha;
-      fSize/=12.0f;
-      fRotation = fT*200.0f;
-      break;
-    }
-    case SPT_BEAST_PROJECTILE_SPRAY:
-    {
-      col = C_WHITE|ubAlpha;
-      fSize/=12.0f;
-      fRotation = fT*200.0f;
-      break;
-    }
-    case SPT_ELECTRICITY_SPARKS:
-    {
-      UBYTE ubRndH = UBYTE( 180+afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][0]*16);
-      UBYTE ubRndS = UBYTE( 32+(afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][1]+0.5)*16);
-      UBYTE ubRndV = UBYTE( 192+(afStarsPositions[ int(iSpray+tmStarted*10)%CT_MAX_PARTICLES_TABLE][2])*64);
-      ubRndS = 0;
-      ubRndV = 255;
-      col = HSVToColor(ubRndH, ubRndS, ubRndV)|ubAlpha;
-      fSize/=32.0f;
-      fRotation = fT*200.0f;
-      break;
-    }
-    case SPT_AIRSPOUTS:
-    {
-      col = C_WHITE|(ubAlpha>>1);
-      break;
-    }
-    }
-    Particle_RenderSquare( vPos, 0.25f*fSize*fSizeModifier, fRotation, MulColors(col,colMultiply));
+
+    FLOAT fBaseSize = 0.25f;
+    Particle_RenderSquare(vPos, fBaseSize*fSize*fSizeModifier, fRotation, MulColors(col,colMultiply));
   }
 
   // all done
@@ -5465,9 +5544,7 @@ void Particles_GrowingSwirl( CEntity *pen, FLOAT fStretch, FLOAT fStartTime)
   Particle_Flush();
 }
 
-void Particles_SniperResidue(CEntity *pen, FLOAT3D vSource, FLOAT3D vTarget)
-{
-  
+void Particles_SniperResidue(CEntity *pen, FLOAT3D vSource, FLOAT3D vTarget) {
   Particle_PrepareTexture(&_toLightning, PBT_ADDALPHA);
   Particle_SetTexturePart( 512, 512, 0, 0);
   
@@ -5486,7 +5563,16 @@ void Particles_SniperResidue(CEntity *pen, FLOAT3D vSource, FLOAT3D vTarget)
   }
         
   Particle_Flush();
-}
+};
+
+// [Cecil] Gravity Gun launch effect
+void Particles_GravityGunCharge(FLOAT3D vSource, FLOAT3D vTarget) {
+  Particle_PrepareTexture(&_toGGCharge, PBT_ADDALPHA);
+  Particle_SetTexturePart(1024, 2048, 0, 0);
+
+  Particle_RenderLine(vSource, vTarget, 0.2f, 0xFFFFFFFF);
+  Particle_Flush();
+};
 
 void Particles_SummonerStaff(CEmiter &em)
 {
