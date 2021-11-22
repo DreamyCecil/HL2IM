@@ -75,38 +75,34 @@ components:
 functions:
 
   // render particles
-  void RenderParticles(void)
-  {
-    if (Particle_GetViewer()==this) {
+  void RenderParticles(void) {
+    if (Particle_GetViewer() == this) {
       Particles_ViewerLocal(this);
     }
-  }
+  };
 
   // Check if entity is moved on a route set up by its targets
-  BOOL MovesByTargetedRoute( CTString &strTargetProperty) const
-  {
+  BOOL MovesByTargetedRoute( CTString &strTargetProperty) const {
     strTargetProperty = "Target";
     return TRUE;
-  }
+  };
 
   // Check if entity can drop marker for making linked route
-  BOOL DropsMarker( CTFileName &fnmMarkerClass, CTString &strTargetProperty) const
-  {
+  BOOL DropsMarker( CTFileName &fnmMarkerClass, CTString &strTargetProperty) const {
     fnmMarkerClass = CTFILENAME( "Classes\\CameraMarker.ecl");
     strTargetProperty = "Target";
     return TRUE;
-  }
+  };
 
   // returns camera description
-  const CTString &GetDescription(void) const
-  {
+  const CTString &GetDescription(void) const {
     if (m_penTarget!=NULL) {
       ((CTString&)m_strDescription).PrintF("->%s", m_penTarget->GetName());
     } else {
       ((CTString&)m_strDescription).PrintF("-><none>");
     }
     return m_strDescription;
-  }
+  };
 
   void GetAutoRotatePlacement( FLOAT tmCurrent, FLOAT3D &vPos, FLOATmatrix3D &mRot,
     CPlacement3D &plNew, FLOAT3D vTarget) const
@@ -127,8 +123,7 @@ functions:
     return;
   }
 
-  CPlacement3D GetLerpedPlacement(void) const
-  {
+  CPlacement3D GetLerpedPlacement(void) const {
     FLOAT fLerpFactor;
     if (IsPredictor()) {
       fLerpFactor = _pTimer->GetLerpFactor();
@@ -170,7 +165,7 @@ functions:
       return LerpPlacementsPrecise(en_plLastPlacement, en_plPlacement, fLerpFactor);
     }
     //return CMovableEntity::GetLerpedPlacement();
-  }
+  };
 
   // calculate rotation matrix that points in direction of a target entity
   void CalcTargetedRotation(const FLOAT3D &vMyPos, CEntity *penViewTarget,
@@ -186,15 +181,12 @@ functions:
     MakeRotationMatrixFast(mRotTarget, aDir);
   }
 
-  void PreMoving()
-  {
+  void PreMoving() {
     // remember old placement for lerping
     en_plLastPlacement = en_plPlacement;  
-  }
+  };
 
-
-  void DoMoving()  
-  {
+  void DoMoving() {
     if (!m_bMoving) {
       return;
     }
@@ -437,11 +429,9 @@ functions:
     // set new fov
     m_fLastFOV = m_fFOV;
     m_fFOV = fFOV;
-  }
+  };
 
-
-  void PostMoving()  
-  {
+  void PostMoving() {
     if (!m_bMoving) {
       return;
     }
@@ -452,8 +442,7 @@ functions:
       en_ulFlags |= ENF_INRENDERING;
       SendEvent( EStop());
     }
-  }
-
+  };
 
 procedures:
 
@@ -646,7 +635,7 @@ procedures:
         on (ETrigger eTrigger) : {
           CEntity *penCaused;
           penCaused = FixupCausedToPlayer(this, eTrigger.penCaused, FALSE);
-          if( IsDerivedFromClass(penCaused, "Player")) {
+          if( IS_PLAYER(penCaused)) {
             m_penPlayer = penCaused;
             call PlayCamera();
           }

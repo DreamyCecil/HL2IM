@@ -75,7 +75,7 @@ functions:
       return FALSE;
     }
 
-    if (m_bPlayersOnly && !IsDerivedFromClass(pen, "Player")) {
+    if (m_bPlayersOnly && !IS_PLAYER(pen)) {
       return FALSE;
     }
 
@@ -252,7 +252,7 @@ procedures:
       // wait to someone enter
       wait() {
         on (EPass ePass) : {
-          if (IsDerivedFromClass(ePass.penOther, "Player")) {
+          if (IS_PLAYER(ePass.penOther)) {
             CPlayer *penPlayer = (CPlayer*)&*ePass.penOther;
             // if he has the key
             ULONG ulKey = (1<<INDEX(m_kitKey));

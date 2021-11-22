@@ -1,8 +1,10 @@
 304
 %{
 #include "StdH.h"
-%}
 
+// [Cecil] Eyeman with forced flight
+#include "EntitiesMP/Eyeman.h"
+%}
 
 uses "EntitiesMP/EnemyBase";
 uses "EntitiesMP/BasicEffects";
@@ -51,8 +53,6 @@ properties:
 
  60 CEntityPointer m_penTacticsHolder  "Tactics Holder",
  61 BOOL m_bTacticsAutostart           "Tactics autostart" = TRUE,
-
- 
 
 components:
 
@@ -172,7 +172,14 @@ functions:
       // calculate new position
       FLOAT fR = fInnerCircle + FRnd()*(fOuterCircle-fInnerCircle);
       FLOAT fA = FRnd()*360.0f;
+
       CPlacement3D pl(FLOAT3D(CosFast(fA)*fR, 0.05f, SinFast(fA)*fR), ANGLE3D(0, 0, 0));
+
+      // [Cecil] Spawn Eyeman with forced flight a bit higher
+      if (IsOfClass(pen, "Eyeman") && ((CEyeman&)*pen).m_bForcedFlight) {
+        pl.pl_PositionVector(2) += 1.0f;
+      }
+
       pl.RelativeToAbsolute(GetPlacement());
 
       // teleport back
@@ -445,12 +452,13 @@ procedures:
     }
 
     // check target
-    if (m_penTarget!=NULL) {
+    if (m_penTarget != NULL) {
       if (!IsDerivedFromClass(m_penTarget, "Enemy Base")) {
         WarningMessage("Target '%s' is of wrong class!", m_penTarget->GetName());
         m_penTarget = NULL;
       }
     }
+
     if (m_penSeriousTarget!=NULL) {
       if (!IsDerivedFromClass(m_penSeriousTarget, "Enemy Base")) {
         WarningMessage("Target '%s' is of wrong class!", m_penSeriousTarget->GetName());

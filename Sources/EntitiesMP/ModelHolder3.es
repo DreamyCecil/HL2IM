@@ -172,27 +172,31 @@ functions:
     // adjust damage
     fNewDamage *=DamageStrength(penDestruction->m_eibtBodyType, dmtType);
     // if no damage
-    if (fNewDamage==0) {
+    if (fNewDamage == 0) {
       // do nothing
       return;
     }
+
     FLOAT fKickDamage = fNewDamage;
-    if( (dmtType == DMT_EXPLOSION) || (dmtType == DMT_IMPACT) || (dmtType == DMT_CANNONBALL_EXPLOSION) )
-    {
-      fKickDamage*=1.5f;
+    if (dmtType == DMT_EXPLOSION || dmtType == DMT_IMPACT || dmtType == DMT_CANNONBALL_EXPLOSION) {
+      fKickDamage *= 1.5f;
     }
+
     if (dmtType == DMT_CLOSERANGE) {
-      fKickDamage=0.0f;
+      fKickDamage = 0.0f;
     }
+
     if (dmtType == DMT_CHAINSAW) {
-      fKickDamage=0.0f;
-    }    
-    if(dmtType == DMT_BULLET && penDestruction->m_eibtBodyType==EIBT_ROCK) {
-      fKickDamage=0.0f;
+      fKickDamage = 0.0f;
     }
-    if( dmtType==DMT_BURNING)
-    {
-      fKickDamage=0.0f;
+
+    // [Cecil] DMT_RIFLE
+    if ((dmtType == DMT_BULLET || dmtType == DMT_RIFLE) && penDestruction->m_eibtBodyType == EIBT_ROCK) {
+      fKickDamage = 0.0f;
+    }
+
+    if (dmtType == DMT_BURNING) {
+      fKickDamage = 0.0f;
     }
 
     // get passed time since last damage

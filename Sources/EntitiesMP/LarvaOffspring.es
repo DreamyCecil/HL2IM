@@ -119,7 +119,7 @@ void LarvaTailExplosion(void) {
   ese.vStretch = FLOAT3D(1,1,1);
   SpawnEffect(GetPlacement(), ese);
   // spawn sound event in range
-  if( IsDerivedFromClass( m_penLauncher, "Player")) {
+  if( IS_PLAYER( m_penLauncher)) {
     SpawnRangeSound( m_penLauncher, this, SNDT_PLAYER, m_fSoundRange);
   }
 

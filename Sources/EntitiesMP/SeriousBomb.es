@@ -99,9 +99,7 @@ procedures:
       
       m_soBlow.Set3DParameters(500.0f, 250.0f, 3.0f, 1.0f);
       PlaySound(m_soBlow, SOUND_BLOW, SOF_3D);
-      if(_pNetwork->IsPlayerLocal(m_penOwner)) {IFeel_PlayEffect("SeriousBombBlow");}
       
-      //Glare(tmp_af[5], tmp_af[6], tmp_af[7], tmp_af[8]);
       Glare(1.0f, 2.8f, 0.3f, 0.3f);
       
       ShakeItBaby(_pTimer->CurrentTick(), 4.0f, 1.0f, TRUE);

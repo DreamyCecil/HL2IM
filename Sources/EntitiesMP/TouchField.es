@@ -12,7 +12,7 @@ BOOL ConsiderAll(CEntity*pen)
 }
 BOOL ConsiderPlayers(CEntity*pen) 
 {
-  return IsDerivedFromClass(pen, "Player");
+  return IS_PLAYER(pen);
 }
 %}
 
@@ -85,7 +85,7 @@ procedures:
         // stop enemy projectiles if blocks non players 
         if (m_bBlockNonPlayers && IsOfClass(ep.penOther, "Projectile"))
         {
-          if (!IsOfClass(((CProjectile *)&*ep.penOther)->m_penLauncher, "Player")) {
+          if (!IS_PLAYER(((CProjectile *)&*ep.penOther)->m_penLauncher)) {
             EPass epass;
             epass.penOther = this;
             ep.penOther->SendEvent(epass);
@@ -93,7 +93,7 @@ procedures:
         }
         
         // if should react only on players and not player,
-        if (m_bPlayersOnly && !IsDerivedFromClass(ep.penOther, "Player")) {
+        if (m_bPlayersOnly && !IS_PLAYER(ep.penOther)) {
           // ignore
           resume;
         }

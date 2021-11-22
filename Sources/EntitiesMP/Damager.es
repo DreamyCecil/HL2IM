@@ -28,8 +28,7 @@ functions:
   }
 
 procedures:
-  Main()
-  {
+  Main() {
     InitAsEditorModel();
     SetPhysicsFlags(EPF_MODEL_IMMATERIAL);
     SetCollisionFlags(ECF_IMMATERIAL);

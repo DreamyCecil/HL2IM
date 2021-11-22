@@ -128,7 +128,6 @@ properties:
  81 flags ClasificationBits m_cbClassificationBits "Clasification bits" 'C' = 0,
  82 flags VisibilityBits m_vbVisibilityBits "Visibility bits" 'V' = 0,
 
-
 components:
 
 // ************** STONE PARTS **************
@@ -160,32 +159,28 @@ functions:
   }
   /* Receive damage */
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType,
-    FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) 
-  {
-    if( m_bMoveOnDamage)
-    {
+    FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) {
+    if (m_bMoveOnDamage) {
       EHit eHit;
-      SendEvent( eHit);
+      SendEvent(eHit);
       return;
     }
 
     // send event on damage
-    if(m_tdeSendEventOnDamage!=TDE_TOUCHONLY && CanReactOnEntity(penInflictor)) {
+    if (m_tdeSendEventOnDamage != TDE_TOUCHONLY && CanReactOnEntity(penInflictor)) {
       SendToTarget(m_penTouchEvent, m_eetTouchEvent, penInflictor);
     }
 
     // if not destroyable
-    if(m_fHealth<0) {
+    if (m_fHealth < 0) {
       // ignore damages
       return;
     }
 
     // if special feature for bull crushing doors
-    if (m_bBlowupByBull)
-    {
+    if (m_bBlowupByBull) {
       // if impact by bull
-      if( dmtType == DMT_IMPACT && IsOfClass(penInflictor, "Werebull"))
-      {
+      if (dmtType == DMT_IMPACT && IsOfClass(penInflictor, "Werebull")) {
         // recieve the damage so large to blowup
         CMovableBrushEntity::ReceiveDamage(penInflictor, dmtType, m_fHealth*2, vHitPoint, vDirection);
         // kill the bull in place, but make sure it doesn't blow up
@@ -193,22 +188,36 @@ functions:
         InflictDirectDamage(penInflictor, this, DMT_IMPACT, 1.0f, 
           GetPlacement().pl_PositionVector, FLOAT3D(0,1,0));
       }
-    }
-    else if(m_bBlowupByDamager)
-    {
-      if( dmtType == DMT_DAMAGER)
-      {
+
+    } else if (m_bBlowupByDamager) {
+      if (dmtType == DMT_DAMAGER) {
         CMovableBrushEntity::ReceiveDamage(penInflictor, dmtType, fDamageAmmount, vHitPoint, vDirection);
       }
-    }
-    else
-    {
+
+    } else {
       // react only on explosions
-      if( (dmtType == DMT_EXPLOSION) ||
-          (dmtType == DMT_PROJECTILE) ||
-          (dmtType == DMT_CANNONBALL) )
-      {
-        CMovableBrushEntity::ReceiveDamage(penInflictor, dmtType, fDamageAmmount, vHitPoint, vDirection);
+      switch (dmtType) {
+        case DMT_EXPLOSION:
+        case DMT_PROJECTILE:
+        case DMT_CANNONBALL:
+          CMovableBrushEntity::ReceiveDamage(penInflictor, dmtType, fDamageAmmount, vHitPoint, vDirection);
+          break;
+      }
+
+      // [Cecil] Other types
+      switch (dmtType) {
+        // Energy Ball
+        case DMT_ACID:
+          if (IS_PLAYER(penInflictor)) {
+            CMovableBrushEntity::ReceiveDamage(penInflictor, dmtType, fDamageAmmount, vHitPoint, vDirection);
+          }
+          break;
+        // Rifle damage
+        case DMT_RIFLE:
+          if (IS_PLAYER(penInflictor)) {
+            CMovableBrushEntity::ReceiveDamage(penInflictor, dmtType, fDamageAmmount*0.3f, vHitPoint, vDirection);
+          }
+          break;
       }
     }
   };
@@ -220,7 +229,6 @@ functions:
       else if (a<0) { a = 360 + a; }
     }
   };
-
 
   /* Check if entity is moved on a route set up by its targets. */
   BOOL MovesByTargetedRoute(CTString &strTargetProperty) const {
@@ -466,7 +474,7 @@ functions:
       return FALSE;
     }
 
-    if (m_bPlayersOnly && !IsDerivedFromClass(pen, "Player")) {
+    if (m_bPlayersOnly && !IS_PLAYER(pen)) {
       return FALSE;
     }
 
@@ -629,9 +637,11 @@ procedures:
       }
       // move is obstructed
       on (EBlock eBlock) : {
+        // [Cecil] Hit point on the target position
+        FLOAT3D vHit = eBlock.penOther->GetPlacement().pl_PositionVector;
+
         // inflict damage to entity that block brush
-        InflictDirectDamage(eBlock.penOther, this, DMT_BRUSH, m_fBlockDamage,
-          FLOAT3D(0.0f,0.0f,0.0f), (FLOAT3D &)eBlock.plCollision);
+        InflictDirectDamage(eBlock.penOther, this, DMT_BRUSH, m_fBlockDamage, vHit, (FLOAT3D &)eBlock.plCollision);
         if (m_ebaAction == BA_BOUNCE) {
           // change direction for two ticks
           SetDesiredTranslation(-m_vDesiredTranslation);
@@ -854,6 +864,7 @@ procedures:
         }
         resume;
       }
+
       on (EHit eHit) : {
         if (!m_bMoving) {
           MaybeActivateRotation();
@@ -861,6 +872,7 @@ procedures:
         }
         resume;
       }
+
       // move on touch
       on (ETouch eTouch) : {
         // inflict damage if required
@@ -900,10 +912,13 @@ procedures:
         }
         resume;
       }
+
       on (EBlock eBlock) : {
+        // [Cecil] Hit point on the target position
+        FLOAT3D vHit = eBlock.penOther->GetPlacement().pl_PositionVector;
+
         // inflict damage to entity that block brush
-        InflictDirectDamage(eBlock.penOther, this, DMT_BRUSH, m_fBlockDamage,
-          FLOAT3D(0.0f,0.0f,0.0f), (FLOAT3D &)eBlock.plCollision);
+        InflictDirectDamage(eBlock.penOther, this, DMT_BRUSH, m_fBlockDamage, vHit, (FLOAT3D &)eBlock.plCollision);
         if (m_ebaAction == BA_BOUNCE) {
           // change direction for two ticks
           SetDesiredTranslation(-m_vDesiredTranslation);
@@ -918,6 +933,7 @@ procedures:
         }
         resume;
       }
+
       // move on start (usually trigger)
       on (EStart) : {
         // if not already moving and have target
@@ -926,14 +942,17 @@ procedures:
         }
         resume;
       }
+
       on (EStop) : {
         //SetCollisionFlags(ECF_IMMATERIAL);
         resume;
       }
+
       on (ETeleportMovingBrush) : {
         call TeleportToStopMarker();
         resume;
       }
+
       on (ETrigger) : {
         // if not already moving and have target
         if(!m_bMoving && m_bValidMarker) {
@@ -941,16 +960,19 @@ procedures:
         }
         resume;
       }
+
       on (EActivate) : {
         if (!m_bRotating) {
           MaybeActivateRotation();
         }
         resume;
       }
+
       on (EDeactivate) : {
         DeactivateRotation();
         resume;
       }
+
       on (EDeath eDeath) : {
         // get your size
         FLOATaabbox3D box;

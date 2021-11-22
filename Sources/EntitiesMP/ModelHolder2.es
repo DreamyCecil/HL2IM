@@ -160,27 +160,33 @@ functions:
     // adjust damage
     fNewDamage *=DamageStrength(penDestruction->m_eibtBodyType, dmtType);
     // if no damage
-    if (fNewDamage==0) {
+    if (fNewDamage == 0) {
       // do nothing
       return;
     }
+
     FLOAT fKickDamage = fNewDamage;
-    if( (dmtType == DMT_EXPLOSION) || (dmtType == DMT_IMPACT) || (dmtType == DMT_CANNONBALL_EXPLOSION) )
-    {
-      fKickDamage*=1.5f;
+    if (dmtType == DMT_EXPLOSION || dmtType == DMT_IMPACT || dmtType == DMT_CANNONBALL_EXPLOSION) {
+      fKickDamage *= 1.5f;
     }
-    if (dmtType == DMT_CLOSERANGE) {
-      fKickDamage=0.0f;
+
+    // [Cecil] Player isn't affected
+    if (dmtType == DMT_CLOSERANGE && !IS_PLAYER(penInflictor)) {
+      fKickDamage = 0.0f;
     }
-    if (dmtType == DMT_CHAINSAW) {
-      fKickDamage=0.0f;
-    }    
-    if(dmtType == DMT_BULLET && penDestruction->m_eibtBodyType==EIBT_ROCK) {
-      fKickDamage=0.0f;
+
+    // [Cecil] Player isn't affected
+    if (dmtType == DMT_CHAINSAW && !IS_PLAYER(penInflictor)) {
+      fKickDamage = 0.0f;
     }
-    if( dmtType==DMT_BURNING)
-    {
-      fKickDamage=0.0f;
+
+    // [Cecil] DMT_RIFLE
+    if ((dmtType == DMT_BULLET || dmtType == DMT_RIFLE) && penDestruction->m_eibtBodyType == EIBT_ROCK) {
+      fKickDamage = 0.0f;
+    }
+
+    if (dmtType == DMT_BURNING) {
+      fKickDamage = 0.0f;
     }
 
     // get passed time since last damage
@@ -191,10 +197,12 @@ functions:
     // remember who damaged you
     m_penLastDamager = penInflictor;
 
+    // [Cecil] Reset only for explosions
     // fade damage out
-    if (tmDelta>=_pTimer->TickQuantum*3) {
+    if (tmDelta>=_pTimer->TickQuantum*3 && penDestruction->m_bRequireExplosion) {
       m_vDamage=FLOAT3D(0,0,0);
     }
+
     // add new damage
     FLOAT3D vDirectionFixed;
     if (vDirection.ManhattanNorm()>0.5f) {

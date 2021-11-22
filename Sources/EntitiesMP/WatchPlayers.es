@@ -36,8 +36,8 @@ functions:
 
     m_penCurrentWatch = NULL;
     // for all players
-    for (INDEX iPlayer=0; iPlayer<GetMaxPlayers(); iPlayer++) {
-      CEntity *penPlayer = GetPlayerEntity(iPlayer);
+    for (INDEX iPlayer=0; iPlayer<CECIL_GetMaxPlayers(); iPlayer++) {
+      CEntity *penPlayer = CECIL_GetPlayerEntity(iPlayer);
       // if player is alive and visible
       if (penPlayer!=NULL && penPlayer->GetFlags()&ENF_ALIVE && !(penPlayer->GetFlags()&ENF_INVISIBLE)) {
         fDistance = 100000.0f;

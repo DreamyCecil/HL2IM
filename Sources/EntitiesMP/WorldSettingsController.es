@@ -72,117 +72,95 @@ components:
 
 functions:
   
-  BOOL IsTargetValid(SLONG slPropertyOffset, CEntity *penTarget)
-  {
-    if( slPropertyOffset == offsetof(CWorldSettingsController, m_penEnvPartHolder))
-    {
-      if (IsOfClass(penTarget, "EnvironmentParticlesHolder")) { return TRUE; }
-      else { return FALSE; }
-    }   
-    return CEntity::IsTargetValid(slPropertyOffset, penTarget);
-  }
+  BOOL IsTargetValid(SLONG slPropertyOffset, CEntity *penTarget) {
+    if (slPropertyOffset == offsetof(CWorldSettingsController, m_penEnvPartHolder)) {
+      return IsOfClass(penTarget, "EnvironmentParticlesHolder");
+    }
 
-  FLOAT GetStormFactor(void)
-  {
+    return CEntity::IsTargetValid(slPropertyOffset, penTarget);
+  };
+
+  FLOAT GetStormFactor(void) {
     FLOAT fStormFactor = 0.0f;
     TIME tmNow = _pTimer->GetLerpedCurrentTick();
+
     // if we have storm
-    if( tmNow>m_tmStormStart && tmNow<m_tmStormEnd+m_tmStormDisappearTime)
-    {
+    if (tmNow > m_tmStormStart && tmNow < m_tmStormEnd + m_tmStormDisappearTime) {
       // storm is on
-      if( tmNow>m_tmStormStart+m_tmStormAppearTime && tmNow<m_tmStormEnd)
-      {
+      if (tmNow > m_tmStormStart + m_tmStormAppearTime && tmNow < m_tmStormEnd) {
         fStormFactor = 1.0f;
-      }
+
       // storm is turning off
-      else if( tmNow>m_tmStormEnd)
-      {
-        fStormFactor = 1.0f-(tmNow-m_tmStormEnd)/m_tmStormDisappearTime;
-      }
+      } else if (tmNow > m_tmStormEnd) {
+        fStormFactor = 1.0f - (tmNow - m_tmStormEnd) / m_tmStormDisappearTime;
+
       // storm is turning on
-      else
-      {
+      } else {
         fStormFactor = (tmNow-m_tmStormStart)/m_tmStormAppearTime;
       }
     }
     return fStormFactor;
-  }
+  };
   
   /* Handle an event, return false if the event is not handled. */
-  BOOL HandleEvent(const CEntityEvent &ee)
-  {
-    if( ee.ee_slEvent==EVENTCODE_EScroll)
-    {
-      EScroll escr = ((EScroll &) ee);
-      if( escr.bStart)
-      {
-        m_penScrollHolder=escr.penSender;
+  BOOL HandleEvent(const CEntityEvent &ee) {
+    if (ee.ee_slEvent == EVENTCODE_EScroll) {
+      EScroll escr = (EScroll &)ee;
+
+      if (escr.bStart) {
+        m_penScrollHolder = escr.penSender;
+
+      } else if (m_penScrollHolder == escr.penSender) {
+        m_penScrollHolder = NULL;
       }
-      else
-      {
-        if( m_penScrollHolder==escr.penSender)
-        {
-          m_penScrollHolder=NULL;
-        }
-      }
+
       return TRUE;
     }
-    if( ee.ee_slEvent==EVENTCODE_ETextFX)
-    {
-      ETextFX etfx = ((ETextFX &) ee);
-      if( etfx.bStart)
-      {
+
+    if (ee.ee_slEvent == EVENTCODE_ETextFX) {
+      ETextFX etfx = (ETextFX &)ee;
+
+      if (etfx.bStart) {
         m_penTextFXHolder=etfx.penSender;
+
+      } else if (m_penTextFXHolder == etfx.penSender) {
+        m_penTextFXHolder = NULL;
       }
-      else
-      {
-        if( m_penTextFXHolder==etfx.penSender)
-        {
-          m_penTextFXHolder=NULL;
-        }
+
+      return TRUE;
+    }
+
+    if (ee.ee_slEvent == EVENTCODE_EHudPicFX) {
+      EHudPicFX ehpfx = (EHudPicFX &)ee;
+
+      if (ehpfx.bStart) {
+        m_penHudPicFXHolder = ehpfx.penSender;
+
+      } else if (m_penHudPicFXHolder == ehpfx.penSender) {
+        m_penHudPicFXHolder = NULL;
       }
       return TRUE;
     }
-    if( ee.ee_slEvent==EVENTCODE_EHudPicFX)
-    {
-      EHudPicFX ehpfx = ((EHudPicFX &) ee);
-      if( ehpfx.bStart)
-      {
-        m_penHudPicFXHolder=ehpfx.penSender;
-      }
-      else
-      {
-        if( m_penHudPicFXHolder==ehpfx.penSender)
-        {
-          m_penHudPicFXHolder=NULL;
-        }
-      }
-      return TRUE;
-    }
-    if( ee.ee_slEvent==EVENTCODE_ECredits)
-    {
+
+    if (ee.ee_slEvent == EVENTCODE_ECredits) {
       ECredits ecr = ((ECredits &) ee);
-      if( ecr.bStart)
-      {
-        m_penCreditsHolder=ecr.penSender;
+      if( ecr.bStart) {
+        m_penCreditsHolder = ecr.penSender;
+
+      } else if( m_penCreditsHolder == ecr.penSender) {
+        m_penCreditsHolder = NULL;
       }
-      else
-      {
-        if( m_penCreditsHolder==ecr.penSender)
-        {
-          m_penCreditsHolder=NULL;
-        }
-      }
+
       return TRUE;
-    }    
+    }
+
     return FALSE;
-  }
+  };
   
 procedures:
-  Main(EVoid)
-  {
-    m_penScrollHolder=NULL;
-    m_penTextFXHolder=NULL;
+  Main(EVoid) {
+    m_penScrollHolder = NULL;
+    m_penTextFXHolder = NULL;
     // set appearance
     InitAsEditorModel();
     SetPhysicsFlags(EPF_MODEL_IMMATERIAL);

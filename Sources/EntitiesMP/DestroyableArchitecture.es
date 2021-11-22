@@ -201,20 +201,15 @@ functions:
       return;
     }
     
-    if(m_bBlowupByDamager)
-    {
-      if( dmtType == DMT_DAMAGER)
-      {
+    if(m_bBlowupByDamager) {
+      if (dmtType == DMT_DAMAGER) {
         CMovableBrushEntity::ReceiveDamage(penInflictor, dmtType, fDamageAmmount, vHitPoint, vDirection);
       }
-    }
-    else
-    {
+    } else {
       // react only on explosions
-      if( (dmtType == DMT_EXPLOSION) ||
-          (dmtType == DMT_PROJECTILE) ||
-          (dmtType == DMT_CANNONBALL) )
-      {
+      if( (dmtType == DMT_EXPLOSION)
+       || (dmtType == DMT_PROJECTILE)
+       || (dmtType == DMT_CANNONBALL)) {
         CMovableBrushEntity::ReceiveDamage(penInflictor, dmtType, fDamageAmmount, vHitPoint, vDirection);
       }
     }

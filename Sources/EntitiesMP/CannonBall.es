@@ -296,7 +296,7 @@ void Explosion(FLOAT3D vCenter,
     plHandle.pl_PositionVector+=vCenter;
     SpawnEffect(plHandle, ese);
     // spawn sound event in range
-    if( IsDerivedFromClass( m_penLauncher, "Player")) {
+    if( IS_PLAYER( m_penLauncher)) {
       SpawnRangeSound( m_penLauncher, this, SNDT_PLAYER, 100.0f);
     }
   }
@@ -377,7 +377,7 @@ BOOL BallTouchExplode(CEntityPointer penHit)
     bForceCannonballToExplode=TRUE;
   }
 
-  if (IsOfClass(penHit, "Player")) {
+  if (IS_PLAYER(penHit)) {
     fHealth += ((CPlayer&)*penHit).m_fArmor * 2.0f;
   }
   // inflict direct damage to kill hitted entity
@@ -565,7 +565,7 @@ procedures:
     ESound eSound;
     eSound.EsndtSound = SNDT_EXPLOSION;
     eSound.penTarget = m_penLauncher;
-    if (IsDerivedFromClass(this, "Player")) {
+    if (IS_PLAYER(m_penLauncher)) {
       SendEventInRange(eSound, FLOATaabbox3D(GetPlacement().pl_PositionVector, SOUND_RANGE));
     }
 

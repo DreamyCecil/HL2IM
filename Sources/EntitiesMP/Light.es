@@ -82,44 +82,35 @@ properties:
   CBoolDefaultFalse m_bdfInitialized; // set if already initialized once
 }
 components:
-    1 model   MODEL_LIGHT_SOURCE         "Models\\Editor\\LightSource.mdl",
-    2 texture TEXTURE_POINT_LIGHT        "Models\\Editor\\PointLight.tex",
-    3 texture TEXTURE_AMBIENT_LIGHT      "Models\\Editor\\AmbientLight.tex",
-    4 texture TEXTURE_REAL_AMBIENT_LIGHT "Models\\Editor\\RealAmbientLight.tex",
-    5 model   MODEL_SPOT_LIGHT           "Models\\Editor\\SpotLight.mdl",
-    6 texture TEXTURE_SPOT_LIGHT         "Models\\Editor\\SpotLight.tex",
+  1 model   MODEL_LIGHT_SOURCE         "Models\\Editor\\LightSource.mdl",
+  2 texture TEXTURE_POINT_LIGHT        "Models\\Editor\\PointLight.tex",
+  3 texture TEXTURE_AMBIENT_LIGHT      "Models\\Editor\\AmbientLight.tex",
+  4 texture TEXTURE_REAL_AMBIENT_LIGHT "Models\\Editor\\RealAmbientLight.tex",
+  5 model   MODEL_SPOT_LIGHT           "Models\\Editor\\SpotLight.mdl",
+  6 texture TEXTURE_SPOT_LIGHT         "Models\\Editor\\SpotLight.tex",
 
 functions:
   /* Get anim data for given animation property - return NULL for none. */
-  CAnimData *GetAnimData(SLONG slPropertyOffset) 
-  {
-    if (slPropertyOffset==offsetof(CLight, m_iLightAnimation))
-    {
+  CAnimData *GetAnimData(SLONG slPropertyOffset) {
+    if (slPropertyOffset==offsetof(CLight, m_iLightAnimation)) {
       return m_aoLightAnimation.GetData();
-    }
-    else if (slPropertyOffset==offsetof(CLight, m_iAmbientLightAnimation)) 
-    {
+    } else if (slPropertyOffset==offsetof(CLight, m_iAmbientLightAnimation)) {
       return m_aoAmbientLightAnimation.GetData();
-    }
-    else
-    {
+    } else {
       return CEntity::GetAnimData(slPropertyOffset);
     }
   };
 
-  BOOL IsTargetable(void) const
-  {
+  BOOL IsTargetable(void) const {
     return m_bTargetable;
-  }
+  };
 
-  BOOL IsImportant(void) const
-  {
-    return(m_ltType==LT_DIRECTIONAL);
-  }
+  BOOL IsImportant(void) const {
+    return(m_ltType == LT_DIRECTIONAL);
+  };
 
   /* Handle an event, return false if the event is not handled. */
-  BOOL HandleEvent(const CEntityEvent &ee)
-  {
+  BOOL HandleEvent(const CEntityEvent &ee) {
     // when someone in range is destroyed
     if (ee.ee_slEvent==EVENTCODE_ERangeModelDestruction)
     {
@@ -162,7 +153,7 @@ functions:
       }
     }
     return FALSE;
-  }
+  };
 
   // apply mirror and stretch to the entity
   void MirrorAndStretch(FLOAT fStretch, BOOL bMirrorX)
