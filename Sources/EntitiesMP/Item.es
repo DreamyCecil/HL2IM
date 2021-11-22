@@ -2,6 +2,14 @@
 %{
 #include "StdH.h"
 #include "Models/Items/ItemHolder/ItemHolder.h"
+
+// [Cecil] Gravity Gun actions
+#include "EntitiesMP/Cecil/Physics.h"
+// [Cecil] Roller Mine spawning
+#include "EntitiesMP/_RollerMine.h"
+
+// [Cecil] Static items on the ground
+#define EPF_GROUND_ITEM (EPF_ONBLOCK_STOPEXACT|EPF_PUSHABLE|EPF_MOVABLE|EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY)
 %}
 
 %{
@@ -31,8 +39,14 @@ properties:
  15 INDEX m_ulPickedMask = 0,   // mask for which players picked this item
  16 BOOL m_bFloating "Floating" 'F' = FALSE,
 
+// [Cecil] How long to stay dropped
+ 50 FLOAT m_fDropTime = 10.0f,
+
 components:
-  1 model   MODEL_ITEM      "Models\\Items\\ItemHolder\\ItemHolder.mdl",
+  1 model MODEL_ITEM "Models\\Items\\ItemHolder.mdl",
+
+// [Cecil] Classes
+ 10 class CLASS_ROLLERMINE "Classes\\RollerMine.ecl",
 
 functions:
   virtual void AdjustDifficulty(void)
@@ -97,10 +111,10 @@ functions:
   // check if given player already picked this item, and mark if not
   BOOL MarkPickedBy(CEntity *pen)
   {
-    if (!IsOfClass(pen, "Player")) {
+    if (!IS_PLAYER(pen)) {
       return FALSE;
     }
-    INDEX iPlayer = ((CPlayerEntity*)pen)->GetMyPlayerIndex();
+    INDEX iPlayer = CECIL_PlayerIndex((CPlayer *)pen);
     BOOL bPickedAlready = (1<<iPlayer)&m_ulPickedMask;
     m_ulPickedMask |= (1<<iPlayer);
     return bPickedAlready;
@@ -146,7 +160,11 @@ functions:
  ************************************************************/
   void Initialize(void) {
     InitAsModel();
-    SetFlags(GetFlags()|ENF_SEETHROUGH);
+
+    // [Cecil] Only set see through flag if respawning
+    if (m_bRespawn) {
+      SetFlags(GetFlags() | ENF_SEETHROUGH);
+    }
 
     if (m_bFloating) {
       SetPhysicsFlags(EPF_MODEL_FLYING);
@@ -163,8 +181,6 @@ functions:
     SetModel(MODEL_ITEM);
     SetDesiredTranslation(FLOAT3D(0,0,0));  // just to add to movers
   };
-
-
 
 /************************************************************
  *                   SET MODEL AND ATTACHMENT               *
@@ -197,29 +213,12 @@ functions:
     mo.PlayAnim(iAnim, 0);
   }
 
-  // Add flare
-  void AddFlare(ULONG ulIDModel, ULONG ulIDTexture, 
-    const FLOAT3D &vPos, const FLOAT3D &vStretch)
-  {
-    // add flare to items if not respawn
-    if( !m_bRespawn && !m_bDropped)
-    {
-      AddAttachmentToModel(this, *GetModelObject(), 
-        ITEMHOLDER_ATTACHMENT_FLARE, ulIDModel, ulIDTexture, 0,0,0);
-      CAttachmentModelObject &amo = *GetModelObject()->GetAttachmentModel(ITEMHOLDER_ATTACHMENT_FLARE);
-      amo.amo_moModelObject.StretchModel(vStretch);
-      amo.amo_plRelative.pl_PositionVector = vPos;
-    }
-  };
-
   // Stretch item
   void StretchItem(const FLOAT3D &vStretch) {
     CModelObject &mo = GetModelObject()->GetAttachmentModel(ITEMHOLDER_ATTACHMENT_ITEM)->amo_moModelObject;
     mo.StretchModel(vStretch);
     ModelChangeNotify();
   };
-
-
 
   // returns bytes of memory used by this object
   SLONG GetUsedMemory(void)
@@ -248,18 +247,32 @@ procedures:
  *                I  T  E  M    L  O  O  P                  *
  ************************************************************/
 
-  ItemLoop(EVoid)
-  {
+  ItemLoop(EVoid) {
     m_fCustomRespawnTime = ClampDn( m_fCustomRespawnTime, 0.0f);
     autowait(0.1f);
+
+    // [Cecil] Spawn rollermines
+    if (GetSP()->sp_iHLGamemode == HLGM_MINEKILL && (IsOfClass(this, "Ammo Item") || IsOfClass(this, "Weapon Item"))) {
+      CPlacement3D plMine = GetPlacement();
+      plMine.pl_PositionVector += FLOAT3D(0.0f, 0.1f, 0.0f) * GetRotationMatrix();
+      CEntity *pen = CreateEntity(plMine, CLASS_ROLLERMINE);
+
+      ((CRollerMine*)pen)->m_bTakeDamage = TRUE;
+      pen->Initialize();
+    }
 
     SetPredictable(TRUE);
     AdjustDifficulty();
 
+    // [Cecil] Items that respawn shouldn't slide around
+    if (m_bRespawn) {
+      SetPhysicsFlags(EPF_GROUND_ITEM);
+    }
+
     wait() {
       on (EBegin) : { resume; }
       on (EPass epass) : { 
-        if (!IsOfClass(epass.penOther, "Player")) {
+        if (!IS_PLAYER(epass.penOther)) {
           pass;
         }
         if (!(m_bPickupOnce||m_bRespawn)) {
@@ -268,6 +281,25 @@ procedures:
         }
         call ItemCollected(epass); 
       }
+
+      // [Cecil] Gravity Gun actions
+      on (EGravityGunStart eStart) : {
+        GravityGunStart(this, eStart.penTarget);
+        resume;
+      }
+      on (EGravityGunStop eStop) : {
+        GravityGunStop(this, eStop);
+        resume;
+      }
+      on (EGravityGunHold eHold) : {
+        GravityGunHolding(this, eHold);
+        resume;
+      }
+      on (EGravityGunPush ePush) : {
+        GravityGunPush(this, ePush.vDir);
+        resume;
+      }
+
       on (EEnd) : { stop; }
     }
     // wait for sound to end
@@ -276,7 +308,6 @@ procedures:
     Destroy();
     return;
   };
-
 
   ItemReceived(EVoid)
   {

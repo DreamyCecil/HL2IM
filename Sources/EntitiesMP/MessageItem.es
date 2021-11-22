@@ -62,16 +62,12 @@ functions:
 
 
   // set health properties depending on type
-  void SetProperties(void)
-  {
+  void SetProperties(void) {
     m_fRespawnTime = (m_fCustomRespawnTime>0) ? m_fCustomRespawnTime : 10.0f; 
     m_strDescription = m_fnmMessage.FileName();
 
     // set appearance
     AddItem(MODEL_PERGAMENT, TEXTURE_PERGAMENT, 0, 0, 0);
-    // add flare
-    AddFlare(MODEL_FLARE, TEXTURE_FLARE, FLOAT3D(0,0.2f,0), FLOAT3D(1,1,0.3f) );
-    StretchItem(FLOAT3D(1.0f, 1.0f, 1.0f));
     m_iSoundComponent = SOUND_KEY;
   };
 

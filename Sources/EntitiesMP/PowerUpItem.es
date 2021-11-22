@@ -2,6 +2,10 @@
 %{
 #include "StdH.h"
 #include "Models/Items/ItemHolder/ItemHolder.h"
+
+// [Cecil]
+#include "EntitiesMP/AmmoItem.h"
+#include "HL2Models/AmmoHandler.h"
 %}
 
 uses "EntitiesMP/Item";
@@ -9,17 +13,38 @@ uses "EntitiesMP/Player";
 
 // health type 
 enum PowerUpItemType {
-  0 PUIT_INVISIB  "Invisibility",
-  1 PUIT_INVULNER "Invulnerability",
-  2 PUIT_DAMAGE   "SeriousDamage",
-  3 PUIT_SPEED    "SeriousSpeed",
-  4 PUIT_BOMB     "SeriousBomb",
+  0 PUIT_INVISIB  "Invisibility",    // [Cecil] MP7 Grenades
+  1 PUIT_INVULNER "Invulnerability", // [Cecil] Plasma Balls
+  2 PUIT_DAMAGE   "SeriousDamage",   // [Cecil] Plasma Balls
+  3 PUIT_SPEED    "SeriousSpeed",    // [Cecil] MP7 Grenades
+  4 PUIT_BOMB     "SeriousBomb",     // [Cecil] 3x Plasma Balls
 };
 
 // event for sending through receive item
 event EPowerUp {
   enum PowerUpItemType puitType,
 };
+
+%{
+// [Cecil] Extracted from entity functions
+void CPowerUpItem_Precache(void) {
+  CDLLEntityClass *pdec = &CPowerUpItem_DLLClass;
+
+  // [Cecil] MP7 Grenades and Plasma Balls
+  pdec->PrecacheModel(MODEL_HANDLER);
+  pdec->PrecacheModel(MODEL_AR2);
+  pdec->PrecacheTexture(TEXTURE_AR2);
+  pdec->PrecacheModel(MODEL_SMG1);
+  pdec->PrecacheTexture(TEXTURE_SMG1);
+
+  // [Cecil] Invisibility
+  pdec->PrecacheModel(MODEL_INVIS);
+
+  pdec->PrecacheTexture(TEXTURE_REFLECTION_METAL);
+  pdec->PrecacheTexture(TEXTURE_SPECULAR_STRONG);
+  pdec->PrecacheSound(SOUND_PICKUP);
+};
+%}
 
 class CPowerUpItem : CItem 
 {
@@ -28,161 +53,118 @@ thumbnail "Thumbnails\\PowerUpItem.tbn";
 
 properties:
   1 enum PowerUpItemType m_puitType  "Type" 'Y' = PUIT_INVULNER,
-//  3 INDEX m_iSoundComponent = 0,
 
 components:
-  0 class   CLASS_BASE      "Classes\\Item.ecl",
+  0 class CLASS_BASE  "Classes\\Item.ecl",
+  1 model MODEL_ITEM  "Models\\Items\\ItemHolder.mdl",
+  2 model MODEL_INVIS "ModelsMP\\Items\\PowerUps\\Invisibility\\Invisibility.mdl",
 
-// ********* INVISIBILITY *********
-  1 model   MODEL_INVISIB   "ModelsMP\\Items\\PowerUps\\Invisibility\\Invisibility.mdl",
-// 2 texture TEXTURE_INVISIB "ModelsMP\\Items\\PowerUps\\Invisibility\\Invisibility.tex",
+// [Cecil] New ammo
+  5 model   MODEL_HANDLER "Models\\Items\\AmmoHandler.mdl",
+ 10 model   MODEL_AR2     "Models\\Items\\CombineBall.mdl",
+ 11 texture TEXTURE_AR2   "Models\\Items\\CombineBall.tex",
+ 12 model   MODEL_SMG1    "Models\\Items\\SMG1Grenade.mdl",
+ 13 texture TEXTURE_SMG1  "Models\\Items\\SMG1Grenade.tex",
 
-// ********* INVULNERABILITY *********
- 10 model   MODEL_INVULNER  "ModelsMP\\Items\\PowerUps\\Invulnerability\\Invulnerability.mdl",
-// 11 texture TEXTURE_INVULNER  "ModelsMP\\Items\\PowerUps\\Invulnerability\\Invulnerability.tex",
+ 30 texture TEXTURE_REFLECTION_METAL "ModelsMP\\ReflectionTextures\\LightMetal01.tex",
+ 31 texture TEXTURE_SPECULAR_STRONG  "ModelsMP\\SpecularTextures\\Strong.tex",
 
-// ********* SERIOUS DAMAGE *********
- 20 model   MODEL_DAMAGE    "ModelsMP\\Items\\PowerUps\\SeriousDamage\\SeriousDamage.mdl",
- 21 texture TEXTURE_DAMAGE  "ModelsMP\\Items\\PowerUps\\SeriousDamage\\SeriousDamage.tex",
-
-// ********* SERIOUS SPEED *********
- 30 model   MODEL_SPEED     "ModelsMP\\Items\\PowerUps\\SeriousSpeed\\SeriousSpeed.mdl",
- 31 texture TEXTURE_SPEED   "ModelsMP\\Items\\PowerUps\\SeriousSpeed\\SeriousSpeed.tex",
-
-// ********* SERIOUS BOMB *********
- 40 model   MODEL_BOMB      "ModelsMP\\Items\\PowerUps\\SeriousBomb\\SeriousBomb.mdl",
- 41 texture TEXTURE_BOMB    "ModelsMP\\Items\\PowerUps\\SeriousBomb\\SeriousBomb.tex",
-
- // ********* MISC *********
- 50 texture TEXTURE_SPECULAR_STRONG  "ModelsMP\\SpecularTextures\\Strong.tex",
- 51 texture TEXTURE_SPECULAR_MEDIUM  "ModelsMP\\SpecularTextures\\Medium.tex",
- 52 texture TEXTURE_REFLECTION_METAL "ModelsMP\\ReflectionTextures\\LightMetal01.tex",
- 53 texture TEXTURE_REFLECTION_GOLD  "ModelsMP\\ReflectionTextures\\Gold01.tex",
- 54 texture TEXTURE_REFLECTION_PUPLE "ModelsMP\\ReflectionTextures\\Purple01.tex",
- 55 texture TEXTURE_FLARE "Models\\Items\\Flares\\Flare.tex",
- 56 model   MODEL_FLARE   "Models\\Items\\Flares\\Flare.mdl",
-
-// ************** SOUNDS **************
-//301 sound   SOUND_INVISIB  "SoundsMP\\Items\\Invisibility.wav",
-//302 sound   SOUND_INVULNER "SoundsMP\\Items\\Invulnerability.wav",
-//303 sound   SOUND_DAMAGE   "SoundsMP\\Items\\SeriousDamage.wav",
-//304 sound   SOUND_SPEED    "SoundsMP\\Items\\SeriousSpeed.wav",
-301 sound   SOUND_PICKUP   "SoundsMP\\Items\\PowerUp.wav",
-305 sound   SOUND_BOMB     "SoundsMP\\Items\\SeriousBomb.wav",
+ 50 sound SOUND_PICKUP "SoundsMP\\Items\\PowerUp.wav",
 
 functions:
-
-  void Precache(void)
-  {
-    switch( m_puitType) {
-    case PUIT_INVISIB :  /*PrecacheSound(SOUND_INVISIB );  break;*/
-    case PUIT_INVULNER:  /*PrecacheSound(SOUND_INVULNER);  break; */                                    
-    case PUIT_DAMAGE  :  /*PrecacheSound(SOUND_DAMAGE  );  break;*/
-    case PUIT_SPEED   :  /*PrecacheSound(SOUND_SPEED   );  break;*/
-                         PrecacheSound(SOUND_PICKUP  );  break;
-    case PUIT_BOMB    :  PrecacheSound(SOUND_BOMB    );  break;
-    }
-  }
+  void Precache(void) {
+    CPowerUpItem_Precache();
+  };
 
   /* Fill in entity statistics - for AI purposes only */
-  BOOL FillEntityStatistics(EntityStats *pes)
-  {
+  BOOL FillEntityStatistics(EntityStats *pes) {
     pes->es_strName = "PowerUp"; 
     pes->es_ctCount = 1;
-    pes->es_ctAmmount = 1;  // !!!!
-    pes->es_fValue = 0;     // !!!!
-    pes->es_iScore = 0;//m_iScore;
+    pes->es_ctAmmount = 1;
+    pes->es_fValue = 0;
+    pes->es_iScore = 0;
     
-    switch( m_puitType) {
-    case PUIT_INVISIB :  pes->es_strName += " invisibility";     break;
-    case PUIT_INVULNER:  pes->es_strName += " invulnerability";  break;
-    case PUIT_DAMAGE  :  pes->es_strName += " serious damage";   break;
-    case PUIT_SPEED   :  pes->es_strName += " serious speed";    break;
-    case PUIT_BOMB    :  pes->es_strName = "Serious Bomb!"; 
+    switch (m_puitType) {
+      case PUIT_INVISIB:  pes->es_strName += " invisibility"; break;
+      case PUIT_INVULNER: pes->es_strName += " invulnerability"; break;
+      case PUIT_DAMAGE:   pes->es_strName += " serious damage"; break;
+      case PUIT_SPEED:    pes->es_strName += " serious speed"; break;
+      case PUIT_BOMB:     pes->es_strName = "Serious Bomb!"; 
     }
     return TRUE;
-  }
-
-  // render particles
-  void RenderParticles(void)
-  {
-    // no particles when not existing or in DM modes
-    if( GetRenderType()!=CEntity::RT_MODEL || GetSP()->sp_gmGameMode>CSessionProperties::GM_COOPERATIVE
-      || !ShowItemParticles()) {
-      return;
-    }
-    switch( m_puitType) {
-      case PUIT_INVISIB:
-        Particles_Stardust( this, 2.0f*0.75f, 1.00f*0.75f, PT_STAR08, 320);
-        break;
-      case PUIT_INVULNER:
-        Particles_Stardust( this, 2.0f*0.75f, 1.00f*0.75f, PT_STAR08, 192);
-        break;
-      case PUIT_DAMAGE:
-        Particles_Stardust( this, 1.0f*0.75f, 0.75f*0.75f, PT_STAR08, 128);
-        break;
-      case PUIT_SPEED:
-        Particles_Stardust( this, 1.0f*0.75f, 0.75f*0.75f, PT_STAR08, 128);
-        break;
-      case PUIT_BOMB:
-        Particles_Atomic(this, 2.0f*0.75f, 2.0f*0.95f, PT_STAR05, 12);
-        break;
-    }
-  }
+  };
 
   // set health properties depending on health type
-  void SetProperties(void)
-  {
-    switch( m_puitType)
-    {
+  void SetProperties(void) {
+    switch (m_puitType) {
       case PUIT_INVISIB:
-        StartModelAnim( ITEMHOLDER_ANIM_SMALLOSCILATION, AOF_LOOPING|AOF_NORESTART);
-        ForceCollisionBoxIndexChange( ITEMHOLDER_COLLISION_BOX_BIG);
         m_fRespawnTime = (m_fCustomRespawnTime>0) ? m_fCustomRespawnTime : 40.0f; 
         m_strDescription.PrintF("Invisibility");
-        AddItem(  MODEL_INVISIB, TEXTURE_REFLECTION_METAL, 0, TEXTURE_SPECULAR_STRONG, 0);  // set appearance
-        AddFlare( MODEL_FLARE, TEXTURE_FLARE, FLOAT3D(0,0.2f,0), FLOAT3D(1,1,0.3f) );  // add flare
-        StretchItem( FLOAT3D(1.0f*0.75f, 1.0f*0.75f, 1.0f*0.75));
         break;
       case PUIT_INVULNER:
-        StartModelAnim( ITEMHOLDER_ANIM_SMALLOSCILATION, AOF_LOOPING|AOF_NORESTART);
-        ForceCollisionBoxIndexChange( ITEMHOLDER_COLLISION_BOX_BIG);
         m_fRespawnTime = (m_fCustomRespawnTime>0) ? m_fCustomRespawnTime : 60.0f; 
         m_strDescription.PrintF("Invulnerability");
-        AddItem(  MODEL_INVULNER, TEXTURE_REFLECTION_GOLD, TEXTURE_REFLECTION_METAL, TEXTURE_SPECULAR_MEDIUM, 0);  // set appearance
-        AddFlare( MODEL_FLARE, TEXTURE_FLARE, FLOAT3D(0,0.2f,0), FLOAT3D(1,1,0.3f) );  // add flare
-        StretchItem( FLOAT3D(1.0f*0.75f, 1.0f*0.75f, 1.0f*0.75));
         break;                                                               
       case PUIT_DAMAGE:
-        StartModelAnim( ITEMHOLDER_ANIM_SMALLOSCILATION, AOF_LOOPING|AOF_NORESTART);
-        ForceCollisionBoxIndexChange( ITEMHOLDER_COLLISION_BOX_BIG);
         m_fRespawnTime = (m_fCustomRespawnTime>0) ? m_fCustomRespawnTime : 40.0f; 
         m_strDescription.PrintF("SeriousDamage");
-        AddItem(  MODEL_DAMAGE, TEXTURE_DAMAGE, 0, TEXTURE_SPECULAR_STRONG, 0);  // set appearance
-        AddFlare( MODEL_FLARE, TEXTURE_FLARE, FLOAT3D(0,0.2f,0), FLOAT3D(1,1,0.3f) );  // add flare
-        StretchItem( FLOAT3D(1.0f*0.75f, 1.0f*0.75f, 1.0f*0.75));
         break;
       case PUIT_SPEED:
-        StartModelAnim( ITEMHOLDER_ANIM_SMALLOSCILATION, AOF_LOOPING|AOF_NORESTART);
-        ForceCollisionBoxIndexChange( ITEMHOLDER_COLLISION_BOX_BIG);
         m_fRespawnTime = (m_fCustomRespawnTime>0) ? m_fCustomRespawnTime : 40.0f; 
         m_strDescription.PrintF("SeriousSpeed");
-        AddItem(  MODEL_SPEED, TEXTURE_SPEED, 0, 0, 0);  // set appearance
-        AddFlare( MODEL_FLARE, TEXTURE_FLARE, FLOAT3D(0,0.2f,0), FLOAT3D(1,1,0.3f) );  // add flare
-        StretchItem( FLOAT3D(1.0f*0.75f, 1.0f*0.75f, 1.0f*0.75));
         break;
       case PUIT_BOMB:
-        StartModelAnim( ITEMHOLDER_ANIM_SMALLOSCILATION, AOF_LOOPING|AOF_NORESTART);
-        ForceCollisionBoxIndexChange( ITEMHOLDER_COLLISION_BOX_BIG);
         m_fRespawnTime = (m_fCustomRespawnTime>0) ? m_fCustomRespawnTime : 40.0f; 
         m_strDescription.PrintF("Serious Bomb!");
-        AddItem(  MODEL_BOMB, TEXTURE_BOMB, 0, 0, 0);  // set appearance
-        AddFlare( MODEL_FLARE, TEXTURE_FLARE, FLOAT3D(0,0.2f,0), FLOAT3D(1,1,0.3f) );  // add flare
-        StretchItem( FLOAT3D(1.0f*3.0f, 1.0f*3.0f, 1.0f*3.0));
         break;
+    }
+
+    // [Cecil] Gamemode-specific
+    INDEX iMode = GetSP()->sp_iHLGamemode;
+
+    switch (iMode) {
+      case HLGM_BUNNYHUNT: case HLGM_MINEKILL:
+        StartModelAnim(ITEMHOLDER_ANIM_SMALLOSCILATION, AOF_LOOPING|AOF_NORESTART);
+        ForceCollisionBoxIndexChange(ITEMHOLDER_COLLISION_BOX_BIG);
+
+        AddItem(MODEL_INVIS, TEXTURE_REFLECTION_METAL, 0, TEXTURE_SPECULAR_STRONG, 0);
+        StretchItem(FLOAT3D(0.75f, 0.75f, 0.75));
+        break;
+
+      default: {
+        StartModelAnim(ITEMHOLDER_ANIM_DEFAULT_ANIMATION, AOF_LOOPING|AOF_NORESTART);
+        ForceCollisionBoxIndexChange(ITEMHOLDER_COLLISION_BOX_MEDIUM);
+
+        switch (m_puitType) {
+          // Grenades
+          case PUIT_INVISIB: case PUIT_SPEED: {
+            AddItem(MODEL_HANDLER, TEXTURE_SMG1, 0, 0, 0);
+            AddItemAttachment(AMMOHANDLER_ATTACHMENT_SMG1GRENADE, MODEL_SMG1, TEXTURE_SMG1, 0, 0, 0);
+          } break;
+
+          // Plasma Balls
+          default: {
+            AddItem(MODEL_HANDLER, TEXTURE_AR2, 0, 0, 0);
+            AddItemAttachment(AMMOHANDLER_ATTACHMENT_COMBINEBALL, MODEL_AR2, TEXTURE_AR2, 0, 0, 0);
+          }
+        }
+
+        // [Cecil] Random rotation and bigger size
+        //GetModelObject()->GetAttachmentModel(ITEMHOLDER_ATTACHMENT_ITEM)->amo_plRelative.pl_OrientationAngle(1) = FRnd() * 360.0f;
+        StretchItem(FLOAT3D(2.0f, 2.0f, 2.0f));
+      }
     }
   };
 
+  // [Cecil] Reload model
+  void AdjustDifficulty(void) {
+    if (!m_bRespawn && GetSP()->sp_iHLGamemode != HLGM_BUNNYHUNT) {
+      SetFlags(GetFlags() & ~ENF_SEETHROUGH);
+    }
+
+    SetModel(MODEL_ITEM);
+    SetProperties();
+  };
  
 procedures:
 
@@ -190,16 +172,17 @@ procedures:
   {
     ASSERT( epass.penOther!=NULL);
  
+    // [Cecil] No Serious Bombs
     // don't pick up more bombs then you can carry
-    if (m_puitType == PUIT_BOMB) {
-      if (IsOfClass(epass.penOther, "Player")) {
+    /*if (m_puitType == PUIT_BOMB) {
+      if (IsOfClass(epass.penOther)) {
         if (((CPlayer &)*epass.penOther).m_iSeriousBombCount>=3) {
           return;
         }
       }
-    }
+    }*/
 
-    if( !(m_bPickupOnce||m_bRespawn)) {
+    if (!(m_bPickupOnce||m_bRespawn)) {
       // if already picked by this player
       BOOL bWasPicked = MarkPickedBy(epass.penOther);
       if( bWasPicked) {
@@ -208,43 +191,79 @@ procedures:
       }
     }
 
-    // send powerup to entity
-    EPowerUp ePowerUp;
-    ePowerUp.puitType = m_puitType;
-    // if powerup is received
-    if( epass.penOther->ReceiveItem(ePowerUp)) {
+    // [Cecil] Gamemode-specific
+    INDEX iMode = GetSP()->sp_iHLGamemode;
 
-      if(_pNetwork->IsPlayerLocal(epass.penOther))
-      {
-        switch (m_puitType)
-        {
-          case PUIT_INVISIB:  IFeel_PlayEffect("PU_Invulnerability"); break;
-          case PUIT_INVULNER: IFeel_PlayEffect("PU_Invulnerability"); break;
-          case PUIT_DAMAGE:   IFeel_PlayEffect("PU_Invulnerability"); break;
-          case PUIT_SPEED:    IFeel_PlayEffect("PU_FastShoes"); break; 
-          case PUIT_BOMB:     IFeel_PlayEffect("PU_SeriousBomb"); break; 
+    switch (iMode) {
+      case HLGM_BUNNYHUNT:
+      case HLGM_MINEKILL: {
+        // send powerup to entity
+        EPowerUp ePowerUp;
+        ePowerUp.puitType = PUIT_INVISIB;
+
+        // if powerup is received
+        if (epass.penOther->ReceiveItem(ePowerUp)) {
+          // play the pickup sound
+          m_soPick.Set3DParameters(50.0f, 1.0f, 2.0f, 1.0f);
+          PlaySound(m_soPick, SOUND_PICKUP, SOF_3D);
+          m_fPickSoundLen = GetSoundLength(SOUND_PICKUP);
+
+          if (m_bPickupOnce || m_bRespawn) {
+            jump CItem::ItemReceived();
+          }
+        }
+      } break;
+
+      default: {
+        // [Cecil] Give Alt Ammo Instead
+        EAmmoItem eAmmo;
+
+        switch (m_puitType) {
+          case PUIT_INVISIB: case PUIT_SPEED:
+            eAmmo.EaitType = AIT_MP7GRENADES;
+            eAmmo.iQuantity = 1.0f;
+            break;
+
+          case PUIT_INVULNER: case PUIT_DAMAGE:
+            eAmmo.EaitType = AIT_ENERGYBALLS;
+            eAmmo.iQuantity = 1.0f;
+            break;
+
+          case PUIT_BOMB:
+            eAmmo.EaitType = AIT_ENERGYBALLS;
+            eAmmo.iQuantity = 3.0f;
+            break;
+        }
+
+        // if ammo is received
+        if (epass.penOther->ReceiveItem(eAmmo)) {
+          if (m_bPickupOnce || m_bRespawn) {
+            jump CItem::ItemReceived();
+          }
         }
       }
-      
-      // play the pickup sound
-      m_soPick.Set3DParameters( 50.0f, 1.0f, 2.0f, 1.0f);
-      if (m_puitType == PUIT_BOMB) {
-        PlaySound(m_soPick, SOUND_BOMB, SOF_3D);
-        m_fPickSoundLen = GetSoundLength(SOUND_BOMB);
-      } else if (TRUE) {
-        PlaySound(m_soPick, SOUND_PICKUP, SOF_3D);
-        m_fPickSoundLen = GetSoundLength(SOUND_PICKUP);
-      }
-      if( (m_bPickupOnce||m_bRespawn)) { jump CItem::ItemReceived(); }
     }
     return;
   };
 
-
-  Main()
-  {
+  Main() {
     Initialize();     // initialize base class
     SetProperties();  // set properties
-    jump CItem::ItemLoop();
+
+    // [Cecil] Added dropped actions
+    if (!m_bDropped) {
+      jump CItem::ItemLoop();
+    } else if (TRUE) {
+      wait() {
+        on (EBegin) : {
+          SpawnReminder(this, m_fDropTime, 0);
+          call CItem::ItemLoop();
+        }
+        on (EReminder) : {
+          SendEvent(EEnd()); 
+          resume;
+        }
+      }
+    }
   };
 };
