@@ -177,6 +177,9 @@ components:
 157 sound  SOUND_TAUNT08    "ModelsMP\\Enemies\\Summoner\\Sounds\\Quote15.wav",
 158 sound  SOUND_TAUNTLAST  "ModelsMP\\Enemies\\Summoner\\Sounds\\Quote16.wav",
 
+// [Cecil] Appearance quote
+160 sound SOUND_APPEAR "ModelsMP\\Enemies\\Summoner\\Sounds\\Appear.wav",
+
 functions:
   void Read_t( CTStream *istr) // throw char *
   { 
@@ -306,7 +309,9 @@ functions:
     for (INDEX i=SOUND_TAUNT01; i<=SOUND_TAUNTLAST; i++) { 
       PrecacheSound(i); 
     }
-  
+
+    // [Cecil]
+    PrecacheSound(SOUND_APPEAR);
   };
 
 
@@ -325,11 +330,11 @@ functions:
   BOOL DistanceToAllPlayersGreaterThen(FLOAT fDistance)
   {
     // find actual number of players
-    INDEX ctMaxPlayers = GetMaxPlayers();
+    INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
     CEntity *penPlayer;
     
     for(INDEX i=0; i<ctMaxPlayers; i++) {
-      penPlayer=GetPlayerEntity(i);
+      penPlayer=CECIL_GetPlayerEntity(i);
       if (penPlayer) {
         if (DistanceTo(this, penPlayer)<fDistance) {
           return FALSE;
@@ -363,11 +368,11 @@ functions:
   void ChangeEnemyNumberForAllPlayers(INDEX iDelta)
   {
     // find actual number of players
-    INDEX ctMaxPlayers = GetMaxPlayers();
+    INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
     CEntity *penPlayer;
     
     for(INDEX i=0; i<ctMaxPlayers; i++) {
-      penPlayer=GetPlayerEntity(i);
+      penPlayer=CECIL_GetPlayerEntity(i);
       if (penPlayer) {
         // set totals for level and increment for game
         ((CPlayer &)*penPlayer).m_psLevelTotal.ps_iKills+=iDelta;
@@ -387,7 +392,7 @@ functions:
     }
 
     // summoner doesn't receive damage from other monsters
-    if(!IsOfClass(penInflictor, "Player")) {
+    if(!IS_PLAYER(penInflictor)) {
       return;
     }
 
@@ -789,11 +794,17 @@ functions:
     m_emEmiter.RenderParticles();
   }
   
+  // [Cecil] Update model
+  void AdjustDifficulty(void) {
+    SetComponents(this, *GetModelObject(), MODEL_SUMMONER, TEXTURE_SUMMONER, 0, 0, 0); 
+    AddAttachmentToModel(this, *GetModelObject(), SUMMONER_ATTACHMENT_STAFF, MODEL_STAFF, TEXTURE_STAFF, 0, 0, 0);
+    GetModelObject()->StretchModel(FLOAT3D(m_fStretch, m_fStretch, m_fStretch));
+    ModelChangeNotify();
+  };
 
 procedures:
   
-  InitiateTeleport()
-  {
+  InitiateTeleport() {
     m_bInvulnerable = TRUE;
     StartModelAnim(SUMMONER_ANIM_VANISHING, 0);
 
@@ -805,7 +816,7 @@ procedures:
 
     autowait(GetModelObject()->GetAnimLength(SUMMONER_ANIM_VANISHING)-0.2f);
     jump Immaterial();
-  }
+  };
   
   Fire(EVoid) : CEnemyBase::Fire {
     
@@ -914,7 +925,7 @@ procedures:
         INDEX iToSpawn = ceilf(fToSpawn);
         
         CMusicHolder *penMusicHolder = GetMusicHolder();
-//CPrintF("spawning %d from %d group\n", iToSpawn, iScheme);
+
         // spawn
         for (INDEX j=0; j<iToSpawn; j++) {
           CEnemyBase *penTemplate = GetRandomTemplate(iScheme);
@@ -951,20 +962,18 @@ procedures:
  *                    D  E  A  T  H                         *
  ************************************************************/
   
-  Die(EDeath eDeath) : CEnemyBase::Die
-  {
-  
+  Die(EDeath eDeath) : CEnemyBase::Die {
     m_bDying = TRUE;
 
     m_penDeathInflictor = eDeath.eLastDamage.penInflictor;
 
     // find the one who killed, or other best suitable player
     m_penKiller = m_penDeathInflictor;
-    if (m_penKiller ==NULL || !IsOfClass(m_penKiller, "Player")) {
+    if (m_penKiller ==NULL || !IS_PLAYER(m_penKiller)) {
       m_penKiller = m_penEnemy;
     }
 
-    if (m_penKiller==NULL || !IsOfClass(m_penKiller, "Player")) {
+    if (m_penKiller==NULL || !IS_PLAYER(m_penKiller)) {
       m_penKiller = FixupCausedToPlayer(this, m_penKiller, /*bWarning=*/FALSE);
     }
 
@@ -1096,9 +1105,7 @@ procedures:
     jump CEnemyBase::Die(eDeath);
   }
 
-  TeleportToDeathMarker(EVoid)
-  {
-
+  TeleportToDeathMarker(EVoid) {
     m_bInvulnerable = TRUE;
 
     StartModelAnim(SUMMONER_ANIM_VANISHING, SOF_SMOOTHCHANGE);
@@ -1143,22 +1150,19 @@ procedures:
     autowait(GetModelObject()->GetAnimLength(SUMMONER_ANIM_APPEARING));
 
     return EReturn();
-  }
+  };
 
-  BossAppear(EVoid)
-  {
+  BossAppear(EVoid) {
     return EReturn();
-  }
+  };
 
   // overridable called before main enemy loop actually begins
-  PreMainLoop(EVoid) : CEnemyBase::PreMainLoop
-  {
+  PreMainLoop(EVoid) : CEnemyBase::PreMainLoop {
     autocall BossAppear() EReturn;
     return EReturn();
-  }
+  };
 
   Immaterial() {
-    
     // hide model
     DisappearEffect();
     SwitchToEditorModel();
@@ -1219,19 +1223,17 @@ procedures:
 
     SendEvent(EBegin());
     return EReturn();
-
-  }
+  };
 
   SummonerLoop() {
     // spawn a 1sec reminder
     SpawnReminder(this, 1.0f, 128);
     wait () {
-      on (EBegin) :
-      {
+      on (EBegin) : {
         call CEnemyBase::MainLoop();
       }
-      on (EReminder er) :
-      {
+
+      on (EReminder er) : {
         // pass all reminders but the 128 one
         if (er.iValue==128) {
           RecalculateFuss();
@@ -1247,14 +1249,15 @@ procedures:
           pass;
         }
         resume;
-      }      
+      }
+
       // we want to teleport in near future
-      on (ESummonerTeleport est) :
-      {
+      on (ESummonerTeleport est) : {
         //m_fTeleportWaitTime = est.fWait;
         SpawnReminder(this, est.fWait, 129);
         resume;
       }
+
       otherwise () : {
         resume;
       }
@@ -1265,7 +1268,6 @@ procedures:
  *                       M  A  I  N                         *
  ************************************************************/
   Main(EVoid) {
-    
     // declare yourself as a model
     InitAsEditorModel();
     
@@ -1387,6 +1389,9 @@ procedures:
     SetCollisionFlags(ECF_MODEL);
 
     PlaySound(m_soTeleport, SOUND_MATERIALIZE, SOF_3D);
+
+    // [Cecil] Appearance quote
+    PlaySound(m_soChant, SOUND_APPEAR, SOF_3D);
 
     StartModelAnim(SUMMONER_ANIM_APPEARING, SOF_SMOOTHCHANGE);
     autowait(GetModelObject()->GetAnimLength(SUMMONER_ANIM_APPEARING));

@@ -224,11 +224,11 @@ functions:
     }
 
     // find actual number of players
-    INDEX ctMaxPlayers = GetMaxPlayers();
+    INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
     CEntity *penPlayer;
     
     for(INDEX i=0; i<ctMaxPlayers; i++) {
-      penPlayer=GetPlayerEntity(i);
+      penPlayer=CECIL_GetPlayerEntity(i);
       if (penPlayer!=NULL && DistanceTo(this, penPlayer)<200.0f) {
         // if there is no valid enemy
         if (penPlayer!=NULL && (penPlayer->GetFlags()&ENF_ALIVE) && 
@@ -244,11 +244,11 @@ functions:
     BOOL bClose = FALSE;
 
     // find actual number of players
-    INDEX ctMaxPlayers = GetMaxPlayers();
+    INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
     CEntity *penPlayer;
     
     for(INDEX i=0; i<ctMaxPlayers; i++) {
-      penPlayer=GetPlayerEntity(i);
+      penPlayer=CECIL_GetPlayerEntity(i);
       if (penPlayer!=NULL) {
         if ((penPlayer->GetFlags()&ENF_ALIVE) && 
             !(penPlayer->GetFlags()&ENF_DELETED) &&
@@ -365,19 +365,17 @@ functions:
       return;
     }
 
+    // [Cecil] DMT_RIFLE
     // preliminary adjustment of damage
     // take less damage from heavy bullets (e.g. sniper)
-    if(dmtType==DMT_BULLET && fDamageAmmount>100.0f)
-    {
+    if ((dmtType == DMT_BULLET || dmtType == DMT_RIFLE) && fDamageAmmount > 100.0f) {
       fDamageAmmount *= 0.66f;
     }
+
     // cannonballs inflict less damage then the default
-    if(dmtType==DMT_CANNONBALL)
-    {
+    if (dmtType == DMT_CANNONBALL) {
       fDamageAmmount *= 0.5f;
     }
-    
-
 
     FLOAT fHealthNow = GetHealth();
     FLOAT fHealthAfter = GetHealth() - fDamageAmmount;
@@ -385,9 +383,9 @@ functions:
     FLOAT fHealthBlow02 = m_fMaxHealth*PERCENT_LEFTBLOW; 
 
     // adjust damage
-    fDamageAmmount *=DamageStrength( ((EntityInfo*)GetEntityInfo())->Eeibt, dmtType);
+    fDamageAmmount *= DamageStrength(((EntityInfo*)GetEntityInfo())->Eeibt, dmtType);
     // apply game extra damage per enemy and per player
-    fDamageAmmount *=GetGameDamageMultiplier();
+    fDamageAmmount *= GetGameDamageMultiplier();
 
     // enough damage to blow both arms
     if (fHealthNow>fHealthBlow01 && fHealthAfter<fHealthBlow02) {
@@ -818,9 +816,10 @@ functions:
       m_bRenderLeftLaser = TRUE;
       m_vLeftLaserTarget = crRay1.cr_vHit;
 
+      // [Cecil] Hit point on the enemy position
+      FLOAT3D vHit = crRay1.cr_penHit->GetPlacement().pl_PositionVector;
       // apply damage
-      InflictDirectDamage( crRay1.cr_penHit, this, DMT_BURNING, 25.0f,
-          FLOAT3D(0, 0, 0), (m_vFirePosLeftLaserAbs-m_vLeftLaserTarget).Normalize());
+      InflictDirectDamage(crRay1.cr_penHit, this, DMT_BURNING, 25.0f, vHit, (m_vFirePosLeftLaserAbs-m_vLeftLaserTarget).Normalize());
       
       if (crRay1.cr_penHit->GetRenderType()!=RT_BRUSH) {
         crRay1.cr_ttHitModels = CCastRay::TT_NONE;
@@ -846,9 +845,10 @@ functions:
       m_bRenderRightLaser = TRUE;
       m_vRightLaserTarget = crRay2.cr_vHit;
 
+      // [Cecil] Hit point on the enemy position
+      FLOAT3D vHit = crRay2.cr_penHit->GetPlacement().pl_PositionVector;
       // apply damage
-      InflictDirectDamage( crRay2.cr_penHit, this, DMT_BURNING, 25.0f,
-          FLOAT3D(0, 0, 0), (m_vFirePosRightLaserAbs-m_vRightLaserTarget).Normalize());
+      InflictDirectDamage(crRay2.cr_penHit, this, DMT_BURNING, 25.0f, vHit, (m_vFirePosRightLaserAbs-m_vRightLaserTarget).Normalize());
 
       if (crRay2.cr_penHit->GetRenderType()!=RT_BRUSH) {
         crRay2.cr_ttHitModels = CCastRay::TT_NONE;

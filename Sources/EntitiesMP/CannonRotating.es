@@ -119,10 +119,10 @@ virtual CTString GetPlayerKillDescription(const CTString &strPlayerName, const E
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType,
     FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) 
   {
+    // [Cecil] DMT_RIFLE
     // take less damage from heavy bullets (e.g. sniper)
-    if(dmtType==DMT_BULLET && fDamageAmmount>100.0f)
-    {
-      fDamageAmmount*=0.5f;
+    if ((dmtType == DMT_BULLET || dmtType == DMT_RIFLE) && fDamageAmmount > 100.0f) {
+      fDamageAmmount *= 0.5f;
     }
 
     CEnemyBase::ReceiveDamage(penInflictor, dmtType, fDamageAmmount,
@@ -189,11 +189,11 @@ virtual CTString GetPlayerKillDescription(const CTString &strPlayerName, const E
 
   CPlayer *AcquireTarget() {
     // find actual number of players
-    INDEX ctMaxPlayers = GetMaxPlayers();
+    INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
     CEntity *penPlayer;
 
     for(INDEX i=0; i<ctMaxPlayers; i++) {
-      penPlayer=GetPlayerEntity(i);
+      penPlayer=CECIL_GetPlayerEntity(i);
       if (penPlayer!=NULL && DistanceTo(this, penPlayer)<m_fFiringRangeFar) {
         // if this player is more or less directly in front of the shooter
         if (IsInTheLineOfFire(penPlayer, m_fViewAngle)) {
@@ -384,11 +384,11 @@ procedures:
 
     // find the one who killed, or other best suitable player
     CEntityPointer penKiller = eDeath.eLastDamage.penInflictor;
-    if (penKiller==NULL || !IsOfClass(penKiller, "Player")) {
+    if (penKiller==NULL || !IS_PLAYER(penKiller)) {
       penKiller = m_penEnemy;
     }
 
-    if (penKiller==NULL || !IsOfClass(penKiller, "Player")) {
+    if (penKiller==NULL || !IS_PLAYER(penKiller)) {
       penKiller = FixupCausedToPlayer(this, penKiller, /*bWarning=*/FALSE);
     }
 

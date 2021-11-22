@@ -47,7 +47,6 @@ components:
 // ************** SOUNDS **************
  50 sound   SOUND_IDLE       "ModelsMP\\Enemies\\ChainsawFreak\\Sounds\\Idle.wav",
  51 sound   SOUND_RUN        "ModelsMP\\Enemies\\ChainsawFreak\\Sounds\\Run.wav",
-// 53 sound   SOUND_RUNATTACK  "ModelsMP\\Enemies\\ChainsawFreak\\Sounds\\RunAttack.wav",
  54 sound   SOUND_ATTACK     "ModelsMP\\Enemies\\ChainsawFreak\\Sounds\\Attack.wav",
  55 sound   SOUND_WOUND      "ModelsMP\\Enemies\\ChainsawFreak\\Sounds\\Wound.wav",
  56 sound   SOUND_DEATH      "ModelsMP\\Enemies\\ChainsawFreak\\Sounds\\Death.wav",
@@ -65,13 +64,12 @@ functions:
 
   void Precache(void) {
     CEnemyBase::Precache();
-    PrecacheSound(SOUND_IDLE     );
-    PrecacheSound(SOUND_RUN      );
-//    PrecacheSound(SOUND_RUNATTACK);
-    PrecacheSound(SOUND_ATTACK   );
-    PrecacheSound(SOUND_WOUND    );
-    PrecacheSound(SOUND_DEATH    );
-    PrecacheSound(SOUND_SIGHT    );    
+    PrecacheSound(SOUND_IDLE);
+    PrecacheSound(SOUND_RUN);
+    PrecacheSound(SOUND_ATTACK);
+    PrecacheSound(SOUND_WOUND);
+    PrecacheSound(SOUND_DEATH);
+    PrecacheSound(SOUND_SIGHT);
   };
 
   /* Entity info */
@@ -89,12 +87,6 @@ functions:
     return fnm;
   };
 
-  // render particles
-  /*void RenderParticles(void)
-  {
-    Particles_RunningDust(this);
-  }*/
-
   /* Receive damage */
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType,
     FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) 
@@ -105,10 +97,15 @@ functions:
     }
   };
 
-  void AdjustDifficulty(void)
-  {
+  void AdjustDifficulty(void) {
+    // [Cecil] Reload the model
+    SetModel(MODEL_FREAK);
+    SetModelMainTexture(TEXTURE_FREAK);
+    AddAttachment(FREAK_ATTACHMENT_CHAINSAW, MODEL_CHAINSAW, TEXTURE_CHAINSAW);
+    ModelChangeNotify();
+
     // chainsaw freak must not change his speed at different difficulties
-  }
+  };
 
   // death
   INDEX AnimForDeath(void) {
@@ -147,14 +144,12 @@ functions:
   // virtual anim functions
   void StandingAnim(void) {
     StartModelAnim(FREAK_ANIM_IDLE, AOF_LOOPING|AOF_NORESTART);
-    //DeactivateRunningSound();
   };
   void WalkingAnim(void) {
     StartModelAnim(FREAK_ANIM_WALK, AOF_LOOPING|AOF_NORESTART);
-    //DeactivateRunningSound();
   };
   void RunningAnim(void) {
-    switch(m_iRunType)
+    /*switch(m_iRunType)
     {
     case 0:
       StartModelAnim(FREAK_ANIM_ATTACKRUN, AOF_LOOPING|AOF_NORESTART);
@@ -167,14 +162,17 @@ functions:
       break;
     default:
       ASSERTALWAYS("Unknown Chainsaw freak run type!");
-    }
-    //ActivateRunningSound();
+    }*/
+
+    // [Cecil] Use only one animation
+    StartModelAnim(FREAK_ANIM_ATTACKRUN, AOF_LOOPING|AOF_NORESTART);
   };
   void ChargeAnim(void) {
     StartModelAnim(FREAK_ANIM_RUNSLASHING, AOF_LOOPING|AOF_NORESTART);
   };
   void RotatingAnim(void) {
-    m_iRunType = IRnd()%3; 
+    // [Cecil] Not needed
+    //m_iRunType = IRnd()%3; 
     StartModelAnim(FREAK_ANIM_ATTACKSTART, AOF_LOOPING|AOF_NORESTART);
   };
 
@@ -230,8 +228,10 @@ functions:
         // damage
         FLOAT3D vDirection = m_penEnemy->GetPlacement().pl_PositionVector-GetPlacement().pl_PositionVector;
         vDirection.Normalize();
-        InflictDirectDamage(etouch.penOther, this, DMT_CHAINSAW, -aHitAngle*40.0f,
-          FLOAT3D(0, 0, 0), vDirection);
+
+        // [Cecil] Hit point on the enemy position
+        FLOAT3D vHit = m_penEnemy->GetPlacement().pl_PositionVector;
+        InflictDirectDamage(etouch.penOther, this, DMT_CHAINSAW, -aHitAngle*40.0f, vHit, vDirection);
         // kick touched entity
         FLOAT3D vSpeed = -FLOAT3D(etouch.plCollision);
         vSpeed = vSpeed*10.0f;
@@ -302,7 +302,10 @@ procedures:
       if (m_bSawHit) {
         FLOAT3D vDirection = m_penEnemy->GetPlacement().pl_PositionVector-GetPlacement().pl_PositionVector;
         vDirection.Normalize();
-        InflictDirectDamage(m_penEnemy, this, DMT_CHAINSAW, 20.0f, FLOAT3D(0, 0, 0), vDirection);
+
+        // [Cecil] Hit point on the enemy position
+        FLOAT3D vHit = m_penEnemy->GetPlacement().pl_PositionVector;
+        InflictDirectDamage(m_penEnemy, this, DMT_CHAINSAW, 20.0f, vHit, vDirection);
         
         vDirection = vDirection * 10.0f;
         //GetPitchDirection(AngleDeg(90.0f), vSpeed);
@@ -336,7 +339,7 @@ procedures:
   PostRunAwayFromEnemy(EVoid) : CEnemyRunInto::PostRunAwayFromEnemy {
     StartModelAnim(FREAK_ANIM_ATTACKRUNFAR, 0);
     autowait(0.25f);
-    SetDesiredTranslation(FLOAT3D(0,0,0));
+    EnemyMove(FLOAT3D(0.0f, 0.0f, 0.0f)); // [Cecil]
     StartModelAnim(FREAK_ANIM_IDLE, 0);
     autowait(0.25f);
     return EReturn();
@@ -387,7 +390,8 @@ procedures:
     m_bUseChargeAnimation = TRUE;
     m_fChargeDistance = 20.0f;
     m_fInertionRunTime = 0.15f;
-    m_iRunType = IRnd()%3;    
+    // [Cecil] Not needed
+    //m_iRunType = IRnd()%3;
 
     GetModelObject()->StretchModel(FLOAT3D(FREAK_SIZE, FREAK_SIZE, FREAK_SIZE));
     ModelChangeNotify();

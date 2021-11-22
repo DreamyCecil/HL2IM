@@ -2,6 +2,9 @@
 %{
 #include "StdH.h"
 #include "Models/Enemies/Walker/Walker.h"
+
+// [Cecil] Rotate to plane
+#include "EntitiesMP/Cecil/Physics.h"
 %}
 
 uses "EntitiesMP/EnemyBase";
@@ -165,13 +168,12 @@ functions:
 
   /* Receive damage */
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType,
-    FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) 
-  {
+    FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) {
 
+    // [Cecil] DMT_RIFLE
     // take less damage from heavy bullets (e.g. sniper)
-    if(dmtType==DMT_BULLET && fDamageAmmount>100.0f)
-    {
-      fDamageAmmount*=0.666f;
+    if ((dmtType == DMT_BULLET || dmtType == DMT_RIFLE) && fDamageAmmount > 100.0f) {
+      fDamageAmmount *= 0.666f;
     }
 
     // walker can't harm walker
@@ -394,6 +396,9 @@ procedures:
     StopMoving();
     DeathSound();     // death sound
     DeactivateWalkingSound();
+
+    // [Cecil] Rotate to plane
+    SetPhysicsFlags(GetPhysicsFlags() | EPF_ROTATETOPLANE);
 
     // set physic flags
     SetCollisionFlags(ECF_MODEL);

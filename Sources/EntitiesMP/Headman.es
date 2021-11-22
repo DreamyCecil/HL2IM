@@ -6,6 +6,7 @@
 
 uses "EntitiesMP/EnemyBase";
 uses "EntitiesMP/BasicEffects";
+uses "EntitiesMP/Bullet"; // [Cecil]
 
 enum HeadmanType {
   0 HDT_FIRECRACKER   "Fire Cracker",
@@ -13,7 +14,6 @@ enum HeadmanType {
   2 HDT_BOMBERMAN     "Bomberman",
   3 HDT_KAMIKAZE      "Kamikaze",
 };
-
 
 %{
 // info structure
@@ -26,8 +26,11 @@ static EntityInfo eiHeadman = {
 #define EXPLODE_KAMIKAZE   2.5f
 #define BOMBERMAN_ANGLE (45.0f)
 #define BOMBERMAN_LAUNCH (FLOAT3D(0.0f, 1.5f, 0.0f))
-%}
 
+// [Cecil] Fire positions
+#define PISTOL_FIRE FLOAT3D(0.07f, 1.8f, -0.6f)
+#define SMG1_FIRE   FLOAT3D(0.07f, 0.85f, -0.7f)
+%}
 
 class CHeadman: CEnemyBase {
 name      "Headman";
@@ -39,11 +42,16 @@ properties:
   // class internal
   5 BOOL m_bExploded = FALSE,
   6 BOOL m_bAttackSound = FALSE,    // playing kamikaze yelling sound
+
+{
+  CEntity *penBullet; // [Cecil] Bullet
+}
   
 components:
-  1 class   CLASS_BASE            "Classes\\EnemyBase.ecl",
-  2 class   CLASS_BASIC_EFFECT    "Classes\\BasicEffect.ecl",
-  3 class   CLASS_PROJECTILE      "Classes\\Projectile.ecl",
+  1 class   CLASS_BASE         "Classes\\EnemyBase.ecl",
+  2 class   CLASS_BASIC_EFFECT "Classes\\BasicEffect.ecl",
+  3 class   CLASS_PROJECTILE   "Classes\\Projectile.ecl",
+  4 class   CLASS_BULLET       "Classes\\Bullet.ecl", // [Cecil]
 
  10 model   MODEL_HEADMAN         "Models\\Enemies\\Headman\\Headman.mdl",
  11 model   MODEL_HEAD            "Models\\Enemies\\Headman\\Head.mdl",
@@ -73,27 +81,21 @@ components:
  57 sound   SOUND_ATTACKKAMIKAZE    "Models\\Enemies\\Headman\\Sounds\\AttackKamikaze.wav",
  58 sound   SOUND_DEATH             "Models\\Enemies\\Headman\\Sounds\\Death.wav",
 
- /*
- 60 model     MODEL_HEADMAN_BODY   "Models\\Enemies\\Headman\\Debris\\Torso.mdl",
- 61 model     MODEL_HEADMAN_HAND   "Models\\Enemies\\Headman\\Debris\\Arm.mdl",
- 62 model     MODEL_HEADMAN_LEGS   "Models\\Enemies\\Headman\\Debris\\Leg.mdl",
- */
-
 functions:
   // describe how this enemy killed player
   virtual CTString GetPlayerKillDescription(const CTString &strPlayerName, const EDeath &eDeath)
   {
     CTString str;
-    if (eDeath.eLastDamage.dmtType==DMT_EXPLOSION) {
-      if (m_hdtType==HDT_BOMBERMAN) {
-        str.PrintF(TRANS("%s was bombed by a Bomberman"), strPlayerName);
+    if (eDeath.eLastDamage.dmtType == DMT_EXPLOSION) {
+      if (m_hdtType == HDT_BOMBERMAN) {
+        str.PrintF(TRANS("Civil Protection officer blew up %s"), strPlayerName);
       } else {
-        str.PrintF(TRANS("%s fell victim of a Kamikaze"), strPlayerName);
+        str.PrintF(TRANS("%s became a victim of a suicidal Civil Protection officer"), strPlayerName);
       }
-    } else if (m_hdtType==HDT_ROCKETMAN) {
-      str.PrintF(TRANS("A Rocketeer tickled %s to death"), strPlayerName);
-    } else if (m_hdtType==HDT_FIRECRACKER) {
-      str.PrintF(TRANS("A Firecracker tickled %s to death"), strPlayerName);
+    } else if (m_hdtType == HDT_ROCKETMAN) {
+      str.PrintF(TRANS("Civil Protection officer has shot %s"), strPlayerName);
+    } else if (m_hdtType == HDT_FIRECRACKER) {
+      str.PrintF(TRANS("Civil Protection officer has killed %s"), strPlayerName);
     }
     return str;
   }
@@ -108,12 +110,13 @@ functions:
     static DECLARE_CTFILENAME(fnmFirecracker, "Data\\Messages\\Enemies\\Firecracker.txt");
     static DECLARE_CTFILENAME(fnmBomberman,   "Data\\Messages\\Enemies\\Bomberman.txt");
     static DECLARE_CTFILENAME(fnmKamikaze,    "Data\\Messages\\Enemies\\Kamikaze.txt");
+
     switch(m_hdtType) {
-    default: ASSERT(FALSE);
-    case HDT_ROCKETMAN:   return fnmRocketman;
-    case HDT_FIRECRACKER: return fnmFirecracker;
-    case HDT_BOMBERMAN:   return fnmBomberman;
-    case HDT_KAMIKAZE:    return fnmKamikaze;
+      default: ASSERT(FALSE);
+      case HDT_ROCKETMAN:   return fnmRocketman;
+      case HDT_FIRECRACKER: return fnmFirecracker;
+      case HDT_BOMBERMAN:   return fnmBomberman;
+      case HDT_KAMIKAZE:    return fnmKamikaze;
     }
   };
 
@@ -124,48 +127,163 @@ functions:
     PrecacheSound(SOUND_WOUND);
     PrecacheSound(SOUND_DEATH);
 
-    switch(m_hdtType) {
-    case HDT_FIRECRACKER: { 
-      PrecacheSound(SOUND_FIREFIRECRACKER);
-      PrecacheClass(CLASS_PROJECTILE, PRT_HEADMAN_FIRECRACKER);
-                          } break;
-    case HDT_ROCKETMAN:   {  
-      PrecacheSound(SOUND_FIREROCKETMAN);
-      PrecacheClass(CLASS_PROJECTILE, PRT_HEADMAN_ROCKETMAN);
-                          } break;
-    case HDT_BOMBERMAN:   {  
-      PrecacheSound(SOUND_FIREBOMBERMAN);
-      PrecacheClass(CLASS_PROJECTILE, PRT_HEADMAN_BOMBERMAN);
-      PrecacheModel(MODEL_BOMB);
-      PrecacheTexture(TEXTURE_BOMB);  
-                          } break;
-    case HDT_KAMIKAZE:    { 
-      PrecacheSound(SOUND_ATTACKKAMIKAZE);
-      PrecacheSound(SOUND_IDLEKAMIKAZE);
-      PrecacheClass(CLASS_BASIC_EFFECT, BET_BOMB);
-      PrecacheModel(MODEL_BOMB);
-      PrecacheTexture(TEXTURE_BOMB);  
-                          } break;
+    PrecacheModel(MODEL_BOMB);
+    PrecacheTexture(TEXTURE_BOMB);
+
+    PrecacheSound(SOUND_FIREFIRECRACKER);
+    PrecacheSound(SOUND_FIREBOMBERMAN);
+    PrecacheSound(SOUND_FIREROCKETMAN);
+    PrecacheSound(SOUND_ATTACKKAMIKAZE);
+    PrecacheSound(SOUND_IDLEKAMIKAZE);
+
+    PrecacheClass(CLASS_PROJECTILE, PRT_HEADMAN_FIRECRACKER);
+    PrecacheClass(CLASS_PROJECTILE, PRT_HEADMAN_ROCKETMAN);
+    PrecacheClass(CLASS_PROJECTILE, PRT_HEADMAN_BOMBERMAN);
+    PrecacheClass(CLASS_BASIC_EFFECT, BET_BOMB);
+  };
+
+  void AdjustDifficulty(void) {
+    // [Cecil] Reload the model
+    SetModel(MODEL_HEADMAN);
+
+    switch (m_hdtType) {
+      case HDT_FIRECRACKER:
+        SetModelMainTexture(TEXTURE_FIRECRACKER);
+        AddAttachment(HEADMAN_ATTACHMENT_HEAD, MODEL_FIRECRACKERHEAD, TEXTURE_FIRECRACKERHEAD);
+        AddAttachment(HEADMAN_ATTACHMENT_CHAINSAW, MODEL_CHAINSAW, TEXTURE_CHAINSAW);
+        break;
+  
+      case HDT_ROCKETMAN:
+        SetModelMainTexture(TEXTURE_ROCKETMAN);
+        AddAttachment(HEADMAN_ATTACHMENT_HEAD, MODEL_HEAD, TEXTURE_HEAD);
+        AddAttachment(HEADMAN_ATTACHMENT_ROCKET_LAUNCHER, MODEL_ROCKETLAUNCHER, TEXTURE_ROCKETLAUNCHER);
+        break;
+
+      case HDT_BOMBERMAN:
+        SetModelMainTexture(TEXTURE_BOMBERMAN);
+        AddAttachment(HEADMAN_ATTACHMENT_HEAD, MODEL_HEAD, TEXTURE_HEAD);
+        break;
+
+      case HDT_KAMIKAZE:
+        SetModelMainTexture(TEXTURE_KAMIKAZE);
+        AddAttachment(HEADMAN_ATTACHMENT_BOMB_RIGHT_HAND, MODEL_BOMB, TEXTURE_BOMB);
+        AddAttachment(HEADMAN_ATTACHMENT_BOMB_LEFT_HAND, MODEL_BOMB, TEXTURE_BOMB);
+        break;
     }
+
+    GetModelObject()->StretchModel(FLOAT3D(1.25f, 1.25f, 1.25f));
+    ModelChangeNotify();
+
+    // [Cecil] Increase health
+    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES2) {
+      SetHealth(70.0f);
+      m_fMaxHealth = 70.0f;
+      m_fDamageWounded = 25.0f;
+    }
+
+    CEnemyBase::AdjustDifficulty();
+  };
+
+  // [Cecil] Drop weapons
+  void DropItems(void) {
+    if (IRnd() % 4 == 0) {
+      switch (m_hdtType) {
+        // either SMG1 or alt ammo
+        case HDT_FIRECRACKER: {
+          if (IRnd() % 4) {
+            CEntityPointer pen = SpawnWeapon();
+            pen->Initialize();
+
+            CWeaponItem *penWeapon = (CWeaponItem*)&*pen;
+            penWeapon->m_bDropped = TRUE;
+            penWeapon->m_bPickupOnce = TRUE;
+            penWeapon->m_fDropTime = 20.0f;
+            penWeapon->m_EwitType = WIT_SMG1;
+            pen->Reinitialize();
+
+          } else {
+            CEntityPointer pen = SpawnPowerUp();
+            pen->Initialize();
+
+            CPowerUpItem *penPower = (CPowerUpItem*)&*pen;
+            penPower->m_puitType = PUIT_SPEED;
+            penPower->m_bDropped = TRUE;
+            penPower->m_bPickupOnce = TRUE;
+            penPower->m_fDropTime = 30.0f;
+            pen->Reinitialize();
+          }
+        } break;
+
+        // Pistol
+        case HDT_ROCKETMAN: {
+          CEntityPointer pen = SpawnWeapon();
+          pen->Initialize();
+
+          CWeaponItem *penWeapon = (CWeaponItem*)&*pen;
+          penWeapon->m_bDropped = TRUE;
+          penWeapon->m_bPickupOnce = TRUE;
+          penWeapon->m_fDropTime = 20.0f;
+          penWeapon->m_EwitType = WIT_USP;
+          pen->Reinitialize();
+        } break;
+
+        // Grenades
+        case HDT_BOMBERMAN: {
+          CEntityPointer pen = SpawnWeapon();
+          pen->Initialize();
+
+          CWeaponItem *penWeapon = (CWeaponItem*)&*pen;
+          penWeapon->m_bDropped = TRUE;
+          penWeapon->m_bPickupOnce = TRUE;
+          penWeapon->m_fDropTime = 20.0f;
+          penWeapon->m_EwitType = WIT_GRENADE;
+          pen->Reinitialize();
+        } break;
+      }
+    }
+  };
+  
+  // [Cecil] Better Enemies
+  void PrepareBullet(FLOAT3D vPos, FLOAT fDamage) {
+    CPlacement3D plBullet;
+    plBullet.pl_OrientationAngle = ANGLE3D(0, 0, 0);
+    plBullet.pl_PositionVector = vPos;
+    plBullet.RelativeToAbsolute(GetPlacement());
+
+    penBullet = CreateEntity(plBullet, CLASS_BULLET);
+    EBulletInit eInit;
+    eInit.penOwner = this;
+    eInit.fDamage = fDamage;
+    penBullet->Initialize(eInit);
+  };
+
+  void FireBullet(FLOAT3D vPos, FLOAT fDamage, FLOAT fJitter) {
+    PrepareBullet(vPos, fDamage);
+
+    // [Cecil] Get moving offset
+    FLOAT3D vOffset = ((CMovableEntity*)&*m_penEnemy)->en_vCurrentTranslationAbsolute * (FRnd()*0.5f);
+
+    ((CBullet&)*penBullet).CalcTarget(m_penEnemy, -vOffset, 250);
+    ((CBullet&)*penBullet).CalcJitterTarget(fJitter);
+    ((CBullet&)*penBullet).LaunchBullet(TRUE, TRUE, TRUE);
+    ((CBullet&)*penBullet).DestroyBullet();
   };
 
   /* Fill in entity statistics - for AI purposes only */
-  BOOL FillEntityStatistics(EntityStats *pes)
-  {
+  BOOL FillEntityStatistics(EntityStats *pes) {
     CEnemyBase::FillEntityStatistics(pes);
     switch(m_hdtType) {
-    case HDT_FIRECRACKER: { pes->es_strName+=" Firecracker"; } break;
-    case HDT_ROCKETMAN:   { pes->es_strName+=" Rocketman"; } break;
-    case HDT_BOMBERMAN:   { pes->es_strName+=" Bomberman"; } break;
-    case HDT_KAMIKAZE:    { pes->es_strName+=" Kamikaze"; } break;
+      case HDT_FIRECRACKER: { pes->es_strName+=" Firecracker"; } break;
+      case HDT_ROCKETMAN:   { pes->es_strName+=" Rocketman"; } break;
+      case HDT_BOMBERMAN:   { pes->es_strName+=" Bomberman"; } break;
+      case HDT_KAMIKAZE:    { pes->es_strName+=" Kamikaze"; } break;
     }
     return TRUE;
-  }
+  };
 
   /* Receive damage */
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType,
-    FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) 
-  {
+    FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) {
     // firecracker and rocketman can't harm headman
     if (!IsOfClass(penInflictor, "Headman") || 
         !(((CHeadman*)penInflictor)->m_hdtType==HDT_FIRECRACKER || 
@@ -179,7 +297,6 @@ functions:
       }
     }
   };
-
 
   // damage anim
   INDEX AnimForDamage(FLOAT fDamage) {
@@ -218,39 +335,32 @@ functions:
   };
 
   FLOAT WaitForDust(FLOAT3D &vStretch) {
-    vStretch=FLOAT3D(1,1,2);
-    if(GetModelObject()->GetAnim()==HEADMAN_ANIM_DEATH_EASY_FALL_BACK)
-    {
-      vStretch=vStretch*0.3f;
+    vStretch = FLOAT3D(1, 1, 2);
+    if (GetModelObject()->GetAnim() == HEADMAN_ANIM_DEATH_EASY_FALL_BACK) {
+      vStretch = vStretch*0.3f;
       return 0.864f;
     }
-    if(GetModelObject()->GetAnim()==HEADMAN_ANIM_DEATH_FALL_BACK)
-    {
-      vStretch=vStretch*0.75f;
+    if (GetModelObject()->GetAnim() == HEADMAN_ANIM_DEATH_FALL_BACK) {
+      vStretch = vStretch*0.75f;
       return 0.48f;
     }    
-    if(GetModelObject()->GetAnim()==HEADMAN_ANIM_DEATH_EASY_FALL_FORWARD)
-    {
-      vStretch=vStretch*0.3f;
+    if (GetModelObject()->GetAnim() == HEADMAN_ANIM_DEATH_EASY_FALL_FORWARD) {
+      vStretch = vStretch*0.3f;
       return 1.12f;
-    }
-    else if(GetModelObject()->GetAnim()==HEADMAN_ANIM_DEATH_FALL_ON_KNEES)
-    {
-      vStretch=vStretch*0.75f;
+    } else if (GetModelObject()->GetAnim() == HEADMAN_ANIM_DEATH_FALL_ON_KNEES) {
+      vStretch = vStretch*0.75f;
       return 1.035f;
     }
     return -1.0f;
   };
 
   // should this enemy blow up (spawn debris)
-  BOOL ShouldBlowUp(void) 
-  {
-    if (m_hdtType==HDT_KAMIKAZE && GetHealth()<=0) {
+  BOOL ShouldBlowUp(void) {
+    if (m_hdtType == HDT_KAMIKAZE && GetHealth() <= 0) {
       return TRUE;
-    } else {
-      return CEnemyBase::ShouldBlowUp();
     }
-  }
+    return CEnemyBase::ShouldBlowUp();
+  };
 
   void DeathNotify(void) {
     ChangeCollisionBoxIndexWhenPossible(HEADMAN_COLLISION_BOX_DEATH);
@@ -264,18 +374,18 @@ functions:
       KamikazeSoundOff();
     }
   };
-  void StandingAnimFight(void)
-  {
+
+  void StandingAnimFight(void) {
     StartModelAnim(HEADMAN_ANIM_IDLE_FIGHT, AOF_LOOPING|AOF_NORESTART);
-    if (m_hdtType==HDT_KAMIKAZE) {
+    if (m_hdtType == HDT_KAMIKAZE) {
       KamikazeSoundOff();
     }
-  }
+  };
   void WalkingAnim(void) {
     StartModelAnim(HEADMAN_ANIM_WALK, AOF_LOOPING|AOF_NORESTART);
   };
   void RunningAnim(void) {
-    if (m_hdtType==HDT_KAMIKAZE) {
+    if (m_hdtType == HDT_KAMIKAZE) {
       KamikazeSoundOn();
       StartModelAnim(HEADMAN_ANIM_KAMIKAZE_ATTACK, AOF_LOOPING|AOF_NORESTART);
     } else {
@@ -291,7 +401,7 @@ functions:
     if (m_bAttackSound) {
       return;
     }
-    if (m_hdtType==HDT_KAMIKAZE) {
+    if (m_hdtType == HDT_KAMIKAZE) {
       PlaySound(m_soSound, SOUND_IDLEKAMIKAZE, SOF_3D);
     } else {
       PlaySound(m_soSound, SOUND_IDLE, SOF_3D);
@@ -315,19 +425,18 @@ functions:
     }
     PlaySound(m_soSound, SOUND_DEATH, SOF_3D);
   };
-
   void KamikazeSoundOn(void) {
     if (!m_bAttackSound) {
       m_bAttackSound = TRUE;
       PlaySound(m_soSound, SOUND_ATTACKKAMIKAZE, SOF_3D|SOF_LOOP);
     }
-  }
+  };
   void KamikazeSoundOff(void) {
     if (m_bAttackSound) {
       m_soSound.Stop();
       m_bAttackSound = FALSE;
     }
-  }
+  };
 
 /************************************************************
  *                 BLOW UP FUNCTIONS                        *
@@ -526,7 +635,14 @@ procedures:
     CEntityPointer penProjectile = CreateEntity(pl, CLASS_PROJECTILE);
     ELaunchProjectile eLaunch;
     eLaunch.penLauncher = this;
-    eLaunch.prtType = PRT_HEADMAN_BOMBERMAN;
+    
+    // [Cecil] Throw a real grenade
+    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES1) {
+      eLaunch.prtType = PRT_GRENADE;
+    } else {
+      eLaunch.prtType = PRT_HEADMAN_BOMBERMAN;
+    }
+
     eLaunch.fSpeed = fLaunchSpeed;
     penProjectile->Initialize(eLaunch);
 
@@ -550,19 +666,38 @@ procedures:
     autowait(0.15f);
     PlaySound(m_soSound, SOUND_FIREFIRECRACKER, SOF_3D);
     autowait(0.52f);
-    ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(-16.0f, 0, 0));
 
-    autowait(0.05f);
-    ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(-8, 0, 0));
+    // [Cecil] Shoot 5 bullets
+    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES1) {
+      FireBullet(SMG1_FIRE, 2.0f, 50.0f);
 
-    autowait(0.05f);
-    ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(0.0f, 0, 0));
+      autowait(0.05f);
+      FireBullet(SMG1_FIRE, 2.0f, 50.0f);
 
-    autowait(0.05f);
-    ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(8.0f, 0, 0));
+      autowait(0.05f);
+      FireBullet(SMG1_FIRE, 2.0f, 50.0f);
 
-    autowait(0.05f);
-    ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(16.0f, 0, 0));
+      autowait(0.05f);
+      FireBullet(SMG1_FIRE, 2.0f, 50.0f);
+
+      autowait(0.05f);
+      FireBullet(SMG1_FIRE, 2.0f, 50.0f);
+
+    } else if (TRUE) {
+      ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(-16.0f, 0, 0));
+
+      autowait(0.05f);
+      ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(-8, 0, 0));
+
+      autowait(0.05f);
+      ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(0.0f, 0, 0));
+
+      autowait(0.05f);
+      ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(8.0f, 0, 0));
+
+      autowait(0.05f);
+      ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(16.0f, 0, 0));
+    }
 
     autowait(0.5f + FRnd()/3);
     return EEnd();
@@ -570,18 +705,23 @@ procedures:
 
   // Rocketman attack
   RocketmanAttack(EVoid) {
-    StandingAnimFight();   //StartModelAnim(_ANIM_STAND, AOF_LOOPING|AOF_NORESTART);
+    StandingAnimFight();
     autowait(0.2f + FRnd()/4);
 
+    // [Cecil] Shoot one bullet
+    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES1) {
+      FireBullet(PISTOL_FIRE, (IRnd() % 2) + 1.0f, 30.0f);
+
+    } else {
+      ShootProjectile(PRT_HEADMAN_ROCKETMAN, FLOAT3D(0.0f, 1.0f, 0.0f), ANGLE3D(0, 0, 0));
+    }
+
     StartModelAnim(HEADMAN_ANIM_ROCKETMAN_ATTACK, 0);
-    ShootProjectile(PRT_HEADMAN_ROCKETMAN, FLOAT3D(0.0f, 1.0f, 0.0f), ANGLE3D(0, 0, 0));
     PlaySound(m_soSound, SOUND_FIREROCKETMAN, SOF_3D);
 
     autowait(1.0f + FRnd()/3);
     return EEnd();
   };
-
-
 
 /************************************************************
  *                    D  E  A  T  H                         *

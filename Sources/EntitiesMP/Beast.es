@@ -5,6 +5,9 @@
 #include "Models/Enemies/Beast/Beast.h"
 #include "EntitiesMP/WorldSettingsController.h"
 #include "EntitiesMP/BackgroundViewer.h"
+
+// [Cecil] Rotate to plane
+#include "EntitiesMP/Cecil/Physics.h"
 %}
 
 uses "EntitiesMP/EnemyBase";
@@ -119,10 +122,9 @@ functions:
     }
   };
 
-  void ShakeItBaby(FLOAT tmShaketime, FLOAT fPower)
-  {
+  void ShakeItBaby(FLOAT tmShaketime, FLOAT fPower) {
     CWorldSettingsController *pwsc = GetWSC(this);
-    if (pwsc!=NULL) {
+    if (pwsc != NULL) {
       pwsc->m_tmShakeStarted = tmShaketime;
       pwsc->m_vShakePos = GetPlacement().pl_PositionVector;
       pwsc->m_fShakeFalloff = 400.0f;
@@ -137,37 +139,33 @@ functions:
 
       pwsc->m_bShakeFadeIn = FALSE;
     }
-  }
+  };
 
-  FLOAT GetCrushHealth(void)
-  {
+  FLOAT GetCrushHealth(void) {
     if (m_bcType == BT_BIG) {
       return 100.0f;
     } else if (m_bcType == BT_HUGE) {
       return 200.0f;
     }
     return 0.0f;
-  }
+  };
 
-  BOOL ForcesCannonballToExplode(void)
-  {
+  BOOL ForcesCannonballToExplode(void) {
     return TRUE;
-  }
+  };
 
   /* Receive damage */
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType,
-    FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) 
+    FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection)
   {
-    
+    // [Cecil] DMT_RIFLE
     // take less damage from heavy bullets (e.g. sniper)
-    if(dmtType==DMT_BULLET && fDamageAmmount>100.0f)
-    {
-      fDamageAmmount*=0.5f;
+    if ((dmtType == DMT_BULLET || dmtType == DMT_RIFLE) && fDamageAmmount > 100.0f) {
+      fDamageAmmount *= 0.5f;
     }
 
     // cannonballs inflict less damage then the default
-    if(m_bcType==BT_BIG && dmtType==DMT_CANNONBALL)
-    {
+    if (m_bcType == BT_BIG && dmtType == DMT_CANNONBALL) {
       fDamageAmmount *= 0.3333f;
     }
 
@@ -286,8 +284,11 @@ procedures:
     StopMoving();
     DeathSound();     // death sound
     LeaveStain(TRUE);
+
+    // [Cecil] Rotate to plane
+    SetPhysicsFlags(EPF_MODEL_CORPSE | EPF_ROTATETOPLANE);
+    
     // set physic flags
-    SetPhysicsFlags(EPF_MODEL_CORPSE);
     SetCollisionFlags(ECF_CORPSE);
     SetFlags(GetFlags() | ENF_SEETHROUGH);
     // stop making fuss
@@ -452,27 +453,23 @@ procedures:
     // close attack
     StartModelAnim(BEAST_ANIM_KICK, 0);
     autowait(0.45f);
-    /*
-    StartModelAnim(BEAST_ANIM_KICK, AOF_SMOOTHCHANGE);
-    autocall CMovableModelEntity::WaitUntilScheduledAnimStarts() EReturn;    
-    */
+
     PlaySound(m_soSound, SOUND_KICK, SOF_3D);
     if (CalcDist(m_penEnemy) < m_fCloseDistance) {
       FLOAT3D vDirection = m_penEnemy->GetPlacement().pl_PositionVector-GetPlacement().pl_PositionVector;
       vDirection.Normalize();
+
+      // [Cecil] Hit point on the enemy position
+      FLOAT3D vHit = m_penEnemy->GetPlacement().pl_PositionVector;
       if (m_bcType == BT_BIG) {
-        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 80.0f, FLOAT3D(0, 0, 0), vDirection);
+        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 80.0f, vHit, vDirection);
       } else if (m_bcType == BT_HUGE) {
-        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 120.0f, FLOAT3D(0, 0, 0), vDirection);
+        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 120.0f, vHit, vDirection);
       } else  {
-        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 40.0f, FLOAT3D(0, 0, 0), vDirection);
+        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 40.0f, vHit, vDirection);
       }
     }
 
-    /*
-    StartModelAnim(BEAST_ANIM_IDLE, AOF_SMOOTHCHANGE);
-    autocall CMovableModelEntity::WaitUntilScheduledAnimStarts() EReturn;    
-    */
     autowait(0.45f);
     MaybeSwitchToAnotherPlayer();
     return EReturn();
@@ -553,8 +550,9 @@ procedures:
       m_fBodyParts = 6;
       m_fDamageWounded = 1650.0f;//500
       m_iScore = 40000; //1000
-      m_fStopDistance = 75;
-      m_fCloseDistance = 80;
+      // [Cecil] Adjusted distance
+      m_fStopDistance = 20;
+      m_fCloseDistance = 30;
       m_fAttackDistance = 1000.0f;
       m_fIgnoreRange = 1200.0f;
       // set stretch factor

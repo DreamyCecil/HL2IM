@@ -111,8 +111,7 @@ functions:
  ************************************************************/
   // set desired rotation and translation to go/orient towards desired position
   // and get the resulting movement type
-  virtual ULONG SetDesiredMovement(void) 
-  {
+  virtual ULONG SetDesiredMovement(void) {
     // if not in air
     if (!m_bInLiquid) {
       // use base class
@@ -132,17 +131,16 @@ functions:
       }
       vTranslation.Normalize();
       vTranslation *= m_fMoveSpeed;
-      SetDesiredTranslation(vTranslation);
+      EnemyMove(vTranslation); // [Cecil]
     }
 
     return ulFlags;
   }
 
   // check whether may move while attacking
-  BOOL MayMoveToAttack(void) 
-  {
+  BOOL MayMoveToAttack(void) {
     return WouldNotLeaveAttackRadius();
-  }
+  };
 
 /************************************************************
  *                CLASS SUPPORT FUNCTIONS                   *

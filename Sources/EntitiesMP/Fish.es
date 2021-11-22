@@ -55,7 +55,7 @@ functions:
   };
   void Precache(void) {
     CEnemyBase::Precache();
-    PrecacheModel(MODEL_GLOW  );
+    PrecacheModel(MODEL_GLOW);
     PrecacheTexture(TEXTURE_GLOW);
     PrecacheSound(SOUND_IDLE);
     PrecacheSound(SOUND_SIGHT);

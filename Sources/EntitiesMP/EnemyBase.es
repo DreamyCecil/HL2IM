@@ -4,8 +4,13 @@
 #include "EntitiesMP/Common/PathFinding.h"
 #include "EntitiesMP/NavigationMarker.h"
 #include "EntitiesMP/TacticsHolder.h"
+
 extern void JumpFromBouncer(CEntity *penToBounce, CEntity *penBouncer);
 extern INDEX ent_bReportBrokenChains;
+
+// [Cecil] Gravity Gun actions
+#include "EntitiesMP/PlayerWeapons.h"
+#include "EntitiesMP/Cecil/Physics.h"
 %}
 
 uses "EntitiesMP/Watcher";
@@ -15,6 +20,12 @@ uses "EntitiesMP/Debris";
 uses "EntitiesMP/EnemyMarker";
 uses "EntitiesMP/MusicHolder";
 uses "EntitiesMP/BloodSpray";
+
+// [Cecil] Drop items
+uses "EntitiesMP/AmmoItem";
+uses "EntitiesMP/ArmorItem";
+uses "EntitiesMP/PowerUpItem";
+uses "EntitiesMP/WeaponItem";
 
 event ERestartAttack {
 };
@@ -90,6 +101,8 @@ properties:
  44 FLOAT m_tmLastDamage = -1000.0f,
  46 BOOL m_bRobotBlowup = FALSE,    // set for robots parts blowup, otherwise blowup flesh
  47 FLOAT m_fBlowUpSize = 2.0f,
+
+ 48 FLOAT3D m_vKickDamage = FLOAT3D(0.0f, 0.0f, 0.0f), // [Cecil] New kick damage
 
  // logic temporary variables -> DO NOT USE
 133 FLOAT m_fMoveTime = 0.0f,
@@ -169,20 +182,27 @@ properties:
 
 181 BOOL  m_bResizeAttachments "Stretch attachments" = FALSE, // for small enemies with big guns
 
-//171 INDEX m_iTacticsRetried = 0,
+// [Cecil] For rotation
+200 FLOAT3D m_vRotationDir = FLOAT3D(0.0f, -1.0f, 0.0f),
+// [Cecil] Player that is holding with a gravity gun
+201 CEntityPointer m_penPlayerHolding,
 
-  {
-    TIME m_tmPredict;  // time to predict the entity to
-  }
-
+{
+  TIME m_tmPredict;  // time to predict the entity to
+}
 
 components:
 
-  1 class   CLASS_WATCHER         "Classes\\Watcher.ecl",
-  2 class   CLASS_PROJECTILE      "Classes\\Projectile.ecl",
-  3 class   CLASS_DEBRIS          "Classes\\Debris.ecl",
-  4 class   CLASS_BASIC_EFFECT    "Classes\\BasicEffect.ecl",
-  5 class   CLASS_BLOOD_SPRAY     "Classes\\BloodSpray.ecl",
+  1 class CLASS_WATCHER      "Classes\\Watcher.ecl",
+  2 class CLASS_PROJECTILE   "Classes\\Projectile.ecl",
+  3 class CLASS_DEBRIS       "Classes\\Debris.ecl",
+  4 class CLASS_BASIC_EFFECT "Classes\\BasicEffect.ecl",
+  5 class CLASS_BLOOD_SPRAY  "Classes\\BloodSpray.ecl",
+// [Cecil]
+  6 class CLASS_WEAPON  "Classes\\WeaponItem.ecl",
+  7 class CLASS_AMMO    "Classes\\AmmoItem.ecl",
+  8 class CLASS_ARMOR   "Classes\\ArmorItem.ecl",
+  9 class CLASS_POWERUP "Classes\\PowerUpItem.ecl",
 
 // ************** FLESH PARTS **************
  10 model   MODEL_FLESH          "Models\\Effects\\Debris\\Flesh\\Flesh.mdl",
@@ -206,11 +226,53 @@ components:
 
 
 functions:
+  // [Cecil] Drop weapons
+  virtual void DropItems(void) {};
+  virtual CEntityPointer SpawnWeapon(void) {
+    CPlacement3D plSpawn = GetPlacement();
+    plSpawn.pl_PositionVector += FLOAT3D(0.0f, 1.0f, 0.0f) * GetRotationMatrix();
+    plSpawn.pl_OrientationAngle(1) = FRnd() * 360.0f;
 
-  void CEnemyBase(void)
-  {
+    return CreateEntity(plSpawn, CLASS_WEAPON);
+  };
+  virtual CEntityPointer SpawnAmmo(void) {
+    CPlacement3D plSpawn = GetPlacement();
+    plSpawn.pl_PositionVector += FLOAT3D(0.0f, 1.0f, 0.0f) * GetRotationMatrix();
+    plSpawn.pl_OrientationAngle(1) = FRnd() * 360.0f;
+
+    return CreateEntity(plSpawn, CLASS_AMMO);
+  };
+  virtual CEntityPointer SpawnArmor(void) {
+    CPlacement3D plSpawn = GetPlacement();
+    plSpawn.pl_PositionVector += FLOAT3D(0.0f, 1.0f, 0.0f) * GetRotationMatrix();
+    plSpawn.pl_OrientationAngle(1) = FRnd() * 360.0f;
+
+    return CreateEntity(plSpawn, CLASS_ARMOR);
+  };
+  virtual CEntityPointer SpawnPowerUp(void) {
+    CPlacement3D plSpawn = GetPlacement();
+    plSpawn.pl_PositionVector += FLOAT3D(0.0f, 1.0f, 0.0f) * GetRotationMatrix();
+    plSpawn.pl_OrientationAngle(1) = FRnd() * 360.0f;
+
+    return CreateEntity(plSpawn, CLASS_POWERUP);
+  };
+
+  // [Cecil] Enemy movement
+  void EnemyMove(const FLOAT3D &vSpeed) {
+    // move only when not being held
+    if (m_penPlayerHolding == NULL) {
+      SetDesiredTranslation(vSpeed);
+    }
+  };
+
+  // [Cecil] PreMoving() with rotate-to-plane flag
+  void PreMoving(void) {
+    Cecil_PreMoving(this, m_vRotationDir);
+  };
+
+  void CEnemyBase(void) {
     m_tmPredict = 0;
-  }
+  };
 
   // called by other entities to set time prediction parameter
   void SetPredictionTime(TIME tmAdvance)   // give time interval in advance to set
@@ -338,25 +400,20 @@ functions:
     return CalcDelta(penEntity).Length();
   };
 
-  BOOL IfTargetCrushed(CEntity *penOther, const FLOAT3D &vDirection)
-  {
-    if( IsOfClass(penOther, "ModelHolder2"))
-    {
+  BOOL IfTargetCrushed(CEntity *penOther, const FLOAT3D &vDirection) {
+    if (IsOfClass(penOther, "ModelHolder2")) {
       FLOAT fCrushHealth = GetCrushHealth();
-      if( fCrushHealth>((CRationalEntity &)*penOther).GetHealth())
-      {
-        InflictDirectDamage(penOther, this, 
-          DMT_EXPLOSION, fCrushHealth, GetPlacement().pl_PositionVector, vDirection);
+      if (fCrushHealth > ((CRationalEntity &)*penOther).GetHealth()) {
+        InflictDirectDamage(penOther, this, DMT_EXPLOSION, fCrushHealth, GetPlacement().pl_PositionVector, vDirection);
         return TRUE;
       }
     }
     return FALSE;
-  }
+  };
 
   // calculate delta to given entity in current gravity plane
-  FLOAT3D CalcPlaneDelta(CEntity *penEntity) 
-  {
-    ASSERT(penEntity!=NULL);
+  FLOAT3D CalcPlaneDelta(CEntity *penEntity) {
+    ASSERT(penEntity != NULL);
     FLOAT3D vPlaneDelta;
     // find vector from you to target in XZ plane
     GetNormalComponent(
@@ -564,7 +621,8 @@ functions:
   // create a checksum value for sync-check
   void ChecksumForSync(ULONG &ulCRC, INDEX iExtensiveSyncCheck) {
     CMovableModelEntity::ChecksumForSync(ulCRC, iExtensiveSyncCheck);
-  }
+  };
+
   // dump sync data to text file
   void DumpSync_t(CTStream &strm, INDEX iExtensiveSyncCheck)  // throw char *
   {
@@ -575,29 +633,32 @@ functions:
     } else {
       strm.FPrintF_t("none\n");
     }
- 
-    /*INDEX ctStates = en_stslStateStack.Count();
-    strm.FPrintF_t("state stack @%gs:\n", _pTimer->CurrentTick());
-    for(INDEX iState=ctStates-1; iState>=0; iState--) {
-      SLONG slState = en_stslStateStack[iState];
-      strm.FPrintF_t("  0x%08x %s\n", slState, en_pecClass->ec_pdecDLLClass->HandlerNameForState(slState));
-    }*/
-
-  }
+  };
 
   /* Read from stream. */
-  void Read_t( CTStream *istr) {
+  void Read_t(CTStream *istr) {
     CMovableModelEntity::Read_t(istr);
 
     // add to fuss if needed
-    if (m_penMainMusicHolder!=NULL) {
+    if (m_penMainMusicHolder != NULL) {
       ((CMusicHolder&)*m_penMainMusicHolder).m_cenFussMakers.Add(this);
+    }
+
+    // [Cecil] Holding player (0.7 compatibility)
+    if (istr->PeekID_t() == CChunkID("HOLD")) {
+      istr->GetID_t();
+
+      ULONG ulHolding = 0;
+      *istr>>ulHolding;
+
+      /*if (ulHolding != 0) {
+        m_penPlayerHolding = FindEntityByID(GetWorld(), ulHolding);
+      }*/
     }
   };
 
   /* Fill in entity statistics - for AI purposes only */
-  BOOL FillEntityStatistics(EntityStats *pes)
-  {
+  BOOL FillEntityStatistics(EntityStats *pes) {
     pes->es_strName = GetClass()->ec_pdecDLLClass->dec_strName;
     if (m_bTemplate) {
       pes->es_ctCount = 0;
@@ -608,7 +669,7 @@ functions:
     pes->es_fValue = GetHealth();
     pes->es_iScore = m_iScore;
     return TRUE;
-  }
+  };
 
   /* Receive damage */
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType,
@@ -632,16 +693,23 @@ functions:
       // do nothing
       return;
     }
+
+    // [Cecil] Ignore impacts while being held
+    if (dmtType == DMT_IMPACT && m_penPlayerHolding != NULL) {
+      return;
+    }
+
     FLOAT fKickDamage = fNewDamage;
-    if( (dmtType == DMT_EXPLOSION) || (dmtType == DMT_IMPACT) || (dmtType == DMT_CANNONBALL_EXPLOSION) )
-    {
+
+    if (dmtType == DMT_EXPLOSION || dmtType == DMT_IMPACT || dmtType == DMT_CANNONBALL_EXPLOSION) {
       fKickDamage*=1.5;
     }
-    if (dmtType==DMT_DROWNING || dmtType==DMT_CLOSERANGE || dmtType==DMT_CHAINSAW) {
+
+    if (dmtType == DMT_DROWNING || dmtType == DMT_CLOSERANGE || dmtType == DMT_CHAINSAW) {
       fKickDamage /= 10;
     }
-    if (dmtType==DMT_BURNING)
-    {
+
+    if (dmtType == DMT_BURNING) {
       fKickDamage /= 100000;
       UBYTE ubR, ubG, ubB, ubA;
       FLOAT fColorFactor=fNewDamage/m_fMaxHealth*255.0f;
@@ -657,7 +725,8 @@ functions:
 
     // fade damage out
     if (tmDelta>=_pTimer->TickQuantum*3) {
-      m_vDamage=FLOAT3D(0,0,0);
+      m_vDamage = FLOAT3D(0.0f, 0.0f, 0.0f);
+      m_vKickDamage = FLOAT3D(0.0f, 0.0f, 0.0f); // [Cecil]
     }
     // add new damage
     FLOAT3D vDirectionFixed;
@@ -666,17 +735,22 @@ functions:
     } else {
       vDirectionFixed = -en_vGravityDir;
     }
+
     FLOAT3D vDamageOld = m_vDamage;
+    FLOAT3D vKickOld = m_vKickDamage; // [Cecil]
+
 /*    if( (dmtType == DMT_EXPLOSION) || (dmtType == DMT_CANNONBALL_EXPLOSION) )
     {
       m_vDamage+=(vDirectionFixed/2-en_vGravityDir/2)*fKickDamage;
     }
     else*/
     {
-      m_vDamage+=(vDirectionFixed-en_vGravityDir/2)*fKickDamage;
+      m_vDamage += (vDirectionFixed - en_vGravityDir/2) * fKickDamage;
+      m_vKickDamage += (vDirectionFixed - en_vGravityDir/2); // [Cecil]
     }
     
-    FLOAT fOldLen = vDamageOld.Length();
+    // [Cecil] Use a new vector
+    FLOAT fOldLen = vKickOld.Length(); //vDamageOld.Length();
     FLOAT fNewLen = m_vDamage.Length();
     FLOAT fOldRootLen = Sqrt(fOldLen);
     FLOAT fNewRootLen = Sqrt(fNewLen);
@@ -688,53 +762,51 @@ functions:
       fMassFactor /= 3;
     }
 
-    if(fOldLen != 0.0f)
-    {
+    if (fOldLen != 0.0f) {
+      // [Cecil] Use a new vector
+      FLOAT3D vCancelKick = -vKickOld/fOldRootLen*fMassFactor; //-vDamageOld/fOldRootLen*fMassFactor;
+
       // cancel last push
-      GiveImpulseTranslationAbsolute( -vDamageOld/fOldRootLen*fMassFactor);
+      GiveImpulseTranslationAbsolute(vCancelKick);
     }
 
     //-en_vGravityDir*fPushStrength/10
 
+    // [Cecil] Use a new vector
+    FLOAT3D vKick = m_vKickDamage / Sqrt(m_vKickDamage.Length()) * fMassFactor; //m_vDamage/fNewRootLen*fMassFactor;
+
     // push it back
-    GiveImpulseTranslationAbsolute( m_vDamage/fNewRootLen*fMassFactor);
+    GiveImpulseTranslationAbsolute(vKick);
 
     /*if ((m_tmSpraySpawned<=_pTimer->CurrentTick()-_pTimer->TickQuantum || 
       m_fSprayDamage+fNewDamage>50.0f)
       && m_fSpiritStartTime==0) {*/
     
-    if( m_fMaxDamageAmmount<fDamageAmmount)
-    {
+    if (m_fMaxDamageAmmount < fDamageAmmount) {
       m_fMaxDamageAmmount = fDamageAmmount;
     }
+
     // if it has no spray, or if this damage overflows it, and not already disappearing
-    if ((m_tmSpraySpawned<=_pTimer->CurrentTick()-_pTimer->TickQuantum*8 || 
-      m_fSprayDamage+fNewDamage>50.0f)
-      && m_fSpiritStartTime==0 &&
-      dmtType!=DMT_CHAINSAW && 
-      !(dmtType==DMT_BURNING && GetHealth()<0) ) {
+    if ((m_tmSpraySpawned <= _pTimer->CurrentTick() - _pTimer->TickQuantum*8
+     || m_fSprayDamage + fNewDamage > 50.0f)
+     && m_fSpiritStartTime == 0 && dmtType != DMT_CHAINSAW
+     && !(dmtType == DMT_BURNING && GetHealth() < 0.0f)) {
 
       // spawn blood spray
-      CPlacement3D plSpray = CPlacement3D( vHitPoint, ANGLE3D(0, 0, 0));
-      m_penSpray = CreateEntity( plSpray, CLASS_BLOOD_SPRAY);
-      if(m_sptType != SPT_ELECTRICITY_SPARKS)
-      {
-        m_penSpray->SetParent( this);
+      CPlacement3D plSpray = CPlacement3D(vHitPoint, ANGLE3D(0.0f, 0.0f, 0.0f));
+      m_penSpray = CreateEntity(plSpray, CLASS_BLOOD_SPRAY);
+      if (m_sptType != SPT_ELECTRICITY_SPARKS) {
+        m_penSpray->SetParent(this);
       }
 
       ESpawnSpray eSpawnSpray;
       eSpawnSpray.colBurnColor=C_WHITE|CT_OPAQUE;
       
-      if( m_fMaxDamageAmmount > 10.0f)
-      {
+      if (m_fMaxDamageAmmount > 10.0f) {
         eSpawnSpray.fDamagePower = 3.0f;
-      }
-      else if(m_fSprayDamage+fNewDamage>50.0f)
-      {
+      } else if (m_fSprayDamage + fNewDamage > 50.0f) {
         eSpawnSpray.fDamagePower = 2.0f;
-      }
-      else
-      {
+      } else {
         eSpawnSpray.fDamagePower = 1.0f;
       }
 
@@ -953,7 +1025,7 @@ functions:
   {
     return 
       penPlayer!=NULL && 
-      IsDerivedFromClass(penPlayer, "Player") &&
+      IS_PLAYER(penPlayer) &&
       penPlayer->GetFlags()&ENF_ALIVE;
   }
   
@@ -1174,14 +1246,14 @@ functions:
       vTranslation(3) = -m_fMoveSpeed;
 
       // start moving
-      SetDesiredTranslation(vTranslation);
+      EnemyMove(vTranslation); // [Cecil]
 
       ulFlags |= MF_MOVEZ;
 
     // if we may not move
     } else {
       // stop translating
-      SetDesiredTranslation(FLOAT3D(0, 0, 0));
+      EnemyMove(FLOAT3D(0.0f, 0.0f, 0.0f)); // [Cecil]
     }
 
     return ulFlags;
@@ -1201,9 +1273,8 @@ functions:
   };
 
   // stop desired translation
-  void StopTranslating() 
-  {
-    SetDesiredTranslation(FLOAT3D(0.0f, 0.0f, 0.0f));
+  void StopTranslating() {
+    EnemyMove(FLOAT3D(0.0f, 0.0f, 0.0f)); // [Cecil]
   };
 
   // calc distance to entity in one plane (relative to owner gravity)
@@ -1712,35 +1783,41 @@ functions:
  *                 BLOW UP FUNCTIONS                        *
  ************************************************************/
   // should this enemy blow up (spawn debris)
-  virtual BOOL ShouldBlowUp(void) 
-  {
+  virtual BOOL ShouldBlowUp(void) {
     // exotech larva boss allways blows up
     if (IsOfClass(this, "ExotechLarva")) { return TRUE; }
+
+    // [Cecil] Don't blow up some enemies for now
+    if (!IsOfClass(this, "Boneman") && !IsOfClass(this, "Gizmo")) {
+      return FALSE;
+    }
     
     // blow up if
     return
       // allowed 
       GetSP()->sp_bGibs && 
       // dead and
-      GetHealth()<=0 && 
+      GetHealth() <= 0 && 
       // has received large enough damage lately and
       m_vDamage.Length() > m_fBlowUpAmount && 
       // not already disappearing
-      m_fSpiritStartTime==0;
-  }
-
+      m_fSpiritStartTime == 0;
+  };
 
   // base function for blowing up
-  void BlowUpBase(void)
-  {
+  void BlowUpBase(void) {
     // call derived function
     BlowUp();
-  }
 
+    // [Cecil] Unhold itself
+    /*if (m_penPlayerHolding != NULL) {
+      ((CPlayer*)m_penPlayerHolding)->GetPlayerWeapons()->StopHolding();
+      m_penPlayerHolding = NULL;
+    }*/
+  };
 
   // spawn body parts
-  virtual void BlowUp(void)
-  {
+  virtual void BlowUp(void) {
     // blow up notify
     BlowUpNotify();
     const BOOL bGibs = GetSP()->sp_bGibs;
@@ -1780,8 +1857,7 @@ functions:
     }
 
     // if allowed and robot/machine
-    if( bGibs && m_bRobotBlowup)
-    {
+    if (bGibs && m_bRobotBlowup) {
       // spawn debris
       Debris_Begin(EIBT_ROBOT, DPR_SMOKETRAIL, BET_EXPLOSIONSTAIN, m_fBlowUpSize, vNormalizedDamage, vBodySpeed, 1.0f, 0.0f);
       for( INDEX iDebris = 0; iDebris<m_fBodyParts; iDebris++) {
@@ -1803,16 +1879,14 @@ functions:
     SwitchToEditorModel();
     SetPhysicsFlags(EPF_MODEL_IMMATERIAL);
     SetCollisionFlags(ECF_IMMATERIAL);
-  }
-
+  };
 
 /************************************************************
  *                CLASS SUPPORT FUNCTIONS                   *
  ************************************************************/
 
   // leave stain
-  virtual void LeaveStain( BOOL bGrow)
-  {
+  virtual void LeaveStain( BOOL bGrow) {
     ESpawnEffect ese;
     FLOAT3D vPoint;
     FLOATplane3D vPlaneNormal;
@@ -1822,69 +1896,49 @@ functions:
     GetBoundingBox(box);
   
     // on plane
-    if( GetNearestPolygon(vPoint, vPlaneNormal, fDistanceToEdge)) {
+    if (GetNearestPolygon(vPoint, vPlaneNormal, fDistanceToEdge)) {
       // if near to polygon and away from last stain point
-      if( (vPoint-GetPlacement().pl_PositionVector).Length()<0.5f
-        && (m_vLastStain-vPoint).Length()>1.0f ) {
+      if ((vPoint-GetPlacement().pl_PositionVector).Length() < 0.5f
+        && (m_vLastStain-vPoint).Length() > 1.0f) {
         m_vLastStain = vPoint;
         FLOAT fStretch = box.Size().Length();
         ese.colMuliplier = C_WHITE|CT_OPAQUE;
         // stain
         if (bGrow) {
-          ese.betType    = BET_BLOODSTAINGROW;
-          ese.vStretch   = FLOAT3D( fStretch*1.5f, fStretch*1.5f, 1.0f);
+          ese.betType = BET_BLOODSTAINGROW;
+          ese.vStretch = FLOAT3D(fStretch*1.5f, fStretch*1.5f, 1.0f);
         } else {
-          ese.betType    = BET_BLOODSTAIN;
-          ese.vStretch   = FLOAT3D( fStretch*0.75f, fStretch*0.75f, 1.0f);
+          ese.betType = BET_BLOODSTAIN;
+          ese.vStretch = FLOAT3D(fStretch*0.75f, fStretch*0.75f, 1.0f);
         }
-        ese.vNormal    = FLOAT3D( vPlaneNormal);
-        ese.vDirection = FLOAT3D( 0, 0, 0);
+        ese.vNormal = FLOAT3D(vPlaneNormal);
+        ese.vDirection = FLOAT3D(0, 0, 0);
         FLOAT3D vPos = vPoint+ese.vNormal/50.0f*(FRnd()+0.5f);
-        CEntityPointer penEffect = CreateEntity( CPlacement3D(vPos, ANGLE3D(0,0,0)), CLASS_BASIC_EFFECT);
+        CEntityPointer penEffect = CreateEntity(CPlacement3D(vPos, ANGLE3D(0, 0, 0)), CLASS_BASIC_EFFECT);
         penEffect->Initialize(ese);
       }
     }
   };
 
-  virtual void AdjustDifficulty(void)
-  {
+  virtual void AdjustDifficulty(void) {
     FLOAT fMoveSpeed = GetSP()->sp_fEnemyMovementSpeed;
     FLOAT fAttackSpeed = GetSP()->sp_fEnemyMovementSpeed;
-//    m_fWalkSpeed *= fMoveSpeed;
-//    m_aWalkRotateSpeed *= fMoveSpeed;
     m_fAttackRunSpeed *= fMoveSpeed;
     m_aAttackRotateSpeed *= fMoveSpeed;
     m_fCloseRunSpeed *= fMoveSpeed;
     m_aCloseRotateSpeed *= fMoveSpeed;
     m_fAttackFireTime *= 1/fAttackSpeed;
     m_fCloseFireTime *= 1/fAttackSpeed;
-/*
-    CSessionProperties::GameDificulty gd = GetSP()->sp_gdGameDificulty;
-
-    switch(gd) {
-    case CSessionProperties::GD_EASY: {
-                                      } break;
-    case CSessionProperties::GD_NORMAL: {
-                                      } break;
-    case CSessionProperties::GD_HARD: {
-                                      } break;
-    case CSessionProperties::GD_SERIOUS: {
-                                      } break;
-    }
-    */
-  }
-
+  };
 
 /************************************************************
  *                SOUND VIRTUAL FUNCTIONS                   *
  ************************************************************/
 
   // wounded -> yell
-  void WoundedNotify(const EDamage &eDamage)
-  {
-    // if no enemy
-    if (m_penEnemy==NULL) {
-      // do nothing
+  void WoundedNotify(const EDamage &eDamage) {
+    // no enemy
+    if (m_penEnemy == NULL) {
       return;
     }
 
@@ -1899,21 +1953,18 @@ functions:
   };
 
   // see enemy -> shout
-  void SeeNotify() 
-  {
-    // if no enemy
-    if (m_penEnemy==NULL) {
-      // do nothing
+  void SeeNotify() {
+    // no enemy
+    if (m_penEnemy == NULL) {
       return;
     }
+
     // yell
     ESound eSound;
     eSound.EsndtSound = SNDT_SHOUT;
     eSound.penTarget = m_penEnemy;
     SendEventInRange(eSound, FLOATaabbox3D(GetPlacement().pl_PositionVector, 50.0f));
   };
-
-
 
 /************************************************************
  *          VIRTUAL FUNCTIONS THAT NEED OVERRIDE            *
@@ -1935,21 +1986,19 @@ functions:
   virtual void DeathSound(void) {};
   virtual FLOAT GetLockRotationSpeed(void) { return 2000.0f;};
 
-
   // render particles
   void RenderParticles(void) {
     // no particles when not existing
     if (GetRenderType()!=CEntity::RT_MODEL && GetRenderType()!=CEntity::RT_SKAMODEL) {
       return;
     }
+
+    // [Cecil] Not needed for now
     // if is dead
-    if( m_fSpiritStartTime != 0.0f)
-    {
-      // const FLOAT tmNow = _pTimer->CurrentTick();
-      // Particles_ModelGlow(this, tmNow + 20,PT_STAR08, 0.15f, 2, 0.03f, 0xff00ff00);
+    /*if (m_fSpiritStartTime != 0.0f) {
       Particles_Death(this, m_fSpiritStartTime);
-    }
-  }
+    }*/
+  };
 
   // adjust sound and watcher parameters here if needed
   virtual void EnemyPostInit(void) {};
@@ -2305,8 +2354,7 @@ procedures:
 //**********************************************************
 
   // sequence that is activated when a new player is spotted visually or heard
-  NewEnemySpotted()
-  {
+  NewEnemySpotted() {
     // calculate reflex time
     FLOAT tmReflex = Lerp(m_tmReflexMin, m_tmReflexMax, FRnd());
     tmReflex = ClampDn(tmReflex, 0.0f);
@@ -2318,12 +2366,19 @@ procedures:
       StandingAnim();
 
       // wait the reflex time
-      wait(tmReflex) {
+      wait (tmReflex) {
         on (ETimer) : { stop; }
         // pass all damage events
         on (EDamage) : { pass; }
         // pass space beam hit
         on (EHitBySpaceShipBeam) : { pass;}
+
+        // [Cecil] Pass Gravity Gun events
+        on (EGravityGunStart) : { pass; }
+        on (EGravityGunStop) : { pass; }
+        on (EGravityGunHold) : { pass; }
+        on (EGravityGunPush) : { pass; }
+
         // ignore all other events
         otherwise () : { resume; }
       }
@@ -2334,7 +2389,7 @@ procedures:
 
     // return to caller
     return EReturn();
-  }
+  };
 
   // stop attack
   StopAttack(EVoid) {
@@ -2394,8 +2449,7 @@ procedures:
   };
 
   // repeat attacking enemy until enemy is dead or you give up
-  PerformAttack()
-  {
+  PerformAttack() {
     // reset last range
     m_fRangeLast = 1E9f;
 
@@ -2404,8 +2458,7 @@ procedures:
     m_dtDestination = DT_PLAYERCURRENT;
 
     // repeat
-    while(TRUE)
-    {
+    while (TRUE) {
       // if attacking is futile
       if (ShouldCeaseAttack()) {
         // cease it
@@ -2429,11 +2482,11 @@ procedures:
       }
 
       // wait one time interval
-      wait(m_fMoveFrequency) {
+      wait (m_fMoveFrequency) {
         on (ETimer) : { stop; }
+
         // initially
         on (EBegin) : {
-
           // if you haven't fired/hit enemy for some time
           if (_pTimer->CurrentTick() > m_fShootTime) {
 
@@ -2529,10 +2582,10 @@ procedures:
           MovementAnimation(ulFlags);
           resume;
         }
+
         // if touched something
         on (ETouch eTouch) : { 
-          if( IfTargetCrushed(eTouch.penOther, (FLOAT3D&)eTouch.plCollision))
-          {
+          if (IfTargetCrushed(eTouch.penOther, (FLOAT3D&)eTouch.plCollision)) {
             resume;
           }
           // if pathfinding must begin
@@ -2557,6 +2610,7 @@ procedures:
             pass;
           }
         }
+
         // if came to an edge
         on (EWouldFall eWouldFall) : { 
           // if pathfinding must begin
@@ -2573,9 +2627,16 @@ procedures:
             pass;
           }
         }
-        on (ESound) : { resume; }     // ignore all sounds
-        on (EWatch) : { resume; }     // ignore watch
-        on (EReturn) : { stop; }  // returned from subprocedure
+
+        // [Cecil] Pass Gravity Gun events
+        on (EGravityGunStart) : { pass; }
+        on (EGravityGunStop) : { pass; }
+        on (EGravityGunHold) : { pass; }
+        on (EGravityGunPush) : { pass; }
+
+        on (ESound) : { resume; } // ignore all sounds
+        on (EWatch) : { resume; } // ignore watch
+        on (EReturn) : { stop; } // returned from subprocedure
       }
     }
   }
@@ -2641,19 +2702,21 @@ procedures:
 //**********************************************************
 
   // call this to lock on player for some time - set m_fLockOnEnemyTime before calling
-  LockOnEnemy(EVoid) 
-  {
+  LockOnEnemy(EVoid) {
     // stop moving
     StopMoving();
     // play animation for locking
     ChargeAnim();
     // wait charge time
     m_fLockStartTime = _pTimer->CurrentTick();
-    while (m_fLockStartTime+GetProp(m_fLockOnEnemyTime) > _pTimer->CurrentTick()) {
+
+    while (m_fLockStartTime + GetProp(m_fLockOnEnemyTime) > _pTimer->CurrentTick()) {
       // each tick
       m_fMoveFrequency = 0.05f;
+
       wait (m_fMoveFrequency) {
         on (ETimer) : { stop; }
+
         on (EBegin) : {
           m_vDesiredPosition = PlayerDestinationPos();
           // if not heading towards enemy
@@ -2672,6 +2735,7 @@ procedures:
         }
       }
     }
+
     // stop rotating
     StopRotating();
 
@@ -2680,20 +2744,22 @@ procedures:
   };
 
   // call this to jump onto player - set charge properties before calling and spawn a reminder
-  ChargeHitEnemy(EVoid) 
-  {
+  ChargeHitEnemy(EVoid) {
     // wait for length of hit animation
-    wait(GetAnimLength(m_iChargeHitAnimation)) {
+    wait (GetAnimLength(m_iChargeHitAnimation)) {
       on (EBegin) : { resume; }
       on (ETimer) : { stop; }
+
       // ignore damages
       on (EDamage) : { resume; }
+
       // if user-set reminder expired
       on (EReminder) : {
         // stop moving
         StopMoving();
         resume;
       }
+
       // if you touch some entity
       on (ETouch etouch) : {
         // if it is alive and in front
@@ -2701,8 +2767,11 @@ procedures:
           // get your direction
           FLOAT3D vSpeed;
           GetHeadingDirection(m_fChargeHitAngle, vSpeed);
+
+          // [Cecil] Hit point on the target position
+          FLOAT3D vHit = etouch.penOther->GetPlacement().pl_PositionVector;
           // damage entity in that direction
-          InflictDirectDamage(etouch.penOther, this, DMT_CLOSERANGE, m_fChargeHitDamage, FLOAT3D(0, 0, 0), vSpeed);
+          InflictDirectDamage(etouch.penOther, this, DMT_CLOSERANGE, m_fChargeHitDamage, vHit, vSpeed);
           // push it away
           vSpeed = vSpeed * m_fChargeHitSpeed;
           KickEntity(etouch.penOther, vSpeed);
@@ -2712,12 +2781,14 @@ procedures:
         pass;
       }
     }
+
     // if the anim is not yet finished
     if (!IsAnimFinished()) {
       // wait the rest of time till the anim end
       wait(GetCurrentAnimLength() - GetPassedTime()) {
         on (EBegin) : { resume; }
         on (ETimer) : { stop; }
+
         // if timer expired
         on (EReminder) : {
           // stop moving
@@ -2745,31 +2816,34 @@ procedures:
   };
 
   // we get here once the enemy is dead
-  Die(EDeath eDeath)
-  {
+  Die(EDeath eDeath) {
     // not alive anymore
-    SetFlags(GetFlags()&~ENF_ALIVE);
+    SetFlags(GetFlags() & ~ENF_ALIVE);
 
     // find the one who killed, or other best suitable player
     CEntityPointer penKiller = eDeath.eLastDamage.penInflictor;
-    if (penKiller==NULL || !IsOfClass(penKiller, "Player")) {
+    if (penKiller==NULL || !IS_PLAYER(penKiller)) {
       penKiller = m_penEnemy;
     }
 
-    if (penKiller==NULL || !IsOfClass(penKiller, "Player")) {
+    if (penKiller==NULL || !IS_PLAYER(penKiller)) {
       penKiller = FixupCausedToPlayer(this, penKiller, /*bWarning=*/FALSE);
     }
 
     // if killed by someone
-    if (penKiller!=NULL) {
+    if (penKiller != NULL) {
       // give him score
       EReceiveScore eScore;
       eScore.iPoints = m_iScore;
       penKiller->SendEvent(eScore);
-      if( CountAsKill())
-      {
-        penKiller->SendEvent(EKilledEnemy());
+
+      if (CountAsKill()) {
+        // [Cecil] Who was killed
+        EKilledEnemy eKilled;
+        eKilled.penKilled = this;
+        penKiller->SendEvent(eKilled);
       }
+
       // send computer message if in coop
       if (GetSP()->sp_bCooperative) {
         EComputerMessage eMsg;
@@ -2779,7 +2853,18 @@ procedures:
         }
       }
     }
+    
+    // [Cecil] NOTE: Crashes for some reason
+    // [Cecil] Unhold itself
+    /*if (m_penPlayerHolding != NULL) {
+      ((CPlayer*)m_penPlayerHolding)->GetPlayerWeapons()->StopHolding();
+      m_penPlayerHolding = NULL;
+    }*/
 
+    // [Cecil] Drop enemy weapon
+    if (GetSP()->sp_iHL2Flags & HL2F_ENEMYDROP && GetSP()->sp_iHLGamemode != HLGM_MINEKILL) {
+      DropItems();
+    }
 
     // destroy watcher class
     GetWatcher()->SendEvent(EStop());
@@ -2792,10 +2877,9 @@ procedures:
     if (m_penSpawnerTarget) {
       SendToTarget(m_penSpawnerTarget, EET_TRIGGER, this);
     }
-    
 
     // wait
-    wait() {
+    wait () {
       // initially
       on (EBegin) : {
         // if should already blow up
@@ -2810,6 +2894,7 @@ procedures:
           call DeathSequence();
         }
       }
+
       // if damaged
       on (EDamage) : {
         // if should already blow up
@@ -2822,6 +2907,7 @@ procedures:
         // otherwise, ignore the damage
         resume;
       }
+
       // if death sequence is over
       on (EEnd) : { 
         // stop waiting
@@ -2838,14 +2924,14 @@ procedures:
     return;
   };
 
-  Death(EVoid) 
-  {
-    StopMoving();     // stop moving
-    DeathSound();     // death sound
+  Death(EVoid) {
+    StopMoving(); // stop moving
+    DeathSound(); // death sound
     LeaveStain(FALSE);
 
+    // [Cecil] Start rotating to plane
     // set physic flags
-    SetPhysicsFlags(EPF_MODEL_CORPSE);
+    SetPhysicsFlags(EPF_MODEL_CORPSE | EPF_ROTATETOPLANE);
     SetCollisionFlags(ECF_CORPSE);
     SetFlags(GetFlags() | ENF_SEETHROUGH);
 
@@ -2898,8 +2984,7 @@ procedures:
     return EEnd();
   };
 
-  DeathSequence(EVoid)
-  {
+  DeathSequence(EVoid) {
     // entity death
     autocall Death() EEnd;
 
@@ -2916,7 +3001,8 @@ procedures:
       penFlame->SendEvent(esf);
     }
 
-    autowait(2.0f);
+    // [Cecil] 2 seconds -> 3 seconds
+    autowait(3.0f);
 
     // start fading out and turning into stardust effect
     m_fSpiritStartTime = _pTimer->CurrentTick();
@@ -2924,7 +3010,7 @@ procedures:
     m_fFadeTime = 1.0f,
     m_bFadeOut = TRUE;
     // become passable even if very large corpse
-    SetCollisionFlags(ECF_CORPSE&~((ECBI_PROJECTILE_MAGIC|ECBI_PROJECTILE_SOLID)<<ECB_TEST));
+    SetCollisionFlags(ECF_CORPSE & ~((ECBI_PROJECTILE_MAGIC|ECBI_PROJECTILE_SOLID)<<ECB_TEST));
     // wait for fading
     autowait(m_fFadeTime);
     // wait for the stardust effect
@@ -2937,8 +3023,7 @@ procedures:
 //**********************************************************
 
   // move
-  Active(EVoid) 
-  {
+  Active(EVoid) {
     m_fDamageConfused = 0.0f;
     // logic loop
     wait () {
@@ -2948,6 +3033,7 @@ procedures:
         SendEvent(EReconsiderBehavior());
         resume;
       }
+
       // if new behavior is requested
       on (EReconsiderBehavior) : {
         // if we have an enemy
@@ -2970,18 +3056,21 @@ procedures:
         }
         resume;
       }
+
       // on return from some of the sub-procedures
       on (EReturn) : {
         // start new behavior
         SendEvent(EReconsiderBehavior());
         resume;
       }
+
       // if attack restart is requested
       on (ERestartAttack) : {
         // start new behavior
         SendEvent(EReconsiderBehavior());
         resume;
       }
+
       // if enemy has been seen
       on (EWatch eWatch) : {
         // if new enemy
@@ -2995,6 +3084,7 @@ procedures:
         }
         resume;
       }
+
       // if you get damaged by someone
       on (EDamage eDamage) : {
         // eventually set new hard target
@@ -3013,11 +3103,12 @@ procedures:
         }
         resume;
       }
-      on (EForceWound) :
-      {
+
+      on (EForceWound) : {
         call BeWounded(EDamage());
         resume;
       }
+
       // if you hear something
       on (ESound eSound) : {
         // if deaf
@@ -3033,6 +3124,7 @@ procedures:
         }
         resume;
       }
+
       // on touch
       on (ETouch eTouch) : {
         // set the new target if needed
@@ -3046,6 +3138,7 @@ procedures:
         }
         pass;
       }
+
       // if triggered manually
       on (ETrigger eTrigger) : {
         CEntity *penCaused = FixupCausedToPlayer(this, eTrigger.penCaused);
@@ -3058,10 +3151,17 @@ procedures:
         }
         resume;
       }
+
       // on stop -> stop enemy
       on (EStop) : {
         jump Inactive();
       }
+
+      // [Cecil] Pass Gravity Gun events
+      on (EGravityGunStart) : { pass; }
+      on (EGravityGunStop) : { pass; }
+      on (EGravityGunHold) : { pass; }
+      on (EGravityGunPush) : { pass; }
 
       // warn for all obsolete events
       on (EStartAttack) : {
@@ -3076,8 +3176,7 @@ procedures:
   };
 
   // not doing anything, waiting until some player comes close enough to start patroling or similar
-  Inactive(EVoid) 
-  {
+  Inactive(EVoid) {
     // stop moving
     StopMoving();                 
     StandingAnim();
@@ -3086,16 +3185,19 @@ procedures:
     // wait forever
     wait() {
       on (EBegin) : { resume; }
+
       // if watcher detects that a player is near
       on (EStart) : { 
         // become active (patroling etc.)
         jump Active(); 
       }
+
       // if returned from wounding
       on (EReturn) : { 
         // become active (this will attack the enemy)
         jump Active(); 
       }
+
       // if triggered manually
       on (ETrigger eTrigger) : {
         CEntity *penCaused = FixupCausedToPlayer(this, eTrigger.penCaused);
@@ -3104,7 +3206,11 @@ procedures:
           // become active (this will attack the player)
           jump Active(); 
         }
+
+        // [Cecil] No 'resume' before
+        resume;
       }
+
       // if you get damaged by someone
       on (EDamage eDamage) : {
         // if can set the damager as hard target
@@ -3116,20 +3222,26 @@ procedures:
           // play wounding animation
           call BeWounded(eDamage);
         }
-        return;
+
+        // [Cecil] 'resume' instead of 'return'
+        resume;
       }
+
+      // [Cecil] Pass Gravity Gun events
+      on (EGravityGunStart) : { pass; }
+      on (EGravityGunStop) : { pass; }
+      on (EGravityGunHold) : { pass; }
+      on (EGravityGunPush) : { pass; }
     }
   };
 
   // overridable called before main enemy loop actually begins
-  PreMainLoop(EVoid)
-  {
+  PreMainLoop(EVoid) {
     return EReturn();
   }
 
   // main entry point for enemy behavior
-  MainLoop(EVoid) 
-  {
+  MainLoop(EVoid) {
     // setup some model parameters that are global for all enemies
     SizeModel();
     // check that max health is properly set
@@ -3175,7 +3287,6 @@ procedures:
       m_penMarker = pem->m_penTarget;
     }
 
-
     // store starting position
     m_vStartPosition = GetPlacement().pl_PositionVector;
 
@@ -3205,8 +3316,7 @@ procedures:
     jump StandardBehavior();
   }
 
-  StandardBehavior(EVoid)
-  {
+  StandardBehavior(EVoid) {
     // this is the main enemy loop
     wait() {
       // initially
@@ -3218,35 +3328,60 @@ procedures:
           call Inactive();
         }
       };
+
       // if dead
       on (EDeath eDeath) : {
         // die
         jump Die(eDeath);
       }
+
       // if an entity exits a teleport nearby
       on (ETeleport et) : {
         // proceed message to watcher (so watcher can quickly recheck for players)
         GetWatcher()->SendEvent(et);
         resume;
       }
+
       // if should stop being blind
       on (EStopBlindness) : {
         // stop being blind
         m_bBlind = FALSE;
         resume;
       }
+
       // if should stop being deaf
       on (EStopDeafness) : {
         // stop being deaf
         m_bDeaf = FALSE;
         resume;
       }
+
       // support for jumping using bouncers
       on (ETouch eTouch) : {
         IfTargetCrushed(eTouch.penOther, (FLOAT3D&)eTouch.plCollision);
         if (IsOfClass(eTouch.penOther, "Bouncer")) {
           JumpFromBouncer(this, eTouch.penOther);
         }
+        resume;
+      }
+
+      // [Cecil] Gravity Gun actions
+      on (EGravityGunStart eStart) : {
+        GravityGunStart(this, eStart.penTarget);
+        m_penPlayerHolding = eStart.penTarget;
+        resume;
+      }
+      on (EGravityGunStop eStop) : {
+        GravityGunStop(this, eStop);
+        m_penPlayerHolding = NULL;
+        resume;
+      }
+      on (EGravityGunHold eHold) : {
+        GravityGunHolding(this, eHold);
+        resume;
+      }
+      on (EGravityGunPush ePush) : {
+        GravityGunPush(this, ePush.vDir);
         resume;
       }
     }

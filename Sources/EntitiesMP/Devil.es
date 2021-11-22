@@ -450,7 +450,8 @@ functions:
     // apply range damage for right foot
     FLOAT3D vFootRel = vOffset;
     FLOAT3D vFootAbs = vFootRel*GetRotationMatrix()+GetPlacement().pl_PositionVector;
-    InflictRangeDamage(this, DMT_IMPACT, 1000.0f, vFootAbs, DEVIL_HOOF_RADIUS, DEVIL_HOOF_RADIUS);
+    // [Cecil] DMT_IMPACT -> DMT_CLOSERANGE
+    InflictRangeDamage(this, DMT_CLOSERANGE, 1000.0f, vFootAbs, DEVIL_HOOF_RADIUS, DEVIL_HOOF_RADIUS);
   }
 
   void ApplyFootQuake(void)
@@ -1936,11 +1937,12 @@ procedures:
             crRay.cr_ttHitModels = CCastRay::TT_COLLISIONBOX;
             GetWorld()->CastRay(crRay);
             // if entity is hit
-            if( crRay.cr_penHit != NULL)
-            {
+            if (crRay.cr_penHit != NULL) {
+              // [Cecil] Hit point on the enemy position
+              FLOAT3D vHit = crRay.cr_penHit->GetPlacement().pl_PositionVector;
               // apply damage
-              InflictDirectDamage( crRay.cr_penHit, this, DMT_BULLET, 50.0f*_pTimer->TickQuantum/0.5f,
-                FLOAT3D(0, 0, 0), (m_vElectricitySource-m_vElectricityTarget).Normalize());
+              InflictDirectDamage(crRay.cr_penHit, this, DMT_BULLET, 50.0f*_pTimer->TickQuantum/0.5f,
+                                  FLOAT3D(0, 0, 0), (m_vElectricitySource-m_vElectricityTarget).Normalize());
             }
 
             if( _pTimer->CurrentTick()>m_tmNextFXTime)

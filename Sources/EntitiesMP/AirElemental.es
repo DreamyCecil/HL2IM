@@ -105,6 +105,8 @@ properties:
 
 110 COLOR m_colParticles "Color of particles" = COLOR(C_WHITE|CT_OPAQUE),
 // 51 INDEX m_ctSpawned = 0,
+
+150 BOOL m_bBossActive = FALSE, // [Cecil] Check if boss is active
  
 {
   CEmiter m_emEmiter;
@@ -116,7 +118,6 @@ components:
   2 class   CLASS_BLOOD_SPRAY   "Classes\\BloodSpray.ecl",
   3 class   CLASS_PROJECTILE    "Classes\\Projectile.ecl",
 //  3 class   CLASS_AIRSHOCKWAVE  "Classes\\AirShockwave.ecl",
-
 
  // air
  10 model   MODEL_INVISIBLE     "ModelsMP\\Enemies\\AirElemental\\AirElemental.mdl",
@@ -168,20 +169,20 @@ functions:
   {
     CEnemyBase::Precache();
 
-    PrecacheClass(CLASS_TWISTER       );
-    PrecacheClass(CLASS_BLOOD_SPRAY   );
+    PrecacheClass(CLASS_TWISTER);
+    PrecacheClass(CLASS_BLOOD_SPRAY);
     PrecacheClass(CLASS_PROJECTILE, PRT_AIRELEMENTAL_WIND );   
 
-    PrecacheModel(MODEL_INVISIBLE     );
-    PrecacheModel(MODEL_ELEMENTAL     );
+    PrecacheModel(MODEL_INVISIBLE);
+    PrecacheModel(MODEL_ELEMENTAL);
 
-    PrecacheTexture(TEXTURE_ELEMENTAL );
+    PrecacheTexture(TEXTURE_ELEMENTAL);
 
-    PrecacheSound(SOUND_FIREWINDBLAST );
-    PrecacheSound(SOUND_FIRETWISTER   );
-    PrecacheSound(SOUND_ROAR          );
-    PrecacheSound(SOUND_DEATH         );
-    PrecacheSound(SOUND_EXPLOSION     );  
+    PrecacheSound(SOUND_FIREWINDBLAST);
+    PrecacheSound(SOUND_FIRETWISTER);
+    PrecacheSound(SOUND_ROAR);
+    PrecacheSound(SOUND_DEATH);
+    PrecacheSound(SOUND_EXPLOSION);  
   };
 
   // Entity info
@@ -219,31 +220,30 @@ functions:
       }
     }
 
-
     // elemental can't harm elemental
-    if(IsOfClass(penInflictor, "AirElemental")) {
+    if (IsOfClass(penInflictor, "AirElemental")) {
       return;
     }
 
     // boss cannot be telefragged
-    if(dmtType==DMT_TELEPORT)
-    {
+    if (dmtType == DMT_TELEPORT) {
       return;
     }
     
+    // [Cecil] Replaced if-else with switch-case, added DMT_RIFLE
     // air elemental cannot be harmed by following kinds of damage:
-    if(dmtType==DMT_CLOSERANGE ||
-       dmtType==DMT_BULLET ||
-       dmtType==DMT_IMPACT ||
-       dmtType==DMT_CHAINSAW)
-    {
-      return;
-    }
-    
-    // cannonballs inflict less damage then the default
-    if(dmtType==DMT_CANNONBALL)
-    {
-      fDamageAmmount *= 0.6f;
+    switch (dmtType) {
+      case DMT_CLOSERANGE:
+      case DMT_BULLET:
+      case DMT_IMPACT:
+      case DMT_CHAINSAW:
+      case DMT_RIFLE:
+        return;
+
+      // cannonballs inflict less damage then the default
+      case DMT_CANNONBALL:
+        fDamageAmmount *= 0.6f;
+        break;
     }
     
     FLOAT fOldHealth = GetHealth();
@@ -277,8 +277,7 @@ functions:
     }
 
     // bosses don't darken when burning
-    m_colBurning=COLOR(C_WHITE|CT_OPAQUE);
-
+    m_colBurning = COLOR(C_WHITE|CT_OPAQUE);
   };
 
   // damage anim
@@ -408,11 +407,11 @@ functions:
 
     // TODO: decomment this when shockwave is fixed
     /*// see if any of the players are really close to us
-    INDEX ctMaxPlayers = GetMaxPlayers();
+    INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
     CEntity *penPlayer;
         
     for(INDEX i=0; i<ctMaxPlayers; i++) {
-      penPlayer=GetPlayerEntity(i);
+      penPlayer=CECIL_GetPlayerEntity(i);
       if (penPlayer!=NULL) {
         if (DistanceTo(this, penPlayer)<m_fShockwaveTreshold &&
           _pTimer->CurrentTick()>(m_tmLastShockwave+m_fShockwavePeriod)) {
@@ -474,8 +473,10 @@ functions:
 
 procedures:
   
-  Die(EDeath eDeath) : CEnemyBase::Die { 
-    
+  Die(EDeath eDeath) : CEnemyBase::Die {
+    // [Cecil] Not active anymore
+    m_bBossActive = FALSE;
+
     SetDesiredRotation(ANGLE3D(0.0f, 0.0f, 0.0f));
     PlaySound(m_soFire, SOUND_DEATH, SOF_3D);
     ElementalModel()->PlayAnim(ELEMENTAL_ANIM_DEATH, AOF_NORESTART);  
@@ -499,7 +500,6 @@ procedures:
  ************************************************************/
 
   Fire(EVoid) : CEnemyBase::Fire {
-    
     if (m_tmWindNextFire<_pTimer->CurrentTick()) {
       ElementalModel()->PlayAnim(ELEMENTAL_ANIM_FIREPROJECTILES, AOF_NORESTART);  
       m_iWind = 0;
@@ -619,7 +619,7 @@ procedures:
         DirectionVectorToAngles(vToTarget, aToTarget);
         aToTarget(1) = aToTarget(1) - GetPlacement().pl_OrientationAngle(1);
         aToTarget(1) = NormalizeAngle(aToTarget(1));
-        SetDesiredRotation(FLOAT3D(aToTarget(1)/2.0f, 0.0f, 0.0f));                 
+        SetDesiredRotation(FLOAT3D(aToTarget(1)/2.0f, 0.0f, 0.0f));
       }
 
       // grow
@@ -749,6 +749,9 @@ procedures:
 
     SetCollisionFlags(ECF_AIR);
     SetPhysicsFlags(EPF_MODEL_WALKING);
+
+    // [Cecil] Mark as active
+    m_bBossActive = TRUE;
 
     ElementalModel()->PlayAnim(ELEMENTAL_ANIM_RAISE, AOF_NORESTART);
     m_bRenderParticles=TRUE;

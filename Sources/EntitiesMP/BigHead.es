@@ -74,7 +74,7 @@ functions:
     if (m_bIgnorePlayer) {
       if (ee.ee_slEvent==EVENTCODE_ETouch) {
         ETouch &et = (ETouch &)ee;
-        if (IsOfClass(et.penOther, "Player")) {
+        if (IS_PLAYER(et.penOther)) {
           return TRUE;
         }
       }

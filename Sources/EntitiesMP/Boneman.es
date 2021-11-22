@@ -31,25 +31,30 @@ properties:
   5 BOOL m_bRunSoundPlaying = FALSE,
 
 components:
-  0 class   CLASS_BASE        "Classes\\EnemyBase.ecl",
-  1 model   MODEL_BONEMAN     "Models\\Enemies\\Boneman\\Boneman.mdl",
-  2 texture TEXTURE_BONEMAN   "Models\\Enemies\\Boneman\\Boneman.tex",
-  3 class   CLASS_PROJECTILE  "Classes\\Projectile.ecl",
+  0 class CLASS_BASE       "Classes\\EnemyBase.ecl",
+  1 model MODEL_BONEMAN    "Models\\Enemies\\Boneman\\Boneman.mdl",
+  2 class CLASS_PROJECTILE "Classes\\Projectile.ecl",
+
+// [Cecil] Cosmetic changes
+ 3 texture TEXTURE_BONEMAN  "Models\\Enemies\\Boneman\\Boneman.tex",
+ 4 texture TEXTURE_ANTLION1 "Textures\\Enemies\\Antlion1.tex",
+ 5 texture TEXTURE_ANTLION2 "Textures\\Enemies\\Antlion2.tex",
+ 6 texture TEXTURE_ANTLION3 "Textures\\Enemies\\Antlion3.tex",
 
 // ************** BONEMAN PARTS **************
- 10 model     MODEL_BONEMAN_BODY   "Models\\Enemies\\Boneman\\Debris\\Body.mdl",
- 11 model     MODEL_BONEMAN_HAND   "Models\\Enemies\\Boneman\\Debris\\Hand.mdl",
- 12 model     MODEL_BONEMAN_LEGS   "Models\\Enemies\\Boneman\\Debris\\Legs.mdl",
+ 10 model MODEL_BONEMAN_BODY "Models\\Enemies\\Boneman\\Debris\\Body.mdl",
+ 11 model MODEL_BONEMAN_HAND "Models\\Enemies\\Boneman\\Debris\\Hand.mdl",
+ 12 model MODEL_BONEMAN_LEGS "Models\\Enemies\\Boneman\\Debris\\Legs.mdl",
 
 // ************** SOUNDS **************
- 50 sound   SOUND_IDLE      "Models\\Enemies\\Boneman\\Sounds\\Idle.wav",
- 51 sound   SOUND_SIGHT     "Models\\Enemies\\Boneman\\Sounds\\Sight.wav",
- 52 sound   SOUND_WOUND     "Models\\Enemies\\Boneman\\Sounds\\Wound.wav",
- 53 sound   SOUND_FIRE      "Models\\Enemies\\Boneman\\Sounds\\Fire.wav",
- 54 sound   SOUND_KICK      "Models\\Enemies\\Boneman\\Sounds\\Kick.wav",
- 55 sound   SOUND_PUNCH     "Models\\Enemies\\Boneman\\Sounds\\Punch.wav",
- 56 sound   SOUND_DEATH     "Models\\Enemies\\Boneman\\Sounds\\Death.wav",
- 57 sound   SOUND_RUN       "Models\\Enemies\\Boneman\\Sounds\\Run.wav",
+ 50 sound SOUND_IDLE  "Models\\Enemies\\Boneman\\Sounds\\Idle.wav",
+ 51 sound SOUND_SIGHT "Models\\Enemies\\Boneman\\Sounds\\Sight.wav",
+ 52 sound SOUND_WOUND "Models\\Enemies\\Boneman\\Sounds\\Wound.wav",
+ 53 sound SOUND_FIRE  "Models\\Enemies\\Boneman\\Sounds\\Fire.wav",
+ 54 sound SOUND_KICK  "Models\\Enemies\\Boneman\\Sounds\\Kick.wav",
+ 55 sound SOUND_PUNCH "Models\\Enemies\\Boneman\\Sounds\\Punch.wav",
+ 56 sound SOUND_DEATH "Models\\Enemies\\Boneman\\Sounds\\Death.wav",
+ 57 sound SOUND_RUN   "Models\\Enemies\\Boneman\\Sounds\\Run.wav",
 
 functions:
   void Precache(void) {
@@ -67,6 +72,12 @@ functions:
     PrecacheModel(MODEL_BONEMAN_HAND);
     PrecacheModel(MODEL_BONEMAN_LEGS);
 
+    // [Cecil] Various textures
+    PrecacheTexture(TEXTURE_BONEMAN);
+    PrecacheTexture(TEXTURE_ANTLION1);
+    PrecacheTexture(TEXTURE_ANTLION2);
+    PrecacheTexture(TEXTURE_ANTLION3);
+
     PrecacheClass(CLASS_PROJECTILE, PRT_BONEMAN_FIRE);
   };
 
@@ -74,13 +85,13 @@ functions:
   virtual CTString GetPlayerKillDescription(const CTString &strPlayerName, const EDeath &eDeath)
   {
     CTString str;
-    if (eDeath.eLastDamage.dmtType==DMT_CLOSERANGE) {
-      str.PrintF(TRANS("%s was ripped apart by a Kleer"), strPlayerName);
+    if (eDeath.eLastDamage.dmtType == DMT_CLOSERANGE) {
+      str.PrintF(TRANS("%s was ripped apart by an Antlion"), strPlayerName);
     } else {
-      str.PrintF(TRANS("%s was killed by a Kleer"), strPlayerName);
+      str.PrintF(TRANS("%s was killed by an Antlion"), strPlayerName);
     }
     return str;
-  }
+  };
 
   virtual const CTFileName &GetComputerMessageName(void) const {
     static DECLARE_CTFILENAME(fnm, "Data\\Messages\\Enemies\\Boneman.txt");
@@ -102,10 +113,9 @@ functions:
     }
   };
 
-  void LeaveStain(BOOL bGrow)
-  {
+  void LeaveStain(BOOL bGrow) {
     // boneman doesn't leave bloody stain
-  }
+  };
 
   // damage anim
   INDEX AnimForDamage(FLOAT fDamage) {
@@ -186,20 +196,29 @@ functions:
     PlaySound(m_soSound, SOUND_DEATH, SOF_3D);
   };
 
-
   // running sounds
-  void ActivateRunningSound(void)
-  {
+  void ActivateRunningSound(void) {
     if (!m_bRunSoundPlaying) {
       PlaySound(m_soFeet, SOUND_RUN, SOF_3D|SOF_LOOP);
       m_bRunSoundPlaying = TRUE;
     }
-  }
-  void DeactivateRunningSound(void)
-  {
+  };
+
+  void DeactivateRunningSound(void) {
     m_soFeet.Stop();
     m_bRunSoundPlaying = FALSE;
-  }
+  };
+
+  // [Cecil] Mod adjustments
+  void AdjustDifficulty(void) {
+    CEnemyBase::AdjustDifficulty();
+
+    // [Cecil] Randomize the texture
+    SetModelMainTexture(TEXTURE_BONEMAN + (en_ulID * 123) % 4);
+
+    // [Cecil] Don't explode from the revolver/primary shotgun fire
+    m_fBlowUpAmount = 110.0f;
+  };
 
 /************************************************************
  *                 BLOW UP FUNCTIONS                        *
@@ -218,16 +237,19 @@ functions:
 
     FLOAT3D vBodySpeed = en_vCurrentTranslationAbsolute-en_vGravityDir*(en_vGravityDir%en_vCurrentTranslationAbsolute);
 
+    // [Cecil] Randomize the texture
+    INDEX iTex = (TEXTURE_BONEMAN + (en_ulID * 123) % 4);
+
     // spawn debris
     Debris_Begin(EIBT_BONES, DPT_NONE, BET_NONE, fEntitySize, vNormalizedDamage, vBodySpeed, 5.0f, 2.0f);
     
-    Debris_Spawn(this, this, MODEL_BONEMAN_BODY, TEXTURE_BONEMAN, 0, 0, 0, 0, 0.0f,
+    Debris_Spawn(this, this, MODEL_BONEMAN_BODY, iTex, 0, 0, 0, 0, 0.0f,
       FLOAT3D(FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f));
-    Debris_Spawn(this, this, MODEL_BONEMAN_HAND, TEXTURE_BONEMAN, 0, 0, 0, 0, 0.0f,
+    Debris_Spawn(this, this, MODEL_BONEMAN_HAND, iTex, 0, 0, 0, 0, 0.0f,
       FLOAT3D(FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f));
-    Debris_Spawn(this, this, MODEL_BONEMAN_HAND, TEXTURE_BONEMAN, 0, 0, 0, 0, 0.0f,
+    Debris_Spawn(this, this, MODEL_BONEMAN_HAND, iTex, 0, 0, 0, 0, 0.0f,
       FLOAT3D(FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f));
-    Debris_Spawn(this, this, MODEL_BONEMAN_LEGS, TEXTURE_BONEMAN, 0, 0, 0, 0, 0.0f,
+    Debris_Spawn(this, this, MODEL_BONEMAN_LEGS, iTex, 0, 0, 0, 0, 0.0f,
       FLOAT3D(FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f));
 
     // hide yourself (must do this after spawning debris)
@@ -235,10 +257,6 @@ functions:
     SetPhysicsFlags(EPF_MODEL_IMMATERIAL);
     SetCollisionFlags(ECF_IMMATERIAL);
   };
-
-
-
-
 
 procedures:
 /************************************************************
@@ -285,7 +303,7 @@ procedures:
     vDir *= !GetRotationMatrix();
     vDir *= m_fCloseRunSpeed*1.5f;
     vDir(2) = 2.5f;
-    SetDesiredTranslation(vDir);
+    EnemyMove(vDir); // [Cecil]
     PlaySound(m_soSound, SOUND_KICK, SOF_3D);
 
     // animation - IGNORE DAMAGE WOUND -
@@ -315,8 +333,11 @@ procedures:
     if (m_bFistHit) {
       FLOAT3D vDirection = m_penEnemy->GetPlacement().pl_PositionVector-GetPlacement().pl_PositionVector;
       vDirection.Normalize();
+
+      // [Cecil] Hit point on the enemy position
+      FLOAT3D vHit = m_penEnemy->GetPlacement().pl_PositionVector;
       // damage enemy
-      InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 10.0f, FLOAT3D(0, 0, 0), vDirection);
+      InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 10.0f, vHit, vDirection);
       // push target left
       FLOAT3D vSpeed;
       GetHeadingDirection(AngleDeg(90.0f), vSpeed);
@@ -335,7 +356,10 @@ procedures:
       // damage enemy
       FLOAT3D vDirection = m_penEnemy->GetPlacement().pl_PositionVector-GetPlacement().pl_PositionVector;
       vDirection.Normalize();
-      InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 10.0f, FLOAT3D(0, 0, 0), vDirection);
+
+      // [Cecil] Hit point on the enemy position
+      FLOAT3D vHit = m_penEnemy->GetPlacement().pl_PositionVector;
+      InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 10.0f, vHit, vDirection);
       // push target left
       FLOAT3D vSpeed;
       GetHeadingDirection(AngleDeg(-90.0f), vSpeed);
@@ -344,8 +368,6 @@ procedures:
     }
     return EReturn();
   };
-
-
 
 /************************************************************
  *                       M  A  I  N                         *
@@ -362,7 +384,11 @@ procedures:
 
     // set your appearance
     SetModel(MODEL_BONEMAN);
-    SetModelMainTexture(TEXTURE_BONEMAN);
+    //SetModelMainTexture(TEXTURE_BONEMAN);
+
+    // [Cecil] Randomize the texture
+    SetModelMainTexture(TEXTURE_BONEMAN + (en_ulID * 123) % 4);
+
     StandingAnim();
     m_sptType = SPT_BONES;
     // setup moving speed
@@ -380,11 +406,13 @@ procedures:
     m_fCloseFireTime = 2.0f;
     m_fIgnoreRange = 200.0f;
     // damage/explode properties
-    m_fBlowUpAmount = 70.0f;
+    // [Cecil] Don't explode from the revolver/primary shotgun fire
+    m_fBlowUpAmount = 110.0f; //70.0f;
     m_fBodyParts = 4;
     m_fDamageWounded = 80.0f;
     m_iScore = 1000;
-    if (m_fStepHeight==-1) {
+
+    if (m_fStepHeight == -1) {
       m_fStepHeight = 4.0f;
     }
 

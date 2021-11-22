@@ -250,10 +250,10 @@ functions:
   void PreMoving() {
     if (m_bKamikazeAttached && m_bKamikazeCarrier) {
       // see if any of players are close enough to drop the kamikaze
-      INDEX ctMaxPlayers = GetMaxPlayers();
+      INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
       CEntity *penPlayer;
       for(INDEX i=0; i<ctMaxPlayers; i++) {
-        penPlayer=GetPlayerEntity(i);
+        penPlayer=CECIL_GetPlayerEntity(i);
         if (penPlayer!=NULL) {
           if (DistanceTo(this, penPlayer)<m_rKamikazeDropDistance && IsVisible(penPlayer)) {
             DropKamikaze();
@@ -332,7 +332,7 @@ procedures:
     vDir = (vDir - GetPlacement().pl_PositionVector).Normalize();
     vDir *= !GetRotationMatrix();
     vDir *= m_fFlyCloseRunSpeed*1.9f;
-    SetDesiredTranslation(vDir);
+    EnemyMove(vDir); // [Cecil]
     PlaySound(m_soSound, SOUND_KICK, SOF_3D);
 
     // animation - IGNORE DAMAGE WOUND -
@@ -370,7 +370,7 @@ procedures:
     vDir *= !GetRotationMatrix();
     vDir *= m_fCloseRunSpeed*1.75f;
     vDir(2) = 2.5f;
-    SetDesiredTranslation(vDir);
+    EnemyMove(vDir); // [Cecil]
     PlaySound(m_soSound, SOUND_KICK, SOF_3D);
 
     // animation - IGNORE DAMAGE WOUND -

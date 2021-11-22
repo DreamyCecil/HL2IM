@@ -117,10 +117,10 @@ functions:
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType,
     FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) 
   {
+    // [Cecil] DMT_RIFLE
     // take less damage from heavy bullets (e.g. sniper)
-    if(dmtType==DMT_BULLET && fDamageAmmount>100.0f)
-    {
-      fDamageAmmount*=0.5f;
+    if ((dmtType == DMT_BULLET || dmtType == DMT_RIFLE) && fDamageAmmount > 100.0f) {
+      fDamageAmmount *= 0.5f;
     }
 
     // can't harm own class
@@ -208,19 +208,17 @@ procedures:
 /************************************************************
  *                A T T A C K   E N E M Y                   *
  ************************************************************/
-  Fire(EVoid) : CEnemyBase::Fire
-  {
-    
+  Fire(EVoid) : CEnemyBase::Fire {
     // SetDesiredTranslation???
-    if (m_fMoveSpeed>0.0f) {
-      SetDesiredTranslation(FLOAT3D(0.0f, 0.0f, -m_fMoveSpeed));
+    if (m_fMoveSpeed > 0.0f) {
+      EnemyMove(FLOAT3D(0.0f, 0.0f, -m_fMoveSpeed)); // [Cecil]
     }
     
     //StartModelAnim(DEMON_ANIM_ATTACK, AOF_SMOOTHCHANGE);
     StartModelAnim(DEMON_ANIM_ATTACK, 0);
     autocall CMovableModelEntity::WaitUntilScheduledAnimStarts() EReturn;    
     
-    SetDesiredTranslation(FLOAT3D(0.0f, 0.0f, 0.0f));
+    EnemyMove(FLOAT3D(0.0f, 0.0f, 0.0f)); // [Cecil]
     
     PlaySound(m_soSound, SOUND_CAST, SOF_3D);
     SpawnReminder(this, 3.0f, REMINDER_DEATTACH_FIREBALL);
@@ -271,7 +269,10 @@ procedures:
       {
         FLOAT3D vDirection = m_penEnemy->GetPlacement().pl_PositionVector-GetPlacement().pl_PositionVector;
         vDirection.Normalize();
-        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 50.0f, FLOAT3D(0, 0, 0), vDirection);
+
+        // [Cecil] Hit point on the enemy position
+        FLOAT3D vHit = m_penEnemy->GetPlacement().pl_PositionVector;
+        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 50.0f, vHit, vDirection);
       }
       autowait(1.5f);
       MaybeSwitchToAnotherPlayer();

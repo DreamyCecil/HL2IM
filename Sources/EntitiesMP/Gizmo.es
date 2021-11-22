@@ -2,6 +2,9 @@
 %{
 #include "StdH.h"
 #include "Models/Enemies/Gizmo/Gizmo.h"
+
+// [Cecil]
+#include "EntitiesMP/Cecil/Effects.h"
 %}
 
 uses "EntitiesMP/EnemyBase";
@@ -45,7 +48,7 @@ functions:
   virtual CTString GetPlayerKillDescription(const CTString &strPlayerName, const EDeath &eDeath)
   {
     CTString str;
-    str.PrintF(TRANS("%s ate a marsh hopper"), strPlayerName);
+    str.PrintF(TRANS("%s has caught a Headcrab"), strPlayerName);
     return str;
   }
   virtual const CTFileName &GetComputerMessageName(void) const {
@@ -101,20 +104,20 @@ functions:
   };
 
   // explode only once
-  void Explode(void)
-  {
-    if (!m_bExploded)
-    {
+  void Explode(void) {
+    if (!m_bExploded) {
       m_bExploded = TRUE;
       // spawn blood spray
       CPlacement3D plSpray = GetPlacement();
       CEntity *penSpray = CreateEntity( plSpray, CLASS_BLOOD_SPRAY);
       penSpray->SetParent( this);
       ESpawnSpray eSpawnSpray;
-      eSpawnSpray.colBurnColor=C_WHITE|CT_OPAQUE;
+      eSpawnSpray.colBurnColor = C_WHITE|CT_OPAQUE;
       eSpawnSpray.fDamagePower = 2.0f;
       eSpawnSpray.fSizeMultiplier = 1.0f;
-      eSpawnSpray.sptType = SPT_SLIME;
+      //eSpawnSpray.sptType = SPT_SLIME;
+      // [Cecil] Own type
+      eSpawnSpray.sptType = GIZMO_SPRAY;
       eSpawnSpray.vDirection = en_vCurrentTranslationAbsolute/8.0f;
       eSpawnSpray.penOwner = this;
       penSpray->Initialize( eSpawnSpray);
@@ -129,17 +132,13 @@ functions:
     }
   };
 
-
   // gizmo should always blow up
-  BOOL ShouldBlowUp(void)
-  {
+  BOOL ShouldBlowUp(void) {
     return TRUE;
-  }
-
+  };
 
   // leave stain
-  virtual void LeaveStain(BOOL bGrow)
-  {
+  virtual void LeaveStain(BOOL bGrow) {
     ESpawnEffect ese;
     FLOAT3D vPoint;
     FLOATplane3D vPlaneNormal;
@@ -149,23 +148,29 @@ functions:
     GetBoundingBox(box);
   
     // on plane
-    if( GetNearestPolygon(vPoint, vPlaneNormal, fDistanceToEdge))
-    {
+    if (GetNearestPolygon(vPoint, vPlaneNormal, fDistanceToEdge)) {
       // if near to polygon and away from last stain point
-      if( (vPoint-GetPlacement().pl_PositionVector).Length()<0.5f )
-      {
+      if ((vPoint-GetPlacement().pl_PositionVector).Length() < 0.5f) {
         FLOAT fStretch = box.Size().Length();
         // stain
         ese.colMuliplier = C_WHITE|CT_OPAQUE;
-        ese.betType    = BET_GIZMOSTAIN;
-        ese.vStretch   = FLOAT3D( fStretch*0.75f, fStretch*0.75f, 1.0f);
-        ese.vNormal    = FLOAT3D( vPlaneNormal);
+        ese.betType = BET_GIZMOSTAIN;
+        ese.vStretch = FLOAT3D( fStretch*0.75f, fStretch*0.75f, 1.0f);
+        ese.vNormal = FLOAT3D( vPlaneNormal);
         ese.vDirection = FLOAT3D( 0, 0, 0);
         FLOAT3D vPos = vPoint+ese.vNormal/50.0f*(FRnd()+0.5f);
-        CEntityPointer penEffect = CreateEntity( CPlacement3D(vPos, ANGLE3D(0,0,0)), CLASS_BASIC_EFFECT);
+        CEntityPointer penEffect = CreateEntity(CPlacement3D(vPos, ANGLE3D(0,0,0)), CLASS_BASIC_EFFECT);
         penEffect->Initialize(ese);
       }
     }
+  };
+
+  // [Cecil] Mod adjustments
+  void AdjustDifficulty(void) {
+    CEnemyBase::AdjustDifficulty();
+
+    // [Cecil] Own type
+    m_sptType = GIZMO_SPRAY;
   };
 
 procedures:
@@ -173,21 +178,18 @@ procedures:
  *                A T T A C K   E N E M Y                   *
  ************************************************************/
   // close range -> move toward enemy and try to jump onto it
-  PerformAttack(EVoid) : CEnemyBase::PerformAttack
-  {
-    while (TRUE)
-    {
+  PerformAttack(EVoid) : CEnemyBase::PerformAttack {
+    while (TRUE) {
       // ------------ Exit close attack if out of range or enemy is dead
       // if attacking is futile
-      if (ShouldCeaseAttack())
-      {
+      if (ShouldCeaseAttack()) {
         SetTargetNone();
         return EReturn();
       }
       
       // stop moving
-      SetDesiredTranslation(FLOAT3D(0.0f, 0.0f, 0.0f));
-      SetDesiredRotation(ANGLE3D(0, 0, 0));
+      EnemyMove(FLOAT3D(0.0f, 0.0f, 0.0f)); // [Cecil]
+      SetDesiredRotation(ANGLE3D(0.0f, 0.0f, 0.0f));
 
       // ------------ Wait for some time on the ground
       FLOAT fWaitTime = 0.25f+FRnd()*0.4f;
@@ -203,15 +205,13 @@ procedures:
     }
   }
 
-  JumpOnce(EVoid)
-  {
+  JumpOnce(EVoid) {
     // ------------ Jump either in slightly randomized direction or mortal, streight and fast toward enemy
     // we are always going for enemy
     m_vDesiredPosition = m_penEnemy->GetPlacement().pl_PositionVector;
     m_fMoveFrequency = 0.1f;
     // if we are close enough for mortal jump
-    if( CalcPlaneDist(m_penEnemy) < 10.0f)
-    {
+    if (CalcPlaneDist(m_penEnemy) < 10.0f) {
       // set mortal jump parameters (no random)
       m_fMoveSpeed = m_fCloseRunSpeed*1.5f;
       m_aRotateSpeed = m_aCloseRotateSpeed*0.5f;
@@ -219,26 +219,23 @@ procedures:
       FLOAT fSpeedY = 10.0f;
       FLOAT fSpeedZ = -m_fMoveSpeed;
       // if can't see enemy
-      if( !IsInFrustum(m_penEnemy, CosFast(30.0f)))
-      {
+      if (!IsInFrustum(m_penEnemy, CosFast(30.0f))) {
         // rotate a lot
         m_aRotateSpeed = m_aCloseRotateSpeed*1.5f;
         // but don't jump too much
         fSpeedY /= 2.0f;
         fSpeedZ /= 4.0f;
         PlaySound(m_soSound, SOUND_JUMP, SOF_3D);
-      }
-      else
-      {
+      } else {
         PlaySound(m_soSound, SOUND_DEATH_JUMP, SOF_3D);
       }
+
       FLOAT3D vTranslation(fSpeedX, fSpeedY, fSpeedZ);
-      SetDesiredTranslation(vTranslation);
+      EnemyMove(vTranslation); // [Cecil]
       MortalJumpAnim();
     }
     // start slightly randomized jump
-    else
-    {
+    else {
       m_fMoveSpeed = m_fCloseRunSpeed;
       m_aRotateSpeed = m_aCloseRotateSpeed;
       // set random jump parameters
@@ -246,38 +243,33 @@ procedures:
       FLOAT fSpeedY = FRnd()*5.0f+5.0f;
       FLOAT fSpeedZ = -m_fMoveSpeed-FRnd()*2.5f;
       FLOAT3D vTranslation(fSpeedX, fSpeedY, fSpeedZ);
-      SetDesiredTranslation(vTranslation);
+      EnemyMove(vTranslation); // [Cecil]
       RunningAnim();
       PlaySound(m_soSound, SOUND_JUMP, SOF_3D);
     }
 
     // ------------ While in air, adjust directions, on touch start new jump or explode
-    while (TRUE)
-    {
+    while (TRUE) {
       // adjust direction and speed
       m_fMoveSpeed = 0.0f;
       m_aRotateSpeed = m_aCloseRotateSpeed;
       FLOAT3D vTranslation = GetDesiredTranslation();
       SetDesiredMovement(); 
-      SetDesiredTranslation(vTranslation);
+      EnemyMove(vTranslation); // [Cecil]
 
-      wait(m_fMoveFrequency)
-      {
+      wait(m_fMoveFrequency) {
         on (EBegin) : { resume; };
         on (ESound) : { resume; }     // ignore all sounds
         on (EWatch) : { resume; }     // ignore watch
         on (ETimer) : { stop; }       // timer tick expire
-        on (ETouch etouch) :
-        {
+        on (ETouch etouch) : {
           // if we touched ground
-          if( etouch.penOther->GetRenderType() & RT_BRUSH)
-          {
+          if (etouch.penOther->GetRenderType() & RT_BRUSH) {
             return EReturn();
           }
           // we touched player, explode
-          else if ( IsDerivedFromClass( etouch.penOther, "Player"))
-          {            
-            InflictDirectDamage(etouch.penOther, this, DMT_IMPACT, 10.0f,
+          else if ( IS_PLAYER( etouch.penOther)) {            
+            InflictDirectDamage(etouch.penOther, this, DMT_CLOSERANGE, 10.0f,
               GetPlacement().pl_PositionVector, -en_vGravityDir);
             SetHealth(-10000.0f);
             m_vDamage = FLOAT3D(0,10000,0);
@@ -327,7 +319,8 @@ procedures:
     m_fBodyParts = 0;
     m_fDamageWounded = 0.0f;
     m_iScore = 500;
-    m_sptType = SPT_SLIME;
+    // [Cecil] Own type
+    m_sptType = GIZMO_SPRAY; //SPT_SLIME;
 
     en_fDeceleration = 150.0f;
 

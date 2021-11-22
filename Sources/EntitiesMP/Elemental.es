@@ -409,12 +409,11 @@ functions:
       return;
     }
 
+    // [Cecil] DMT_RIFLE
     // elementals take less damage from heavy bullets (e.g. sniper)
-    if( m_EecChar==ELC_BIG && dmtType==DMT_BULLET && fDamageAmmount>100.0f)
-    {
-      fDamageAmmount/=2.5f;
+    if (m_EecChar == ELC_BIG && (dmtType == DMT_BULLET || dmtType == DMT_RIFLE) && fDamageAmmount > 100.0f) {
+      fDamageAmmount /= 2.5f;
     }
-
 
     INDEX ctShouldSpawn = Clamp( INDEX((m_fMaxHealth-GetHealth())/m_fSpawnDamage), INDEX(0), INDEX(10));
     CTString strChar = ElementalCharacter_enum.NameForValue(INDEX(m_EecChar));
@@ -722,17 +721,18 @@ functions:
       vSource = GetPlacement().pl_PositionVector;
     }
 
+    // [Cecil] DMT_IMPACT -> DMT_CLOSERANGE
     // damage
     if (m_EecChar==ELC_LARGE) {
-      InflictRangeDamage(this, DMT_IMPACT, 150.0f, vSource, 7.5f, m_fCloseDistance);
+      InflictRangeDamage(this, DMT_CLOSERANGE, 150.0f, vSource, 7.5f, m_fCloseDistance);
       ShakeItBaby(_pTimer->CurrentTick(), 5.0f);
       SpawnShockwave(10.0f);
     } else if (m_EecChar==ELC_BIG) {
-      InflictRangeDamage(this, DMT_IMPACT, 75.0f, vSource, 5.0f, m_fCloseDistance);
+      InflictRangeDamage(this, DMT_CLOSERANGE, 75.0f, vSource, 5.0f, m_fCloseDistance);
       ShakeItBaby(_pTimer->CurrentTick(), 2.0f);
       SpawnShockwave(3.0f);
     } else {
-      InflictRangeDamage(this, DMT_IMPACT, 25.0f, vSource, 2.5f, m_fCloseDistance);
+      InflictRangeDamage(this, DMT_CLOSERANGE, 25.0f, vSource, 2.5f, m_fCloseDistance);
       SpawnShockwave(1.0f);
     }
   };

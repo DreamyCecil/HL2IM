@@ -15,7 +15,6 @@ enum ScorpmanType {
   2 SMT_MONSTER    "Obsolete",
 };
 
-
 %{
 #define GUN_X  0.375f
 #define GUN_Y  0.6f
@@ -69,7 +68,6 @@ components:
   5 model   MODEL_SCORPMAN    "Models\\Enemies\\Scorpman\\Scorpman.mdl",
   6 texture TEXTURE_SOLDIER   "Models\\Enemies\\Scorpman\\Soldier.tex",
   7 texture TEXTURE_GENERAL   "Models\\Enemies\\Scorpman\\General.tex",
-//  8 texture TEXTURE_MONSTER   "Models\\Enemies\\Scorpman\\Monster.tex",
  12 texture TEXTURE_SPECULAR  "Models\\SpecularTextures\\Medium.tex",
   9 model   MODEL_GUN         "Models\\Enemies\\Scorpman\\Gun.mdl",
  10 model   MODEL_FLARE       "Models\\Enemies\\Scorpman\\Flare.mdl",
@@ -85,8 +83,7 @@ components:
 
 functions:
   // describe how this enemy killed player
-  virtual CTString GetPlayerKillDescription(const CTString &strPlayerName, const EDeath &eDeath)
-  {
+  virtual CTString GetPlayerKillDescription(const CTString &strPlayerName, const EDeath &eDeath) {
     CTString str;
     if (eDeath.eLastDamage.dmtType==DMT_CLOSERANGE) {
       str.PrintF(TRANS("%s was stabbed by an Arachnoid"), strPlayerName);
@@ -94,15 +91,16 @@ functions:
       str.PrintF(TRANS("An Arachnoid poured lead into %s"), strPlayerName);
     }
     return str;
-  }
+  };
+
   void Precache(void) {
     CEnemyBase::Precache();
     PrecacheModel(MODEL_FLARE);
-    PrecacheSound(SOUND_IDLE );
+    PrecacheSound(SOUND_IDLE);
     PrecacheSound(SOUND_SIGHT);
     PrecacheSound(SOUND_WOUND);
-    PrecacheSound(SOUND_FIRE );
-    PrecacheSound(SOUND_KICK );
+    PrecacheSound(SOUND_FIRE);
+    PrecacheSound(SOUND_KICK);
     PrecacheSound(SOUND_DEATH);
   };
 
@@ -112,22 +110,20 @@ functions:
 
     // setup light source
     SetupLightSource();
-  }
+  };
 
   /* Fill in entity statistics - for AI purposes only */
-  BOOL FillEntityStatistics(EntityStats *pes)
-  {
+  BOOL FillEntityStatistics(EntityStats *pes) {
     CEnemyBase::FillEntityStatistics(pes);
     switch(m_smtType) {
-    case SMT_MONSTER: { pes->es_strName+=" Monster"; } break;
-    case SMT_GENERAL: { pes->es_strName+=" General"; } break;
-    case SMT_SOLDIER: { pes->es_strName+=" Soldier"; } break;
+      case SMT_MONSTER: { pes->es_strName+=" Monster"; } break;
+      case SMT_GENERAL: { pes->es_strName+=" General"; } break;
+      case SMT_SOLDIER: { pes->es_strName+=" Soldier"; } break;
     }
     return TRUE;
   }
 
   virtual const CTFileName &GetComputerMessageName(void) const {
-    //static DECLARE_CTFILENAME(fnmMonster, "Data\\Messages\\Enemies\\ScorpmanMonster.txt");
     static DECLARE_CTFILENAME(fnmGeneral, "Data\\Messages\\Enemies\\ScorpmanGeneral.txt");
     static DECLARE_CTFILENAME(fnmSoldier, "Data\\Messages\\Enemies\\ScorpmanSoldier.txt");
     switch(m_smtType) {
@@ -145,15 +141,14 @@ functions:
     } else {
       return NULL;
     }
-  }
+  };
 
-  BOOL ForcesCannonballToExplode(void)
-  {
-    if (m_smtType!=SMT_SOLDIER) {
+  BOOL ForcesCannonballToExplode(void) {
+    if (m_smtType != SMT_SOLDIER) {
       return TRUE;
     }
     return CEnemyBase::ForcesCannonballToExplode();
-  }
+  };
 
   // Setup light source
   void SetupLightSource(void) {
@@ -455,12 +450,15 @@ procedures:
     if (CalcDist(m_penEnemy) < m_fCloseDistance) {
       FLOAT3D vDirection = m_penEnemy->GetPlacement().pl_PositionVector-GetPlacement().pl_PositionVector;
       vDirection.Normalize();
+
+      // [Cecil] Hit point on the target position
+      FLOAT3D vHit = m_penEnemy->GetPlacement().pl_PositionVector;
       if (m_smtType == SMT_MONSTER) {
-        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 80.0f, FLOAT3D(0, 0, 0), vDirection);
+        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 80.0f, vHit, vDirection);
       } else if (m_smtType == SMT_GENERAL) {
-        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 40.0f, FLOAT3D(0, 0, 0), vDirection);
+        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 40.0f, vHit, vDirection);
       } else {
-        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 20.0f, FLOAT3D(0, 0, 0), vDirection);
+        InflictDirectDamage(m_penEnemy, this, DMT_CLOSERANGE, 20.0f, vHit, vDirection);
       }
     }
     autowait(0.3f);
