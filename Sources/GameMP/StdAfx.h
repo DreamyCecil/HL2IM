@@ -14,5 +14,6 @@
 #include <EntitiesMP/Global.h>
 #include <EntitiesMP/Common/Common.h>
 #include <EntitiesMP/Common/GameInterface.h>
-#include <EntitiesMP/Player.h>
+// [Cecil] 2021-06-19: Bot Mod
+#include "Bots/_BotMod.h"
 #undef DECL_DLL

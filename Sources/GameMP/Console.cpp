@@ -144,7 +144,7 @@ void CGame::ConsoleRender(CDrawPort *pdp)
   //LCDRenderGrid();
   LCDRenderClouds2();
   dpConsole.DrawLine( 0, pixSizeJ-1, pixSizeI, pixSizeJ-1, LCDFadedColor(SE_COL_BLUE_NEUTRAL|255));
-  const COLOR colFill = (colDark & ~CT_AMASK) | 0x2F;
+  const colFill = (colDark & ~CT_AMASK) | 0x2F;
   dpConsole.Fill( 0, pixSizeJ-pixLineSpacing*1.6f, pixSizeI, pixLineSpacing*1.6f, colFill);
 
   // setup font
@@ -320,32 +320,34 @@ static void Key_Return(void)
     strEditingLine.RemovePrefix(CHEAT_PREFIX);
     strEditingLine.RemovePrefix("/ "CHEAT_PREFIX);
     strEditingLine.TrimSpacesLeft();
-    if (strEditingLine=="god") {
+
+    if (strEditingLine == "god") {
       DoCheat(strEditingLine, "cht_bGod");
     
-    } else if (strEditingLine=="giveall") {
+    } else if (strEditingLine == "giveall") {
       DoCheat(strEditingLine, "cht_bGiveAll");
     
-    } else if (strEditingLine=="killall") {
+    } else if (strEditingLine == "killall") {
       DoCheat(strEditingLine, "cht_bKillAll");
     
-    } else if (strEditingLine=="open") {
+    } else if (strEditingLine == "open") {
       DoCheat(strEditingLine, "cht_bOpen");
     
-    } else if (strEditingLine=="tellall") {
+    } else if (strEditingLine == "tellall") {
       DoCheat(strEditingLine, "cht_bAllMessages");
     
-    } else if (strEditingLine=="fly") {
+    } else if (strEditingLine == "fly") {
       DoCheat(strEditingLine, "cht_bFly");
 
-    } else if (strEditingLine=="ghost") {
+    } else if (strEditingLine == "ghost") {
       DoCheat(strEditingLine, "cht_bGhost");
 
-    } else if (strEditingLine=="invisible") {
+    } else if (strEditingLine == "invisible") {
       DoCheat(strEditingLine, "cht_bInvisible");
 
-    } else if (strEditingLine=="refresh") {
+    } else if (strEditingLine == "refresh") {
       DoCheat(strEditingLine, "cht_bRefresh");
+
     } else {
       CPrintF("sorry?\n");
     }

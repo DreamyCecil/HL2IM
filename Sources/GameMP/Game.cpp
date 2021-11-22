@@ -61,7 +61,6 @@ static BOOL  _bProfiling = FALSE;
 static INDEX _ctProfileRecording = 0;
 static FLOAT gam_iRecordHighScore = -1.0f;
 
-
 extern FLOAT gam_afAmmoQuantity[5]        = {2.0f,  2.0f,  1.0f, 1.0f , 2.0f };
 extern FLOAT gam_afDamageStrength[5]      = {0.25f, 0.5f,  1.0f, 1.5f , 2.0f };
 extern FLOAT gam_afEnemyAttackSpeed[5]    = {0.75f, 0.75f, 1.0f, 2.0f , 2.0f };
@@ -104,8 +103,30 @@ extern CTString gam_strGameSpyExtras = "";
 
 extern INDEX gam_iBlood = 2;     // 0=none, 1=green, 2=red, 3=hippie
 extern INDEX gam_bGibs  = TRUE;   
-
 extern INDEX gam_bUseExtraEnemies = TRUE;
+
+// [Cecil] New options
+extern INDEX hl2_iGamemode = HLGM_NONE;
+
+extern FLOAT hl2_fAmmoMultiplier = 1.0f;
+extern FLOAT hl2_fMagMultiplier = 1.0f;
+extern FLOAT hl2_fGravityGunPower = 1.0f;
+extern INDEX hl2_bInfiniteAlt = FALSE;
+extern INDEX hl2_iStartWeapons = -1; // Crowbar & USP
+
+extern FLOAT hl2_fSpeedMultiplier = 1.0f;
+extern FLOAT hl2_fJumpMultiplier = 1.0f;
+extern INDEX hl2_bBunnyhopping = FALSE;
+extern INDEX hl2_bAutoBunnyhop = FALSE;
+
+extern INDEX hl2_iBetterEnemies = 1; // 0 - no, 1 - yes, 2 - yes with extra adjustments
+extern INDEX hl2_bEnemyDrops = FALSE;
+extern INDEX hl2_bUseMaterials = TRUE;
+extern INDEX hl2_bReinitMap = FALSE;
+extern INDEX hl2_bAdminMenu = FALSE;
+
+// [Cecil] Menu music
+static INDEX hl2_bMenuMusic = TRUE;
 
 static INDEX hud_iEnableStats = 1;
 static FLOAT hud_fEnableFPS   = 1;
@@ -193,42 +214,44 @@ static void ReportDemoProfile(void)
 #define MAX_SCRIPTSOUNDS 16
 static CSoundObject *_apsoScriptChannels[MAX_SCRIPTSOUNDS] = {0};
 
-static void PlayScriptSound(INDEX iChannel, const CTString &strSound, FLOAT fVolume, FLOAT fPitch, BOOL bLooping)
-{
-  if (iChannel<0 || iChannel>=MAX_SCRIPTSOUNDS) {
+// [Cecil] Added music flag
+static void PlayScriptSound(INDEX iChannel, const CTString &strSound, FLOAT fVolume, FLOAT fPitch, BOOL bLooping, BOOL bMusic) {
+  if (iChannel < 0 || iChannel >= MAX_SCRIPTSOUNDS) {
     return;
   }
-  if (_apsoScriptChannels[iChannel]==NULL) {
+
+  if (_apsoScriptChannels[iChannel] == NULL) {
     _apsoScriptChannels[iChannel] = new CSoundObject;
   }
+
   _apsoScriptChannels[iChannel]->SetVolume(fVolume, fVolume);
   _apsoScriptChannels[iChannel]->SetPitch(fPitch);
+
   try {
-    _apsoScriptChannels[iChannel]->Play_t(strSound, SOF_NONGAME|(bLooping?SOF_LOOP:0));
+    _apsoScriptChannels[iChannel]->Play_t(strSound, SOF_NONGAME | (bLooping ? SOF_LOOP : 0) | (bMusic ? SOF_MUSIC : 0));
   } catch (char *strError) {
     CPrintF("%s\n", strError);
   }
-}
-static void StopScriptSound(INDEX iChannel)
-{
-  if (iChannel<0 || iChannel>=MAX_SCRIPTSOUNDS||_apsoScriptChannels[iChannel]==NULL) {
+};
+
+static void StopScriptSound(INDEX iChannel) {
+  if (iChannel < 0 || iChannel >= MAX_SCRIPTSOUNDS || _apsoScriptChannels[iChannel] == NULL) {
     return;
   }
   _apsoScriptChannels[iChannel]->Stop();
-} 
-static INDEX IsScriptSoundPlaying(INDEX iChannel)
-{
-  if (iChannel<0 || iChannel>=MAX_SCRIPTSOUNDS||_apsoScriptChannels[iChannel]==NULL) {
+};
+
+static INDEX IsScriptSoundPlaying(INDEX iChannel) {
+  if (iChannel < 0 || iChannel >= MAX_SCRIPTSOUNDS || _apsoScriptChannels[iChannel] == NULL) {
     return 0;
   }
   return _apsoScriptChannels[iChannel]->IsPlaying();
-}
+};
 
 // Dump recorded profiling stats to file.
-static void DumpProfileToFile(void)
-{
+static void DumpProfileToFile(void) {
   _bDumpNextTime = TRUE;
-}
+};
 
 // Dump recorded profiling stats to console.
 static void DumpProfileToConsole(void)
@@ -405,39 +428,36 @@ FLOAT CControls::GetAxisValue(INDEX iAxis)
   return fReading*aa.aa_fAxisInfluence;
 }
 
-void CControls::CreateAction(const CPlayerCharacter &pc, CPlayerAction &paAction, BOOL bPreScan)
-{
+void CControls::CreateAction(const CPlayerCharacter &pc, CPlayerAction &paAction, BOOL bPreScan) {
   // set axis-controlled moving
-  paAction.pa_vTranslation(1) = -GetAxisValue( AXIS_MOVE_LR);
-  paAction.pa_vTranslation(2) = GetAxisValue( AXIS_MOVE_UD);
-  paAction.pa_vTranslation(3) = -GetAxisValue( AXIS_MOVE_FB);
+  paAction.pa_vTranslation(1) = -GetAxisValue(AXIS_MOVE_LR);
+  paAction.pa_vTranslation(2) = GetAxisValue(AXIS_MOVE_UD);
+  paAction.pa_vTranslation(3) = -GetAxisValue(AXIS_MOVE_FB);
   // set axis-controlled rotation
-  paAction.pa_aRotation(1) = (ANGLE)-GetAxisValue( AXIS_TURN_LR);
-  paAction.pa_aRotation(2) = (ANGLE)GetAxisValue( AXIS_TURN_UD);
-  paAction.pa_aRotation(3) = (ANGLE)GetAxisValue( AXIS_TURN_BK);
+  paAction.pa_aRotation(1) = (ANGLE)-GetAxisValue(AXIS_TURN_LR);
+  paAction.pa_aRotation(2) = (ANGLE)GetAxisValue(AXIS_TURN_UD);
+  paAction.pa_aRotation(3) = (ANGLE)GetAxisValue(AXIS_TURN_BK);
   // set axis-controlled view rotation
-  paAction.pa_aViewRotation(1) = (ANGLE)GetAxisValue( AXIS_LOOK_LR);
-  paAction.pa_aViewRotation(2) = (ANGLE)GetAxisValue( AXIS_LOOK_UD);
-  paAction.pa_aViewRotation(3) = (ANGLE)GetAxisValue( AXIS_LOOK_BK);
+  paAction.pa_aViewRotation(1) = (ANGLE)GetAxisValue(AXIS_LOOK_LR);
+  paAction.pa_aViewRotation(2) = (ANGLE)GetAxisValue(AXIS_LOOK_UD);
+  paAction.pa_aViewRotation(3) = (ANGLE)GetAxisValue(AXIS_LOOK_BK);
 
   // execute all button-action shell commands
   if (!bPreScan) {
     DoButtonActions();
   }
-  //CPrintF("creating: prescan %d, x:%g\n", bPreScan, paAction.pa_aRotation(1));
 
   // make the player class create the action packet
   ctl_ComposeActionPacket(pc, paAction, bPreScan);
-}
+};
 
-CButtonAction &CControls::AddButtonAction(void)
-{
+CButtonAction &CControls::AddButtonAction(void) {
   // create a new action
   CButtonAction *pbaNew = new CButtonAction;
   // add it to end of list
   ctrl_lhButtonActions.AddTail(pbaNew->ba_lnNode);
   return *pbaNew;
-}
+};
 
 void CControls::RemoveButtonAction( CButtonAction &baButtonAction)
 {
@@ -794,8 +814,7 @@ void CGame::GameHandleTimer(void)
     }
   }
   // if DirectInput is disabled, and game is currently active
-  else if (gm_bGameOn)
-  {
+  else if (gm_bGameOn) {
     // for all possible local players
     for( INDEX iPlayer=0; iPlayer<4; iPlayer++)
     { // if this player exist
@@ -806,17 +825,33 @@ void CGame::GameHandleTimer(void)
         CPlayerAction paClearAction;
         // clear actions
         paClearAction = pls.pls_paAction;
-        paClearAction.pa_vTranslation  = FLOAT3D(0.0f,0.0f,0.0f);
-//        paClearAction.pa_aRotation     = ANGLE3D(0,0,0);
-//        paClearAction.pa_aViewRotation = ANGLE3D(0,0,0);
-        paClearAction.pa_ulButtons     = 0;
+        paClearAction.pa_vTranslation  = FLOAT3D(0.0f, 0.0f, 0.0f);
+        paClearAction.pa_ulButtons = 0;
+
+        // [Cecil] Mouse Input Extension
+        // Basically, if input is disabled, we are still getting actions from the player
+
+        BOOL bConsoleOn = _pGame->gm_csConsoleState != CS_OFF;
+        BOOL bComputerOn = _pGame->gm_csComputerState != CS_OFF;
+        BOOL bPaused = _pNetwork->IsPaused() || _pNetwork->GetLocalPause();
+
+        if (!gm_bMenuOn && !bConsoleOn && !bComputerOn && !bPaused) {
+          // create action for it for this tick
+          CPlayerAction paAction;
+          INDEX iCurrentPlayer = gm_lpLocalPlayers[iPlayer].lp_iPlayer;
+          CControls &ctrls = gm_actrlControls[iCurrentPlayer];
+          ctrls.CreateAction(gm_apcPlayers[iCurrentPlayer], paClearAction, FALSE);
+          // set the action in the client source object
+          gm_lpLocalPlayers[iPlayer].lp_pplsPlayerSource->SetAction(paClearAction);
+        }
+        // [Cecil] Mouse Input Extension End
 
         // clear the action in the client source object
         pls.SetAction(paClearAction);
       }
     }
   }
-}
+};
 
 /*
  * Global game object (in our case Flesh) initialization function
@@ -903,7 +938,7 @@ void CGame::InitInternal( void)
   _pShell->DeclareSymbol("FLOAT gam_afEnemyMovementSpeed[5];", &gam_afEnemyMovementSpeed);
   _pShell->DeclareSymbol("FLOAT gam_afEnemyAttackSpeed[5];",   &gam_afEnemyAttackSpeed);
   _pShell->DeclareSymbol("FLOAT gam_afDamageStrength[5];",     &gam_afDamageStrength);
-  _pShell->DeclareSymbol("FLOAT gam_afAmmoQuantity[5];",       &gam_afAmmoQuantity);
+  _pShell->DeclareSymbol("persistent user FLOAT gam_afAmmoQuantity[5];", &gam_afAmmoQuantity); // [Cecil] Made visible
   _pShell->DeclareSymbol("persistent user FLOAT gam_fManaTransferFactor;", &gam_fManaTransferFactor);
   _pShell->DeclareSymbol("persistent user FLOAT gam_fExtraEnemyStrength         ;", &gam_fExtraEnemyStrength          );
   _pShell->DeclareSymbol("persistent user FLOAT gam_fExtraEnemyStrengthPerPlayer;", &gam_fExtraEnemyStrengthPerPlayer );
@@ -929,8 +964,30 @@ void CGame::InitInternal( void)
 
   _pShell->DeclareSymbol("persistent user INDEX gam_iBlood;", &gam_iBlood);
   _pShell->DeclareSymbol("persistent user INDEX gam_bGibs;",  &gam_bGibs);
-
   _pShell->DeclareSymbol("persistent user INDEX gam_bUseExtraEnemies;",  &gam_bUseExtraEnemies);
+
+  // [Cecil] New options
+  _pShell->DeclareSymbol("persistent user INDEX hl2_iGamemode;", &hl2_iGamemode);
+
+  _pShell->DeclareSymbol("persistent user FLOAT hl2_fAmmoMultiplier;", &hl2_fAmmoMultiplier);
+  _pShell->DeclareSymbol("persistent user FLOAT hl2_fMagMultiplier;", &hl2_fMagMultiplier);
+  _pShell->DeclareSymbol("persistent user FLOAT hl2_fGravityGunPower;", &hl2_fGravityGunPower);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_bInfiniteAlt;", &hl2_bInfiniteAlt);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_iStartWeapons;", &hl2_iStartWeapons);
+
+  _pShell->DeclareSymbol("persistent user FLOAT hl2_fSpeedMultiplier;", &hl2_fSpeedMultiplier);
+  _pShell->DeclareSymbol("persistent user FLOAT hl2_fJumpMultiplier;", &hl2_fJumpMultiplier);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_bBunnyhopping;", &hl2_bBunnyhopping);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_bAutoBunnyhop;", &hl2_bAutoBunnyhop);
+
+  _pShell->DeclareSymbol("persistent user INDEX hl2_iBetterEnemies;", &hl2_iBetterEnemies);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_bEnemyDrops;", &hl2_bEnemyDrops);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_bUseMaterials;", &hl2_bUseMaterials);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_bReinitMap;", &hl2_bReinitMap);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_bAdminMenu;", &hl2_bAdminMenu);
+
+  // [Cecil] Menu music
+  _pShell->DeclareSymbol("persistent user INDEX hl2_bMenuMusic;", &hl2_bMenuMusic);
 
   _pShell->DeclareSymbol("user INDEX gam_bQuickLoad;", &gam_bQuickLoad);
   _pShell->DeclareSymbol("user INDEX gam_bQuickSave;", &gam_bQuickSave);
@@ -1023,6 +1080,9 @@ void CGame::InitInternal( void)
 
   // provide URL to the engine
   _strModURL = "http://www.croteam.com/mods/TheSecondEncounter";
+
+  // [Cecil] 2021-06-19: Bot mod
+  CECIL_InitBotMod();
 }
 
 // internal cleanup
@@ -1063,6 +1123,9 @@ void CGame::EndInternal(void)
   } catch (char *strError) {
     WarningMessage("Cannot load game settings:\n%s\nUsing defaults!", strError);
   }
+
+  // [Cecil] 2021-06-19: Bot mod
+  CECIL_EndBotMod();
 }
 
 BOOL CGame::NewGame(const CTString &strSessionName, const CTFileName &fnWorld,
@@ -1117,6 +1180,9 @@ BOOL CGame::NewGame(const CTString &strSessionName, const CTFileName &fnWorld,
       BOOL bWaitAllPlayers = sp.sp_bWaitAllPlayers && _pNetwork->IsNetworkEnabled();
       _pNetwork->StartPeerToPeer_t( strSessionName, fnWorld, 
         sp.sp_ulSpawnFlags, sp.sp_ctMaxPlayers, bWaitAllPlayers, &sp);
+
+      // [Cecil] 2021-06-19: Bot mod
+      CECIL_BotGameStart(sp);
     }
   } catch (char *strError) {
     gm_bFirstLoading = FALSE;
@@ -1141,6 +1207,11 @@ BOOL CGame::NewGame(const CTString &strSessionName, const CTFileName &fnWorld,
   gm_CurrentSplitScreenCfg = gm_StartSplitScreenCfg;
   // clear last set highscore
   gm_iLastSetHighScore = -1;
+
+  // [Cecil] Stop menu music
+  if (IsScriptSoundPlaying(5)) {
+    StopScriptSound(5);
+  }
 
   MaybeDiscardLastLines();
   return TRUE;
@@ -1184,6 +1255,12 @@ BOOL CGame::JoinGame(CNetworkSession &session)
   }
   gm_bGameOn = TRUE;
   gm_CurrentSplitScreenCfg = gm_StartSplitScreenCfg;
+
+  // [Cecil] Stop menu music
+  if (IsScriptSoundPlaying(5)) {
+    StopScriptSound(5);
+  }
+
   return TRUE;
 }
 
@@ -1230,6 +1307,10 @@ BOOL CGame::LoadGame(const CTFileName &fnGame)
     gam_bQuickSave = TRUE;
   }
 
+  // [Cecil] Stop menu music
+  if (IsScriptSoundPlaying(5)) {
+    StopScriptSound(5);
+  }
 
   MaybeDiscardLastLines();
   return TRUE;
@@ -1267,6 +1348,11 @@ BOOL CGame::StartDemoPlay(const CTFileName &fnDemo)
   SetupLocalPlayers();
   gm_bGameOn = TRUE;
   gm_CurrentSplitScreenCfg = gm_StartSplitScreenCfg;
+
+  // [Cecil] Stop menu music
+  if (IsScriptSoundPlaying(5)) {
+    StopScriptSound(5);
+  }
 
   // prepare array for eventual profiling
   _atmFrameTimes.PopAll();
@@ -1341,21 +1427,25 @@ BOOL CGame::SaveGame(const CTFileName &fnGame)
   }
 }
 
-void CGame::StopGame(void)
-{
+void CGame::StopGame(void) {
   // disable computer quickly
   ComputerForceOff();
 
+  // [Cecil] 2021-06-19: Bot mod
+  CECIL_BotGameCleanup();
+
+  // [Cecil] Stop menu music
+  if (IsScriptSoundPlaying(5)) {
+    StopScriptSound(5);
+  }
+
   // if no game is currently running
-  if (!gm_bGameOn)
-  {
+  if (!gm_bGameOn) {
     // do nothing
     return;
   }
   // stop eventual camera
   CAM_Stop();
-  // disable direct input
-//  _pInput->DisableInput();
   // and game
   gm_bGameOn = FALSE;
   // stop the game
@@ -1363,16 +1453,14 @@ void CGame::StopGame(void)
   // stop the provider
   _pNetwork->StopProvider();
   // for all four local players
-  for( INDEX iPlayer=0; iPlayer<4; iPlayer++)
-  {
+  for (INDEX iPlayer = 0; iPlayer < 4; iPlayer++) {
     // mark that current player does not exist any more
     gm_lpLocalPlayers[ iPlayer].lp_bActive = FALSE;
     gm_lpLocalPlayers[ iPlayer].lp_pplsPlayerSource = NULL;
   }
-}
+};
 
-BOOL CGame::StartProviderFromName(void)
-{
+BOOL CGame::StartProviderFromName(void) {
   BOOL bSuccess = FALSE;
   // list to contain available network providers
   CListHead lhAvailableProviders;
@@ -1414,18 +1502,17 @@ BOOL CGame::StartProviderFromName(void)
     bSuccess = FALSE;
   }
   return bSuccess;
-}
+};
 
-CHighScoreEntry::CHighScoreEntry(void)
-{
+CHighScoreEntry::CHighScoreEntry(void) {
   hse_strPlayer = "";
   hse_gdDifficulty = (CSessionProperties::GameDifficulty)-100;
   hse_tmTime = -1.0f;
   hse_ctKills = -1;
   hse_ctScore = 0;
-}
-SLONG CGame::PackHighScoreTable(void)
-{
+};
+
+SLONG CGame::PackHighScoreTable(void) {
   // start at the beginning of buffer
   UBYTE *pub = _aubHighScoreBuffer;
   // for each entry
@@ -1449,10 +1536,9 @@ SLONG CGame::PackHighScoreTable(void)
   // just copy it for now
   memcpy(_aubHighScorePacked, _aubHighScoreBuffer, MAX_HIGHSCORETABLESIZE);
   return MAX_HIGHSCORETABLESIZE;
-}
+};
 
-void CGame::UnpackHighScoreTable(SLONG slSize)
-{
+void CGame::UnpackHighScoreTable(SLONG slSize) {
   // just copy it for now
   memcpy(_aubHighScoreBuffer, _aubHighScorePacked, slSize);
   // start at the beginning of buffer
@@ -1499,13 +1585,12 @@ void CGame::UnpackHighScoreTable(SLONG slSize)
 
   // no last set
   gm_iLastSetHighScore = -1;
-}
+};
 
 /*
  * Loads CGame from file with file name given trough SetGameSettingsSaveFileName() function
  */
-void CGame::Load_t( void)
-{
+void CGame::Load_t(void) {
   ASSERT( gm_fnSaveFileName != "");
   CTFileStream strmFile;
   // open file with saved CGameObject
@@ -1533,13 +1618,12 @@ void CGame::Load_t( void)
   strmFile>>slHSSize;
   strmFile.Read_t(&_aubHighScorePacked, slHSSize);
   UnpackHighScoreTable(slHSSize);
-}
+};
 
 /*
  * Saves current state of CGame under file name given trough SetGameSettingsSaveFileName() function
  */
-void CGame::Save_t( void)
-{
+void CGame::Save_t(void) {
   ASSERT( gm_fnSaveFileName != "");
   CTFileStream strmFile;
   // create file to save CGameObject
@@ -1564,11 +1648,9 @@ void CGame::Save_t( void)
   SLONG slHSSize = PackHighScoreTable();
   strmFile<<slHSSize;
   strmFile.Write_t(&_aubHighScorePacked, slHSSize);
-}
+};
 
-
-void LoadControls(CControls &ctrl, INDEX i)
-{
+void LoadControls(CControls &ctrl, INDEX i) {
   try {
     CTFileName fnm;
     fnm.PrintF("Controls\\Controls%d.ctl", i);
@@ -1582,10 +1664,9 @@ void LoadControls(CControls &ctrl, INDEX i)
       ctrl.SwitchToDefaults();
     }
   }
-}
+};
 
-void LoadPlayer(CPlayerCharacter &pc, INDEX i)
-{
+void LoadPlayer(CPlayerCharacter &pc, INDEX i) {
   try {
     CTFileName fnm;
     fnm.PrintF("Players\\Player%d.plr", i);
@@ -1602,8 +1683,7 @@ void LoadPlayer(CPlayerCharacter &pc, INDEX i)
     }
     pc = CPlayerCharacter(strName);
   }
-}
-
+};
 
 /*
  * Loads 8 players and 8 controls
@@ -2180,16 +2260,25 @@ void CGame::GameRedrawView( CDrawPort *pdpDrawPort, ULONG ulFlags)
       }
     }}
 
+    // [Cecil] 2021-06-19: Bot mod
+    CDynamicContainer<CPlayer> cenPlayerEntities;
+
     // fill in all players that are not local
     INDEX ctNonlocals = 0;
-    CEntity *apenNonlocals[16];
-    memset(apenNonlocals, 0, sizeof(apenNonlocals));
     {for (INDEX i=0; i<16; i++) {
       CEntity *pen = CEntity::GetPlayerEntity(i);
       if (pen!=NULL && !_pNetwork->IsPlayerLocal(pen)) {
-        apenNonlocals[ctNonlocals++] = pen;
+        cenPlayerEntities.Add((CPlayer *)pen);
       }
     }}
+
+    // [Cecil] Add bots
+    for (INDEX iBot = 0; iBot < _cenPlayerBots.Count(); iBot++) {
+      CPlayerBot *penBot = _cenPlayerBots.Pointer(iBot);
+      cenPlayerEntities.Add(penBot);
+    }
+    // [Cecil] Count non-local players
+    ctNonlocals = cenPlayerEntities.Count();
 
     // if there are any non-local players
     if (ctNonlocals>0) {
@@ -2197,7 +2286,7 @@ void CGame::GameRedrawView( CDrawPort *pdpDrawPort, ULONG ulFlags)
       {for (INDEX i=0; i<ctObservers; i++) {
         // get the given player with given offset that is not local
         INDEX iPlayer = (i+iObserverOffset)%ctNonlocals;
-        apenViewers[ctViewers++] = apenNonlocals[iPlayer];
+        apenViewers[ctViewers++] = cenPlayerEntities.Pointer(iPlayer);
       }}
     }
 
@@ -2349,7 +2438,7 @@ void CGame::GameRedrawView( CDrawPort *pdpDrawPort, ULONG ulFlags)
   INDEX ctNewChatMessages = _pShell->GetINDEX("net_ctChatMessages");
   if (ctNewChatMessages!=ctChatMessages) {
     ctChatMessages=ctNewChatMessages;
-    PlayScriptSound(MAX_SCRIPTSOUNDS-1, CTFILENAME("Sounds\\Menu\\Chat.wav"), 4.0f*gam_fChatSoundVolume, 1.0f, FALSE);
+    PlayScriptSound(MAX_SCRIPTSOUNDS-1, CTFILENAME("Sounds\\Menu\\Chat.wav"), 4.0f*gam_fChatSoundVolume, 1.0f, FALSE, FALSE);
   }
 
   // update sounds and forbid probing
@@ -2600,9 +2689,8 @@ CTFileName CGame::GetQuickSaveName(BOOL bSave)
 }
 
 
-void CGame::GameMainLoop(void)
-{
-  if (gam_bQuickSave && GetSP()->sp_gmGameMode!=CSessionProperties::GM_FLYOVER) {
+void CGame::GameMainLoop(void) {
+  if (gam_bQuickSave && GetSP()->sp_gmGameMode != CSessionProperties::GM_FLYOVER) {
     if (gam_bQuickSave==2) {
       _tvMenuQuickSave = _pTimer->GetHighPrecisionTimer();
     }
@@ -2612,8 +2700,9 @@ void CGame::GameMainLoop(void)
     SaveGame(fnm);
     SaveStringVar(fnm.NoExt()+".des", strDes);
   }
+
   // if quickload invoked
-  if (gam_bQuickLoad && GetSP()->sp_gmGameMode!=CSessionProperties::GM_FLYOVER) {
+  if (gam_bQuickLoad && GetSP()->sp_gmGameMode != CSessionProperties::GM_FLYOVER) {
     gam_bQuickLoad = FALSE;
     // if no game active, or this computer is server
     if (!gm_bGameOn || _pNetwork->IsServer()) {
@@ -2625,10 +2714,12 @@ void CGame::GameMainLoop(void)
       JoinGame(CNetworkSession(gam_strJoinAddress));
     }
   }
-  if (gam_iRecordHighScore>=0) {
+
+  if (gam_iRecordHighScore >= 0) {
     RecordHighScore();
     gam_iRecordHighScore = -1.0f;
   }
+
   // if server was restarted
   if (gm_bGameOn && !_pNetwork->IsServer() && _pNetwork->IsGameFinished() && _pNetwork->IsDisconnected()) {
     // automatically reconnect
@@ -2646,6 +2737,7 @@ void CGame::GameMainLoop(void)
     _pfSoundProfile.Reset();
     _pfNetworkProfile.Reset();
     _pfPhysicsProfile.Reset();
+
   } else if (_bProfiling) {
     _ctProfileRecording--;
     if (_ctProfileRecording<=0) {
@@ -2694,6 +2786,7 @@ void CGame::GameMainLoop(void)
 
   if (_bDumpNextTime) {
     _bDumpNextTime = FALSE;
+
     try {
       // create a file for profile
       CTFileStream strmProfile;
@@ -2708,8 +2801,13 @@ void CGame::GameMainLoop(void)
   if (gm_bGameOn) {
     // do main loop procesing
     _pNetwork->MainLoop();
+
+    // [Cecil] Stop menu music
+    if (IsScriptSoundPlaying(5)) {
+      StopScriptSound(5);
+    }
   }
-}
+};
 
 /*************************************************************
  *         S E C O N D   E N C O U N T E R   M E N U         *
@@ -2718,11 +2816,16 @@ void CGame::GameMainLoop(void)
 static CTextureObject _toPointer;
 static CTextureObject _toBcgClouds;
 static CTextureObject _toBcgGrid;
-static CTextureObject _toBackdrop;
+/*static CTextureObject _toBackdrop;
 static CTextureObject _toSamU;
 static CTextureObject _toSamD;
 static CTextureObject _toLeftU;
-static CTextureObject _toLeftD;
+static CTextureObject _toLeftD;*/
+
+// [Cecil] Half-Life 2 Background
+static CTextureObject _toHLBack1A;
+static CTextureObject _toHLBack1B;
+static CTextureObject _toHLBack1_Anim;
 
 static PIXaabbox2D _boxScreen_SE;
 static PIX _pixSizeI_SE;
@@ -2732,56 +2835,71 @@ static FLOAT _tmNow_SE;
 static ULONG _ulA_SE;
 static BOOL  _bPopup;
 
-void TiledTextureSE( PIXaabbox2D &_boxScreen, FLOAT fStretch, MEX2D &vScreen, MEXaabbox2D &boxTexture)
-{
+void TiledTextureSE(PIXaabbox2D &_boxScreen, FLOAT fStretch, MEX2D &vScreen, MEXaabbox2D &boxTexture) {
   PIX pixW = _boxScreen.Size()(1);
   PIX pixH = _boxScreen.Size()(2);
   boxTexture = MEXaabbox2D(MEX2D(0, 0), MEX2D(pixW/fStretch, pixH/fStretch));
   boxTexture+=vScreen;
-}
+};
+
+// [Cecil] Own function with stretching in both dimensions
+void TiledTextureXY(PIXaabbox2D &_boxScreen, FLOAT fStretchX, FLOAT fStretchY, MEX2D &vScreen, MEXaabbox2D &boxTexture) {
+  PIX pixW = _boxScreen.Size()(1);
+  PIX pixH = _boxScreen.Size()(2);
+  boxTexture = MEXaabbox2D(MEX2D(0, 0), MEX2D(pixW/fStretchX, pixH/fStretchY));
+  boxTexture += vScreen;
+};
 
 ////
 
-void CGame::LCDInit(void)
-{
+void CGame::LCDInit(void) {
   try {
     _toBcgClouds.SetData_t(CTFILENAME("Textures\\General\\Background6.tex"));
-    _toPointer.SetData_t(CTFILENAME("TexturesMP\\General\\Pointer.tex",));
+    _toPointer.SetData_t(CTFILENAME("TexturesMP\\General\\Pointer.tex"));
     _toBcgGrid.SetData_t(CTFILENAME("TexturesMP\\General\\grid.tex"));
-    _toBackdrop.SetData_t(CTFILENAME("TexturesMP\\General\\MenuBack.tex"));
+    /*_toBackdrop.SetData_t(CTFILENAME("TexturesMP\\General\\MenuBack.tex"));
     _toSamU.SetData_t(CTFILENAME("TexturesMP\\General\\SamU.tex"));
     _toSamD.SetData_t(CTFILENAME("TexturesMP\\General\\SamD.tex"));
     _toLeftU.SetData_t(CTFILENAME("TexturesMP\\General\\LeftU.tex"));
-    _toLeftD.SetData_t(CTFILENAME("TexturesMP\\General\\LeftD.tex"));
+    _toLeftD.SetData_t(CTFILENAME("TexturesMP\\General\\LeftD.tex"));*/
+
     // force constant textures
     ((CTextureData*)_toBcgClouds.GetData())->Force(TEX_CONSTANT);
     ((CTextureData*)_toPointer  .GetData())->Force(TEX_CONSTANT);
     ((CTextureData*)_toBcgGrid  .GetData())->Force(TEX_CONSTANT);
-    ((CTextureData*)_toBackdrop .GetData())->Force(TEX_CONSTANT);
+    /*((CTextureData*)_toBackdrop .GetData())->Force(TEX_CONSTANT);
     ((CTextureData*)_toSamU     .GetData())->Force(TEX_CONSTANT);
     ((CTextureData*)_toSamD     .GetData())->Force(TEX_CONSTANT);
     ((CTextureData*)_toLeftU    .GetData())->Force(TEX_CONSTANT);
-    ((CTextureData*)_toLeftD    .GetData())->Force(TEX_CONSTANT);
+    ((CTextureData*)_toLeftD    .GetData())->Force(TEX_CONSTANT);*/
+
+    // [Cecil] Half-Life 2 Background
+    _toHLBack1A.SetData_t(CTFILENAME("Textures\\MenuBack1A.tex"));
+    _toHLBack1B.SetData_t(CTFILENAME("Textures\\MenuBack1B.tex"));
+    _toHLBack1_Anim.SetData_t(CTFILENAME("Textures\\MenuBackAnim.tex"));
+    ((CTextureData*)_toHLBack1A.GetData())->Force(TEX_CONSTANT);
+    ((CTextureData*)_toHLBack1B.GetData())->Force(TEX_CONSTANT);
+    ((CTextureData*)_toHLBack1_Anim.GetData())->Force(TEX_CONSTANT);
 
   } catch (char *strError) {
     FatalError("%s\n", strError);
   }
   ::LCDInit();
-}
-void CGame::LCDEnd(void)
-{
+};
+
+void CGame::LCDEnd(void) {
   ::LCDEnd();
-}
-void CGame::LCDPrepare(FLOAT fFade)
-{
+};
+
+void CGame::LCDPrepare(FLOAT fFade) {
   // get current time and alpha value
   _tmNow_SE = (FLOAT)_pTimer->GetHighPrecisionTimer().GetSeconds();
   _ulA_SE   = NormFloatToByte(fFade);
 
   ::LCDPrepare(fFade);
-}
-void CGame::LCDSetDrawport(CDrawPort *pdp)
-{
+};
+
+void CGame::LCDSetDrawport(CDrawPort *pdp) {
   _pdp_SE = pdp;
   _pixSizeI_SE = _pdp_SE->GetWidth();
   _pixSizeJ_SE = _pdp_SE->GetHeight();
@@ -2794,90 +2912,73 @@ void CGame::LCDSetDrawport(CDrawPort *pdp)
   }
   
   ::LCDSetDrawport(pdp);
-}
-void CGame::LCDDrawBox(PIX pixUL, PIX pixDR, PIXaabbox2D &box, COLOR col)
-{
-  col = SE_COL_BLUE_NEUTRAL|255;
+};
 
+void CGame::LCDDrawBox(PIX pixUL, PIX pixDR, PIXaabbox2D &box, COLOR col) {
+  col = SE_COL_BLUE_NEUTRAL|255;
   ::LCDDrawBox(pixUL, pixDR, box, col);
-}
-void CGame::LCDScreenBox(COLOR col)
-{
-  col = SE_COL_BLUE_NEUTRAL|255;
+};
 
+void CGame::LCDScreenBox(COLOR col) {
+  col = SE_COL_BLUE_NEUTRAL|255;
   ::LCDScreenBox(col);
-}
-void CGame::LCDScreenBoxOpenLeft(COLOR col)
-{
-  col = SE_COL_BLUE_NEUTRAL|255;
+};
 
+void CGame::LCDScreenBoxOpenLeft(COLOR col) {
+  col = SE_COL_BLUE_NEUTRAL|255;
   ::LCDScreenBoxOpenLeft(col);
-}
-void CGame::LCDScreenBoxOpenRight(COLOR col)
-{
+};
+
+void CGame::LCDScreenBoxOpenRight(COLOR col) {
   col = SE_COL_BLUE_NEUTRAL|255;
-
   ::LCDScreenBoxOpenRight(col);
-}
-void CGame::LCDRenderClouds1(void)
-{
-  _pdp_SE->PutTexture(&_toBackdrop, _boxScreen_SE, C_WHITE|255);
+};
 
+void CGame::LCDRenderClouds1(void) {
+  // [Cecil] Half-Life 2 background
   if (!_bPopup) {
+    FLOAT2D vCenter = FLOAT2D(FLOAT(_pdp_SE->GetWidth()) / 2.0f, 0.0f);
+    FLOAT2D vSize = FLOAT2D(FLOAT(_pdp_SE->GetHeight()) / 1.125f, _pdp_SE->GetHeight());
 
-    PIXaabbox2D box;
-        
-    // right character - Sam
-    INDEX iSize = 170;
-    INDEX iYU = 120;
-    INDEX iYM = iYU + iSize;
-    INDEX iYB = iYM + iSize;
-    INDEX iXL = 420;
-    INDEX iXR = iXL + iSize*_pdp_SE->dp_fWideAdjustment;
-    
-    box = PIXaabbox2D( PIX2D( iXL*_pdp_SE->GetWidth()/640, iYU*_pdp_SE->GetHeight()/480) ,
-                       PIX2D( iXR*_pdp_SE->GetWidth()/640, iYM*_pdp_SE->GetHeight()/480));
-    _pdp_SE->PutTexture(&_toSamU, box, SE_COL_BLUE_NEUTRAL|255);
-    box = PIXaabbox2D( PIX2D( iXL*_pdp_SE->GetWidth()/640, iYM*_pdp_SE->GetHeight()/480) ,
-                       PIX2D( iXR*_pdp_SE->GetWidth()/640, iYB*_pdp_SE->GetHeight()/480));
-    _pdp_SE->PutTexture(&_toSamD, box, SE_COL_BLUE_NEUTRAL|255);
+    _pdp_SE->InitTexture(&_toHLBack1A);
+    _pdp_SE->AddTexture(vCenter(1)-vSize(1), vCenter(2), vCenter(1), vCenter(2)+vSize(2), 0xFFFFFFFF);
+    _pdp_SE->FlushRenderingQueue();
 
-    iSize = 120;
-    iYU = 0;
-    iYM = iYU + iSize;
-    iYB = iYM + iSize;
-    iXL = -20;
-    iXR = iXL + iSize;
-    box = PIXaabbox2D( PIX2D( iXL*_pdp_SE->GetWidth()/640, iYU*_pdp_SE->GetWidth()/640) ,
-                       PIX2D( iXR*_pdp_SE->GetWidth()/640, iYM*_pdp_SE->GetWidth()/640));
-    _pdp_SE->PutTexture(&_toLeftU, box, SE_COL_BLUE_NEUTRAL|200);
-    box = PIXaabbox2D( PIX2D( iXL*_pdp_SE->GetWidth()/640, iYM*_pdp_SE->GetWidth()/640) ,
-                       PIX2D( iXR*_pdp_SE->GetWidth()/640, iYB*_pdp_SE->GetWidth()/640));
-    _pdp_SE->PutTexture(&_toLeftD, box, SE_COL_BLUE_NEUTRAL|200);
-    iYU = iYB;
-    iYM = iYU + iSize;
-    iYB = iYM + iSize;
-    iXL = -20;
-    iXR = iXL + iSize;
-    box = PIXaabbox2D( PIX2D( iXL*_pdp_SE->GetWidth()/640, iYU*_pdp_SE->GetWidth()/640) ,
-                       PIX2D( iXR*_pdp_SE->GetWidth()/640, iYM*_pdp_SE->GetWidth()/640));
-    _pdp_SE->PutTexture(&_toLeftU, box, SE_COL_BLUE_NEUTRAL|200);
-    box = PIXaabbox2D( PIX2D( iXL*_pdp_SE->GetWidth()/640, iYM*_pdp_SE->GetWidth()/640) ,
-                       PIX2D( iXR*_pdp_SE->GetWidth()/640, iYB*_pdp_SE->GetWidth()/640));
-    _pdp_SE->PutTexture(&_toLeftD, box, SE_COL_BLUE_NEUTRAL|200);
-  
+    _pdp_SE->InitTexture(&_toHLBack1B);
+    _pdp_SE->AddTexture(vCenter(1), vCenter(2), vCenter(1)+vSize(1), vCenter(2)+vSize(2), 0xFFFFFFFF);
+    _pdp_SE->FlushRenderingQueue();
+
+    FLOAT2D vAnimScale = FLOAT2D(0.05f, 0.95f);
+    FLOAT fRatio = FLOAT(_pdp_SE->GetHeight()) / 1080.0f;
+
+    FLOAT2D vAnimSize = FLOAT2D(vAnimScale(1), fRatio * vAnimScale(2)) * 128.0f;
+    FLOAT2D vAnimCenter = FLOAT2D(FLOAT(_pdp_SE->GetWidth()) / 2.0f, FLOAT(_pdp_SE->GetHeight()) / 2.0f);
+    FLOAT2D vAnimPos = vAnimCenter - FLOAT2D(312.0f, 24.0f) * fRatio;
+
+    _pdp_SE->InitTexture(&_toHLBack1_Anim);
+    _pdp_SE->AddTexture(vAnimPos(1)+vAnimSize(1), vAnimPos(2)+vAnimSize(1), vAnimPos(1)+vAnimSize(2), vAnimPos(2)+vAnimSize(2),
+                        vAnimScale(1), vAnimScale(1), vAnimScale(2), vAnimScale(2), 0xFAFAFAFF);
+    _pdp_SE->FlushRenderingQueue();
+
+  } else {
+    MEXaabbox2D boxBcgGrid;
+    TiledTextureSE(_boxScreen_SE, 0.5f*_pdp_SE->GetWidth() / (_pdp_SE->dp_SizeIOverRasterSizeI*640.0f), MEX2D(0.0f, 0.0f), boxBcgGrid);
+    _pdp_SE->PutTexture(&_toBcgGrid, _boxScreen_SE, boxBcgGrid, SE_COL_BLUE_NEUTRAL|_ulA_SE>>1);
+
+    LCDRenderCloudsForComp();
   }
 
-  MEXaabbox2D boxBcgClouds1;
-  TiledTextureSE(_boxScreen_SE, 1.2f*_pdp_SE->GetWidth()/640.0f, 
-    MEX2D(sin(_tmNow_SE*0.5f)*35,sin(_tmNow_SE*0.7f+1)*21),   boxBcgClouds1);
-  _pdp_SE->PutTexture(&_toBcgClouds, _boxScreen_SE, boxBcgClouds1, C_BLACK|_ulA_SE>>2);
-  TiledTextureSE(_boxScreen_SE, 0.7f*_pdp_SE->GetWidth()/640.0f, 
-    MEX2D(sin(_tmNow_SE*0.6f+1)*32,sin(_tmNow_SE*0.8f)*25),   boxBcgClouds1);
-  _pdp_SE->PutTexture(&_toBcgClouds, _boxScreen_SE, boxBcgClouds1, C_BLACK|_ulA_SE>>2);
-}
-void CGame::LCDRenderCloudsForComp(void)
-{
+  // [Cecil] Background music
+  if (hl2_bMenuMusic && !gm_bGameOn) {
+    if (!IsScriptSoundPlaying(5)) {
+      PlayScriptSound(5, CTFILENAME("Music\\MenuBack.ogg"), 2.0f, 1.0f, TRUE, TRUE);
+    }
+  } else if (IsScriptSoundPlaying(5)) {
+    StopScriptSound(5);
+  }
+};
+
+void CGame::LCDRenderCloudsForComp(void) {
   MEXaabbox2D boxBcgClouds1;
   TiledTextureSE(_boxScreen_SE, 1.856f*_pdp_SE->GetWidth()/640.0f, 
     MEX2D(sin(_tmNow_SE*0.5f)*35,sin(_tmNow_SE*0.7f)*21),   boxBcgClouds1);
@@ -2885,23 +2986,23 @@ void CGame::LCDRenderCloudsForComp(void)
   TiledTextureSE(_boxScreen_SE, 1.323f*_pdp_SE->GetWidth()/640.0f, 
     MEX2D(sin(_tmNow_SE*0.6f)*31,sin(_tmNow_SE*0.8f)*25),   boxBcgClouds1);
   _pdp_SE->PutTexture(&_toBcgClouds, _boxScreen_SE, boxBcgClouds1, SE_COL_BLUE_NEUTRAL|_ulA_SE>>2);
-}
-void CGame::LCDRenderClouds2(void)
-{
+};
+
+void CGame::LCDRenderClouds2(void) {
   NOTHING;
-}
-void CGame::LCDRenderGrid(void)
-{
+};
+
+void CGame::LCDRenderGrid(void) {
   NOTHING;
-}
-void CGame::LCDRenderCompGrid(void)
-{
+};
+
+void CGame::LCDRenderCompGrid(void) {
    MEXaabbox2D boxBcgGrid;
    TiledTextureSE(_boxScreen_SE, 0.5f*_pdp_SE->GetWidth()/(_pdp_SE->dp_SizeIOverRasterSizeI*640.0f), MEX2D(0,0), boxBcgGrid);
    _pdp_SE->PutTexture(&_toBcgGrid, _boxScreen_SE, boxBcgGrid, SE_COL_BLUE_NEUTRAL|_ulA_SE>>1); 
-}
-void CGame::LCDDrawPointer(PIX pixI, PIX pixJ)
-{
+};
+
+void CGame::LCDDrawPointer(PIX pixI, PIX pixJ) {
   CDisplayMode dmCurrent;
   _pGfx->GetCurrentDisplayMode(dmCurrent);
   if (dmCurrent.IsFullScreen()) {
@@ -2916,75 +3017,106 @@ void CGame::LCDDrawPointer(PIX pixI, PIX pixJ)
   PIX pixSizeJ = _toPointer.GetHeight();
   pixI-=1;
   pixJ-=1;
-  _pdp_SE->PutTexture( &_toPointer, PIXaabbox2D( PIX2D(pixI, pixJ), PIX2D(pixI+pixSizeI, pixJ+pixSizeJ)),
-                    LCDFadedColor(C_WHITE|255));
+  _pdp_SE->PutTexture(&_toPointer, PIXaabbox2D( PIX2D(pixI, pixJ), PIX2D(pixI+pixSizeI, pixJ+pixSizeJ)),
+                      LCDFadedColor(C_WHITE|255));
 
   //::LCDDrawPointer(pixI, pixJ);
-}
-COLOR CGame::LCDGetColor(COLOR colDefault, const char *strName)
-{
+};
+
+COLOR CGame::LCDGetColor(COLOR colDefault, const char *strName) {
+  // [Cecil] Replaced colors
   if (!strcmp(strName, "thumbnail border")) {
-    colDefault = SE_COL_BLUE_NEUTRAL|255;
+    colDefault = 0xAAAAAAFF; //SE_COL_BLUE_NEUTRAL|255;
+
   } else if (!strcmp(strName, "no thumbnail")) {
-    colDefault = SE_COL_ORANGE_NEUTRAL|255;
+    colDefault = 0xAAAAAAFF; //SE_COL_ORANGE_NEUTRAL|255;
+
   } else if (!strcmp(strName, "popup box")) {
-    colDefault = SE_COL_BLUE_NEUTRAL|255;
+    colDefault = 0xAAAAAAFF; //SE_COL_BLUE_NEUTRAL|255;
+
   } else if (!strcmp(strName, "tool tip")) {
-    colDefault = SE_COL_ORANGE_LIGHT|255;
+    colDefault = 0xFFFFAAFF; //SE_COL_ORANGE_LIGHT|255;
+
   } else if (!strcmp(strName, "unselected")) {
-    colDefault = SE_COL_ORANGE_NEUTRAL|255;
+    colDefault = 0xCCCCCCFF; //SE_COL_ORANGE_NEUTRAL|255;
+
   } else if (!strcmp(strName, "selected")) {
-    colDefault = SE_COL_ORANGE_LIGHT|255;
-  } else if (!strcmp(strName, "disabled selected")) {
-    colDefault = SE_COL_ORANGE_DARK_LT |255;
+    colDefault = 0xFFFFFFFF; //SE_COL_ORANGE_LIGHT|255;
+
   } else if (!strcmp(strName, "disabled unselected")) {
-    colDefault = SE_COL_ORANGE_DARK|255;
+    colDefault = 0xAAAAAAFF; //SE_COL_ORANGE_DARK|255;
+
+  } else if (!strcmp(strName, "disabled selected")) {
+    colDefault = 0xCCCCCCFF; //SE_COL_ORANGE_DARK_LT|255;
+
   } else if (!strcmp(strName, "label")) {
-    colDefault = C_WHITE|255;
+    colDefault = 0xFFFFFFFF; //C_WHITE|255;
+
   } else if (!strcmp(strName, "title")) {
-    colDefault = C_WHITE|255;
+    colDefault = 0xFFFFFFFF; //C_WHITE|255;
+
   } else if (!strcmp(strName, "editing")) {
-    colDefault = SE_COL_ORANGE_NEUTRAL|255;
+    colDefault = 0xFFFF00FF; //SE_COL_ORANGE_NEUTRAL|255;
+
   } else if (!strcmp(strName, "hilited")) {
-    colDefault = SE_COL_ORANGE_LIGHT|255;
+    colDefault = 0xFFFF00FF; //SE_COL_ORANGE_LIGHT|255;
+
   } else if (!strcmp(strName, "hilited rectangle")) {
-    colDefault = SE_COL_ORANGE_NEUTRAL|255;
+    colDefault = 0xAAAAAAFF; //SE_COL_ORANGE_NEUTRAL|255;
+
   } else if (!strcmp(strName, "edit fill")) {
-    colDefault = SE_COL_BLUE_DARK_LT|75;
+    colDefault = 0x0000005F; //SE_COL_BLUE_DARK_LT|75;
+
   } else if (!strcmp(strName, "editing cursor")) {
-    colDefault = SE_COL_ORANGE_NEUTRAL|255;
+    colDefault = 0xFFFF00FF; //SE_COL_ORANGE_NEUTRAL|255;
+
   } else if (!strcmp(strName, "model box")) {
-    colDefault = SE_COL_ORANGE_NEUTRAL|255;
+    colDefault = 0xAAAAAAFF; //SE_COL_ORANGE_NEUTRAL|255;
+
   } else if (!strcmp(strName, "hiscore header")) {
-    colDefault = SE_COL_ORANGE_LIGHT|255;
+    colDefault = 0xFFFFFFFF; //SE_COL_ORANGE_LIGHT|255;
+
   } else if (!strcmp(strName, "hiscore data")) {
-    colDefault = SE_COL_ORANGE_NEUTRAL|255;
+    colDefault = 0xCCCCCCFF; //SE_COL_ORANGE_NEUTRAL|255;
+
   } else if (!strcmp(strName, "hiscore last set")) {
-    colDefault = SE_COL_ORANGE_NEUTRAL|255;
+    colDefault = 0xFFFFAAFF; //SE_COL_ORANGE_NEUTRAL|255;
+
   } else if (!strcmp(strName, "slider box")) {
-    colDefault = SE_COL_ORANGE_NEUTRAL|255;
+    colDefault = 0xAAAAAAFF; //SE_COL_ORANGE_NEUTRAL|255;
+
   } else if (!strcmp(strName, "file info")) {
-    colDefault = SE_COL_ORANGE_NEUTRAL|255;
+    colDefault = 0xFFFFAAFF; //SE_COL_ORANGE_NEUTRAL|255;
+
   } else if (!strcmp(strName, "display mode")) {
-    colDefault = SE_COL_ORANGE_NEUTRAL|255;
+    colDefault = 0xFFFFAAFF; //SE_COL_ORANGE_NEUTRAL|255;
+
   } else if (!strcmp(strName, "bcg fill")) {
-    colDefault = SE_COL_BLUE_DARK|255;
+    colDefault = 0x7F7F7FFF; //SE_COL_BLUE_DARK|255;
   }
+
   return ::LCDGetColor(colDefault, strName);
-}
-COLOR CGame::LCDFadedColor(COLOR col)
-{
+};
+
+COLOR CGame::LCDFadedColor(COLOR col) {
   return ::LCDFadedColor(col);
-}
-COLOR CGame::LCDBlinkingColor(COLOR col0, COLOR col1)
-{
+};
+
+COLOR CGame::LCDBlinkingColor(COLOR col0, COLOR col1) {
   return ::LCDBlinkingColor(col0, col1);
-}
+};
 
 // menu interface functions
-void CGame::MenuPreRenderMenu(const char *strMenuName)
-{
-}
-void CGame::MenuPostRenderMenu(const char *strMenuName)
-{
-}
+void CGame::MenuPreRenderMenu(const char *strMenuName) {
+  // [Cecil] Resize menu fonts
+  try {
+    CTextureObject to;
+    to.SetData_t(CTFILENAME("Fonts\\Title2.tex"));
+    ((CTextureData*)to.GetData())->ChangeSize(512);
+
+  } catch (char *strError) {
+    CPrintF("%s\n", strError);
+  }
+};
+
+void CGame::MenuPostRenderMenu(const char *strMenuName) {};

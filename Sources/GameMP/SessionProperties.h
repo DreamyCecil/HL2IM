@@ -1,3 +1,31 @@
+// [Cecil] New Options Flags
+#define HL2F_INFALT    (1<<0) // Infinite Alt Ammo
+#define HL2F_BHOP      (1<<1) // Bunnyhopping
+#define HL2F_AUTOBHOP  (1<<2) // Automatically jump after landing
+#define HL2F_ENEMIES1  (1<<3) // Enemy improvements
+#define HL2F_ENEMIES2  (1<<4) // Enemy improvements with extras
+#define HL2F_MATERIALS (1<<5) // Use texture materials or not
+#define HL2F_REINITMAP (1<<6) // Reinitialize some entities for compatibility (FE maps)
+#define HL2F_ENEMYDROP (1<<7) // Enemies drop their weapons
+#define HL2F_ADMINMENU (1<<8) // Everyone is allowed to use the admin menu
+
+#define HL2F_GM_MASK (HL2F_INFALT|HL2F_BHOP|HL2F_ENEMIES1|HL2F_ENEMIES2|HL2F_ENEMYDROP)
+
+// [Cecil] New Gamemodes
+enum EHL2Gamemode {
+  HLGM_NONE = -1,
+
+  HLGM_ARMSRACE,  // Every kill upgrades the weapon; kills with a crowbar will downgrade enemy's weapon
+  HLGM_DISSOLVE,  // Only AR2 with infinite Energy Balls
+  HLGM_BUNNYHUNT, // Auto-bunnyhopping with sniper rifles, 1.5x speed and jumping
+  HLGM_MINEKILL,  // Only Gravity Gun with rollermines instead of weapon and ammo items
+
+  HLGM_LAST,
+};
+
+// [Cecil] Arms race levels
+#define CT_ARMSRACE_LEVELS 10
+
 /*
  * Class responsible for describing game session
  */
@@ -9,6 +37,7 @@ public:
     GM_SCOREMATCH,
     GM_FRAGMATCH,
   };
+
   enum GameDifficulty {
     GD_TOURIST = -1,
     GD_EASY = 0,
@@ -62,10 +91,17 @@ public:
   BOOL  sp_bGibs;          // enable/disable gibbing
 
   BOOL  sp_bEndOfGame;     // marked when dm game is finished (any of the limits reached)
-
   ULONG sp_ulLevelsMask;    // mask of visited levels so far
-
   BOOL  sp_bUseExtraEnemies;  // spawn extra multiplayer enemies
+
+  // [Cecil] New options
+  INDEX sp_iHLGamemode;
+  FLOAT sp_fMagMultiplier;
+  FLOAT sp_fSpeedMultiplier;
+  FLOAT sp_fJumpMultiplier;
+  INDEX sp_iHL2Flags;
+  INDEX sp_iStartWeapons;
+  FLOAT sp_fGravityGunPower;
 };
 
 // NOTE: never instantiate CSessionProperties, as its size is not fixed to the size defined in engine

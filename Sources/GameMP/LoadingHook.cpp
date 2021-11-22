@@ -105,11 +105,11 @@ static void LoadingHook_t(CProgressHookInfo *pphi)
     //strLevelName.ScanF("%02d_", &iLevel);
     //strNextLevelName.ScanF("%02d_", &iLevelNext);
    
-    if (iLevel>0) {
-      ulLevelMask|=1<<(iLevel-1);
+    if (iLevel > 0) {
+      ulLevelMask |= 1 << (iLevel-1);
     }
-    if (iLevelNext>0) {
-      ulLevelMask|=1<<(iLevelNext-1);
+    if (iLevelNext > 0) {
+      ulLevelMask |= 1 << (iLevelNext-1);
     }
   }
 
@@ -161,80 +161,6 @@ static void LoadingHook_t(CProgressHookInfo *pphi)
   if (_bUserBreakEnabled && !_pGame->gm_bFirstLoading) {
     dpHook.PutTextC( TRANS( "PRESS ESC TO ABORT"), pixSizeI/2, pixSizeJ-pixBarSizeJ-2-pixCharSizeJ, colEsc);
   }
-
-/*  
-  //LCDPrepare(1.0f);
-  //LCDSetDrawport(&dpHook);
-  
-  // fill the box with background dirt and grid
-  //LCDRenderClouds1();
-  //LCDRenderGrid();
-
-  // draw progress bar
-  PIX pixBarCentI = pixBoxSizeI*1/2;
-  PIX pixBarCentJ = pixBoxSizeJ*3/4;
-  PIX pixBarSizeI = pixBoxSizeI*7/8;
-  PIX pixBarSizeJ = pixBoxSizeJ*3/8;
-  PIX pixBarMinI = pixBarCentI-pixBarSizeI/2;
-  PIX pixBarMaxI = pixBarCentI+pixBarSizeI/2;
-  PIX pixBarMinJ = pixBarCentJ-pixBarSizeJ/2;
-  PIX pixBarMaxJ = pixBarCentJ+pixBarSizeJ/2;
-
-  dpBox.Fill(pixBarMinI, pixBarMinJ, 
-    pixBarMaxI-pixBarMinI, pixBarMaxJ-pixBarMinJ, C_BLACK|255);
-  dpBox.Fill(pixBarMinI, pixBarMinJ, 
-    (pixBarMaxI-pixBarMinI)*pphi->phi_fCompleted, pixBarMaxJ-pixBarMinJ, C_GREEN|255);
-
-  // put more dirt
-  LCDRenderClouds2Light();
-
-  // draw borders
-  COLOR colBorders = LerpColor(C_GREEN, C_BLACK, 200);
-  LCDDrawBox(0,-1, PIXaabbox2D(
-    PIX2D(pixBarMinI, pixBarMinJ), 
-    PIX2D(pixBarMaxI, pixBarMaxJ)), 
-    colBorders|255);
-  LCDDrawBox(0,-1, PIXaabbox2D(
-    PIX2D(0,0), PIX2D(dpBox.GetWidth(), dpBox.GetHeight())), 
-    colBorders|255);
-
-  // print status text
-  dpBox.SetFont( _pfdDisplayFont);
-  dpBox.SetTextScaling( 1.0f);
-  dpBox.SetTextAspect( 1.0f);
-  // print status text
-  CTString strRes;
-  strRes.PrintF( "%s", pphi->phi_strDescription);
-  //strupr((char*)(const char*)strRes);
-  dpBox.PutTextC( strRes, 160, 17, C_GREEN|255);
-  strRes.PrintF( "%3.0f%%", pphi->phi_fCompleted*100);
-  dpBox.PutTextCXY( strRes, pixBarCentI, pixBarCentJ, C_GREEN|255);
-  dpBox.Unlock();
-
-  if( Flesh.gm_bFirstLoading) {
-#if USECUSTOMTEXT
-    FLOAT fScaling = (FLOAT)slSizeI/640.0f;
-    dpHook.Lock();
-    dpHook.SetFont( _pfdDisplayFont);
-    dpHook.SetTextScaling( fScaling);
-    dpHook.SetTextAspect( 1.0f);
-    //dpHook.Fill( 0, 0, slSizeI, pixCenterJ, C_vdGREEN|255, C_vdGREEN|255, C_vdGREEN|0, C_vdGREEN|0);
-    dpHook.PutTextC( TRANS( "SERIOUS SAM - TEST VERSION"), pixCenterI, 5*fScaling, C_WHITE|255);
-    dpHook.PutTextC( TRANS( "THIS IS NOT A DEMO VERSION, THIS IS A COMPATIBILITY TEST!"), pixCenterI, 25*fScaling, C_WHITE|255);
-    dpHook.PutTextC( TRANS( "Serious Sam (c) 2000 Croteam LLC, All Rights Reserved.\n"), pixCenterI, 45*fScaling, C_WHITE|255);
-    dpHook.PutText( _strCustomText, 1*fScaling, 85*fScaling, C_GREEN|255);
-    dpHook.Unlock();
-#endif
-  } else if (_bUserBreakEnabled) {
-    FLOAT fScaling = (FLOAT)slSizeI/640.0f;
-    dpHook.Lock();
-    dpHook.SetFont( _pfdDisplayFont);
-    dpHook.SetTextScaling( fScaling);
-    dpHook.SetTextAspect( 1.0f);
-    //dpHook.Fill( 0, 0, slSizeI, pixCenterJ, C_vdGREEN|255, C_vdGREEN|255, C_vdGREEN|0, C_vdGREEN|0);
-    dpHook.PutTextC( TRANS( "PRESS ESC TO ABORT"), pixCenterI, pixCenterJ+pixBoxSizeJ+5*fScaling, C_WHITE|255);
-  }
-  */
 
   dpHook.Unlock();
   // finish rendering

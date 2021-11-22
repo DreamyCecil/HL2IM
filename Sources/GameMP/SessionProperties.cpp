@@ -35,9 +35,27 @@ extern INDEX gam_bGibs;
 extern INDEX gam_bUseExtraEnemies;
 extern CTString gam_strGameSpyExtras;
 
+// [Cecil] New options
+extern INDEX hl2_iGamemode;
 
-static void SetGameModeParameters(CSessionProperties &sp)
-{
+extern FLOAT hl2_fAmmoMultiplier;
+extern FLOAT hl2_fMagMultiplier;
+extern FLOAT hl2_fGravityGunPower;
+extern INDEX hl2_bInfiniteAlt;
+extern INDEX hl2_iStartWeapons;
+
+extern FLOAT hl2_fSpeedMultiplier;
+extern FLOAT hl2_fJumpMultiplier;
+extern INDEX hl2_bBunnyhopping;
+extern INDEX hl2_bAutoBunnyhop;
+
+extern INDEX hl2_iBetterEnemies;
+extern INDEX hl2_bEnemyDrops;
+extern INDEX hl2_bUseMaterials;
+extern INDEX hl2_bReinitMap;
+extern INDEX hl2_bAdminMenu;
+
+static void SetGameModeParameters(CSessionProperties &sp) {
   sp.sp_gmGameMode = (CSessionProperties::GameMode) Clamp(INDEX(gam_iStartMode), -1L, 2L);
 
   switch (sp.sp_gmGameMode) {
@@ -54,68 +72,121 @@ static void SetGameModeParameters(CSessionProperties &sp)
     sp.sp_ulSpawnFlags |= SPF_DEATHMATCH;
     break;
   }
-}
-static void SetDifficultyParameters(CSessionProperties &sp)
-{
+};
+
+static void SetDifficultyParameters(CSessionProperties &sp) {
   INDEX iDifficulty = gam_iStartDifficulty;
-  if (iDifficulty==4) {
+
+  if (iDifficulty == 4) {
     sp.sp_bMental = TRUE;
-    iDifficulty=2;
+    iDifficulty = 2;
   } else {
     sp.sp_bMental = FALSE;
   }
+
   sp.sp_gdGameDifficulty = (CSessionProperties::GameDifficulty) Clamp(INDEX(iDifficulty), -1L, 3L);
 
   switch (sp.sp_gdGameDifficulty) {
-  case CSessionProperties::GD_TOURIST:
-    sp.sp_ulSpawnFlags = SPF_EASY;//SPF_TOURIST; !!!!
-    sp.sp_fEnemyMovementSpeed = gam_afEnemyMovementSpeed [0];
-    sp.sp_fEnemyAttackSpeed   = gam_afEnemyAttackSpeed   [0];
-    sp.sp_fDamageStrength     = gam_afDamageStrength     [0];
-    sp.sp_fAmmoQuantity       = gam_afAmmoQuantity       [0];
-    break;
-  case CSessionProperties::GD_EASY:
-    sp.sp_ulSpawnFlags = SPF_EASY;
-    sp.sp_fEnemyMovementSpeed = gam_afEnemyMovementSpeed [1];
-    sp.sp_fEnemyAttackSpeed   = gam_afEnemyAttackSpeed   [1];
-    sp.sp_fDamageStrength     = gam_afDamageStrength     [1];
-    sp.sp_fAmmoQuantity       = gam_afAmmoQuantity       [1];
-    break;
-  default:
-    ASSERT(FALSE);
-  case CSessionProperties::GD_NORMAL:
-    sp.sp_ulSpawnFlags = SPF_NORMAL;
-    sp.sp_fEnemyMovementSpeed = gam_afEnemyMovementSpeed [2];
-    sp.sp_fEnemyAttackSpeed   = gam_afEnemyAttackSpeed   [2];
-    sp.sp_fDamageStrength     = gam_afDamageStrength     [2];
-    sp.sp_fAmmoQuantity       = gam_afAmmoQuantity       [2];
-    break;
-  case CSessionProperties::GD_HARD:
-    sp.sp_ulSpawnFlags = SPF_HARD;
-    sp.sp_fEnemyMovementSpeed = gam_afEnemyMovementSpeed [3];
-    sp.sp_fEnemyAttackSpeed   = gam_afEnemyAttackSpeed   [3];
-    sp.sp_fDamageStrength     = gam_afDamageStrength     [3];
-    sp.sp_fAmmoQuantity       = gam_afAmmoQuantity       [3];
-    break;
-  case CSessionProperties::GD_EXTREME:
-    sp.sp_ulSpawnFlags = SPF_EXTREME;
-    sp.sp_fEnemyMovementSpeed = gam_afEnemyMovementSpeed [4];
-    sp.sp_fEnemyAttackSpeed   = gam_afEnemyAttackSpeed   [4];
-    sp.sp_fDamageStrength     = gam_afDamageStrength     [4];
-    sp.sp_fAmmoQuantity       = gam_afAmmoQuantity       [4];
-    break;
+    case CSessionProperties::GD_TOURIST:
+      sp.sp_ulSpawnFlags = SPF_EASY;//SPF_TOURIST; !!!!
+      sp.sp_fEnemyMovementSpeed = gam_afEnemyMovementSpeed [0];
+      sp.sp_fEnemyAttackSpeed   = gam_afEnemyAttackSpeed   [0];
+      sp.sp_fDamageStrength     = gam_afDamageStrength     [0];
+      sp.sp_fAmmoQuantity       = gam_afAmmoQuantity       [0];
+      break;
+    case CSessionProperties::GD_EASY:
+      sp.sp_ulSpawnFlags = SPF_EASY;
+      sp.sp_fEnemyMovementSpeed = gam_afEnemyMovementSpeed [1];
+      sp.sp_fEnemyAttackSpeed   = gam_afEnemyAttackSpeed   [1];
+      sp.sp_fDamageStrength     = gam_afDamageStrength     [1];
+      sp.sp_fAmmoQuantity       = gam_afAmmoQuantity       [1];
+      break;
+    default:
+      ASSERT(FALSE);
+    case CSessionProperties::GD_NORMAL:
+      sp.sp_ulSpawnFlags = SPF_NORMAL;
+      sp.sp_fEnemyMovementSpeed = gam_afEnemyMovementSpeed [2];
+      sp.sp_fEnemyAttackSpeed   = gam_afEnemyAttackSpeed   [2];
+      sp.sp_fDamageStrength     = gam_afDamageStrength     [2];
+      sp.sp_fAmmoQuantity       = gam_afAmmoQuantity       [2];
+      break;
+    case CSessionProperties::GD_HARD:
+      sp.sp_ulSpawnFlags = SPF_HARD;
+      sp.sp_fEnemyMovementSpeed = gam_afEnemyMovementSpeed [3];
+      sp.sp_fEnemyAttackSpeed   = gam_afEnemyAttackSpeed   [3];
+      sp.sp_fDamageStrength     = gam_afDamageStrength     [3];
+      sp.sp_fAmmoQuantity       = gam_afAmmoQuantity       [3];
+      break;
+    case CSessionProperties::GD_EXTREME:
+      sp.sp_ulSpawnFlags = SPF_EXTREME;
+      sp.sp_fEnemyMovementSpeed = gam_afEnemyMovementSpeed [4];
+      sp.sp_fEnemyAttackSpeed   = gam_afEnemyAttackSpeed   [4];
+      sp.sp_fDamageStrength     = gam_afDamageStrength     [4];
+      sp.sp_fAmmoQuantity       = gam_afAmmoQuantity       [4];
+      break;
   }
-}
+
+  // [Cecil] Own multipliers
+  sp.sp_fAmmoQuantity *= ClampDn(hl2_fAmmoMultiplier, 0.01f);
+  sp.sp_fMagMultiplier = ClampDn(hl2_fMagMultiplier, 0.01f);
+};
+
+// [Cecil] New parameters
+static void HL2_Parameters(CSessionProperties &sp) {
+  sp.sp_fSpeedMultiplier = hl2_fSpeedMultiplier;
+  sp.sp_fJumpMultiplier = hl2_fJumpMultiplier;
+  sp.sp_iStartWeapons = hl2_iStartWeapons;
+  sp.sp_fGravityGunPower = hl2_fGravityGunPower;
+  
+  BOOL bBetterEnemies1 = (hl2_iBetterEnemies == 1);
+  BOOL bBetterEnemies2 = (hl2_iBetterEnemies == 2);
+
+  // flags
+  sp.sp_iHL2Flags |= (hl2_bInfiniteAlt       ? HL2F_INFALT    : 0)
+                   | (hl2_bBunnyhopping      ? HL2F_BHOP      : 0)
+                   | (hl2_bAutoBunnyhop      ? HL2F_AUTOBHOP  : 0)
+                   | (hl2_iBetterEnemies > 0 ? HL2F_ENEMIES1  : 0)
+                   | (hl2_iBetterEnemies > 1 ? HL2F_ENEMIES2  : 0)
+                   | (hl2_bUseMaterials      ? HL2F_MATERIALS : 0)
+                   | (hl2_bReinitMap         ? HL2F_REINITMAP : 0)
+                   | (hl2_bEnemyDrops        ? HL2F_ENEMYDROP : 0)
+                   | (hl2_bAdminMenu         ? HL2F_ADMINMENU : 0);
+
+  // gamemodes
+  sp.sp_iHLGamemode = hl2_iGamemode;
+
+  switch (hl2_iGamemode) {
+    case HLGM_ARMSRACE:
+      break;
+
+    case HLGM_DISSOLVE:
+      sp.sp_iHL2Flags |= HL2F_INFALT;
+      break;
+
+    case HLGM_BUNNYHUNT:
+      sp.sp_fSpeedMultiplier = 1.5f;
+      sp.sp_fJumpMultiplier = 1.5f;
+      sp.sp_iHL2Flags &= ~HL2F_GM_MASK;
+      sp.sp_iHL2Flags |= HL2F_INFALT|HL2F_BHOP|HL2F_AUTOBHOP;
+      break;
+
+    case HLGM_MINEKILL:
+      break;
+  }
+};
 
 // set properties for a single player session
-void CGame::SetSinglePlayerSession(CSessionProperties &sp)
-{
+void CGame::SetSinglePlayerSession(CSessionProperties &sp) {
   // clear
   memset(&sp, 0, sizeof(sp));
 
   SetDifficultyParameters(sp);
   SetGameModeParameters(sp);
-  sp.sp_ulSpawnFlags&=~SPF_COOPERATIVE;
+
+  // [Cecil] New options
+  HL2_Parameters(sp);
+
+  sp.sp_ulSpawnFlags &= ~SPF_COOPERATIVE;
 
   sp.sp_bEndOfGame = FALSE;
 
@@ -150,11 +221,10 @@ void CGame::SetSinglePlayerSession(CSessionProperties &sp)
 
   sp.sp_iBlood = Clamp( gam_iBlood, 0L, 3L);
   sp.sp_bGibs  = gam_bGibs;
-}
+};
 
 // set properties for a quick start session
-void CGame::SetQuickStartSession(CSessionProperties &sp)
-{
+void CGame::SetQuickStartSession(CSessionProperties &sp) {
   gam_iStartDifficulty = gam_iQuickStartDifficulty;
   gam_iStartMode = gam_iQuickStartMode;
 
@@ -166,18 +236,20 @@ void CGame::SetQuickStartSession(CSessionProperties &sp)
   }
   // quick start type
   sp.sp_bQuickTest = TRUE;
-
-}
+};
 
 // set properties for a multiplayer session
-void CGame::SetMultiPlayerSession(CSessionProperties &sp)
-{
+void CGame::SetMultiPlayerSession(CSessionProperties &sp) {
   // clear
   memset(&sp, 0, sizeof(sp));
 
   SetDifficultyParameters(sp);
   SetGameModeParameters(sp);
-  sp.sp_ulSpawnFlags&=~SPF_SINGLEPLAYER;
+
+  // [Cecil] New options
+  HL2_Parameters(sp);
+
+  sp.sp_ulSpawnFlags &= ~SPF_SINGLEPLAYER;
 
   sp.sp_bEndOfGame = FALSE;
 
@@ -234,59 +306,55 @@ void CGame::SetMultiPlayerSession(CSessionProperties &sp)
       sp.sp_iFragLimit = 0;
     }
   }
-}
+};
 
-BOOL IsMenuEnabled(const CTString &strMenuName)
-{
-  if (strMenuName=="Single Player") {
+BOOL IsMenuEnabled(const CTString &strMenuName) {
+  if (strMenuName == "Single Player") {
     return TRUE;
-  } else if (strMenuName=="Network"      ) {
+  } else if (strMenuName == "Network"      ) {
     return TRUE;
-  } else if (strMenuName=="Split Screen" ) {
+  } else if (strMenuName == "Split Screen" ) {
     return TRUE;
-  } else if (strMenuName=="High Score"   ) {
+  } else if (strMenuName == "High Score"   ) {
     return TRUE;
-  } else if (strMenuName=="Training"   ) {
+  } else if (strMenuName == "Training"   ) {
     return FALSE;
-  } else if (strMenuName=="Technology Test") {
+  } else if (strMenuName == "Technology Test") {
     return TRUE;
   } else {
     return TRUE;
   }
-}
+};
 
-CTString GetGameTypeName(INDEX iMode)
-{
+CTString GetGameTypeName(INDEX iMode) {
   switch (iMode) {
-  default:
-    return "";
-    break;
-  case CSessionProperties::GM_COOPERATIVE:
-    return TRANS("Cooperative");
-    break;
-  case CSessionProperties::GM_FLYOVER:
-    return TRANS("Flyover");
-    break;
-  case CSessionProperties::GM_SCOREMATCH:
-    return TRANS("Scorematch");
-    break;
-  case CSessionProperties::GM_FRAGMATCH:
-    return TRANS("Fragmatch");
-    break;
+    default:
+      return "";
+      break;
+    case CSessionProperties::GM_COOPERATIVE:
+      return TRANS("Cooperative");
+      break;
+    case CSessionProperties::GM_FLYOVER:
+      return TRANS("Flyover");
+      break;
+    case CSessionProperties::GM_SCOREMATCH:
+      return TRANS("Scorematch");
+      break;
+    case CSessionProperties::GM_FRAGMATCH:
+      return TRANS("Fragmatch");
+      break;
   }
-}
-CTString GetCurrentGameTypeName()
-{
+};
+
+CTString GetCurrentGameTypeName() {
   const CSessionProperties &sp = *GetSP();
   return GetGameTypeName(sp.sp_gmGameMode);
-}
+};
 
-CTString GetGameSpyRulesInfo(void)
-{
+CTString GetGameSpyRulesInfo(void) {
   CTString strOut;
 	CTString strKey;
   const CSessionProperties &sp = *GetSP();
-
 
   CTString strDifficulty;
   if (sp.sp_bMental) {
@@ -314,13 +382,13 @@ CTString GetGameSpyRulesInfo(void)
   }
 
 	strKey.PrintF("\\difficulty\\%s", (const char*)strDifficulty);
-	strOut+=strKey;
+	strOut += strKey;
 
   strKey.PrintF("\\friendlyfire\\%d", sp.sp_bFriendlyFire?0:1);
-	strOut+=strKey;
+	strOut += strKey;
   
   strKey.PrintF("\\weaponsstay\\%d", sp.sp_bWeaponsStay?0:1);
-	strOut+=strKey;
+	strOut += strKey;
 
   strKey.PrintF("\\ammostays\\%d", sp.sp_bAmmoStays                   ?0:1);	strOut+=strKey;
   strKey.PrintF("\\healthandarmorstays\\%d", sp.sp_bHealthArmorStays  ?0:1);	strOut+=strKey;
@@ -356,16 +424,15 @@ CTString GetGameSpyRulesInfo(void)
 
   strOut+=gam_strGameSpyExtras;
   return strOut;
-}
+};
 
-ULONG GetSpawnFlagsForGameType(INDEX iGameType)
-{
+ULONG GetSpawnFlagsForGameType(INDEX iGameType) {
   switch(iGameType) {
-  default:
-    ASSERT(FALSE);
-  case CSessionProperties::GM_COOPERATIVE:  return SPF_COOPERATIVE;
-  case CSessionProperties::GM_SCOREMATCH:   return SPF_DEATHMATCH;
-  case CSessionProperties::GM_FRAGMATCH:    return SPF_DEATHMATCH;
-  };
-}
+    default:
+      ASSERT(FALSE);
+    case CSessionProperties::GM_COOPERATIVE:  return SPF_COOPERATIVE;
+    case CSessionProperties::GM_SCOREMATCH:   return SPF_DEATHMATCH;
+    case CSessionProperties::GM_FRAGMATCH:    return SPF_DEATHMATCH;
+  }
+};
 
