@@ -5,6 +5,10 @@
 #include "EntitiesMP/WorldSettingsController.h"
 // for error checking:
 #include "EntitiesMP/SoundHolder.h"
+
+// [Cecil] Materials
+#include "EntitiesMP/Cecil/Materials.h"
+extern string _astrMaterials[];
 %}
 
 uses "EntitiesMP\FogMarker";
@@ -267,8 +271,7 @@ void SetPyramidMorphRoomAlpha(CWorld *pwo, INDEX iBlending, TIME tmActivated)
   }
 }
     
-void CWorldBase_OnWorldInit(CWorld *pwo)
-{
+void CWorldBase_OnWorldInit(CWorld *pwo) {
   pwo->wo_attTextureTransformations[0].tt_strName = "None";
   pwo->wo_attTextureTransformations[1].tt_strName = "R Extremly Slow";
   pwo->wo_attTextureTransformations[2].tt_strName = "R Very Slow";
@@ -394,13 +397,13 @@ void CWorldBase_OnWorldInit(CWorld *pwo)
   pwo->wo_aitIlluminationTypes[8].it_strName = "Misc 2";
   pwo->wo_aitIlluminationTypes[9].it_strName = "Misc 3";
 
+  // [Cecil] Put variables into the ones that have them
   // surfaces
-
-  pwo->wo_astSurfaceTypes[0].st_strName = "Standard";
-  pwo->wo_astSurfaceTypes[0].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[0].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[0].st_fJumpSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[0].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_STONE].st_strName = "Standard";
+  pwo->wo_astSurfaceTypes[SURFACE_STONE].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_STONE].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_STONE].st_fJumpSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_STONE].st_fClimbSlopeCos = Cos(45.0f);
 
   pwo->wo_astSurfaceTypes[1].st_strName = "Ice";
   pwo->wo_astSurfaceTypes[1].st_fFriction = 0.045f;
@@ -455,11 +458,11 @@ void CWorldBase_OnWorldInit(CWorld *pwo)
   pwo->wo_astSurfaceTypes[8].st_tmWalkDamageFrequency = 0.5f;
   
   ASSERT(9==SURFACE_SAND);
-  pwo->wo_astSurfaceTypes[9].st_strName = "Sand";
-  pwo->wo_astSurfaceTypes[9].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[9].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[9].st_fJumpSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[9].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_SAND].st_strName = "Sand";
+  pwo->wo_astSurfaceTypes[SURFACE_SAND].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_SAND].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_SAND].st_fJumpSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_SAND].st_fClimbSlopeCos = Cos(45.0f);
 
   pwo->wo_astSurfaceTypes[10].st_strName = "Clibamble Slope";
   pwo->wo_astSurfaceTypes[10].st_fFriction = 2.0f;
@@ -475,18 +478,18 @@ void CWorldBase_OnWorldInit(CWorld *pwo)
   pwo->wo_astSurfaceTypes[11].st_ulFlags = STF_NOIMPACT;
 
   ASSERT(12==SURFACE_WATER);
-  pwo->wo_astSurfaceTypes[12].st_strName = "Water";
-  pwo->wo_astSurfaceTypes[12].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[12].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[12].st_fJumpSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[12].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_WATER].st_strName = "Water";
+  pwo->wo_astSurfaceTypes[SURFACE_WATER].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_WATER].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_WATER].st_fJumpSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_WATER].st_fClimbSlopeCos = Cos(45.0f);
 
   ASSERT(13==SURFACE_RED_SAND);
-  pwo->wo_astSurfaceTypes[13].st_strName = "Red sand";
-  pwo->wo_astSurfaceTypes[13].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[13].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[13].st_fJumpSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[13].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_RED_SAND].st_strName = "Red sand";
+  pwo->wo_astSurfaceTypes[SURFACE_RED_SAND].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_RED_SAND].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_RED_SAND].st_fJumpSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_RED_SAND].st_fClimbSlopeCos = Cos(45.0f);
 
   pwo->wo_astSurfaceTypes[14].st_strName = "Ice sliding slope no impact";
   pwo->wo_astSurfaceTypes[14].st_fFriction = 0.001f;
@@ -510,41 +513,91 @@ void CWorldBase_OnWorldInit(CWorld *pwo)
   pwo->wo_astSurfaceTypes[16].st_ulFlags = STF_NOIMPACT;
 
   ASSERT(17==SURFACE_GRASS);
-  pwo->wo_astSurfaceTypes[17].st_strName = "Grass";
-  pwo->wo_astSurfaceTypes[17].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[17].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[17].st_fJumpSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[17].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_strName = "Grass";
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fJumpSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fClimbSlopeCos = Cos(45.0f);
 
   ASSERT(18==SURFACE_WOOD);
-  pwo->wo_astSurfaceTypes[18].st_strName = "Wood";
-  pwo->wo_astSurfaceTypes[18].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[18].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[18].st_fJumpSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[18].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_strName = "Wood";
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fJumpSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fClimbSlopeCos = Cos(45.0f);
 
   ASSERT(19==SURFACE_GRASS_SLIDING);
-  pwo->wo_astSurfaceTypes[19].st_strName = "Grass sliding";
-  pwo->wo_astSurfaceTypes[19].st_fFriction = 0.1f;
-  pwo->wo_astSurfaceTypes[19].st_fStairsHeight = 0.0f;
-  pwo->wo_astSurfaceTypes[19].st_fJumpSlopeCos = Cos(5.0f);
-  pwo->wo_astSurfaceTypes[19].st_fClimbSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[19].st_ulFlags = STF_SLIDEDOWNSLOPE;
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS_SLIDING].st_strName = "Grass sliding";
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS_SLIDING].st_fFriction = 0.1f;
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS_SLIDING].st_fStairsHeight = 0.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS_SLIDING].st_fJumpSlopeCos = Cos(5.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS_SLIDING].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS_SLIDING].st_ulFlags = STF_SLIDEDOWNSLOPE;
 
   ASSERT(20==SURFACE_GRASS_NOIMPACT);
-  pwo->wo_astSurfaceTypes[20].st_strName = "Grass no impact";
-  pwo->wo_astSurfaceTypes[20].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[20].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[20].st_fJumpSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[20].st_fClimbSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[20].st_ulFlags = STF_NOIMPACT;
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS_NOIMPACT].st_strName = "Grass no impact";
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS_NOIMPACT].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS_NOIMPACT].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS_NOIMPACT].st_fJumpSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS_NOIMPACT].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_GRASS_NOIMPACT].st_ulFlags = STF_NOIMPACT;
 
   ASSERT(21==SURFACE_SNOW);
-  pwo->wo_astSurfaceTypes[21].st_strName = "Snow";
-  pwo->wo_astSurfaceTypes[21].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[21].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[21].st_fJumpSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[21].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_SNOW].st_strName = "Snow";
+  pwo->wo_astSurfaceTypes[SURFACE_SNOW].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_SNOW].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_SNOW].st_fJumpSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_SNOW].st_fClimbSlopeCos = Cos(45.0f);
+
+  // [Cecil] Special types
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLIDING].st_strName = "Wood sliding";
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLIDING].st_fFriction = 0.045f;
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLIDING].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLIDING].st_fJumpSlopeCos = Cos(5.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLIDING].st_fClimbSlopeCos = Cos(5.0f);
+
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLOPE].st_strName = "Wood high slope";
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLOPE].st_fFriction = 2.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLOPE].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLOPE].st_fJumpSlopeCos = Cos(60.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLOPE].st_fClimbSlopeCos = Cos(60.0f);
+
+  // [Cecil] Add new surfaces
+  for (INDEX iSur = 0; iSur < CT_NEW_SURFACES; iSur++) {
+    INDEX iSurfaceIndex = SURFACE_LAST + iSur * ESRT_LAST;
+
+    // surface names
+    CTString strSurName = _astrMaterials[7+iSur].c_str();
+
+    // normal
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+0].st_strName = strSurName;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+0].st_fFriction = 1.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+0].st_fStairsHeight = 1.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+0].st_fJumpSlopeCos = Cos(45.0f);
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+0].st_fClimbSlopeCos = Cos(45.0f);
+
+    // sliding
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+1].st_strName = strSurName+" sliding";
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+1].st_fFriction = 0.045f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+1].st_fStairsHeight = 1.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+1].st_fJumpSlopeCos = Cos(5.0f);
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+1].st_fClimbSlopeCos = Cos(5.0f);
+
+    // no impact
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+2].st_strName = strSurName+" no impact";
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+2].st_fFriction = 1.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+2].st_fStairsHeight = 1.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+2].st_fJumpSlopeCos = Cos(45.0f);
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+2].st_fClimbSlopeCos = Cos(45.0f);
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+2].st_ulFlags = STF_NOIMPACT;
+
+    // high slope
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+3].st_strName = strSurName+" high slope";
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+3].st_fFriction = 2.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+3].st_fStairsHeight = 1.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+3].st_fJumpSlopeCos = Cos(60.0f);
+    pwo->wo_astSurfaceTypes[iSurfaceIndex+3].st_fClimbSlopeCos = Cos(60.0f);
+  }
   
   // contents
   pwo->wo_actContentTypes[0].ct_strName = "Air";
@@ -683,10 +736,16 @@ void CWorldBase_OnWorldInit(CWorld *pwo)
   _pShell->DeclareSymbol("user void MakeWorldStatistics(void);",  &MakeWorldStatistics);
   _pShell->DeclareSymbol("user void ReoptimizeAllBrushes(void);", &ReoptimizeAllBrushes);
   _pShell->DeclareSymbol("user void DoLevelSafetyChecks(void);", &DoLevelSafetyChecks);
-}
+};
 
-void CWorldBase_OnWorldRender(CWorld *pwo)
-{
+void CWorldBase_OnWorldEnd(CWorld *pwo) {
+  // [Cecil] Remove materials
+  if (GetSP()->sp_iHL2Flags & HL2F_MATERIALS) {
+    UnloadMaterials();
+  }
+};
+
+void CWorldBase_OnWorldRender(CWorld *pwo) {
   // get current tick
   TIME tmNow = _pTimer->GetLerpedCurrentTick();
   // wrap time to prevent texture coordinates to get unprecise
@@ -834,8 +893,7 @@ void CWorldBase_OnWorldRender(CWorld *pwo)
 
   // ***** Pyramid blending effects
   // if world settings controller is valid
-  if( pwsc != NULL)
-  {
+  if (pwsc != NULL) {
     // set alpha values for switch-controlled pyramid plate activating
     SetPyramidPlateActivateAlpha(pwo, 10, pwsc->m_tmPyramidPlatesStart, 1e6, FALSE);
     SetPyramidPlateActivateAlpha(pwo, 11, pwsc->m_tmActivatedPlate1, pwsc->m_tmDeactivatedPlate1, TRUE);
@@ -847,29 +905,24 @@ void CWorldBase_OnWorldRender(CWorld *pwo)
   }
 };
 
-void CWorldBase_OnInitClass(void)
-{
+void CWorldBase_OnInitClass(void) {
   // init particle effects
   InitParticles();
-  try
-  {
+  try {
     // setup simple model shadow texture
     _toSimpleModelShadow.SetData_t( CTFILENAME("Textures\\Effects\\Shadow\\SimpleModelShadow.tex"));
     _aoLightningColor.SetData_t( CTFILENAME("Animations\\Lightning.ani"));
     // we will use first animation in .ani file for lightning
     _aoLightningColor.PlayAnim(0, AOF_NORESTART);
-  }
-  catch(char *strError)
-  {
+  } catch(char *strError) {
     FatalError(TRANS("Cannot load shadow texture: \n%s"), strError);
   }
 }
 
-void CWorldBase_OnEndClass(void)
-{
+void CWorldBase_OnEndClass(void) {
   // close particle effects
   CloseParticles();
-}
+};
 
 class CFixedForce {
 public:
@@ -919,6 +972,7 @@ name      "WorldBase";
 thumbnail "Thumbnails\\WorldBase.tbn";
 features  "HasName", "HasDescription", 
   "ImplementsOnWorldRender", "ImplementsOnWorldInit",
+  "ImplementsOnWorldEnd", // [Cecil]
   "ImplementsOnInitClass", "ImplementsOnEndClass";
 
 
@@ -991,11 +1045,21 @@ properties:
 
   99 FLOAT m_fOpacity "Opacity" = 1.0f,
 
+ // [Cecil] TFE -> TSE conversion (only for the first brush)
+ 100 BOOL m_bReinit = FALSE,
+
+{
+  // [Cecil] Materials loading (only for the first brush)
+  BOOL m_bMaterials;
+}
 
 components:
 
-
 functions:
+  // [Cecil] Reset variables
+  void CWorldBase(void) {
+    m_bMaterials = FALSE;
+  };
 
   // get visibility tweaking bits
   ULONG GetVisTweaks(void)

@@ -1,21 +1,24 @@
 502
 %{
 #include "StdH.h"
+
+// [Cecil]
+#include "EntitiesMP/EnemyBase.h"
+#include "EntitiesMP/_Sound3D.h"
+#include "EntitiesMP/Cecil/Effects.h"
 %}
 
 uses "EntitiesMP/BasicEffects";
 uses "Engine/Classes/MovableEntity";
 
-
 // input parameters for bullet
 event EBulletInit {
-  CEntityPointer penOwner,        // who launched it
-  FLOAT fDamage,                  // damage
+  CEntityPointer penOwner, // who launched it
+  FLOAT fDamage,           // damage
 };
 
 %{
-void CBullet_OnPrecache(CDLLEntityClass *pdec, INDEX iUser) 
-{
+void CBullet_OnPrecache(CDLLEntityClass *pdec, INDEX iUser) {
   pdec->PrecacheClass(CLASS_BASIC_EFFECT, BET_BULLETSTAINSTONE);
   pdec->PrecacheClass(CLASS_BASIC_EFFECT, BET_BULLETSTAINSAND);
   pdec->PrecacheClass(CLASS_BASIC_EFFECT, BET_BULLETSTAINREDSAND);
@@ -26,6 +29,9 @@ void CBullet_OnPrecache(CDLLEntityClass *pdec, INDEX iUser)
   pdec->PrecacheClass(CLASS_BASIC_EFFECT, BET_BULLETSTAINWATERNOSOUND);
   pdec->PrecacheClass(CLASS_BASIC_EFFECT, BET_BLOODSPILL);
   pdec->PrecacheClass(CLASS_BASIC_EFFECT, BET_BULLETTRAIL);
+
+  // [Cecil]
+  pdec->PrecacheClass(CLASS_BASIC_EFFECT, BET_BULLET_WATERWAVE);
 }
 %}
 
@@ -42,10 +48,13 @@ properties:
   6 FLOAT3D m_vHitPoint = FLOAT3D(0,0,0),     // hit point
   8 INDEX m_iBullet = 0,                // bullet for lerped launch
   9 enum DamageType m_EdtDamage = DMT_BULLET,   // damage type
-  10 FLOAT m_fBulletSize = 0.0f,      // bullet can have radius, for hitting models only
+ 10 FLOAT m_fBulletSize = 0.0f,      // bullet can have radius, for hitting models only
 
 components:
-  1 class   CLASS_BASIC_EFFECT "Classes\\BasicEffect.ecl"
+  1 class CLASS_BASIC_EFFECT "Classes\\BasicEffect.ecl",
+
+  // [Cecil] Sound
+  5 class CLASS_SOUND3D "Classes\\Sound3D.ecl",
 
 functions:
 
@@ -80,19 +89,29 @@ functions:
     m_vTargetCopy = m_vTarget;
   };
 
+  // [Cecil] Target with the offset
+  void CalcTarget(CEntity *pen, const FLOAT3D &vOffset, FLOAT fRange) {
+    FLOAT3D vTarget;
+
+    // target body
+    EntityInfo *peiTarget = (EntityInfo*) (pen->GetEntityInfo());
+    GetEntityInfoPosition(pen, peiTarget->vTargetCenter, vTarget);
+
+    // [Cecil] Add offset
+    vTarget += vOffset;
+
+    // calculate
+    m_vTarget = (vTarget - GetPlacement().pl_PositionVector).Normalize();
+    m_vTarget *= fRange;
+    m_vTarget += GetPlacement().pl_PositionVector;
+    m_vTargetCopy = m_vTarget;
+  };
+
   // calc jitter target - !!! must call CalcTarget first !!!
   void CalcJitterTarget(FLOAT fR) {
     FLOAT3D vJitter;
-/* My Sphere
-    FLOAT fXZ = FRnd()*360.0f;
-    FLOAT fXY = FRnd()*360.0f;
 
-    // sphere
-    fR *= FRnd();
-    vJitter(1) = CosFast(fXZ)*CosFast(fXY)*fR;
-    vJitter(2) = CosFast(fXZ)*SinFast(fXY)*fR;
-    vJitter(3) = SinFast(fXZ)*fR;*/
-// comp graphics algorithms sphere
+    // comp graphics algorithms sphere
     FLOAT fZ = FRnd()*2.0f - 1.0f;
     FLOAT fA = FRnd()*360.0f;
     FLOAT fT = Sqrt(1-(fZ*fZ));
@@ -118,8 +137,7 @@ functions:
   };
 
   // launch one bullet
-  void LaunchBullet(BOOL bSound, BOOL bTrail, BOOL bHitFX)
-  {
+  void LaunchBullet(BOOL bSound, BOOL bTrail, BOOL bHitFX) {
     // cast a ray to find bullet target
     CCastRay crRay( m_penOwner, GetPlacement().pl_PositionVector, m_vTarget);
     crRay.cr_bHitPortals = TRUE;
@@ -131,35 +149,29 @@ functions:
     AnglesToDirectionVector(GetPlacement().pl_OrientationAngle, vHitDirection);
 
     INDEX ctCasts = 0;
-    while( ctCasts<10)
-    {
-      if(ctCasts == 0)
-      {
+    while (ctCasts < 10) {
+      if (ctCasts == 0) {
         // perform first cast
         GetWorld()->CastRay(crRay);       
-      }
-      else
-      {
+      } else {
         // next casts
         GetWorld()->ContinueCast(crRay);
       }
       ctCasts++;
 
       // stop casting if nothing hit
-      if (crRay.cr_penHit==NULL)
-      {
+      if (crRay.cr_penHit == NULL) {
         break;
       }
+
       // apply damage
       const FLOAT fDamageMul = GetSeriousDamageMultiplier(m_penOwner);
-      InflictDirectDamage(crRay.cr_penHit, m_penOwner, m_EdtDamage, m_fDamage*fDamageMul,
-                            crRay.cr_vHit, vHitDirection);
+      InflictDirectDamage(crRay.cr_penHit, m_penOwner, m_EdtDamage, m_fDamage*fDamageMul, crRay.cr_vHit, vHitDirection);
 
       m_vHitPoint = crRay.cr_vHit;
 
       // if brush hitted
-      if (crRay.cr_penHit->GetRenderType()==RT_BRUSH && crRay.cr_pbpoBrushPolygon!=NULL)
-      {
+      if (crRay.cr_penHit->GetRenderType() == RT_BRUSH && crRay.cr_pbpoBrushPolygon != NULL) {
         CBrushPolygon *pbpo = crRay.cr_pbpoBrushPolygon;
         FLOAT3D vHitNormal = FLOAT3D(pbpo->bpo_pbplPlane->bpl_plAbsolute);
         // obtain surface type
@@ -169,38 +181,39 @@ functions:
         INDEX iContent = pbpo->bpo_pbscSector->GetContentType();
         CContentType &ct = GetWorld()->wo_actContentTypes[iContent];
         
-        bhtType=(BulletHitType) GetBulletHitTypeForSurface(iSurfaceType);
+        bhtType = (BulletHitType) GetBulletHitTypeForSurface(iSurfaceType);
+
         // if this is under water polygon
-        if( ct.ct_ulFlags&CTF_BREATHABLE_GILLS)
-        {
+        if (ct.ct_ulFlags & CTF_BREATHABLE_GILLS) {
           // if we hit water surface
-          if( iSurfaceType==SURFACE_WATER) 
-          {
+          if (iSurfaceType == SURFACE_WATER) {
             vHitNormal = -vHitNormal;
 
             bhtType=BHT_BRUSH_WATER;
-          }   
+
           // if we hit stone under water
-          else
-          {
-            bhtType=BHT_BRUSH_UNDER_WATER;
+          } else {
+            bhtType = BHT_BRUSH_UNDER_WATER;
           }
         }
+
         // spawn hit effect
         BOOL bPassable = pbpo->bpo_ulFlags & (BPOF_PASSABLE|BPOF_SHOOTTHRU);
-        if (!bPassable || iSurfaceType==SURFACE_WATER) {
+        if (!bPassable || iSurfaceType == SURFACE_WATER) {
           SpawnHitTypeEffect(this, bhtType, bSound, vHitNormal, crRay.cr_vHit, vHitDirection, FLOAT3D(0.0f, 0.0f, 0.0f));
         }
-        if(!bPassable) {
+
+        if (!bPassable) {
           break;
         }
+
       // if not brush
       } else {
-
         // if flesh entity
-        if (crRay.cr_penHit->GetEntityInfo()!=NULL) {
-          if( ((EntityInfo*)crRay.cr_penHit->GetEntityInfo())->Eeibt == EIBT_FLESH)
-          {
+        if (crRay.cr_penHit->GetEntityInfo() != NULL) {
+          if (((EntityInfo*)crRay.cr_penHit->GetEntityInfo())->Eeibt == EIBT_FLESH
+          // [Cecil] Some enemies leave goo
+          || IsOfClass(crRay.cr_penHit, "Boneman") || IsOfClass(crRay.cr_penHit, "Werebull")) {
             CEntity *penOfFlesh = crRay.cr_penHit;
             FLOAT3D vHitNormal = (GetPlacement().pl_PositionVector-m_vTarget).Normalize();
             FLOAT3D vOldHitPos = crRay.cr_vHit;
@@ -208,28 +221,67 @@ functions:
 
             // look behind the entity (for back-stains)
             GetWorld()->ContinueCast(crRay);
-            if( crRay.cr_penHit!=NULL && crRay.cr_pbpoBrushPolygon!=NULL && 
-                crRay.cr_penHit->GetRenderType()==RT_BRUSH)
-            {
+            if (crRay.cr_penHit != NULL && crRay.cr_pbpoBrushPolygon != NULL
+             && crRay.cr_penHit->GetRenderType() == RT_BRUSH) {
               vDistance = crRay.cr_vHit-vOldHitPos;
               vHitNormal = FLOAT3D(crRay.cr_pbpoBrushPolygon->bpo_pbplPlane->bpl_plAbsolute);
-            }
-            else
-            {
+
+            } else {
               vDistance = FLOAT3D(0.0f, 0.0f, 0.0f);
-              vHitNormal = FLOAT3D(0,0,0);
+              vHitNormal = FLOAT3D(0, 0, 0);
             }
 
-            if(IsOfClass(penOfFlesh, "Gizmo") ||
-               IsOfClass(penOfFlesh, "Beast"))
-            {
+            // [Cecil] Own type (+ Boneman & Werebull)
+            if (IsOfClass(penOfFlesh, "Gizmo") || IsOfClass(penOfFlesh, "Boneman") || IsOfClass(penOfFlesh, "Werebull")) {
+              SpawnHitTypeEffect(this, BHT_GOO, bSound, vHitNormal, crRay.cr_vHit, vHitDirection, vDistance);
+
+            } else if (IsOfClass(penOfFlesh, "Beast")) {
               // spawn green blood hit spill effect
               SpawnHitTypeEffect(this, BHT_ACID, bSound, vHitNormal, crRay.cr_vHit, vHitDirection, vDistance);
-            }
-            else
-            {
+            } else {
               // spawn red blood hit spill effect
               SpawnHitTypeEffect(this, BHT_FLESH, bSound, vHitNormal, crRay.cr_vHit, vHitDirection, vDistance);
+            }
+
+            // [Cecil] Impact sound
+            INDEX iImpactSound = 0;
+
+            {FOREACHINDYNAMICCONTAINER(GetWorld()->wo_cenEntities, CEntity, iten) {
+              CEntity *penCheck = iten;
+
+              // too many sounds
+              if (iImpactSound >= 4) {
+                break;
+              }
+
+              // not a sound
+              if (!IsOfClass(penCheck, "CecilSound")) {
+                continue;
+              }
+
+              // close
+              if (DistanceTo(penOfFlesh, penCheck) < 12.0f) {
+                iImpactSound++;
+              }
+            }}
+
+            // can play up to 4 sounds at once
+            if (iImpactSound < 4) {
+              CCecilSound3D *penSound = (CCecilSound3D *)&*CreateEntity(penOfFlesh->GetPlacement(), CLASS_SOUND3D);
+
+              SprayParticlesType sptType;
+              if (IsDerivedFromClass(penOfFlesh, "Enemy Base")) {
+                sptType = ((CEnemyBase&)*penOfFlesh).m_sptType;
+              } else {
+                sptType = SPT_BLOOD;
+              }
+
+              penSound->m_fnSound = SprayParticlesSound(penOfFlesh, sptType);
+              penSound->m_iFlags = SOF_3D|SOF_VOLUMETRIC;
+              penSound->m_fWaitTime = 0.5f;
+
+              penSound->SetParameters(64.0f, 12.0f, 1.5f, 1.0f);
+              penSound->Initialize();
             }
             break;
           }
@@ -240,8 +292,7 @@ functions:
       }
     }
 
-    if( bTrail)
-    {
+    if (bTrail) {
       SpawnTrail();
     }
   };
@@ -251,14 +302,11 @@ functions:
     Destroy();
   };
 
-
-
 /************************************************************
  *                        EFFECTS                           *
  ************************************************************/
   // spawn trail of this bullet
-  void SpawnTrail(void) 
-  {
+  void SpawnTrail(void) {
     // get bullet path positions
     const FLOAT3D &v0 = GetPlacement().pl_PositionVector;
     const FLOAT3D &v1 = m_vHitPoint;
@@ -266,7 +314,7 @@ functions:
     FLOAT3D vD = v1-v0;
     FLOAT fD = vD.Length();
     // if too short
-    if (fD<1.0f) {
+    if (fD < 1.0f) {
       // no trail
       return;
     }
@@ -275,6 +323,7 @@ functions:
     FLOAT fLen = Min(20.0f, fD);
     // position is random, but it must not make trail go out of path
     FLOAT3D vPos;
+
     if (fLen<fD) {
       vPos = Lerp(v0, v1, FRnd()*(fD-fLen)/fD);
     } else {
@@ -294,17 +343,15 @@ functions:
     // spawn effect
     FLOAT3D vBulletIncommingDirection;
     vBulletIncommingDirection = (m_vTarget-GetPlacement().pl_PositionVector).Normalize();
-    CPlacement3D plHit = CPlacement3D(vPos-vBulletIncommingDirection*0.1f, GetPlacement().pl_OrientationAngle);
-    CEntityPointer penHit = CreateEntity(plHit , CLASS_BASIC_EFFECT);
+    CPlacement3D plHit = CPlacement3D(vPos-vBulletIncommingDirection * 0.1f, GetPlacement().pl_OrientationAngle);
+    CEntityPointer penHit = CreateEntity(plHit, CLASS_BASIC_EFFECT);
     penHit->Initialize(ese);
-  }
+  };
 
 procedures:
-
-  Main(EBulletInit eInit)
-  {
+  Main(EBulletInit eInit) {
     // remember the initial parameters
-    ASSERT(eInit.penOwner!=NULL);
+    ASSERT(eInit.penOwner != NULL);
     m_penOwner = eInit.penOwner;
     m_fDamage = eInit.fDamage;
 

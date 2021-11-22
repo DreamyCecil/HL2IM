@@ -35,10 +35,11 @@ components:
 
 functions:
   void Precache(void) {
-    if (m_iGiveWeapons>1) {
+    if (m_iGiveWeapons > 1) {
       CPlayerWeapons_Precache(m_iGiveWeapons);
     }
-  }
+  };
+
   BOOL HandleEvent(const CEntityEvent &ee) {
     if (ee.ee_slEvent == EVENTCODE_ETrigger) {
       CEntity *penMainMusicHolder = _pNetwork->GetEntityWithName("MusicHolder", 0);
@@ -46,14 +47,14 @@ functions:
         return TRUE;
       }
       CMusicHolder *pmh = (CMusicHolder *)penMainMusicHolder;
-      BOOL bNew = (pmh->m_penRespawnMarker!=this);
+      BOOL bNew = (pmh->m_penRespawnMarker != this);
       pmh->m_penRespawnMarker = this;
 
       // if this is a new marker and we are in single player and the trigger originator is valid
       CEntity *penCaused = ((ETrigger&)ee).penCaused;
       if (bNew &&
         (GetSP()->sp_bSinglePlayer && GetSP()->sp_gmGameMode!=CSessionProperties::GM_FLYOVER)
-        && IsOfClass(penCaused, "Player")) {
+        && IS_PLAYER(penCaused)) {
         // if the player wants auto-save
         CPlayerSettings *pps = (CPlayerSettings *) (((CPlayerEntity*)penCaused)->en_pcCharacter.pc_aubAppearance);
         if (pps->ps_ulFlags&PSF_AUTOSAVE) {

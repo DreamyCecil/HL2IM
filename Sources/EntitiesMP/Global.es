@@ -10,10 +10,10 @@
  */
 
 event EStop {         // stop your actions
-};                    
+};
 event EStart {        // start your actions
   CEntityPointer penCaused,   // who caused the trigger (transitive)
-};                    
+};
 event EActivate {     // activate class (usually touch field)
 };
 event EDeactivate {   // deactivate class (usually touch field)
@@ -23,7 +23,7 @@ event EEnvironmentStart {   // activate environment classes
 event EEnvironmentStop {    // deactivate environment classes
 };
 event EEnd {          // general purpose end of procedure event
-};                    
+};
 event ETrigger {      // sent by trigger class
   CEntityPointer penCaused,   // who caused the trigger (transitive)
 };
@@ -44,8 +44,33 @@ event EReceiveScore { // sent to player when enemy is killed
   INDEX iPoints
 };
 event EKilledEnemy { // sent to player when enemy is killed
+  CEntityPointer penKilled, // [Cecil] Who was killed
 };
 event ESecretFound { // sent to player secret is found
+};
+
+// [Cecil] Gravity Gun holding
+event EGravityGunStart {
+  CEntityPointer penTarget,
+};
+
+event EGravityGunStop {
+  ULONG ulFlags,
+  //ULONG ulCollision,
+};
+
+event EGravityGunHold {
+  FLOAT3D vPos, // position to move at
+  ANGLE3D aRot, // rotation
+  CEntityPointer penHolder, // holding player
+
+  ULONG ulFlags,
+  //ULONG ulCollision,
+};
+
+event EGravityGunPush {
+  FLOAT3D vDir, // push direction with speed
+  BOOL bLaunch, // launching or pulling
 };
 
 enum BoolEType {
@@ -129,6 +154,12 @@ enum BulletHitType {
   8 BHT_BRUSH_GRASS         "",     // brush grass
   9 BHT_BRUSH_WOOD          "",     // brush wood
  10 BHT_BRUSH_SNOW          "",     // brush snow
+ // [Cecil] New types
+ 11 BHT_GOO "", // like SPT_GOO
+ 12 BHT_BRUSH_METAL "",
+ 13 BHT_BRUSH_CHAINLINK "",
+ 14 BHT_BRUSH_TILES "",
+ 15 BHT_BRUSH_GLASS "",
 };
 
 enum EffectParticlesType {
@@ -141,6 +172,9 @@ enum EffectParticlesType {
   6 EPT_BULLET_GRASS          "",    // bullet particles on sand
   7 EPT_BULLET_WOOD           "",    // bullet particles on sand
   8 EPT_BULLET_SNOW           "",    // bullet particles on snow
+  // [Cecil] New types
+  9 EPT_BULLET_METAL "",
+ 10 EPT_BULLET_GLASS "",
 };
 
 enum SprayParticlesType {

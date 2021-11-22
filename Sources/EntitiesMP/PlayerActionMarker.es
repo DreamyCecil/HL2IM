@@ -79,7 +79,7 @@ functions:
     if (ee.ee_slEvent==EVENTCODE_ETrigger) {
       ETrigger &eTrigger = (ETrigger &)ee;
       // if triggered by a player
-      if( IsDerivedFromClass(eTrigger.penCaused, "Player")) {
+      if( IS_PLAYER(eTrigger.penCaused)) {
         // send it event to start auto actions from here
         EAutoAction eAutoAction;
         eAutoAction.penFirstMarker = this;
