@@ -1,0 +1,1 @@
+static char strTag[100+(_CT_BUILD_VERSION)*4] = _CT_BUILD_STRING "\0" _CT_BUILD_GARBAGE;
