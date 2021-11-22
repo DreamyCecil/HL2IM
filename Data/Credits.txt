@@ -1,0 +1,398 @@
+Half-Life 2 Immersion Mod (Beta 0.75)
+(c) Dreamy Cecil, 2021
+
+
+MADE USING:
+
+Blender 2.83
+https://www.blender.org/
+
+Crowbar 0.38
+https://github.com/ZeqMacaw/Crowbar
+
+GCFScape 1.8.5
+https://gamebanana.com/tools/26
+
+Notepad++
+https://notepad-plus-plus.org/
+
+Paint.NET
+https://www.getpaint.net/
+
+Serious Sam SDK v1.07 for Visual Studio 2013
+https://github.com/DreamyCecil/SeriousSam_SDK107
+
+Cecil's Bot Mod
+https://github.com/DreamyCecil/CecilBotMod
+
+
+BLENDER PLUGINS:
+
+Auto Materials by Andrey
+http://www.serioussite.ru/load/raznoe/auto_materials_dlja_blender/10-1-0-2736
+
+Blender Source Tools 3.0.1 by Tom Edwards
+http://steamcommunity.com/groups/BlenderSourceTools
+http://steamreview.org/BlenderSourceTools/
+
+ExportAnimationAsSTLs.py by kellyegan
+https://gist.github.com/kellyegan/fb9d710bd20579771b40
+(corrected to export as OBJ with proper dimensions by Dreamy Cecil)
+
+
+PAINT.NET PLUGINS:
+
+VTF Format Plug-In 1.1.1 by Ryan Gregg
+http://nemesis.thewavelength.net/
+
+pyrochild plugins by pyrochild
+https://forums.getpaint.net/topic/7291-pyrochild-plugins-2017-12-04/
+
+
+SPECIAL THANKS:
+
+FreekNik
+Tin
+ZCaliptium
+
+
+
+Serious Sam: The Second Encounter
+Credits
+
+
+CROTEAM:
+
+PROGRAMMING
+Alen Ladavac
+Davor Hunski
+Dean Sekulic
+Nikola Mosettig
+Darko Martinovic
+
+GAME DESIGN
+Davor Hunski
+Davor Tomicic
+
+2D ART
+Dinko Pavicic
+Petar Ivancek
+Zeljko Visnjic
+
+3D ART
+Admir Elezovic
+Tomislav Pongrac
+
+LEVEL DESIGN
+Davor Tomicic
+Davor Hunski
+Ivan Mika
+Tomislav Pongrac
+Damjan Mravunac
+
+MUSIC & SOUND
+Damjan Mravunac
+
+CEO
+Roman Ribaric
+
+BUSINESS DEVELOPMENT
+Robert Westmoreland
+
+BIZ ASSIST
+Helena Hunski
+
+
+OTHER:
+
+Serious Sam Voice by John J. Dick
+
+SkyBox art by Peter Kleiner
+
+Seriously Warped Deathmatch by A Few Screws Loose:
+Nick "Xavier" Macron
+Christopher "LanThief" Kreager
+Ben "Vinz" Frech
+Sean "mwadaibe" Center
+
+Additional fight music by Undercode
+For more information visit www.undercode.org
+Club Remix by Damjan Mravunac
+
+Ogg Vorbis libraries by Xiphophorus
+
+Moral Boost by
+Michael Harris
+LEVELORD
+Vesto
+Matt "Lutrosis" McGill
+Korey "Wussboy" Peters
+Old Man Murray
+Stephen Brown
+
+
+TAKE 2 INTERACTIVE:
+
+EXECUTIVE PRODUCER
+Sam Houser
+
+VP of MARKETING
+Terry Donovan
+
+PRODUCER
+David Nottingham
+
+PRODUCT MANAGER
+Devin Winterbottom
+
+Creative Services
+Paul Yeates, Jennifer Kolbe
+
+PR
+Jeff Casteneda, Anne-Marie Sims, Linn PR
+
+Associate Producer
+Aaron Rigby 
+
+Chief Technical Officer
+Gary J Foreman
+
+Technical Coordinator
+Brandon Rose
+
+QA Manager
+Jeff Rosa
+
+Director of QA Baltimore
+Phil Santiago
+
+QA Supervisor
+Frank Kirchner
+
+Project Lead
+Ben Hamel
+
+Testers
+Charles Franklin, Daniel Karp, Jon Stephan, Josh Noll, 
+Josh Rose, Lisa Nawrot, Scott Vail, Stacey Sharpe, 
+Stephen Thomas
+
+
+SPECIAL THANKS:
+
+Gabriel Wunderlich
+Karl Unterholzner
+Tomislav Kucko
+Santo Giglia
+Keith Robinson
+Audrey Chambeaud
+Jacques Madec
+Marc Gaillard
+Kriss Schreiner
+Philip Nelson
+Brad Peebler
+Jason Craig
+William "Proton" Vaughn
+Mete Ciragan
+Alexander Shelemekhov
+Jason Andrade
+John Carmack
+Sebastien Domine
+Darko Franic
+Andrzej Grygierzec
+Chris Hecker
+Dorijan Jelincic
+Chris Kim
+Michael Liu
+KSET Computer Division
+Chris "Monty" Montgomery
+Jack Moffitt
+Morothar
+Kresimir Nesek
+Vjekoslav Nesek
+Boris Pereira and the Doom Legacy project
+Jasmin Redzepagic
+Derek Smart
+Pete Stewart
+Marko "Fritz" Stifanic
+Sam "Serious" Stone
+Joachim Hesse
+Kris Sum
+T-Minus10
+Damian Wegner
+Mark Newholm
+Jeremy Morris
+Yolanda Ruiz
+Rex Sikora
+Jeff Royle
+Ed Huang
+Dave Barron
+Andrea D'Orta
+Eric Le
+Roy Russo
+Mike Burrows
+Andrew Walker
+Richard Huddy
+Damir Perovic
+Hrvoje Colic
+Mladen Tripalo
+Aleksandar Vjestica
+Marko Dabrovic
+Zoran Jankovic
+Goran Sarlija
+Kenneth Scott
+Michael Abrash
+Aljosa Brajdic
+Roberto Vdovic
+Christian Studer
+Paul Jacobson
+Joseph Kain
+Keith Galocy
+Jonathan Trainor
+Matt McClure
+Vernon Chiang
+Jason Mitchell
+Daniel Omachi
+Aaron Burton
+Joe Kreiner
+Nicolas Thibieroz
+Omar Yehia
+Elio Del Giudice
+Joey Blankenship
+Jessy Lecomte
+Nick Triantos
+John Spitzer
+Julian Kreisler
+Kevin Strange
+Brian Harvey
+Marshall T. Ireland
+Zach Rand aka Goldfinger
+Jim Hafner-Eaton
+Kif Davis
+Dave Oldcorn
+Newton Cheung
+Slava Gostrenko
+Anthony "Reverend" Tan
+Randy J. VanderHeyden
+Elias Slater
+Daniel Peacock
+Branimir Kovac
+Billy "Wicked" Wilson
+Apache
+Darrin Buchanan
+Harry Miller
+John Bergerud
+Jurica Kresonja
+Marko Sekulic
+Danko Dolinar
+Dean Janacek
+Zoran Zmiric
+Crow
+Rainwolf
+Silvano Bucic
+Relic
+Teo Valic
+Mihael Horvatek
+Leon Magdic
+Alen Magdic
+Ivan Speljak
+Damir Ljubicic
+Branko Babic
+Alex Ruiz
+Stephen Heaslip (Blue)
+Royee Kitty Leung
+Jamie Leece
+Ben (aka Trisk) 
+Heidi Amsler
+Jeff Quinn
+Gavin Ogden
+Jason Andrade
+Todd Mason
+Juan Gutierrez
+Stuart Bishop
+Travis Hogue 
+Uros "2Lions" Jojic
+Amer Ajami
+Daniel Staines
+Jim Rossignol
+Matthew Pierce
+Julian Hoddy
+John Callaham
+Brian E. Lozier
+Curl
+Mister Thingie
+Ron Thompson
+Baron
+Cary 'CitizenC' Schwartzman 
+Chris Reid 
+Chris Bender
+Joe Rafferty
+James Paterson
+Greg Kasavin
+Michael Lummis
+David Laprad
+Maarten Goldstein
+Brian D. Crecente
+Leandro Asnaghi-Nicastro 
+Paul Younger
+Robert (Carpe Mkarzi) Szekely
+Brandon Koida
+Sinjin
+ExitWound
+Mike "StarHawk" Hawks
+Tomislav Kristo
+Peakr
+Ive
+Copyk1llah
+Dave Waters
+Kleer
+Wheeljack
+Nickel4242
+Xfire
+Brian 'XXIII' Gebbia
+Mattomondo
+Shawntae Howard
+David Harrison 
+Frans P. de Vries 
+korgull
+Yeon-Suk O
+Mike "Ragman" Hillebrecht
+
+
+
+but most importantly our families, wives, girlfriends and friends.
+
+
+Serious thanks goes to (in random order):
+Grand Master Shinobi, Forager, Gor@n, xxzen, VoOdOo, 
+Mate, Innova, mr man, Entroper, Vesto, Shinigami, Protoz, 
+Max Damage, Pendragon, Ashaman, ClickerClicker, Devil N, 
+FM, Infernal-Divinity, Kaeto, koslov, mike, Napalm man, 
+ReelExterminator, Rich, sooperFoX, The Judge, Wesisapie, 
+Xnerd, sartophiketle, Smithboy, Caid, INTRUDER, 
+Iirion Claus, Viper45, DiEgo, BirddoG, LordVampyre, 
+Nilspack, strossos, Bwian, Sarge, Entroper, Alien Slayer,
+Earthling, Ash, weezer, Green Monkey, Captain Plankface, 
+Lupo, milbertus, TaZeR, Prodigal Son, The friendly newbie, 
+mr luc, GaryP, Margolis, AkumaReihai, SLAPNUTZ, 
+DarkSkywalker, RatBoy, Cincinnatus, justshawnf, 
+Lowly Creaton, SeriousGrandpa, Chris1, MasterEvilAce,
+Boxcarwilli, XMark, Stiben Hunata II, Phalin, SuperTech,rico, 
+Serial Killa, pompey, ViperRogue, Rapid, ClickerClicker,
+MrSsscream, Arach, forager, Darth Plato, esdxc37, Htown,
+Jim, Mailman, DiscoStu, LSD, nocool, Ashthos, MatrixMillion,
+Serious Son of Sam, DarkReaper, Reddog, Proton, Hoard, Tessai,
+TiltedBrian, Jwh, Chimera, AntiSnipe, IdleWild, Naythn, Divx, 
+DanTheDamnMonkeyMan, Zip, the lone crouton, HolyMcGiblets,
+MegamanTC, Scudz, Shrinker, Synthetic2, TiTaN, novice, addman,
+Vagabond, GeeBee20, Dr Cogent, krobnick, Armern, catscratch,
+Kooky Novad, Budda, borgzilla, Synthetix, WIDOWMAKER99, 
+EricCartman, Lacutis, Planerunner, Arachnoid, TheHappyHomo, 
+Nod TuGud, 2Drunk, Carnivorous Duck, Furious Fish, Dante, 
+StoneWolf, chrono, DEATHLRD, synthetic, sh0dan, Lancelot du lac,
+Espontaneo, mr riss, TMinus10, Cromoly, BoneDaddy, ThisIsMe, 
+Vlad Harkonnen, SSJ Egg, RiZlA, KissMyAxe, Bigboomer2001, 
+Rhinozombiac, Castle, cHaRcOaL, Aphextwin, forgotten child, 
+HELRazorDV, SeriousGranpa, Fluff Daddy, chrisk, Instetus
+
+and all other Serious Sam Forum veterans. Thanks for the support.
