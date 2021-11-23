@@ -294,11 +294,65 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Bots\AdvancedPaths.cpp" />
+    <ClCompile Include="..\Bots\BotFunctions.cpp" />
+    <ClCompile Include="..\Bots\BotModMain.cpp" />
+    <ClCompile Include="..\Bots\BotMovement.cpp" />
+    <ClCompile Include="..\Bots\BotWeapons.cpp" />
+    <ClCompile Include="..\Bots\NetworkPatch\ServerIntegration.cpp" />
+    <ClCompile Include="..\Bots\NetworkPatch\StreamBlock.cpp" />
+    <ClCompile Include="..\Bots\Patcher\patcher.cpp" />
+    <ClCompile Include="..\Bots\SandboxActions.cpp" />
+    <ClCompile Include="..\Bots\SandboxCommon.cpp" />
+    <ClCompile Include="BotMod\BotModGlobal.cpp" />
+    <ClCompile Include="BotMod\NavMeshGenerator.cpp" />
+    <ClCompile Include="BotMod\PlayerBot.cpp" />
+    <ClCompile Include="Cecil\DreamyJSON\Base\Compatibility.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Cecil\DreamyJSON\Base\Formatting.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Cecil\DreamyJSON\Containers\ConfigArray.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Cecil\DreamyJSON\Containers\ConfigBlock.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Cecil\DreamyJSON\Parser\ConfigParser.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Cecil\DreamyJSON\Values\ConfigValue.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Cecil\Effects.cpp" />
+    <ClCompile Include="Cecil\Materials.cpp" />
+    <ClCompile Include="Cecil\Physics.cpp" />
+    <ClCompile Include="Cecil\Weapons.cpp" />
     <ClCompile Include="Common\Common.cpp" />
     <ClCompile Include="Common\EmanatingParticles.cpp" />
     <ClCompile Include="Common\HUD.cpp" />
     <ClCompile Include="Common\Particles.cpp" />
     <ClCompile Include="Common\PathFinding.cpp" />
+    <ClCompile Include="Common\UI\UI.cpp" />
     <ClCompile Include="StdH\StdH.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">Create</PrecompiledHeader>
@@ -544,13 +598,57 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     </ClCompile>
     <ClCompile Include="WorldLink.cpp" />
     <ClCompile Include="WorldSettingsController.cpp" />
+    <ClCompile Include="_Radio.cpp" />
+    <ClCompile Include="_RollerMine.cpp" />
+    <ClCompile Include="_SeamlessTP.cpp" />
+    <ClCompile Include="_Sound3D.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Bots\AdvancedPaths.h" />
+    <ClInclude Include="..\Bots\BotFunctions.h" />
+    <ClInclude Include="..\Bots\BotModMain.h" />
+    <ClInclude Include="..\Bots\BotMovement.h" />
+    <ClInclude Include="..\Bots\BotWeapons.h" />
+    <ClInclude Include="..\Bots\NetworkPatch\ServerIntegration.h" />
+    <ClInclude Include="..\Bots\NetworkPatch\StreamBlock.h" />
+    <ClInclude Include="..\Bots\Patcher\patcher.h" />
+    <ClInclude Include="..\Bots\Patcher\patcher_defines.h" />
+    <ClInclude Include="..\Bots\PlayerCommon.h" />
+    <ClInclude Include="..\Bots\SandboxActions.h" />
+    <ClInclude Include="..\Bots\SandboxCommon.h" />
+    <ClInclude Include="..\Bots\_BotMod.h" />
+    <ClInclude Include="BotMod\BotModGlobal.h" />
+    <ClInclude Include="BotMod\BotModGlobal_tables.h" />
+    <ClInclude Include="BotMod\NavMeshGenerator.h" />
+    <ClInclude Include="BotMod\NavMeshGenerator_tables.h" />
+    <ClInclude Include="BotMod\PlayerBot.h" />
+    <ClInclude Include="BotMod\PlayerBot_tables.h" />
+    <ClInclude Include="Cecil\DreamyJSON\Base\Compatibility.h" />
+    <ClInclude Include="Cecil\DreamyJSON\Base\Formatting.h" />
+    <ClInclude Include="Cecil\DreamyJSON\ConfigBase.h" />
+    <ClInclude Include="Cecil\DreamyJSON\ConfigElement.h" />
+    <ClInclude Include="Cecil\DreamyJSON\Containers\ConfigArray.h" />
+    <ClInclude Include="Cecil\DreamyJSON\Containers\ConfigBlock.h" />
+    <ClInclude Include="Cecil\DreamyJSON\DreamyJSON.h" />
+    <ClInclude Include="Cecil\DreamyJSON\Parser\ConfigParser.h" />
+    <ClInclude Include="Cecil\DreamyJSON\Parser\ParserToken.h" />
+    <ClInclude Include="Cecil\DreamyJSON\Values\ConfigValue.h" />
+    <ClInclude Include="Cecil\DreamyStructures\DataArray.h" />
+    <ClInclude Include="Cecil\DreamyStructures\DataList.h" />
+    <ClInclude Include="Cecil\DreamyStructures\DataMap.h" />
+    <ClInclude Include="Cecil\DreamyStructures\DataStack.h" />
+    <ClInclude Include="Cecil\DreamyStructures\DataStructures.h" />
+    <ClInclude Include="Cecil\DreamyStructures\DataTemplates.h" />
+    <ClInclude Include="Cecil\Effects.h" />
+    <ClInclude Include="Cecil\Materials.h" />
+    <ClInclude Include="Cecil\Physics.h" />
+    <ClInclude Include="Cecil\Weapons.h" />
     <ClInclude Include="Common\Common.h" />
     <ClInclude Include="Common\Flags.h" />
     <ClInclude Include="Common\GameInterface.h" />
     <ClInclude Include="Common\Particles.h" />
     <ClInclude Include="Common\PathFinding.h" />
+    <ClInclude Include="Common\UI\UI.h" />
     <ClInclude Include="StdH\StdH.h" />
     <ClInclude Include="Common\WeaponPositions.h" />
     <ClInclude Include="AirElemental.h" />
@@ -864,6 +962,14 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     <ClInclude Include="WorldLink_tables.h" />
     <ClInclude Include="WorldSettingsController.h" />
     <ClInclude Include="WorldSettingsController_tables.h" />
+    <ClInclude Include="_Radio.h" />
+    <ClInclude Include="_Radio_tables.h" />
+    <ClInclude Include="_RollerMine.h" />
+    <ClInclude Include="_RollerMine_tables.h" />
+    <ClInclude Include="_SeamlessTP.h" />
+    <ClInclude Include="_SeamlessTP_tables.h" />
+    <ClInclude Include="_Sound3D.h" />
+    <ClInclude Include="_Sound3D_tables.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="NavigationMarker.es">
@@ -3510,407 +3616,147 @@ ecc EntitiesMP/%(Filename).es </Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="LastFileID.txt" />
-    <CustomBuild Include="..\..\Flesh\Classes\Acid.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\AirWave.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\AmmoItem.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\AmmoPack.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\AnimationChanger.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\AnimationHub.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\ArmorItem.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\BackgroundViewer.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\BasicEffect.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Beast.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\BigHead.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\BlendController.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\BloodSpray.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Boneman.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Bouncer.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Bullet.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Camera.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\FLESH\Classes\CameraMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\CannonBall.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\flesh\Classes\CannonStatic.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Catman.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\flesh\Classes\ChainSawFreak.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Copier.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Counter.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\CrateRider.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Cyborg.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\CyborgBike.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Damager.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Debris.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\flesh\Classes\Demon.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\DestroyableArchitecture.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Devil.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\DevilMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\DevilProjectile.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\DoorController.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Dragonman.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\EffectMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Effector.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Elemental.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\EnemyBase.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\EnemyCounter.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\EnemyDive.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\EnemyFly.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\EnemyMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\EnemyRunInto.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\EnemySpawner.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\flesh\Classes\EntityStateDisplay.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\EnvironmentBase.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\EnvironmentMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Eruptor.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Eyeman.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Fish.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Fishman.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Flame.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\FogMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\GhostBusterRay.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Gizmo.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\GradientMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\GravityMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\GravityRouter.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\flesh\Classes\Grunt.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\flesh\Classes\Guffy.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\HazeMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Headman.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\HealthItem.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Huanman.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Item.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\KeyItem.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Light.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Lightning.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Mamut.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Mamutman.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Mantaman.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Marker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\MessageHolder.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\MessageItem.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\MirrorMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\ModelDestruction.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\ModelHolder.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\ModelHolder2.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\MovingBrush.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\MovingBrushMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\MusicChanger.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\MusicHolder.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\NavigationMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\ParticlesHolder.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Pendulum.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Pipebomb.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Player.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\PlayerActionMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\PlayerAnimator.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\PlayerMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\PlayerView.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\PlayerWeapons.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\PlayerWeaponsEffects.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\FLESH\Classes\PowerUpItem.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Projectile.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\PyramidSpaceShip.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\PyramidSpaceShipMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Reminder.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\RobotDriving.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\RobotFixed.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\RobotFlying.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\RollingStone.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Santa.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Scorpman.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Ship.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\ShipMarker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\flesh\Classes\Shooter.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\SoundHolder.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Switch.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Teleport.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\TouchField.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Trigger.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Twister.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\VoiceHolder.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Walker.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Watcher.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\WatchPlayers.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Water.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\WeaponItem.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Werebull.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\Woman.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\WorldBase.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\WorldLink.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Classes\WorldSettingsController.ecl">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\BeastBig.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\BeastNormal.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\Bomberman.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\Boneman.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\Bull.txt" />
-    <CustomBuild Include="..\..\flesh\DataMP\Messages\Enemies\ChainsawFreak.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\Devil.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\ElementalLava.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\EyemanGreen.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\EyemanPurple.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\Firecracker.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\Fish.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\Gizmo.txt" />
-    <CustomBuild Include="..\..\flesh\DataMP\Messages\Enemies\GruntCommander.txt" />
-    <CustomBuild Include="..\..\flesh\DataMP\Messages\Enemies\GruntSoldier.txt" />
-    <CustomBuild Include="..\..\flesh\DataMP\Messages\Enemies\Guffy.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\Kamikaze.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\Rocketman.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\ScorpmanGeneral.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\ScorpmanSoldier.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\WalkerBig.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\WalkerSmall.txt" />
-    <CustomBuild Include="..\..\Flesh\Data\Messages\Enemies\Woman.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="_Radio.es">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+    </CustomBuild>
+    <CustomBuild Include="_RollerMine.es">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+    </CustomBuild>
+    <CustomBuild Include="_SeamlessTP.es">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+    </CustomBuild>
+    <CustomBuild Include="_Sound3D.es">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/%(Filename).es </Command>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="BotMod\BotModGlobal.es">
+      <FileType>Document</FileType>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/BotMod/%(Filename).es </Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/BotMod/%(Filename).es </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/BotMod/%(Filename).es </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/BotMod/%(Filename).es </Command>
+    </CustomBuild>
+    <CustomBuild Include="BotMod\NavMeshGenerator.es">
+      <FileType>Document</FileType>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/BotMod/%(Filename).es </Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/BotMod/%(Filename).es </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/BotMod/%(Filename).es </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/BotMod/%(Filename).es </Command>
+    </CustomBuild>
+    <CustomBuild Include="BotMod\PlayerBot.es">
+      <FileType>Document</FileType>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/BotMod/%(Filename).es </Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/BotMod/%(Filename).es </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/BotMod/%(Filename).es </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
+ecc EntitiesMP/BotMod/%(Filename).es </Command>
+    </CustomBuild>
+    <None Include="Cecil\DreamyStructures\DataArray.inl" />
+    <None Include="Cecil\DreamyStructures\DataList.inl" />
+    <None Include="Cecil\DreamyStructures\DataMap.inl" />
+    <None Include="Cecil\DreamyStructures\DataStack.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
