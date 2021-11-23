@@ -1,0 +1,14 @@
+This patcher ("patcher.cpp", "patcher.h" and "patcher_defines.h" files) is made by armagedescu.
+
+Original article with the download link.
+https://www.codeproject.com/Articles/34237/A-C-Style-of-Intercepting-Functions
+
+The patcher is licensed under The Code Project Open License (CPOL).
+https://www.codeproject.com/info/cpol10.aspx
+
+A copy of the license is included as "CPOL.htm" file.
+
+
+
+Every other file aside from "patcher.cpp", "patcher.h", "patcher_defines.h" and "CPOL.htm" is a part of the Half-Life 2 Immersion Mod.
+https://github.com/DreamyCecil/HL2IM
