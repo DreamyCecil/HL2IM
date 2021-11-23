@@ -2088,7 +2088,7 @@ functions:
     // [Cecil] TEMP: 7 buttons instead of 10
     for (INDEX iButton = 0; iButton < 7; iButton++) {
       FLOAT2D vSize = FLOAT2D(192, 32);
-      FLOAT2D vOffset = FLOAT2D((iButton % 2) ? 32 : -(vSize(1) + 32), 40*Floor(iButton / 2));
+      FLOAT2D vOffset = FLOAT2D((iButton % 2) ? 32 : -(vSize(1) + 32), 40*floor(iButton / 2));
       FLOAT2D vPos = FLOAT2D(320+vOffset(1), 192+vOffset(2));
 
       //BOOL bMouse = PointBox(m_vMousePointer, vPos, vSize);

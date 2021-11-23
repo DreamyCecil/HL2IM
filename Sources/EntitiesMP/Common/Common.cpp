@@ -499,7 +499,7 @@ void SpawnHitTypeEffect(CEntity *pen, enum BulletHitType bhtType, BOOL bSound, F
           GetNormalComponent( vDistance/fDistance, vHitNormal, ese.vDirection);
           FLOAT fLength = ese.vDirection.Length();
           fLength   = Clamp( fLength*3, 1.0f, 3.0f);
-          fDistance = Clamp( log10(fDistance), 0.5, 2.0);
+          fDistance = Clamp( (FLOAT)log10(fDistance), 0.5f, 2.0f);
           ese.vStretch = FLOAT3D( fDistance, fLength*fDistance, 1.0f);
 
           try {

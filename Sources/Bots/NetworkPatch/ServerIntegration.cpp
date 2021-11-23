@@ -17,7 +17,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "ServerIntegration.h"
 #include "EntitiesMP/Player.h"
 
-#include "EntitiesMP/Patcher/patcher.h"
+#include "Bots/Patcher/patcher.h"
 
 // Server patches
 class CCecilMessageDispatcher : public CMessageDispatcher {

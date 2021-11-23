@@ -144,7 +144,7 @@ void CGame::ConsoleRender(CDrawPort *pdp)
   //LCDRenderGrid();
   LCDRenderClouds2();
   dpConsole.DrawLine( 0, pixSizeJ-1, pixSizeI, pixSizeJ-1, LCDFadedColor(SE_COL_BLUE_NEUTRAL|255));
-  const colFill = (colDark & ~CT_AMASK) | 0x2F;
+  const COLOR colFill = (colDark & ~CT_AMASK) | 0x2F;
   dpConsole.Fill( 0, pixSizeJ-pixLineSpacing*1.6f, pixSizeI, pixLineSpacing*1.6f, colFill);
 
   // setup font
