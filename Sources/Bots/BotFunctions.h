@@ -16,7 +16,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // [Cecil] 2019-06-04: This file is for functions primarily used by PlayerBot class
 #pragma once
 
-#include "EntitiesMP/BotMod/PlayerBot.h"
+#include "Bots/Classes/PlayerBot.h"
 
 #include "BotWeapons.h"
 

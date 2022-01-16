@@ -306,9 +306,9 @@ copy vs2019\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     <ClCompile Include="..\Bots\Patcher\patcher.cpp" />
     <ClCompile Include="..\Bots\SandboxActions.cpp" />
     <ClCompile Include="..\Bots\SandboxCommon.cpp" />
-    <ClCompile Include="BotMod\BotModGlobal.cpp" />
-    <ClCompile Include="BotMod\NavMeshGenerator.cpp" />
-    <ClCompile Include="BotMod\PlayerBot.cpp" />
+    <ClCompile Include="..\Bots\Classes\BotModGlobal.cpp" />
+    <ClCompile Include="..\Bots\Classes\NavMeshGenerator.cpp" />
+    <ClCompile Include="..\Bots\Classes\PlayerBot.cpp" />
     <ClCompile Include="Cecil\DreamyJSON\Base\Compatibility.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
@@ -619,12 +619,12 @@ copy vs2019\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     <ClInclude Include="..\Bots\SandboxActions.h" />
     <ClInclude Include="..\Bots\SandboxCommon.h" />
     <ClInclude Include="..\Bots\_BotMod.h" />
-    <ClInclude Include="BotMod\BotModGlobal.h" />
-    <ClInclude Include="BotMod\BotModGlobal_tables.h" />
-    <ClInclude Include="BotMod\NavMeshGenerator.h" />
-    <ClInclude Include="BotMod\NavMeshGenerator_tables.h" />
-    <ClInclude Include="BotMod\PlayerBot.h" />
-    <ClInclude Include="BotMod\PlayerBot_tables.h" />
+    <ClInclude Include="..\Bots\Classes\BotModGlobal.h" />
+    <ClInclude Include="..\Bots\Classes\BotModGlobal_tables.h" />
+    <ClInclude Include="..\Bots\Classes\NavMeshGenerator.h" />
+    <ClInclude Include="..\Bots\Classes\NavMeshGenerator_tables.h" />
+    <ClInclude Include="..\Bots\Classes\PlayerBot.h" />
+    <ClInclude Include="..\Bots\Classes\PlayerBot_tables.h" />
     <ClInclude Include="Cecil\DreamyJSON\Base\Compatibility.h" />
     <ClInclude Include="Cecil\DreamyJSON\Base\Formatting.h" />
     <ClInclude Include="Cecil\DreamyJSON\ConfigBase.h" />
@@ -3698,62 +3698,62 @@ ecc EntitiesMP/%(Filename).es </Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="BotMod\BotModGlobal.es">
+    <CustomBuild Include="..\Bots\Classes\BotModGlobal.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Bots/Classes/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/BotMod/%(Filename).es </Command>
+ecc Bots/Classes/%(Filename).es </Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">Bots/Classes/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">Bots/Classes/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Bots/Classes/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/BotMod/%(Filename).es </Command>
+ecc Bots/Classes/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/BotMod/%(Filename).es </Command>
+ecc Bots/Classes/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/BotMod/%(Filename).es </Command>
+ecc Bots/Classes/%(Filename).es </Command>
     </CustomBuild>
-    <CustomBuild Include="BotMod\NavMeshGenerator.es">
+    <CustomBuild Include="..\Bots\Classes\NavMeshGenerator.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Bots/Classes/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/BotMod/%(Filename).es </Command>
+ecc Bots/Classes/%(Filename).es </Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">Bots/Classes/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">Bots/Classes/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Bots/Classes/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/BotMod/%(Filename).es </Command>
+ecc Bots/Classes/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/BotMod/%(Filename).es </Command>
+ecc Bots/Classes/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/BotMod/%(Filename).es </Command>
+ecc Bots/Classes/%(Filename).es </Command>
     </CustomBuild>
-    <CustomBuild Include="BotMod\PlayerBot.es">
+    <CustomBuild Include="..\Bots\Classes\PlayerBot.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Bots/Classes/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/BotMod/%(Filename).es </Command>
+ecc Bots/Classes/%(Filename).es </Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/BotMod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">Bots/Classes/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">Bots/Classes/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Bots/Classes/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/BotMod/%(Filename).es </Command>
+ecc Bots/Classes/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/BotMod/%(Filename).es </Command>
+ecc Bots/Classes/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/BotMod/%(Filename).es </Command>
+ecc Bots/Classes/%(Filename).es </Command>
     </CustomBuild>
     <None Include="Cecil\DreamyStructures\DataArray.inl" />
     <None Include="Cecil\DreamyStructures\DataList.inl" />

@@ -50,6 +50,13 @@ enum ESandboxAction {
   ESA_NAVMESH_NEXT,   // chabge point's next important point
 };
 
+// [Cecil] 2022-01-16: Declare friend methods before the structure,
+//                     otherwise compiler won't see them anymore for some reason
+CTStream &operator<<(CTStream &strm, struct SBotSettings &sbs);
+CTStream &operator>>(CTStream &strm, struct SBotSettings &sbs);
+CNetworkMessage &operator<<(CNetworkMessage &nm, struct SBotSettings &sbs);
+CNetworkMessage &operator>>(CNetworkMessage &nm, struct SBotSettings &sbs);
+
 // [Cecil] 2020-07-28: A structure for bot settings
 struct DECL_DLL SBotSettings {
   INDEX b3rdPerson; // Set third person view

@@ -38,7 +38,7 @@ struct SBotThoughts {
 
 // [Cecil] 2021-06-11: Player bot
 #include "EntitiesMP/Player.h"
-#include "EntitiesMP/BotMod/PlayerBot.h"
+#include "Bots/Classes/PlayerBot.h"
 
 // [Cecil] 2019-05-28: NavMesh commands
 extern INDEX MOD_iRenderNavMesh;

@@ -645,13 +645,13 @@
     <ClCompile Include="..\Bots\BotModMain.cpp">
       <Filter>Source Files\Bot Mod sources</Filter>
     </ClCompile>
-    <ClCompile Include="BotMod\BotModGlobal.cpp">
+    <ClCompile Include="..\Bots\Classes\BotModGlobal.cpp">
       <Filter>Source Files\Bot Mod sources\Bot Entity sources</Filter>
     </ClCompile>
-    <ClCompile Include="BotMod\NavMeshGenerator.cpp">
+    <ClCompile Include="..\Bots\Classes\NavMeshGenerator.cpp">
       <Filter>Source Files\Bot Mod sources\Bot Entity sources</Filter>
     </ClCompile>
-    <ClCompile Include="BotMod\PlayerBot.cpp">
+    <ClCompile Include="..\Bots\Classes\PlayerBot.cpp">
       <Filter>Source Files\Bot Mod sources\Bot Entity sources</Filter>
     </ClCompile>
     <ClCompile Include="..\Bots\BotWeapons.cpp">
@@ -1712,22 +1712,22 @@
     <ClInclude Include="..\Bots\NetworkPatch\StreamBlock.h">
       <Filter>Header Files\Bot Mod headers</Filter>
     </ClInclude>
-    <ClInclude Include="BotMod\BotModGlobal.h">
+    <ClInclude Include="..\Bots\Classes\BotModGlobal.h">
       <Filter>Header Files\Bot Mod headers\Bot Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="BotMod\BotModGlobal_tables.h">
+    <ClInclude Include="..\Bots\Classes\BotModGlobal_tables.h">
       <Filter>Header Files\Bot Mod headers\Bot Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="BotMod\NavMeshGenerator.h">
+    <ClInclude Include="..\Bots\Classes\NavMeshGenerator.h">
       <Filter>Header Files\Bot Mod headers\Bot Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="BotMod\NavMeshGenerator_tables.h">
+    <ClInclude Include="..\Bots\Classes\NavMeshGenerator_tables.h">
       <Filter>Header Files\Bot Mod headers\Bot Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="BotMod\PlayerBot.h">
+    <ClInclude Include="..\Bots\Classes\PlayerBot.h">
       <Filter>Header Files\Bot Mod headers\Bot Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="BotMod\PlayerBot_tables.h">
+    <ClInclude Include="..\Bots\Classes\PlayerBot_tables.h">
       <Filter>Header Files\Bot Mod headers\Bot Entity headers</Filter>
     </ClInclude>
     <ClInclude Include="..\Bots\BotWeapons.h">
@@ -2179,13 +2179,13 @@
     <CustomBuild Include="_Sound3D.es">
       <Filter>Class Files\Cecil</Filter>
     </CustomBuild>
-    <CustomBuild Include="BotMod\PlayerBot.es">
+    <CustomBuild Include="..\Bots\Classes\PlayerBot.es">
       <Filter>Class Files\BotMod</Filter>
     </CustomBuild>
-    <CustomBuild Include="BotMod\BotModGlobal.es">
+    <CustomBuild Include="..\Bots\Classes\BotModGlobal.es">
       <Filter>Class Files\BotMod</Filter>
     </CustomBuild>
-    <CustomBuild Include="BotMod\NavMeshGenerator.es">
+    <CustomBuild Include="..\Bots\Classes\NavMeshGenerator.es">
       <Filter>Class Files\BotMod</Filter>
     </CustomBuild>
   </ItemGroup>
