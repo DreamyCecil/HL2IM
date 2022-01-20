@@ -483,8 +483,8 @@ INDEX cht_bDebugFinalBossAnimations = FALSE;
 INDEX cht_bDumpPlayerShading = FALSE;
 
 // misc
-static FLOAT plr_fAcceleration = 70.0f;
-static FLOAT plr_fDeceleration = 40.0f;
+static FLOAT plr_fAcceleration = 85.0f; //70.0f;
+static FLOAT plr_fDeceleration = 50.0f; //40.0f;
 // [Cecil] Replaced by one variable
 //static FLOAT plr_fSpeedForward  = 10.0f;
 //static FLOAT plr_fSpeedBackward = 10.0f;
@@ -1393,6 +1393,7 @@ properties:
 
  220 FLOAT m_fSpeedLimit = 0.0f,
  221 FLOAT m_tmAirTime = 0.0f,
+ 222 BOOL m_bFakeJump = FALSE,
 
  225 FLOAT m_fViewHeight = 0.0f,
  226 ANGLE3D m_aRecoilShake = ANGLE3D(0.0f, 0.0f, 0.0f),
@@ -4009,7 +4010,7 @@ functions:
       // if it doesn't have a reference entity
       } else {
         // if can control after jump
-        if (en_tmMaxJumpControl < 0.0f || _pTimer->CurrentTick()-en_tmJumped < en_tmMaxJumpControl) {
+        if (en_tmMaxJumpControl < 0.0f || _pTimer->CurrentTick() - en_tmJumped < en_tmMaxJumpControl) {
           // accellerate horizontaly, but slower
           AddAccelerationOnPlane(
             vTranslationAbsolute, 
@@ -5672,9 +5673,11 @@ functions:
     en_fAcceleration = plr_fAcceleration;
     en_fDeceleration = plr_fDeceleration;
 
-    // [Cecil] Allow moving mid-air
-    en_tmMaxJumpControl = 1.0f;
-    en_fJumpControlMultiplier = 0.75f;
+    // [Cecil] Allow moving mid-air if haven't jumped from a bouncer
+    if (!m_bFakeJump) {
+      en_tmMaxJumpControl = -1.0f;
+      en_fJumpControlMultiplier = 0.2f;
+    }
 
     // [Cecil] New multipliers
     FLOAT fHorMul = GetSP()->sp_fSpeedMultiplier;
@@ -5718,9 +5721,12 @@ functions:
         m_fFallTime = 0.0f;
 
         // [Cecil] Allow jumping after landing
-        if (vTranslation(2) < 0.1f) {
+        /*if (vTranslation(2) < 0.1f) {
           m_ulFlags |= PLF_JUMPALLOWED;
-        }
+        }*/
+
+        // [Cecil] Reset fake jump
+        m_bFakeJump = FALSE;
 
       // if no reference
       } else {
@@ -5729,15 +5735,15 @@ functions:
       }
 
       // [Cecil] Auto-jump
-      if (GetSP()->sp_iHL2Flags & HL2F_AUTOBHOP) {
-        m_ulFlags |= PLF_JUMPALLOWED;
-      }
-
-      // if not wanting to jump
-      /*if (vTranslation(2) < 0.1f || GetSP()->sp_iHL2Flags & HL2F_AUTOBHOP) {
-        // allow jumping
+      /*if (GetSP()->sp_iHL2Flags & HL2F_AUTOBHOP) {
         m_ulFlags |= PLF_JUMPALLOWED;
       }*/
+
+      // if not wanting to jump
+      if (vTranslation(2) < 0.1f || GetSP()->sp_iHL2Flags & HL2F_AUTOBHOP) {
+        // allow jumping
+        m_ulFlags |= PLF_JUMPALLOWED;
+      }
 
       // if falling
       if (m_fFallTime >= 0.5f) {
@@ -6949,6 +6955,7 @@ functions:
     // [Cecil]
     m_fSpeedLimit = 0.0f;
     m_tmAirTime = 0.0f;
+    m_bFakeJump = FALSE;
     m_fViewHeight = plr_fViewHeightStand;
 
     m_aRecoilShake = ANGLE3D(0.0f, 0.0f, 0.0f);
@@ -8860,6 +8867,11 @@ procedures:
       // support for jumping using bouncers
       on (ETouch eTouch) : {
         if (IsOfClass(eTouch.penOther, "Bouncer")) {
+          // [Cecil] Adjust mid-air control and mark as a fake jump
+          en_tmMaxJumpControl = 1.0f;
+          en_fJumpControlMultiplier = 0.75f;
+          m_bFakeJump = TRUE;
+
           JumpFromBouncer(this, eTouch.penOther);
         }
         resume;
