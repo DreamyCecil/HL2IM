@@ -1167,15 +1167,18 @@ BOOL CGame::NewGame(const CTString &strSessionName, const CTFileName &fnWorld,
 
   // start the new session
   try {
-    if( dem_bPlay) {
+    if (dem_bPlay) {
       gm_aiStartLocalPlayers[0] = -2;
 
       CTFileName fnmDemo = CTString("Temp\\Play.dem");
+
       if( dem_bPlayByName) {
         fnmDemo = fnWorld;
       }
+
       CAM_Start(fnmDemo);
       _pNetwork->StartDemoPlay_t(fnmDemo);
+
     } else {
       BOOL bWaitAllPlayers = sp.sp_bWaitAllPlayers && _pNetwork->IsNetworkEnabled();
       _pNetwork->StartPeerToPeer_t( strSessionName, fnWorld, 
@@ -1183,13 +1186,24 @@ BOOL CGame::NewGame(const CTString &strSessionName, const CTFileName &fnWorld,
 
       // [Cecil] 2021-06-19: Bot mod
       CECIL_BotGameStart(sp);
+      
+      // [Cecil] Create global controller entity
+      CWorld *pwo = &_pNetwork->ga_World;
+      CPlacement3D plGlobal = CPlacement3D(FLOAT3D(0.0f, 0.0f, 0.0f), ANGLE3D(0.0f, 0.0f, 0.0f));
+
+      CEntity *penGlobal = pwo->CreateEntity_t(plGlobal, CTFILENAME("Classes\\GlobalController.ecl"));
+      penGlobal->Initialize();
     }
+
   } catch (char *strError) {
     gm_bFirstLoading = FALSE;
+
     // stop network provider
     _pNetwork->StopProvider();
+
     // and display error
     CPrintF(TRANS("Cannot start game:\n%s\n"), strError);
+
     return FALSE;
   }
 

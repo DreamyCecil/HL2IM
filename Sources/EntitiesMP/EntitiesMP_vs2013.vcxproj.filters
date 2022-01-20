@@ -663,6 +663,9 @@
     <ClCompile Include="..\Bots\Patcher\patcher.cpp">
       <Filter>Source Files\Patcher sources</Filter>
     </ClCompile>
+    <ClCompile Include="_GlobalController.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Common.h">
@@ -1745,6 +1748,12 @@
     <ClInclude Include="..\Bots\Patcher\patcher_defines.h">
       <Filter>Header Files\Patcher headers</Filter>
     </ClInclude>
+    <ClInclude Include="_GlobalController.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="_GlobalController_tables.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="NavigationMarker.es">
@@ -2187,6 +2196,9 @@
     </CustomBuild>
     <CustomBuild Include="..\Bots\Classes\NavMeshGenerator.es">
       <Filter>Class Files\BotMod</Filter>
+    </CustomBuild>
+    <CustomBuild Include="_GlobalController.es">
+      <Filter>Class Files\Cecil</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
