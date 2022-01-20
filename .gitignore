@@ -68,6 +68,7 @@ Sources/GameMP/vs2019/*
 
 # Generated configuration files
 *.plr
+*.plr.guid
 *.log
 *.rpt	# crashinfo
 
