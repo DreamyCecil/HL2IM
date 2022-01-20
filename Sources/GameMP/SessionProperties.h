@@ -24,7 +24,7 @@ enum EHL2Gamemode {
 };
 
 // [Cecil] Arms race levels
-#define CT_ARMSRACE_LEVELS 10
+#define CT_ARMSRACE_LEVELS 11
 
 /*
  * Class responsible for describing game session

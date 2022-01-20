@@ -1248,7 +1248,7 @@ functions:
         INDEX iLevel = m_iArmsRaceLevel/3;
 
         if (bCoop) {
-          iLevel = iLevel % CT_ARMSRACE_LEVELS;
+          iLevel = iLevel % (CT_ARMSRACE_LEVELS - 1);
         }
 
         switch (iLevel) {
@@ -1273,6 +1273,7 @@ functions:
       case HLGM_BUNNYHUNT: return WEAPON_G3SG1;
       case HLGM_MINEKILL: return WEAPON_GRAVITYGUN;
     }
+
     return WEAPON_NONE;
   };
 
@@ -2137,7 +2138,9 @@ functions:
       // remember position ahead
       FLOAT3D vDir = vRayTarget - vRayOrigin;
       vDir.Normalize();
-      m_vRayHit = vRayOrigin + vDir * 50.0f;
+
+      // [Cecil] Hit point is much further away
+      m_vRayHit = vRayOrigin + vDir * 500.0f; //50.0f;
     }
 
     // determine snooping time

@@ -5008,7 +5008,7 @@ functions:
       switch (iMode) {
         case HLGM_ARMSRACE:
           if (!GetSP()->sp_bCooperative && !GetSP()->sp_bSinglePlayer) {
-            bFinished = (m_psLevelStats.ps_iKills > CT_ARMSRACE_LEVELS);
+            bFinished = (m_psLevelStats.ps_iKills >= CT_ARMSRACE_LEVELS);
           }
           bGamemode = TRUE;
           break;
