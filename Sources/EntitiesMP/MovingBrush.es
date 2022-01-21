@@ -151,12 +151,19 @@ functions:
     PrecacheModel(MODEL_STONE);
     PrecacheTexture(TEXTURE_STONE);
   }
+
   /* Get force in given point. */
   void GetForce(INDEX iForce, const FLOAT3D &vPoint, 
     CForceStrength &fsGravity, CForceStrength &fsField)
   {
     GetDefaultForce(iForce, vPoint, fsGravity, fsField);
+    
+    // [Cecil] Low gravity for this gamemode
+    if (GetSP()->sp_iHLGamemode == HLGM_FLYROCKET) {
+      fsGravity.fs_fAcceleration *= 0.2f;
+    }
   }
+
   /* Receive damage */
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType,
     FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) {

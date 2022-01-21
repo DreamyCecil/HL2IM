@@ -123,7 +123,7 @@ functions:
     INDEX iMode = GetSP()->sp_iHLGamemode;
 
     switch (iMode) {
-      case HLGM_BUNNYHUNT: case HLGM_MINEKILL:
+      case HLGM_BUNNYHUNT: case HLGM_MINEKILL: case HLGM_FLYROCKET:
         StartModelAnim(ITEMHOLDER_ANIM_SMALLOSCILATION, AOF_LOOPING|AOF_NORESTART);
         ForceCollisionBoxIndexChange(ITEMHOLDER_COLLISION_BOX_BIG);
 
@@ -196,7 +196,8 @@ procedures:
 
     switch (iMode) {
       case HLGM_BUNNYHUNT:
-      case HLGM_MINEKILL: {
+      case HLGM_MINEKILL:
+      case HLGM_FLYROCKET: {
         // send powerup to entity
         EPowerUp ePowerUp;
         ePowerUp.puitType = PUIT_INVISIB;

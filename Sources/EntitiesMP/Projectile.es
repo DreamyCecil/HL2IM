@@ -1043,9 +1043,12 @@ void PlayerRocket(void) {
   SetCollisionFlags(ECF_PROJECTILE_SOLID);
   SetModel(MODEL_RPG_ROCKET);
   SetModelMainTexture(TEXTURE_RPG_ROCKET);
+
   // start moving
-  LaunchAsPropelledProjectile(FLOAT3D(0.0f, 0.0f, -50.0f), (CMovableEntity*)(CEntity*)m_penLauncher);
+  FLOAT fSpeed = (GetSP()->sp_iHLGamemode == HLGM_FLYROCKET ? -100.0f : -50.0f);
+  LaunchAsPropelledProjectile(FLOAT3D(0.0f, 0.0f, fSpeed), (CMovableEntity*)(CEntity*)m_penLauncher);
   SetDesiredRotation(ANGLE3D(0, 0, 0));
+
   // play the flying sound
   m_soEffect.Set3DParameters(50.0f, 10.0f, 1.0f, 1.0f);
   PlaySound(m_soEffect, SOUND_RPG_ROCKET, SOF_3D|SOF_LOOP);
@@ -1073,7 +1076,7 @@ void PlayerRocket(void) {
 
   // [Cecil]
   Particles_AfterBurner_Prepare(this);
-  m_aRotateSpeed = 400.0f;
+  m_aRotateSpeed = (GetSP()->sp_iHLGamemode == HLGM_FLYROCKET ? 40000.0f : 400.0f);
   m_pmtMove = PMT_HOMING;
 };
 

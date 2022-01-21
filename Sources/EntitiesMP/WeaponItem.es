@@ -242,6 +242,7 @@ functions:
         case HLGM_DISSOLVE: m_EwitType = WIT_AR2; break;
         case HLGM_BUNNYHUNT: m_EwitType = WIT_CROSSBOW; break;
         case HLGM_MINEKILL: m_EwitType = WIT_GRAVITYGUN; break;
+        case HLGM_FLYROCKET: m_EwitType = WIT_RPG; break;
       }
     }
 

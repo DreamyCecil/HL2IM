@@ -19,6 +19,7 @@ enum EHL2Gamemode {
   HLGM_DISSOLVE,  // Only AR2 with infinite Energy Balls
   HLGM_BUNNYHUNT, // Auto-bunnyhopping with sniper rifles, 1.5x speed and jumping
   HLGM_MINEKILL,  // Only Gravity Gun with rollermines instead of weapon and ammo items
+  HLGM_FLYROCKET, // Low gravity and only RPGs
 
   HLGM_LAST,
 };

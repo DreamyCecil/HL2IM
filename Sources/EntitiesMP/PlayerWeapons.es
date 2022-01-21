@@ -1055,8 +1055,13 @@ functions:
     INDEX *piAmmo = GetAmmo();
     INDEX iReload = ClampUp(*GetMaxMagPointer() - *piMag, *piAmmo);
 
-    DecAmmo(iReload, FALSE);
-    *piMag += iReload;
+    if (GetSP()->sp_bInfiniteAmmo) {
+      *piMag = *GetMaxMagPointer();
+
+    } else {
+      DecAmmo(iReload, FALSE);
+      *piMag += iReload;
+    }
   };
 
   // [Cecil] Moved from before the class definition.
@@ -1272,6 +1277,7 @@ functions:
       case HLGM_DISSOLVE: return WEAPON_AR2;
       case HLGM_BUNNYHUNT: return WEAPON_G3SG1;
       case HLGM_MINEKILL: return WEAPON_GRAVITYGUN;
+      case HLGM_FLYROCKET: return WEAPON_RPG;
     }
 
     return WEAPON_NONE;
@@ -3922,6 +3928,7 @@ functions:
       case HLGM_DISSOLVE:
       case HLGM_BUNNYHUNT:
       case HLGM_MINEKILL:
+      case HLGM_FLYROCKET:
         return;
     }
 
@@ -3972,24 +3979,24 @@ functions:
     INDEX wit = Ewi.iWeapon;
 
     // [Cecil] Corrected weapons
-    if (GetSP()->sp_iHLGamemode == HLGM_BUNNYHUNT) {
-      wit = WEAPON_G3SG1;
+    switch (GetSP()->sp_iHLGamemode) {
+      case HLGM_BUNNYHUNT: wit = WEAPON_G3SG1; break;
+      case HLGM_MINEKILL: wit = WEAPON_GRAVITYGUN; break;
+      case HLGM_FLYROCKET: wit = WEAPON_RPG; break;
 
-    } else if (GetSP()->sp_iHLGamemode == HLGM_MINEKILL) {
-      wit = WEAPON_GRAVITYGUN;
-
-    } else {
-      switch (wit) {
-        case WIT_CROWBAR: wit = WEAPON_CROWBAR; break;
-        case WIT_GRAVITYGUN: wit = WEAPON_GRAVITYGUN; break;
-        case WIT_USP: wit = WEAPON_PISTOL; break;
-        case WIT_357: wit = WEAPON_357; break;
-        case WIT_SPAS: wit = WEAPON_SPAS; break;
-        case WIT_SMG1: wit = WEAPON_SMG1; break;
-        case WIT_GRENADE: wit = WEAPON_GRENADE; break;
-        case WIT_CROSSBOW: wit = WEAPON_CROSSBOW; break;
-        case WIT_AR2: wit = WEAPON_AR2; break;
-        case WIT_RPG: wit = WEAPON_RPG; break;
+      default: {
+        switch (wit) {
+          case WIT_CROWBAR: wit = WEAPON_CROWBAR; break;
+          case WIT_GRAVITYGUN: wit = WEAPON_GRAVITYGUN; break;
+          case WIT_USP: wit = WEAPON_PISTOL; break;
+          case WIT_357: wit = WEAPON_357; break;
+          case WIT_SPAS: wit = WEAPON_SPAS; break;
+          case WIT_SMG1: wit = WEAPON_SMG1; break;
+          case WIT_GRENADE: wit = WEAPON_GRENADE; break;
+          case WIT_CROSSBOW: wit = WEAPON_CROSSBOW; break;
+          case WIT_AR2: wit = WEAPON_AR2; break;
+          case WIT_RPG: wit = WEAPON_RPG; break;
+        }
       }
     }
 

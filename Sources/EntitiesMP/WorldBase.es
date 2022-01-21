@@ -1165,6 +1165,11 @@ functions:
     }
     fsField.fs_fAcceleration = 0;
     fsField.fs_fVelocity = 0;
+
+    // [Cecil] Low gravity for this gamemode
+    if (GetSP()->sp_iHLGamemode == HLGM_FLYROCKET) {
+      fsGravity.fs_fAcceleration *= 0.2f;
+    }
   }
 
   /* Get entity that controls the force, used for change notification checking. */

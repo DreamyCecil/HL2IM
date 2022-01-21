@@ -312,6 +312,7 @@ functions:
         case HLGM_ARMSRACE: m_EaitType = AIT_BACKPACK; break;
         case HLGM_DISSOLVE: m_EaitType = AIT_AR2; break;
         case HLGM_BUNNYHUNT: m_EaitType = AIT_BOLTS; break;
+        case HLGM_FLYROCKET: m_EaitType = AIT_RPG; break;
       }
     }
 

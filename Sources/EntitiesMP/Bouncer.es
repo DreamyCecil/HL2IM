@@ -19,8 +19,13 @@ extern DECL_DLL void JumpFromBouncer(CEntity *penToBounce, CEntity *penBouncer)
     // give it speed
     FLOAT3D vDir;
     AnglesToDirectionVector(pbo->m_aDirection, vDir);
-    pmen->FakeJump(pmen->en_vIntendedTranslation, vDir, pbo->m_fSpeed, 
-      -pbo->m_fParallelComponentMultiplier, pbo->m_fNormalComponentMultiplier, pbo->m_fMaxExitSpeed, pbo->m_tmControl);
+
+    // [Cecil] Adjust jump speed and control time
+    FLOAT fSpeed = pbo->m_fSpeed * (GetSP()->sp_iHLGamemode == HLGM_FLYROCKET ? 0.5f : 1.0f);
+    FLOAT fControl = pbo->m_tmControl * (GetSP()->sp_iHLGamemode == HLGM_FLYROCKET ? 2.0f : 1.0f);
+
+    pmen->FakeJump(pmen->en_vIntendedTranslation, vDir, fSpeed, 
+      -pbo->m_fParallelComponentMultiplier, pbo->m_fNormalComponentMultiplier, pbo->m_fMaxExitSpeed, fControl);
   }
 }
 

@@ -5012,6 +5012,7 @@ functions:
 
       // [Cecil] Recoil power
       m_fLastRecoilPower = m_fRecoilPower;
+
       if (Abs(m_fRecoilPower) > 0.01f) {
         m_fRecoilPower /= 1.1f;
       } else {
