@@ -6006,7 +6006,7 @@ procedures:
         INDEX iDamageType = (GetSP()->sp_iHLGamemode == HLGM_BUNNYHUNT ? DMT_RIFLE : DMT_BULLET);
         //FireMachineBullet(1000.0f, (!GetSP()->sp_bUseFrags ? 100.0f : 75.0f), 0.0f, 0.1f, iDamageType, TRUE);
         FireRod();
-        DoRecoil(ANGLE3D(Lerp(-1.5f, 1.5f, FRnd()), 3.0f + FRnd()*2.0f, 0.0f), 2.0f);
+        DoRecoil(ANGLE3D(Lerp(-1.5f, 1.5f, FRnd()), 8.0f + FRnd()*2.0f, 0.0f), 10.0f);
 
         DecMag(GetMagPointer(), 1);
         SpawnRangeSound(50.0f);
