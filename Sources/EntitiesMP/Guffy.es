@@ -201,7 +201,7 @@ functions:
 
   // [Cecil] Drop weapons
   void DropItems(void) {
-    if (GetSP()->sp_iHLGamemode != HLGM_BUNNYHUNT && IRnd() % 2) {
+    if (IRnd() % 2) {
       // either AR2 or alt ammo
       if (IRnd() % 4) {
         CEntityPointer pen = SpawnWeapon();

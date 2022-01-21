@@ -156,9 +156,6 @@ static void HL2_Parameters(CSessionProperties &sp) {
   sp.sp_iHLGamemode = hl2_iGamemode;
 
   switch (hl2_iGamemode) {
-    case HLGM_ARMSRACE:
-      break;
-
     case HLGM_DISSOLVE:
       sp.sp_iHL2Flags |= HL2F_INFALT;
       break;
@@ -169,9 +166,11 @@ static void HL2_Parameters(CSessionProperties &sp) {
       sp.sp_iHL2Flags &= ~HL2F_GM_MASK;
       sp.sp_iHL2Flags |= HL2F_INFALT|HL2F_BHOP|HL2F_AUTOBHOP;
       break;
+  }
 
-    case HLGM_MINEKILL:
-      break;
+  // disable enemy drops in gamemodes
+  if (hl2_iGamemode != HLGM_NONE) {
+    sp.sp_iHL2Flags &= ~HL2F_ENEMYDROP;
   }
 };
 

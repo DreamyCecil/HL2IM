@@ -2862,7 +2862,7 @@ procedures:
     }*/
 
     // [Cecil] Drop enemy weapon
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMYDROP && GetSP()->sp_iHLGamemode != HLGM_MINEKILL) {
+    if (GetSP()->sp_iHL2Flags & HL2F_ENEMYDROP) {
       DropItems();
     }
 
