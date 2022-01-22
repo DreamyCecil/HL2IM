@@ -6,7 +6,7 @@
 // [Cecil] Gravity Gun actions
 #include "EntitiesMP/Cecil/Physics.h"
 // [Cecil] Roller Mine spawning
-#include "EntitiesMP/_RollerMine.h"
+#include "EntitiesMP/Mod/RollerMine.h"
 
 // [Cecil] Static items on the ground
 #define EPF_GROUND_ITEM (EPF_ONBLOCK_STOPEXACT|EPF_PUSHABLE|EPF_MOVABLE|EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY)

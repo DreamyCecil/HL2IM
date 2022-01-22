@@ -98,8 +98,8 @@ Sources/EntitiesMP/*.h
 Sources/EntitiesMP/*.cpp
 !Sources/EntitiesMP/Common/*
 !Sources/EntitiesMP/StdH/*
-Sources/EntitiesMP/BotMod/*.h
-Sources/EntitiesMP/BotMod/*.cpp
+Sources/EntitiesMP/Mod/*.h
+Sources/EntitiesMP/Mod/*.cpp
 Sources/Entities/*.cpp
 Sources/Entities/*.h
 !Sources/Entities/Common/*

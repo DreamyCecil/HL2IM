@@ -48,8 +48,8 @@
 #include "EntitiesMP/Cecil/Weapons.h"   // [Cecil] Weapon Flags
 #include "EntitiesMP/Common/UI/UI.h"    // [Cecil] UI Elements
 #include "HL2Models/ItemHandler.h"      // [Cecil] Item attachments
-#include "EntitiesMP/_RollerMine.h"     // [Cecil] Roller Mine spawning
-#include "EntitiesMP/_Radio.h"          // [Cecil] Radio spawning
+#include "EntitiesMP/Mod/RollerMine.h"  // [Cecil] Roller Mine spawning
+#include "EntitiesMP/Mod/Radio.h"       // [Cecil] Radio spawning
 
 #define FL_PLACE CPlacement3D(FLOAT3D(-32000.0f, -512.0f, -32000.0f), ANGLE3D(0.0f, 0.0f, 0.0f))
 extern BOOL _bMaterialsLoaded;

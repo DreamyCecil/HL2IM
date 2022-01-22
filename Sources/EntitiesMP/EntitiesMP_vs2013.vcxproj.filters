@@ -153,16 +153,16 @@
     <ClCompile Include="Cecil\DreamyJSON\Values\ConfigValue.cpp">
       <Filter>Source Files\DreamyJSON sources</Filter>
     </ClCompile>
-    <ClCompile Include="_Radio.cpp">
+    <ClCompile Include="Mod\Radio.cpp">
       <Filter>Source Files\Entity sources</Filter>
     </ClCompile>
-    <ClCompile Include="_RollerMine.cpp">
+    <ClCompile Include="Mod\RollerMine.cpp">
       <Filter>Source Files\Entity sources</Filter>
     </ClCompile>
-    <ClCompile Include="_SeamlessTP.cpp">
+    <ClCompile Include="Mod\SeamlessTP.cpp">
       <Filter>Source Files\Entity sources</Filter>
     </ClCompile>
-    <ClCompile Include="_Sound3D.cpp">
+    <ClCompile Include="Mod\Sound3D.cpp">
       <Filter>Source Files\Entity sources</Filter>
     </ClCompile>
     <ClCompile Include="AirElemental.cpp">
@@ -663,7 +663,7 @@
     <ClCompile Include="..\Bots\Patcher\patcher.cpp">
       <Filter>Source Files\Patcher sources</Filter>
     </ClCompile>
-    <ClCompile Include="_GlobalController.cpp">
+    <ClCompile Include="Mod\GlobalController.cpp">
       <Filter>Source Files\Entity sources</Filter>
     </ClCompile>
   </ItemGroup>
@@ -752,28 +752,28 @@
     <ClInclude Include="Cecil\DreamyStructures\DataTemplates.h">
       <Filter>Header Files\DreamyStructures headers</Filter>
     </ClInclude>
-    <ClInclude Include="_Radio.h">
+    <ClInclude Include="Mod\Radio.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="_Radio_tables.h">
+    <ClInclude Include="Mod\Radio_tables.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="_RollerMine.h">
+    <ClInclude Include="Mod\RollerMine.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="_RollerMine_tables.h">
+    <ClInclude Include="Mod\RollerMine_tables.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="_SeamlessTP.h">
+    <ClInclude Include="Mod\SeamlessTP.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="_SeamlessTP_tables.h">
+    <ClInclude Include="Mod\SeamlessTP_tables.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="_Sound3D.h">
+    <ClInclude Include="Mod\Sound3D.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="_Sound3D_tables.h">
+    <ClInclude Include="Mod\Sound3D_tables.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
     <ClInclude Include="AirElemental.h">
@@ -1748,10 +1748,10 @@
     <ClInclude Include="..\Bots\Patcher\patcher_defines.h">
       <Filter>Header Files\Patcher headers</Filter>
     </ClInclude>
-    <ClInclude Include="_GlobalController.h">
+    <ClInclude Include="Mod\GlobalController.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="_GlobalController_tables.h">
+    <ClInclude Include="Mod\GlobalController_tables.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
   </ItemGroup>
@@ -2176,16 +2176,16 @@
     <CustomBuild Include="LastFileID.txt">
       <Filter>Class Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="_Radio.es">
+    <CustomBuild Include="Mod\Radio.es">
       <Filter>Class Files\Cecil</Filter>
     </CustomBuild>
-    <CustomBuild Include="_RollerMine.es">
+    <CustomBuild Include="Mod\RollerMine.es">
       <Filter>Class Files\Cecil</Filter>
     </CustomBuild>
-    <CustomBuild Include="_SeamlessTP.es">
+    <CustomBuild Include="Mod\SeamlessTP.es">
       <Filter>Class Files\Cecil</Filter>
     </CustomBuild>
-    <CustomBuild Include="_Sound3D.es">
+    <CustomBuild Include="Mod\Sound3D.es">
       <Filter>Class Files\Cecil</Filter>
     </CustomBuild>
     <CustomBuild Include="..\Bots\Classes\PlayerBot.es">
@@ -2197,7 +2197,7 @@
     <CustomBuild Include="..\Bots\Classes\NavMeshGenerator.es">
       <Filter>Class Files\BotMod</Filter>
     </CustomBuild>
-    <CustomBuild Include="_GlobalController.es">
+    <CustomBuild Include="Mod\GlobalController.es">
       <Filter>Class Files\Cecil</Filter>
     </CustomBuild>
   </ItemGroup>

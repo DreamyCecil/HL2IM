@@ -4,7 +4,7 @@
 
 // [Cecil]
 #include "EntitiesMP/EnemyBase.h"
-#include "EntitiesMP/_Sound3D.h"
+#include "EntitiesMP/Mod/Sound3D.h"
 #include "EntitiesMP/Cecil/Effects.h"
 %}
 
