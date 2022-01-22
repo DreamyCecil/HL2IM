@@ -177,9 +177,6 @@ components:
 157 sound  SOUND_TAUNT08    "ModelsMP\\Enemies\\Summoner\\Sounds\\Quote15.wav",
 158 sound  SOUND_TAUNTLAST  "ModelsMP\\Enemies\\Summoner\\Sounds\\Quote16.wav",
 
-// [Cecil] Appearance quote
-160 sound SOUND_APPEAR "ModelsMP\\Enemies\\Summoner\\Sounds\\Appear.wav",
-
 functions:
   void Read_t( CTStream *istr) // throw char *
   { 
@@ -309,9 +306,7 @@ functions:
     for (INDEX i=SOUND_TAUNT01; i<=SOUND_TAUNTLAST; i++) { 
       PrecacheSound(i); 
     }
-
-    // [Cecil]
-    PrecacheSound(SOUND_APPEAR);
+  
   };
 
 
@@ -794,13 +789,6 @@ functions:
     m_emEmiter.RenderParticles();
   }
   
-  // [Cecil] Update model
-  void AdjustDifficulty(void) {
-    SetComponents(this, *GetModelObject(), MODEL_SUMMONER, TEXTURE_SUMMONER, 0, 0, 0); 
-    AddAttachmentToModel(this, *GetModelObject(), SUMMONER_ATTACHMENT_STAFF, MODEL_STAFF, TEXTURE_STAFF, 0, 0, 0);
-    GetModelObject()->StretchModel(FLOAT3D(m_fStretch, m_fStretch, m_fStretch));
-    ModelChangeNotify();
-  };
 
 procedures:
   
@@ -1389,9 +1377,6 @@ procedures:
     SetCollisionFlags(ECF_MODEL);
 
     PlaySound(m_soTeleport, SOUND_MATERIALIZE, SOF_3D);
-
-    // [Cecil] Appearance quote
-    PlaySound(m_soChant, SOUND_APPEAR, SOF_3D);
 
     StartModelAnim(SUMMONER_ANIM_APPEARING, SOF_SMOOTHCHANGE);
     autowait(GetModelObject()->GetAnimLength(SUMMONER_ANIM_APPEARING));

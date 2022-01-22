@@ -211,9 +211,7 @@ functions:
       } else {
         // if flesh entity
         if (crRay.cr_penHit->GetEntityInfo() != NULL) {
-          if (((EntityInfo*)crRay.cr_penHit->GetEntityInfo())->Eeibt == EIBT_FLESH
-          // [Cecil] Some enemies leave goo
-          || IsOfClass(crRay.cr_penHit, "Boneman") || IsOfClass(crRay.cr_penHit, "Werebull")) {
+          if (((EntityInfo*)crRay.cr_penHit->GetEntityInfo())->Eeibt == EIBT_FLESH) {
             CEntity *penOfFlesh = crRay.cr_penHit;
             FLOAT3D vHitNormal = (GetPlacement().pl_PositionVector-m_vTarget).Normalize();
             FLOAT3D vOldHitPos = crRay.cr_vHit;
@@ -231,11 +229,7 @@ functions:
               vHitNormal = FLOAT3D(0, 0, 0);
             }
 
-            // [Cecil] Own type (+ Boneman & Werebull)
-            if (IsOfClass(penOfFlesh, "Gizmo") || IsOfClass(penOfFlesh, "Boneman") || IsOfClass(penOfFlesh, "Werebull")) {
-              SpawnHitTypeEffect(this, BHT_GOO, bSound, vHitNormal, crRay.cr_vHit, vHitDirection, vDistance);
-
-            } else if (IsOfClass(penOfFlesh, "Beast")) {
+            if (IsOfClass(penOfFlesh, "Gizmo") || IsOfClass(penOfFlesh, "Beast")) {
               // spawn green blood hit spill effect
               SpawnHitTypeEffect(this, BHT_ACID, bSound, vHitNormal, crRay.cr_vHit, vHitDirection, vDistance);
             } else {

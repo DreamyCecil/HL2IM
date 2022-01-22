@@ -175,11 +175,6 @@ functions:
 
       CPlacement3D pl(FLOAT3D(CosFast(fA)*fR, 0.05f, SinFast(fA)*fR), ANGLE3D(0, 0, 0));
 
-      // [Cecil] Spawn Eyeman with forced flight a bit higher
-      if (IsOfClass(pen, "Eyeman") && ((CEyeman&)*pen).m_bForcedFlight) {
-        pl.pl_PositionVector(2) += 1.0f;
-      }
-
       pl.RelativeToAbsolute(GetPlacement());
 
       // teleport back

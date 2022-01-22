@@ -16,12 +16,9 @@ static EntityInfo eiGuffy = {
   0.0f, 1.0f, 0.0f,     // target (body)
 };
 
-//#define FIRE_LEFT_ARM   FLOAT3D(-0.56f, +1.125f, -1.32f)
-//#define FIRE_RIGHT_ARM  FLOAT3D(+0.50f, +1.060f, -0.82f)
+#define FIRE_LEFT_ARM   FLOAT3D(-0.56f, +1.125f, -1.32f)
+#define FIRE_RIGHT_ARM  FLOAT3D(+0.50f, +1.060f, -0.82f)
 
-// [Cecil] Different positions
-#define FIRE_LEFT_ARM   FLOAT3D(-0.25f, +1.125f, -0.5f)
-#define FIRE_RIGHT_ARM  FLOAT3D(+0.25f, +1.060f, -0.5f)
 %}
 
 
@@ -61,7 +58,7 @@ functions:
   // describe how this enemy killed player
   virtual CTString GetPlayerKillDescription(const CTString &strPlayerName, const EDeath &eDeath) {
     CTString str;
-    str.PrintF(TRANS("%s has been dissolved by an Overwatch Elite soldier"), strPlayerName);
+    str.PrintF(TRANS("Guffy gunned %s down"), strPlayerName);
     return str;
   };
 
@@ -139,6 +136,19 @@ functions:
   void DeathSound(void) {
     PlaySound(m_soSound, SOUND_DEATH, SOF_3D);
   };
+
+  // fire rocket
+  void FireRocket(FLOAT3D &vPos) {
+    CPlacement3D plRocket;
+    plRocket.pl_PositionVector = vPos;
+    plRocket.pl_OrientationAngle = ANGLE3D(0, -5.0f-FRnd()*10.0f, 0);
+    plRocket.RelativeToAbsolute(GetPlacement());
+    CEntityPointer penProjectile = CreateEntity(plRocket, CLASS_PROJECTILE);
+    ELaunchProjectile eLaunch;
+    eLaunch.penLauncher = this;
+    eLaunch.prtType = PRT_GUFFY_PROJECTILE;
+    penProjectile->Initialize(eLaunch);
+  };
   
   // adjust sound and watcher parameters here if needed
   void EnemyPostInit(void) {
@@ -184,49 +194,6 @@ functions:
     return -1.0f;
   };
 
-  // [Cecil] Reload the model
-  void AdjustDifficulty(void) {
-    SetModel(MODEL_GUFFY);
-    m_fSize = 1.5f;
-    SetModelMainTexture(TEXTURE_GUFFY);
-    AddAttachment(GUFFY_ATTACHMENT_GUNRIGHT, MODEL_GUN, TEXTURE_GUN);
-    AddAttachment(GUFFY_ATTACHMENT_GUNLEFT, MODEL_GUN, TEXTURE_GUN);
-    GetModelObject()->StretchModel(FLOAT3D(m_fSize, m_fSize, m_fSize));
-    ModelChangeNotify();
-    CModelObject *pmoRight = &GetModelObject()->GetAttachmentModel(GUFFY_ATTACHMENT_GUNRIGHT)->amo_moModelObject;
-    pmoRight->StretchModel(FLOAT3D(-1,1,1));
-
-    CEnemyBase::AdjustDifficulty();
-  };
-
-  // [Cecil] Drop weapons
-  void DropItems(void) {
-    if (IRnd() % 2) {
-      // either AR2 or alt ammo
-      if (IRnd() % 4) {
-        CEntityPointer pen = SpawnWeapon();
-        pen->Initialize();
-
-        CWeaponItem *penWeapon = (CWeaponItem*)&*pen;
-        penWeapon->m_EwitType = WIT_AR2;
-        penWeapon->m_bDropped = TRUE;
-        penWeapon->m_bPickupOnce = TRUE;
-        penWeapon->m_fDropTime = 20.0f;
-        pen->Reinitialize();
-
-      } else {
-        CEntityPointer pen = SpawnPowerUp();
-        pen->Initialize();
-
-        CPowerUpItem *penPower = (CPowerUpItem*)&*pen;
-        penPower->m_bDropped = TRUE;
-        penPower->m_bPickupOnce = TRUE;
-        penPower->m_fDropTime = 30.0f;
-        pen->Reinitialize();
-      }
-    }
-  };
-
 procedures:
 /************************************************************
  *                A T T A C K   E N E M Y                   *
@@ -243,25 +210,18 @@ procedures:
     fLookRight = fLookRight * m;
     BOOL bEnemyRight = fLookRight % (m_penEnemy->GetPlacement().pl_PositionVector - GetPlacement().pl_PositionVector);
 
-    // [Cecil] Launch an energy ball
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES1) {
-      ShootProjectile(PRT_ENERGY_BALL, FIRE_RIGHT_ARM*m_fSize, ANGLE3D(0, 0, 0));
+    if (bEnemyRight >= 0) { // enemy is to the right of guffy
+      ShootProjectile(PRT_GUFFY_PROJECTILE, FIRE_LEFT_ARM*m_fSize, ANGLE3D(0, 0, 0));
       PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
-
-    } else {
-      if (bEnemyRight >= 0) { // enemy is to the right of guffy
-        ShootProjectile(PRT_GUFFY_PROJECTILE, FIRE_LEFT_ARM*m_fSize, ANGLE3D(0, 0, 0));
-        PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
-      
-        ShootProjectile(PRT_GUFFY_PROJECTILE, FIRE_RIGHT_ARM*m_fSize, ANGLE3D(-9, 0, 0));
-        PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
-      } else { // enemy is to the left of guffy
-        ShootProjectile(PRT_GUFFY_PROJECTILE, FIRE_LEFT_ARM*m_fSize, ANGLE3D(9, 0, 0));
-        PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
-      
-        ShootProjectile(PRT_GUFFY_PROJECTILE, FIRE_RIGHT_ARM*m_fSize, ANGLE3D(0, 0, 0));
-        PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
-      }
+    
+      ShootProjectile(PRT_GUFFY_PROJECTILE, FIRE_RIGHT_ARM*m_fSize, ANGLE3D(-9, 0, 0));
+      PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
+    } else { // enemy is to the left of guffy
+      ShootProjectile(PRT_GUFFY_PROJECTILE, FIRE_LEFT_ARM*m_fSize, ANGLE3D(9, 0, 0));
+      PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
+    
+      ShootProjectile(PRT_GUFFY_PROJECTILE, FIRE_RIGHT_ARM*m_fSize, ANGLE3D(0, 0, 0));
+      PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
     }
     
     autowait(1.0f);

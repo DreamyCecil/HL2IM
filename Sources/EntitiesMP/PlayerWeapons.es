@@ -3161,46 +3161,33 @@ functions:
             }
             FLOAT fPower = 4.0f;
 
-            // [Cecil] + Werebull
-            if (IsOfClass(crRay.cr_penHit, "Boneman")
-             || IsOfClass(crRay.cr_penHit, "Werebull")) {
+            if (IsOfClass(crRay.cr_penHit, "Boneman")) {
               sptType = SPT_BONES;
               fPower = 6.0f;
-            }
 
-            // [Cecil] Own type
-            if (IsOfClass(crRay.cr_penHit, "Gizmo")) {
-              sptType = GIZMO_SPRAY;
-              fPower = 4.0f;
-            }
-
-            if (IsOfClass(crRay.cr_penHit, "Beast")) {
+            } else if (IsOfClass(crRay.cr_penHit, "Gizmo")
+                    || IsOfClass(crRay.cr_penHit, "Beast")) {
               sptType = SPT_SLIME;
               fPower = 4.0f;
-            }
 
-            if (IsOfClass(crRay.cr_penHit, "Woman")) {
+            } else if (IsOfClass(crRay.cr_penHit, "Woman")) {
               sptType = SPT_FEATHER;
               fPower = 3.0f;
-            }
 
-            if (IsOfClass(crRay.cr_penHit, "Elemental")) {
+            } else if (IsOfClass(crRay.cr_penHit, "Elemental")) {
               sptType = SPT_LAVA_STONES;
               fPower = 3.0f;
-            }
 
-            if (IsOfClass(crRay.cr_penHit, "Walker")) {
+            } else if (IsOfClass(crRay.cr_penHit, "Walker")) {
               sptType = SPT_ELECTRICITY_SPARKS;
               fPower = 30.0f;
-            }
 
-            if (IsOfClass(crRay.cr_penHit, "AirElemental")) {
+            } else if (IsOfClass(crRay.cr_penHit, "AirElemental")) {
               sptType = SPT_AIRSPOUTS;
               fPower = 6.0f;
-            }
 
-            if (IsOfClass(crRay.cr_penHit, "CannonRotating")
-             || IsOfClass(crRay.cr_penHit, "CannonStatic")) {
+            } else if (IsOfClass(crRay.cr_penHit, "CannonRotating")
+                    || IsOfClass(crRay.cr_penHit, "CannonStatic")) {
               sptType = SPT_WOOD;
             }
 

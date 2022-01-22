@@ -19,12 +19,12 @@ enum EyemanEnv {
 %{
 // info structure
 static EntityInfo eiEyemanBig = {
-  EIBT_BONES, 140.0f, // [Cecil] EIBT_FLESH -> EIBT_BONES
+  EIBT_FLESH, 140.0f,
   0.0f, 1.4f, 0.0f,
   0.0f, 1.0f, 0.0f,
 };
 static EntityInfo eiEyemanSmall = {
-  EIBT_BONES, 120.0f, // [Cecil] EIBT_FLESH -> EIBT_BONES
+  EIBT_FLESH, 120.0f,
   0.0f, 1.4f, 0.0f,
   0.0f, 1.0f, 0.0f,
 };
@@ -45,11 +45,6 @@ properties:
   3 enum EyemanEnv m_eeEnv "Environment" 'E' = EYE_NORMAL,
   4 BOOL m_bMumbleSoundPlaying = FALSE,
   5 CSoundObject m_soMumble,
-
-// [Cecil] Force flying
- 10 BOOL m_bAlwaysFly "Force Flying" = TRUE,
- 11 BOOL m_bReinitFlight = FALSE,
- 12 BOOL m_bForcedFlight = FALSE,
 
 components:
   0 class   CLASS_BASE        "Classes\\EnemyFly.ecl",
@@ -80,9 +75,9 @@ functions:
   {
     CTString str;
     if (m_bInAir) {
-      str.PrintF(TRANS("%s was sliced up by a Manhack"), strPlayerName);
+      str.PrintF(TRANS("A Gnaar bit %s to death"), strPlayerName);
     } else {
-      str.PrintF(TRANS("%s was sliced up by a Manhack"), strPlayerName);
+      str.PrintF(TRANS("%s was beaten up by a Gnaar"), strPlayerName);
     }
     return str;
   }
@@ -96,40 +91,6 @@ functions:
     PrecacheSound(SOUND_PUNCH);
     PrecacheSound(SOUND_DEATH);
     PrecacheSound(SOUND_MUMBLE);
-  };
-
-  // [Cecil] Remove shadows and change spray particles
-  void AdjustDifficulty(void) {
-    SetFlags(GetFlags()|ENF_CLUSTERSHADOWS);
-    m_sptType = SPT_ELECTRICITY_SPARKS_NO_BLOOD;
-
-    // [Cecil] Force flying
-    if (m_bAlwaysFly && !m_bReinitFlight) {
-      m_EeftType = EFT_FLY_ONLY;
-      m_bReinitFlight = TRUE;
-      m_bForcedFlight = TRUE;
-
-      Reinitialize();
-    }
-
-    CEnemyFly::AdjustDifficulty();
-  };
-
-  // [Cecil] Remove stains for manhacks
-  void LeaveStain(BOOL bGrow) {};
-
-  // [Cecil] Drop batteries
-  void DropItems(void) {
-    if (IRnd() % 5 == 0) {
-      CEntityPointer pen = SpawnArmor();
-      pen->Initialize();
-
-      CArmorItem *penArmor = (CArmorItem*)&*pen;
-      penArmor->m_bDropped = TRUE;
-      penArmor->m_bPickupOnce = TRUE;
-      penArmor->m_fDropTime = 20.0f;
-      pen->Reinitialize();
-    }
   };
 
   /* Entity info */
@@ -490,15 +451,6 @@ procedures:
     SetPhysicsFlags(EPF_MODEL_WALKING|EPF_HASLUNGS);
     SetCollisionFlags(ECF_MODEL);
     SetFlags(GetFlags()|ENF_ALIVE);
-
-    // [Cecil] Don't reinit in game again
-    m_bReinitFlight = TRUE;
-
-    // [Cecil] Force flying
-    if (m_bAlwaysFly) {
-      m_EeftType = EFT_FLY_ONLY;
-    }
-
     if (m_EecChar==EYC_SERGEANT) {
       SetHealth(90.0f);
       m_fMaxHealth = 90.0f;
