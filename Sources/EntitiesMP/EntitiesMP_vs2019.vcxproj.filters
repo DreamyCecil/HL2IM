@@ -100,6 +100,9 @@
     <Filter Include="Header Files\Patcher headers">
       <UniqueIdentifier>{b3af6d48-d1e1-43b8-8265-98a0b77da992}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Class Files\Cecil\Enemies">
+      <UniqueIdentifier>{cd619a5a-565c-4acd-837f-1bad35e9b06c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Common\Common.cpp">
@@ -664,6 +667,33 @@
       <Filter>Source Files\Patcher sources</Filter>
     </ClCompile>
     <ClCompile Include="Mod\GlobalController.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\CombineElite.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\CombineSoldier.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\FastZombie.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\Headcrab.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\Manhack.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\Merasmus.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\Metrocop.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\Antlion.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\AntlionGuard.cpp">
       <Filter>Source Files\Entity sources</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1754,6 +1784,60 @@
     <ClInclude Include="Mod\GlobalController_tables.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
+    <ClInclude Include="Mod\Antlion.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\Antlion_tables.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\AntlionGuard.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\AntlionGuard_tables.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\CombineElite.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\CombineElite_tables.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\CombineSoldier.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\CombineSoldier_tables.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\FastZombie.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\FastZombie_tables.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\Headcrab.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\Headcrab_tables.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\Manhack.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\Manhack_tables.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\Merasmus.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\Merasmus_tables.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\Metrocop.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\Metrocop_tables.h">
+      <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="NavigationMarker.es">
@@ -2199,6 +2283,33 @@
     </CustomBuild>
     <CustomBuild Include="Mod\GlobalController.es">
       <Filter>Class Files\Cecil</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\Antlion.es">
+      <Filter>Class Files\Cecil\Enemies</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\AntlionGuard.es">
+      <Filter>Class Files\Cecil\Enemies</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\CombineElite.es">
+      <Filter>Class Files\Cecil\Enemies</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\CombineSoldier.es">
+      <Filter>Class Files\Cecil\Enemies</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\FastZombie.es">
+      <Filter>Class Files\Cecil\Enemies</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\Headcrab.es">
+      <Filter>Class Files\Cecil\Enemies</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\Manhack.es">
+      <Filter>Class Files\Cecil\Enemies</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\Merasmus.es">
+      <Filter>Class Files\Cecil\Enemies</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\Metrocop.es">
+      <Filter>Class Files\Cecil\Enemies</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
