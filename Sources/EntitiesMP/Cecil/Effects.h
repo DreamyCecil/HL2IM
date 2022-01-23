@@ -1,5 +1,5 @@
 // ***** [Cecil] This header is for Effect functions only! ***** //
-#define GIZMO_SPRAY SPT_GOO //SPT_SLIME
+#define HL2_GOO_SPRAY SPT_GOO //SPT_SLIME
 
 // Surface Sound for the Player
 CTFileName SurfaceStepSound(CPlayer *pen);

@@ -1415,6 +1415,7 @@ functions:
        || IsOfClass(pen, "Elemental")    || IsOfClass(pen, "AirElemental")
        || IsOfClass(pen, "ExotechLarva") || IsOfClass(pen, "Summoner")
        || IsOfClass(pen, "RollingStone") || IsOfClass(pen, "Projectile")
+       || IsOfClass(pen, "AntlionGuard") || IsOfClass(pen, "Merasmus")
        || IS_PLAYER(pen)
        || pen->GetRenderType() != RT_MODEL) {
         return FALSE;
@@ -3161,7 +3162,10 @@ functions:
             }
             FLOAT fPower = 4.0f;
 
-            if (IsOfClass(crRay.cr_penHit, "Boneman")) {
+            // [Cecil] + HL2 enemies
+            if (IsOfClass(crRay.cr_penHit, "Boneman")
+             || IsOfClass(crRay.cr_penHit, "Antlion")
+             || IsOfClass(crRay.cr_penHit, "AntlionGuard")) {
               sptType = SPT_BONES;
               fPower = 6.0f;
 

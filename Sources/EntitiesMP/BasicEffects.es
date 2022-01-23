@@ -77,17 +77,18 @@ enum BasicEffectType {
  55 BET_BULLETSTAINSNOWNOSOUND  "Bullet stain snow",
 
  // [Cecil] Own types
- 56 BET_GIZMOSTAINGROW           "Gizmo staingrow", // gizmo stain
- 57 BET_BULLET_METAL             "Bullet Stain Hard Metal",
- 58 BET_BULLET_METAL_NOSOUND     "Bullet Stain Hard Metal No Sound",
- 59 BET_BULLET_CHAINLINK         "Bullet Stain Metal",
- 60 BET_BULLET_CHAINLINK_NOSOUND "Bullet Stain Metal No Sound",
- 61 BET_BULLET_TILES             "Bullet Stain Tiles",
- 62 BET_BULLET_TILES_NOSOUND     "Bullet Stain Tiles No Sound",
- 63 BET_BULLET_GLASS             "Bullet Stain Glass",
- 64 BET_BULLET_GLASS_NOSOUND     "Bullet Stain Glass No Sound",
- 65 BET_BULLET_WATERWAVE         "Bullet Water Wave",
- 66 BET_CROSSBOW_ROD             "Crossbow Rod",
+ 56 BET_GOOSTAIN                 "Goo stain",
+ 57 BET_GOOSTAINGROW             "Goo stain grow",
+ 58 BET_BULLET_METAL             "Bullet Stain Hard Metal",
+ 59 BET_BULLET_METAL_NOSOUND     "Bullet Stain Hard Metal No Sound",
+ 60 BET_BULLET_CHAINLINK         "Bullet Stain Metal",
+ 61 BET_BULLET_CHAINLINK_NOSOUND "Bullet Stain Metal No Sound",
+ 62 BET_BULLET_TILES             "Bullet Stain Tiles",
+ 63 BET_BULLET_TILES_NOSOUND     "Bullet Stain Tiles No Sound",
+ 64 BET_BULLET_GLASS             "Bullet Stain Glass",
+ 65 BET_BULLET_GLASS_NOSOUND     "Bullet Stain Glass No Sound",
+ 66 BET_BULLET_WATERWAVE         "Bullet Water Wave",
+ 67 BET_CROSSBOW_ROD             "Crossbow Rod",
 };
 
 
@@ -228,7 +229,9 @@ void CBasicEffect_OnPrecache(CDLLEntityClass *pdec, INDEX iUser)
     case BET_BLOODSTAINGROW:
     case BET_BLOODSPILL:
     case BET_GIZMOSTAIN:
-    case BET_GIZMOSTAINGROW:
+    // [Cecil] Own types
+    case BET_GOOSTAIN:
+    case BET_GOOSTAINGROW:
       pdec->PrecacheModel(MODEL_BLOOD_STAIN);
       pdec->PrecacheTexture(TEXTURE_BLOOD_STAIN1);
       pdec->PrecacheTexture(TEXTURE_BLOOD_STAIN2);
@@ -1458,8 +1461,44 @@ functions:
         default: { SetModelMainTexture(TEXTURE_BLOOD_FLOWER1);  break; }
       }
     } else {
-      //SetModelColor(RGBAToColor(0, 250, 0, 255));
+      SetModelColor(RGBAToColor(0, 250, 0, 255));
 
+      switch( IRnd()&3) {
+        case 1:  { SetModelMainTexture(TEXTURE_BLOOD_STAIN1);   break; }
+        case 2:  { SetModelMainTexture(TEXTURE_BLOOD_STAIN2);   break; }
+        case 3:  { SetModelMainTexture(TEXTURE_BLOOD_STAIN3);   break; }
+        default: { SetModelMainTexture(TEXTURE_BLOOD_STAIN4);   break; }
+      }
+    }
+
+    SetNormalAndDirection();
+    m_fWaitTime = 15.0f + FRnd()*2.0f;
+    m_fFadeTime = 2.0f;
+    m_bLightSource = FALSE;
+    m_fDepthSortOffset = -0.1f;
+    ParentToNearestPolygonAndStretch();
+  };
+
+  // [Cecil] Own type
+  void GooStain(void) {
+    // readout blood type
+    const INDEX iBloodType = GetSP()->sp_iBlood;
+    if (iBloodType < 1) {
+      return;
+    }
+
+    Stretch();
+    SetModel(MODEL_BLOOD_STAIN);
+    if (iBloodType == 3) {
+      // flower mode! :)
+      SetModelColor( RGBAToColor( 255,255,255,255));
+      switch( IRnd()&3) {
+        case 1:  { SetModelMainTexture(TEXTURE_BLOOD_FLOWER1);  break; }
+        case 2:  { SetModelMainTexture(TEXTURE_BLOOD_FLOWER2);  break; }
+        case 3:  { SetModelMainTexture(TEXTURE_BLOOD_FLOWER3);  break; }
+        default: { SetModelMainTexture(TEXTURE_BLOOD_FLOWER1);  break; }
+      }
+    } else {
       // [Cecil] Goo type
       SetModelColor(RGBAToColor(250, 250, 23, 255));
 
@@ -1480,7 +1519,7 @@ functions:
   };
 
   // [Cecil] Own type
-  void GizmoStainGrow(void) {
+  void GooStainGrow(void) {
     // readout blood type
     const INDEX iBloodType = GetSP()->sp_iBlood;
     if (iBloodType < 1) {
@@ -1649,7 +1688,8 @@ procedures:
       case BET_BULLETSTAINSNOWNOSOUND: BulletStainSnow(FALSE); break;
         
       // [Cecil] Own types
-      case BET_GIZMOSTAINGROW: GizmoStainGrow(); break;
+      case BET_GOOSTAIN: GooStain(); break;
+      case BET_GOOSTAINGROW: GooStainGrow(); break;
       case BET_BULLET_METAL: BulletStainMetal(TRUE, FALSE); break;
       case BET_BULLET_METAL_NOSOUND: BulletStainMetal(FALSE, FALSE); break;
       case BET_BULLET_CHAINLINK: BulletStainMetal(TRUE, TRUE); break;

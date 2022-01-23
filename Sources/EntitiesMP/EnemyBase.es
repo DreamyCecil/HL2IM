@@ -1786,11 +1786,6 @@ functions:
   virtual BOOL ShouldBlowUp(void) {
     // exotech larva boss allways blows up
     if (IsOfClass(this, "ExotechLarva")) { return TRUE; }
-
-    // [Cecil] Don't blow up Half-Life enemies
-    if (m_bHL2Enemy) {
-      return FALSE;
-    }
     
     // blow up if
     return

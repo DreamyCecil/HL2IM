@@ -211,7 +211,9 @@ functions:
       } else {
         // if flesh entity
         if (crRay.cr_penHit->GetEntityInfo() != NULL) {
-          if (((EntityInfo*)crRay.cr_penHit->GetEntityInfo())->Eeibt == EIBT_FLESH) {
+          if (((EntityInfo*)crRay.cr_penHit->GetEntityInfo())->Eeibt == EIBT_FLESH
+          // [Cecil] Some enemies leave goo
+          || IsOfClass(crRay.cr_penHit, "Antlion") || IsOfClass(crRay.cr_penHit, "AntlionGuard")) {
             CEntity *penOfFlesh = crRay.cr_penHit;
             FLOAT3D vHitNormal = (GetPlacement().pl_PositionVector-m_vTarget).Normalize();
             FLOAT3D vOldHitPos = crRay.cr_vHit;
@@ -228,14 +230,20 @@ functions:
               vDistance = FLOAT3D(0.0f, 0.0f, 0.0f);
               vHitNormal = FLOAT3D(0, 0, 0);
             }
+            
+            // spawn red blood hit spill effect
+            BulletHitType eHitType = BHT_FLESH;
 
-            if (IsOfClass(penOfFlesh, "Gizmo") || IsOfClass(penOfFlesh, "Beast")) {
+            // [Cecil] HL2 enemies
+            if (IsOfClass(penOfFlesh, "Antlion") || IsOfClass(penOfFlesh, "AntlionGuard") || IsOfClass(penOfFlesh, "Headcrab")) {
+              eHitType = BHT_GOO;
+
+            } else if (IsOfClass(penOfFlesh, "Gizmo") || IsOfClass(penOfFlesh, "Beast")) {
               // spawn green blood hit spill effect
-              SpawnHitTypeEffect(this, BHT_ACID, bSound, vHitNormal, crRay.cr_vHit, vHitDirection, vDistance);
-            } else {
-              // spawn red blood hit spill effect
-              SpawnHitTypeEffect(this, BHT_FLESH, bSound, vHitNormal, crRay.cr_vHit, vHitDirection, vDistance);
+              eHitType = BHT_ACID;
             }
+
+            SpawnHitTypeEffect(this, eHitType, bSound, vHitNormal, crRay.cr_vHit, vHitDirection, vDistance);
 
             // [Cecil] Impact sound
             INDEX iImpactSound = 0;
@@ -274,8 +282,8 @@ functions:
               penSound->m_iFlags = SOF_3D|SOF_VOLUMETRIC;
               penSound->m_fWaitTime = 0.5f;
 
-              penSound->SetParameters(64.0f, 12.0f, 1.5f, 1.0f);
               penSound->Initialize();
+              penSound->SetParameters(50.0f, 5.0f, 1.0f, 1.0f);
             }
             break;
           }
