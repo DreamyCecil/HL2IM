@@ -4122,22 +4122,24 @@ procedures:
 			  ANGLE aWantedPitchRelative = GetRelativePitch(vDir);
 			  
 			  aWantedHeadingRelative = NormalizeAngle(aWantedHeadingRelative);
+
+        const FLOAT fDifference = 0.1f; //0.25f;
 			  
 			  ANGLE aHeading, aPitch;
-			  if (aWantedHeadingRelative < -m_aRotateSpeed*0.25f) {
+			  if (aWantedHeadingRelative < -m_aRotateSpeed*fDifference) {
 				  aHeading = -m_aRotateSpeed;
-			  } else if (aWantedHeadingRelative > m_aRotateSpeed*0.25f) {
+			  } else if (aWantedHeadingRelative > m_aRotateSpeed*fDifference) {
 				  aHeading = +m_aRotateSpeed;
 			  } else {
-				  aHeading = aWantedHeadingRelative/0.25f;
+				  aHeading = aWantedHeadingRelative/fDifference;
 			  }
 
-			  if (aWantedPitchRelative < -m_aRotateSpeed*0.25f) {
+			  if (aWantedPitchRelative < -m_aRotateSpeed*fDifference) {
 				  aPitch = -m_aRotateSpeed;
-			  } else if (aWantedPitchRelative > m_aRotateSpeed*0.25f) {
+			  } else if (aWantedPitchRelative > m_aRotateSpeed*fDifference) {
 				  aPitch = +m_aRotateSpeed;
 			  } else {
-				  aPitch = aWantedPitchRelative/0.25f;
+				  aPitch = aWantedPitchRelative/fDifference;
 			  }
 
 			  SetDesiredRotation(ANGLE3D(aHeading, aPitch, 0.0f));
