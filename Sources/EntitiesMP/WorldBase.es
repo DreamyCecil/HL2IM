@@ -743,6 +743,10 @@ void CWorldBase_OnWorldEnd(CWorld *pwo) {
   if (GetSP()->sp_iHL2Flags & HL2F_MATERIALS) {
     UnloadMaterials();
   }
+
+  // [Cecil] Clear bullet holes
+  extern CDynamicContainer<CEntity> _cenBulletHoles;
+  _cenBulletHoles.Clear();
 };
 
 void CWorldBase_OnWorldRender(CWorld *pwo) {

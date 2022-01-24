@@ -21,6 +21,9 @@
 
 // [Cecil]
 #define BULLET_LIFETIME 60.0f
+
+// [Cecil] List of currently existing bullet holes
+extern CDynamicContainer<CEntity> _cenBulletHoles = CDynamicContainer<CEntity>();
 %}
 
 uses "EntitiesMP/Light";
@@ -1662,6 +1665,44 @@ procedures:
         ASSERTALWAYS("Unknown effect type");
     }
 
+    // [Cecil] Bullet hole behaviour
+    switch (m_betType) {
+      case BET_BULLETSTAINSAND:       case BET_BULLETSTAINSANDNOSOUND:
+      case BET_BULLETSTAINREDSAND:    case BET_BULLETSTAINREDSANDNOSOUND:
+      case BET_BULLETSTAINSTONE:      case BET_BULLETSTAINSTONENOSOUND:
+      case BET_BULLETSTAINWATER:      case BET_BULLETSTAINWATERNOSOUND:
+      case BET_BULLETSTAINUNDERWATER: case BET_BULLETSTAINUNDERWATERNOSOUND:
+      case BET_BULLETSTAINGRASS:      case BET_BULLETSTAINGRASSNOSOUND:
+      case BET_BULLETSTAINWOOD:       case BET_BULLETSTAINWOODNOSOUND:
+      case BET_BULLETSTAINSNOW:       case BET_BULLETSTAINSNOWNOSOUND:
+      case BET_BULLET_METAL:          case BET_BULLET_METAL_NOSOUND:
+      case BET_BULLET_CHAINLINK:      case BET_BULLET_CHAINLINK_NOSOUND:
+      case BET_BULLET_TILES:          case BET_BULLET_TILES_NOSOUND:
+      case BET_BULLET_GLASS:          case BET_BULLET_GLASS_NOSOUND: {
+        // Find all bullet holes in the proximity of this one
+        CDynamicContainer<CEntity> cenToRemove;
+
+        FOREACHINDYNAMICCONTAINER(_cenBulletHoles, CEntity, iten) {
+          if (DistanceTo(this, iten) < 0.075f) {
+            cenToRemove.Add(iten);
+          }
+        }
+
+        // Hide bullet holes that need to be removed
+        while (cenToRemove.Count() > 0) {
+          CEntity *pen = cenToRemove.Pointer(0);
+
+          cenToRemove.Remove(pen);
+          _cenBulletHoles.Remove(pen);
+
+          pen->SwitchToEditorModel();
+        }
+
+        // Add this bullet hole to the list
+        _cenBulletHoles.Add(this);
+      } break;
+    }
+
     // setup light source
     if (m_bLightSource) { SetupLightSource(); }
 
@@ -1670,6 +1711,11 @@ procedures:
       on (EBrushDestroyed) : { stop; }
       on (EStop) : { stop; }
       on (EReturn) : { stop; }
+    }
+
+    // [Cecil] Remove from the bullet hole list
+    if (_cenBulletHoles.IsMember(this)) {
+      _cenBulletHoles.Remove(this);
     }
 
     // cease to exist
