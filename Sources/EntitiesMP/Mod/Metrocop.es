@@ -54,15 +54,11 @@ components:
   4 class   CLASS_BULLET       "Classes\\Bullet.ecl", // [Cecil]
 
  10 model   MODEL_COP             "Models\\Enemies\\Metrocop\\Metrocop.mdl",
- 11 model   MODEL_HEAD            "Models\\Enemies\\Metrocop\\Head.mdl",
- 12 model   MODEL_FIRECRACKERHEAD "Models\\Enemies\\Metrocop\\FirecrackerHead.mdl",
  13 model   MODEL_CHAINSAW        "Models\\Enemies\\Metrocop\\ChainSaw.mdl",
  15 model   MODEL_ROCKETLAUNCHER  "Models\\Enemies\\Metrocop\\RocketLauncher.mdl",
  17 model   MODEL_BOMB            "Models\\Enemies\\Metrocop\\Projectile\\Bomb.mdl",
 
  20 texture TEXTURE_COP             "Models\\Enemies\\Metrocop\\Metrocop.tex",
- 24 texture TEXTURE_HEAD            "Models\\Enemies\\Metrocop\\Head.tex",
- 25 texture TEXTURE_FIRECRACKERHEAD "Models\\Enemies\\Metrocop\\FirecrackerHead.tex",
  26 texture TEXTURE_CHAINSAW        "Models\\Enemies\\Metrocop\\Chainsaw.tex",
  28 texture TEXTURE_ROCKETLAUNCHER  "Models\\Enemies\\Metrocop\\RocketLauncher.tex",
  29 texture TEXTURE_BOMB            "Models\\Enemies\\Metrocop\\Projectile\\Bomb.tex",
@@ -137,17 +133,14 @@ functions:
 
     switch (m_hdtType) {
       case COP_SMG:
-        AddAttachment(HEADMAN_ATTACHMENT_HEAD, MODEL_FIRECRACKERHEAD, TEXTURE_FIRECRACKERHEAD);
         AddAttachment(HEADMAN_ATTACHMENT_CHAINSAW, MODEL_CHAINSAW, TEXTURE_CHAINSAW);
         break;
   
       case COP_PISTOL:
-        AddAttachment(HEADMAN_ATTACHMENT_HEAD, MODEL_HEAD, TEXTURE_HEAD);
         AddAttachment(HEADMAN_ATTACHMENT_ROCKET_LAUNCHER, MODEL_ROCKETLAUNCHER, TEXTURE_ROCKETLAUNCHER);
         break;
 
       case COP_GRENADES:
-        AddAttachment(HEADMAN_ATTACHMENT_HEAD, MODEL_HEAD, TEXTURE_HEAD);
         break;
 
       case COP_KAMIKAZE:
@@ -676,8 +669,6 @@ procedures:
 
     switch (m_hdtType) {
       case COP_SMG:
-        // set your texture
-        AddAttachment(HEADMAN_ATTACHMENT_HEAD, MODEL_FIRECRACKERHEAD, TEXTURE_FIRECRACKERHEAD);
         AddAttachment(HEADMAN_ATTACHMENT_CHAINSAW, MODEL_CHAINSAW, TEXTURE_CHAINSAW);
         // setup moving speed
         m_fWalkSpeed = FRnd() + 1.5f;
@@ -701,8 +692,6 @@ procedures:
         break;
   
       case COP_PISTOL:
-        // set your texture
-        AddAttachment(HEADMAN_ATTACHMENT_HEAD, MODEL_HEAD, TEXTURE_HEAD);
         AddAttachment(HEADMAN_ATTACHMENT_ROCKET_LAUNCHER, MODEL_ROCKETLAUNCHER, TEXTURE_ROCKETLAUNCHER);
         // setup moving speed
         m_fWalkSpeed = FRnd() + 1.5f;
@@ -726,8 +715,6 @@ procedures:
         break;
 
       case COP_GRENADES:
-        // set your texture
-        AddAttachment(HEADMAN_ATTACHMENT_HEAD, MODEL_HEAD, TEXTURE_HEAD);
         // setup moving speed
         m_fWalkSpeed = FRnd() + 1.5f;
         m_aWalkRotateSpeed = AngleDeg(FRnd()*10.0f + 500.0f);
@@ -750,7 +737,6 @@ procedures:
         break;
 
       case COP_KAMIKAZE:
-        // set your texture
         AddAttachment(HEADMAN_ATTACHMENT_BOMB_RIGHT_HAND, MODEL_BOMB, TEXTURE_BOMB);
         AddAttachment(HEADMAN_ATTACHMENT_BOMB_LEFT_HAND, MODEL_BOMB, TEXTURE_BOMB);
         // setup moving speed
