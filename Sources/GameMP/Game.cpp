@@ -119,7 +119,7 @@ extern FLOAT hl2_fJumpMultiplier = 1.0f;
 extern INDEX hl2_bBunnyhopping = FALSE;
 extern INDEX hl2_bAutoBunnyhop = FALSE;
 
-extern INDEX hl2_iBetterEnemies = 1; // 0 - no, 1 - yes, 2 - yes with extra adjustments
+extern INDEX hl2_iNewEnemies = 2; // 0 - No, 1 - Beta 0.7, 2 - Yes
 extern INDEX hl2_bEnemyDrops = FALSE;
 extern INDEX hl2_bUseMaterials = TRUE;
 extern INDEX hl2_bReinitMap = FALSE;
@@ -980,7 +980,7 @@ void CGame::InitInternal( void)
   _pShell->DeclareSymbol("persistent user INDEX hl2_bBunnyhopping;", &hl2_bBunnyhopping);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bAutoBunnyhop;", &hl2_bAutoBunnyhop);
 
-  _pShell->DeclareSymbol("persistent user INDEX hl2_iBetterEnemies;", &hl2_iBetterEnemies);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_iNewEnemies;", &hl2_iNewEnemies);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bEnemyDrops;", &hl2_bEnemyDrops);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bUseMaterials;", &hl2_bUseMaterials);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bReinitMap;", &hl2_bReinitMap);
