@@ -160,11 +160,9 @@ functions:
     ModelChangeNotify();
 
     // [Cecil] Increase health
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES2) {
-      SetHealth(70.0f);
-      m_fMaxHealth = 70.0f;
-      m_fDamageWounded = 25.0f;
-    }
+    SetHealth(70.0f);
+    m_fMaxHealth = 70.0f;
+    m_fDamageWounded = 25.0f;
 
     CEnemyBase::AdjustDifficulty();
   };
@@ -578,11 +576,7 @@ procedures:
     eLaunch.penLauncher = this;
     
     // [Cecil] Throw a real grenade
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES1) {
-      eLaunch.prtType = PRT_GRENADE;
-    } else {
-      eLaunch.prtType = PRT_HEADMAN_BOMBERMAN;
-    }
+    eLaunch.prtType = PRT_GRENADE;
 
     eLaunch.fSpeed = fLaunchSpeed;
     penProjectile->Initialize(eLaunch);
@@ -609,36 +603,19 @@ procedures:
     autowait(0.52f);
 
     // [Cecil] Shoot 5 bullets
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES1) {
-      FireBullet(SMG1_FIRE, 2.0f, 50.0f);
+    FireBullet(SMG1_FIRE, 2.0f, 50.0f);
 
-      autowait(0.05f);
-      FireBullet(SMG1_FIRE, 2.0f, 50.0f);
+    autowait(0.05f);
+    FireBullet(SMG1_FIRE, 2.0f, 50.0f);
 
-      autowait(0.05f);
-      FireBullet(SMG1_FIRE, 2.0f, 50.0f);
+    autowait(0.05f);
+    FireBullet(SMG1_FIRE, 2.0f, 50.0f);
 
-      autowait(0.05f);
-      FireBullet(SMG1_FIRE, 2.0f, 50.0f);
+    autowait(0.05f);
+    FireBullet(SMG1_FIRE, 2.0f, 50.0f);
 
-      autowait(0.05f);
-      FireBullet(SMG1_FIRE, 2.0f, 50.0f);
-
-    } else if (TRUE) {
-      ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(-16.0f, 0, 0));
-
-      autowait(0.05f);
-      ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(-8, 0, 0));
-
-      autowait(0.05f);
-      ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(0.0f, 0, 0));
-
-      autowait(0.05f);
-      ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(8.0f, 0, 0));
-
-      autowait(0.05f);
-      ShootProjectile(PRT_HEADMAN_FIRECRACKER, FLOAT3D(0.0f, 0.5f, 0.0f), ANGLE3D(16.0f, 0, 0));
-    }
+    autowait(0.05f);
+    FireBullet(SMG1_FIRE, 2.0f, 50.0f);
 
     autowait(0.5f + FRnd()/3);
     return EEnd();
@@ -650,12 +627,7 @@ procedures:
     autowait(0.2f + FRnd()/4);
 
     // [Cecil] Shoot one bullet
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES1) {
-      FireBullet(PISTOL_FIRE, (IRnd() % 2) + 1.0f, 30.0f);
-
-    } else {
-      ShootProjectile(PRT_HEADMAN_ROCKETMAN, FLOAT3D(0.0f, 1.0f, 0.0f), ANGLE3D(0, 0, 0));
-    }
+    FireBullet(PISTOL_FIRE, (IRnd() % 2) + 1.0f, 30.0f);
 
     StartModelAnim(HEADMAN_ANIM_ROCKETMAN_ATTACK, 0);
     PlaySound(m_soSound, SOUND_FIREROCKETMAN, SOF_3D);

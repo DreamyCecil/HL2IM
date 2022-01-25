@@ -114,12 +114,10 @@ functions:
     ModelChangeNotify();
 
     // [Cecil] Increase health
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES2) {
-      FLOAT fHealth = GetHealth();
+    FLOAT fHealth = GetHealth();
 
-      SetHealth(fHealth*2.0f);
-      m_fMaxHealth = fHealth*2.0f;
-    }
+    SetHealth(fHealth*2.0f);
+    m_fMaxHealth = fHealth*2.0f;
 
     CEnemyBase::AdjustDifficulty();
   };
@@ -305,28 +303,15 @@ procedures:
     autowait(0.2f + FRnd()*0.25f);
 
     // [Cecil] Shoot 2 bullets
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES1) {
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      FireBullet(AR2_FIRE, 5.0f, 75.0f);
-      PlaySound(m_soFire1, SOUND_AR2, SOF_3D);
+    StartModelAnim(GRUNT_ANIM_FIRE, 0);
+    FireBullet(AR2_FIRE, 5.0f, 75.0f);
+    PlaySound(m_soFire1, SOUND_AR2, SOF_3D);
 
-      autowait(0.15f + FRnd()*0.1f);
+    autowait(0.15f + FRnd()*0.1f);
 
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      FireBullet(AR2_FIRE, FLOAT(IRnd()%3) + 3.0f, 30.0f);
-      PlaySound(m_soFire1, SOUND_AR2, SOF_3D);
-
-    } else if (TRUE) {
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_SOL, FIREPOS_SOLDIER, ANGLE3D(0, 0, 0));
-      PlaySound(m_soFire1, SOUND_AR2, SOF_3D);
-
-      autowait(0.15f + FRnd()*0.1f);
-
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_SOL, FIREPOS_SOLDIER, ANGLE3D(0, 0, 0));
-      PlaySound(m_soFire1, SOUND_AR2, SOF_3D);
-    }
+    StartModelAnim(GRUNT_ANIM_FIRE, 0);
+    FireBullet(AR2_FIRE, FLOAT(IRnd()%3) + 3.0f, 30.0f);
+    PlaySound(m_soFire1, SOUND_AR2, SOF_3D);
 
     autowait(FRnd()*0.333f);
     return EEnd();
@@ -340,36 +325,13 @@ procedures:
     PlaySound(m_soFire1, SOUND_SPAS1 + IRnd()%2, SOF_3D);
 
     // [Cecil] Shoot 7 bullets
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES1) {
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
+    StartModelAnim(GRUNT_ANIM_FIRE, 0);
 
-      for (INDEX i = 0; i < 7; i++) {
-        FireBullet(FIREPOS_COMMANDER, FLOAT(IRnd()%3) + 2.0f, 100.0f);
-      }
-      autowait(0.15f);
-
-    } else if (TRUE) {
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER, ANGLE3D(-20, 0, 0));
-
-      autowait(0.035f);
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER, ANGLE3D(-10, 0, 0));
-
-      autowait(0.035f);
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER, ANGLE3D(0, 0, 0));
-
-      autowait(0.035f);
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER, ANGLE3D(10, 0, 0));
-
-      autowait(0.035f);
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER, ANGLE3D(20, 0, 0));
+    for (INDEX i = 0; i < 7; i++) {
+      FireBullet(FIREPOS_COMMANDER, FLOAT(IRnd()%3) + 2.0f, 100.0f);
     }
 
-    autowait(FRnd()*0.5f);
+    autowait(0.15f + FRnd()*0.5f);
     return EEnd();
   };
 

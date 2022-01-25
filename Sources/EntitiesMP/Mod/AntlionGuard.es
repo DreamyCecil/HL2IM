@@ -104,10 +104,8 @@ functions:
     m_sptType = SPT_BONES;
 
     // [Cecil] Increase health
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES2) {
-      SetHealth(1000.0f);
-      m_fMaxHealth = 1000.0f;
-    }
+    SetHealth(1000.0f);
+    m_fMaxHealth = 1000.0f;
   };
 
   // death

@@ -229,32 +229,9 @@ procedures:
     // wait for animation to bring the left hand into firing position
     autowait(0.1f);
 
-    FLOATmatrix3D m;
-    FLOAT3D fLookRight = FLOAT3D(1.0f, 0.0f, 0.0f);
-    MakeRotationMatrixFast(m, GetPlacement().pl_OrientationAngle);
-    fLookRight = fLookRight * m;
-    BOOL bEnemyRight = fLookRight % (m_penEnemy->GetPlacement().pl_PositionVector - GetPlacement().pl_PositionVector);
-
     // [Cecil] Launch an energy ball
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES1) {
-      ShootProjectile(PRT_ENERGY_BALL, FIRE_RIGHT_ARM*m_fSize, ANGLE3D(0, 0, 0));
-      PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
-
-    } else {
-      if (bEnemyRight >= 0) { // enemy is to the right of guffy
-        ShootProjectile(PRT_GUFFY_PROJECTILE, FIRE_LEFT_ARM*m_fSize, ANGLE3D(0, 0, 0));
-        PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
-      
-        ShootProjectile(PRT_GUFFY_PROJECTILE, FIRE_RIGHT_ARM*m_fSize, ANGLE3D(-9, 0, 0));
-        PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
-      } else { // enemy is to the left of guffy
-        ShootProjectile(PRT_GUFFY_PROJECTILE, FIRE_LEFT_ARM*m_fSize, ANGLE3D(9, 0, 0));
-        PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
-      
-        ShootProjectile(PRT_GUFFY_PROJECTILE, FIRE_RIGHT_ARM*m_fSize, ANGLE3D(0, 0, 0));
-        PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
-      }
-    }
+    ShootProjectile(PRT_ENERGY_BALL, FIRE_RIGHT_ARM*m_fSize, ANGLE3D(0, 0, 0));
+    PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
     
     autowait(1.0f);
     
