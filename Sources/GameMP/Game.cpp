@@ -1083,6 +1083,10 @@ void CGame::InitInternal( void)
 
   // [Cecil] 2021-06-19: Bot mod
   CECIL_InitBotMod();
+
+  // [Cecil] Patch the world
+  extern void InitWorldPatches(void);
+  InitWorldPatches();
 }
 
 // internal cleanup

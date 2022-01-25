@@ -316,6 +316,7 @@ copy vs2019\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="WEDInterface.cpp" />
+    <ClCompile Include="WorldPatch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
