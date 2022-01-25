@@ -9,8 +9,6 @@
 #define HL2F_ENEMYDROP (1<<7) // Enemies drop their weapons
 #define HL2F_ADMINMENU (1<<8) // Everyone is allowed to use the admin menu
 
-#define HL2F_GM_MASK (HL2F_INFALT|HL2F_BHOP|HL2F_ENEMIES1|HL2F_ENEMIES2|HL2F_ENEMYDROP)
-
 // [Cecil] New Gamemodes
 enum EHL2Gamemode {
   HLGM_NONE = -1,

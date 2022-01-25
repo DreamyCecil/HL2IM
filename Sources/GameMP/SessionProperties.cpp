@@ -163,7 +163,6 @@ static void HL2_Parameters(CSessionProperties &sp) {
     case HLGM_BUNNYHUNT:
       sp.sp_fSpeedMultiplier = 1.5f;
       sp.sp_fJumpMultiplier = 1.5f;
-      sp.sp_iHL2Flags &= ~HL2F_GM_MASK;
       sp.sp_iHL2Flags |= HL2F_INFALT|HL2F_BHOP|HL2F_AUTOBHOP;
       break;
   }
