@@ -34,12 +34,7 @@ components:
   0 class CLASS_BASE       "Classes\\EnemyBase.ecl",
   1 model MODEL_BONEMAN    "Models\\Enemies\\Boneman\\Boneman.mdl",
   2 class CLASS_PROJECTILE "Classes\\Projectile.ecl",
-
-// [Cecil] Cosmetic changes
- 3 texture TEXTURE_BONEMAN  "Models\\Enemies\\Boneman\\Boneman.tex",
- 4 texture TEXTURE_ANTLION1 "Textures\\Enemies\\Antlion1.tex",
- 5 texture TEXTURE_ANTLION2 "Textures\\Enemies\\Antlion2.tex",
- 6 texture TEXTURE_ANTLION3 "Textures\\Enemies\\Antlion3.tex",
+  3 texture TEXTURE_BONEMAN  "Models\\Enemies\\Boneman\\Boneman.tex",
 
 // ************** BONEMAN PARTS **************
  10 model MODEL_BONEMAN_BODY "Models\\Enemies\\Boneman\\Debris\\Body.mdl",
@@ -72,12 +67,6 @@ functions:
     PrecacheModel(MODEL_BONEMAN_HAND);
     PrecacheModel(MODEL_BONEMAN_LEGS);
 
-    // [Cecil] Various textures
-    PrecacheTexture(TEXTURE_BONEMAN);
-    PrecacheTexture(TEXTURE_ANTLION1);
-    PrecacheTexture(TEXTURE_ANTLION2);
-    PrecacheTexture(TEXTURE_ANTLION3);
-
     PrecacheClass(CLASS_PROJECTILE, PRT_BONEMAN_FIRE);
   };
 
@@ -86,9 +75,9 @@ functions:
   {
     CTString str;
     if (eDeath.eLastDamage.dmtType == DMT_CLOSERANGE) {
-      str.PrintF(TRANS("%s was ripped apart by an Antlion"), strPlayerName);
+      str.PrintF(TRANS("%s was ripped apart by a Kleer"), strPlayerName);
     } else {
-      str.PrintF(TRANS("%s was killed by an Antlion"), strPlayerName);
+      str.PrintF(TRANS("%s was killed by a Kleer"), strPlayerName);
     }
     return str;
   };
@@ -209,17 +198,6 @@ functions:
     m_bRunSoundPlaying = FALSE;
   };
 
-  // [Cecil] Mod adjustments
-  void AdjustDifficulty(void) {
-    CEnemyBase::AdjustDifficulty();
-
-    // [Cecil] Randomize the texture
-    SetModelMainTexture(TEXTURE_BONEMAN + (en_ulID * 123) % 4);
-
-    // [Cecil] Don't explode from the revolver/primary shotgun fire
-    m_fBlowUpAmount = 110.0f;
-  };
-
 /************************************************************
  *                 BLOW UP FUNCTIONS                        *
  ************************************************************/
@@ -237,19 +215,16 @@ functions:
 
     FLOAT3D vBodySpeed = en_vCurrentTranslationAbsolute-en_vGravityDir*(en_vGravityDir%en_vCurrentTranslationAbsolute);
 
-    // [Cecil] Randomize the texture
-    INDEX iTex = (TEXTURE_BONEMAN + (en_ulID * 123) % 4);
-
     // spawn debris
     Debris_Begin(EIBT_BONES, DPT_NONE, BET_NONE, fEntitySize, vNormalizedDamage, vBodySpeed, 5.0f, 2.0f);
     
-    Debris_Spawn(this, this, MODEL_BONEMAN_BODY, iTex, 0, 0, 0, 0, 0.0f,
+    Debris_Spawn(this, this, MODEL_BONEMAN_BODY, TEXTURE_BONEMAN, 0, 0, 0, 0, 0.0f,
       FLOAT3D(FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f));
-    Debris_Spawn(this, this, MODEL_BONEMAN_HAND, iTex, 0, 0, 0, 0, 0.0f,
+    Debris_Spawn(this, this, MODEL_BONEMAN_HAND, TEXTURE_BONEMAN, 0, 0, 0, 0, 0.0f,
       FLOAT3D(FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f));
-    Debris_Spawn(this, this, MODEL_BONEMAN_HAND, iTex, 0, 0, 0, 0, 0.0f,
+    Debris_Spawn(this, this, MODEL_BONEMAN_HAND, TEXTURE_BONEMAN, 0, 0, 0, 0, 0.0f,
       FLOAT3D(FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f));
-    Debris_Spawn(this, this, MODEL_BONEMAN_LEGS, iTex, 0, 0, 0, 0, 0.0f,
+    Debris_Spawn(this, this, MODEL_BONEMAN_LEGS, TEXTURE_BONEMAN, 0, 0, 0, 0, 0.0f,
       FLOAT3D(FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f, FRnd()*0.6f+0.2f));
 
     // hide yourself (must do this after spawning debris)
@@ -384,11 +359,7 @@ procedures:
 
     // set your appearance
     SetModel(MODEL_BONEMAN);
-    //SetModelMainTexture(TEXTURE_BONEMAN);
-
-    // [Cecil] Randomize the texture
-    SetModelMainTexture(TEXTURE_BONEMAN + (en_ulID * 123) % 4);
-
+    SetModelMainTexture(TEXTURE_BONEMAN);
     StandingAnim();
     m_sptType = SPT_BONES;
     // setup moving speed

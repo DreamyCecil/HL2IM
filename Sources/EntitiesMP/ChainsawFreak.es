@@ -98,12 +98,6 @@ functions:
   };
 
   void AdjustDifficulty(void) {
-    // [Cecil] Reload the model
-    SetModel(MODEL_FREAK);
-    SetModelMainTexture(TEXTURE_FREAK);
-    AddAttachment(FREAK_ATTACHMENT_CHAINSAW, MODEL_CHAINSAW, TEXTURE_CHAINSAW);
-    ModelChangeNotify();
-
     // chainsaw freak must not change his speed at different difficulties
   };
 
@@ -149,7 +143,7 @@ functions:
     StartModelAnim(FREAK_ANIM_WALK, AOF_LOOPING|AOF_NORESTART);
   };
   void RunningAnim(void) {
-    /*switch(m_iRunType)
+    switch(m_iRunType)
     {
     case 0:
       StartModelAnim(FREAK_ANIM_ATTACKRUN, AOF_LOOPING|AOF_NORESTART);
@@ -162,17 +156,14 @@ functions:
       break;
     default:
       ASSERTALWAYS("Unknown Chainsaw freak run type!");
-    }*/
-
-    // [Cecil] Use only one animation
-    StartModelAnim(FREAK_ANIM_ATTACKRUN, AOF_LOOPING|AOF_NORESTART);
+    }
+    //ActivateRunningSound();
   };
   void ChargeAnim(void) {
     StartModelAnim(FREAK_ANIM_RUNSLASHING, AOF_LOOPING|AOF_NORESTART);
   };
   void RotatingAnim(void) {
-    // [Cecil] Not needed
-    //m_iRunType = IRnd()%3; 
+    m_iRunType = IRnd()%3; 
     StartModelAnim(FREAK_ANIM_ATTACKSTART, AOF_LOOPING|AOF_NORESTART);
   };
 
@@ -390,8 +381,7 @@ procedures:
     m_bUseChargeAnimation = TRUE;
     m_fChargeDistance = 20.0f;
     m_fInertionRunTime = 0.15f;
-    // [Cecil] Not needed
-    //m_iRunType = IRnd()%3;
+    m_iRunType = IRnd()%3;    
 
     GetModelObject()->StretchModel(FLOAT3D(FREAK_SIZE, FREAK_SIZE, FREAK_SIZE));
     ModelChangeNotify();

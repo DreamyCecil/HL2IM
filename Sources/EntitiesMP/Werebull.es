@@ -2,9 +2,6 @@
 %{
 #include "StdH.h"
 #include "Models/Enemies/Werebull/Werebull.h"
-
-// [Cecil]
-#include "EntitiesMP/Cecil/Effects.h"
 %}
 
 uses "EntitiesMP/EnemyBase";
@@ -18,8 +15,7 @@ enum BullChar {
 %{
 // info structure
 static EntityInfo eiWerebull = {
-  // [Cecil] Flesh -> Bones
-  EIBT_BONES, 500.0f,
+  EIBT_FLESH, 500.0f,
   0.0f, 3.0f, 0.0f,     // source (eyes)
   0.0f, 1.5f, 0.0f,     // target (body)
 };
@@ -43,9 +39,6 @@ components:
   1 model   MODEL_WEREBULL    "Models\\Enemies\\Werebull\\Werebull.mdl",
   2 texture TEXTURE_WEREBULL_SUMMER  "Models\\Enemies\\Werebull\\Werebull.tex",
 
- // [Cecil]
- 5 class CLASS_BASIC_EFFECT "Classes\\BasicEffect.ecl",
-
 // ************** SOUNDS **************
  50 sound   SOUND_IDLE      "Models\\Enemies\\Werebull\\Sounds\\Idle.wav",
  51 sound   SOUND_SIGHT     "Models\\Enemies\\Werebull\\Sounds\\Sight.wav",
@@ -58,7 +51,7 @@ functions:
   // describe how this enemy killed player
   virtual CTString GetPlayerKillDescription(const CTString &strPlayerName, const EDeath &eDeath) {
     CTString str;
-    str.PrintF(TRANS("An Antlion Guard sent %s flying"), strPlayerName);
+    str.PrintF(TRANS("Sirian werebull sent %s flying"), strPlayerName);
     return str;
   };
 
@@ -104,15 +97,6 @@ functions:
 
   void AdjustDifficulty(void) {
     // bull must not change its speed at different difficulties
-
-    // [Cecil] Own type
-    m_sptType = SPT_BONES;
-
-    // [Cecil] Increase health
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES2) {
-      SetHealth(1000.0f);
-      m_fMaxHealth = 1000.0f;
-    }
   };
 
   // death
@@ -248,41 +232,6 @@ functions:
     m_soSound.Set3DParameters(160.0f, 50.0f, 1.0f, 1.0f);
   };
 
-  // [Cecil] Leave gizmo stain
-  virtual void LeaveStain(BOOL bGrow) {
-    ESpawnEffect ese;
-    FLOAT3D vPoint;
-    FLOATplane3D vPlaneNormal;
-    FLOAT fDistanceToEdge;
-    // get your size
-    FLOATaabbox3D box;
-    GetBoundingBox(box);
-  
-    // on plane
-    if (GetNearestPolygon(vPoint, vPlaneNormal, fDistanceToEdge)) {
-      // if near to polygon and away from last stain point
-      if ((vPoint-GetPlacement().pl_PositionVector).Length() < 0.5f
-        && (m_vLastStain-vPoint).Length() > 1.0f) {
-        m_vLastStain = vPoint;
-        FLOAT fStretch = box.Size().Length();
-        ese.colMuliplier = C_WHITE|CT_OPAQUE;
-        // stain
-        if (bGrow) {
-          ese.betType = BET_GIZMOSTAINGROW;
-          ese.vStretch = FLOAT3D(fStretch*1.5f, fStretch*1.5f, 1.0f);
-        } else {
-          ese.betType = BET_GIZMOSTAIN;
-          ese.vStretch = FLOAT3D(fStretch*0.75f, fStretch*0.75f, 1.0f);
-        }
-        ese.vNormal = FLOAT3D(vPlaneNormal);
-        ese.vDirection = FLOAT3D( 0, 0, 0);
-        FLOAT3D vPos = vPoint+ese.vNormal/50.0f*(FRnd()+0.5f);
-        CEntityPointer penEffect = CreateEntity(CPlacement3D(vPos, ANGLE3D(0, 0, 0)), CLASS_BASIC_EFFECT);
-        penEffect->Initialize(ese);
-      }
-    }
-  };
-
 procedures:
 /************************************************************
  *                A T T A C K   E N E M Y                   *
@@ -358,10 +307,6 @@ procedures:
     m_fBodyParts = 12;
     m_fDamageWounded = 100000.0f;
     m_iScore = 2000;
-
-    // [Cecil] Own type
-    m_sptType = SPT_BONES;
-
     if (m_fStepHeight == -1) {
       m_fStepHeight = 4.0f;
     }

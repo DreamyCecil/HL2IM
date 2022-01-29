@@ -182,10 +182,10 @@ properties:
 
 181 BOOL  m_bResizeAttachments "Stretch attachments" = FALSE, // for small enemies with big guns
 
-// [Cecil] For rotation
-200 FLOAT3D m_vRotationDir = FLOAT3D(0.0f, -1.0f, 0.0f),
-// [Cecil] Player that is holding with a gravity gun
-201 CEntityPointer m_penPlayerHolding,
+// [Cecil]
+200 FLOAT3D m_vRotationDir = FLOAT3D(0.0f, -1.0f, 0.0f), // For rotation
+201 CEntityPointer m_penPlayerHolding, // Player that's holding the enemy with a gravity gun
+202 BOOL m_bHL2Enemy = FALSE, // Indicates a Half-Life enemy
 
 {
   TIME m_tmPredict;  // time to predict the entity to
@@ -1786,11 +1786,6 @@ functions:
   virtual BOOL ShouldBlowUp(void) {
     // exotech larva boss allways blows up
     if (IsOfClass(this, "ExotechLarva")) { return TRUE; }
-
-    // [Cecil] Don't blow up some enemies for now
-    if (!IsOfClass(this, "Boneman") && !IsOfClass(this, "Gizmo")) {
-      return FALSE;
-    }
     
     // blow up if
     return

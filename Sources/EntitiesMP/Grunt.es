@@ -6,7 +6,6 @@
 
 uses "EntitiesMP/EnemyBase";
 uses "EntitiesMP/BasicEffects";
-uses "EntitiesMP/Bullet"; // [Cecil]
 
 enum GruntType {
   0 GT_SOLDIER    "Grunt soldier",
@@ -33,9 +32,6 @@ static EntityInfo eiGruntCommander = {
 #define FIREPOS_SOLDIER      FLOAT3D(0.07f, 1.36f, -0.78f)*STRETCH_SOLDIER
 #define FIREPOS_COMMANDER_UP  FLOAT3D(0.09f, 1.45f, -0.62f)*STRETCH_COMMANDER
 #define FIREPOS_COMMANDER_DN  FLOAT3D(0.10f, 1.30f, -0.60f)*STRETCH_COMMANDER
-
-// [Cecil]
-#define AR2_FIRE FLOAT3D(0.15f, 1.30f, -0.7f)*STRETCH_SOLDIER
 %}
 
 
@@ -49,14 +45,9 @@ properties:
   10 CSoundObject m_soFire1,
   11 CSoundObject m_soFire2,
 
-{
-  CEntity *penBullet; // [Cecil] Bullet
-}
-
 components:
   1 class   CLASS_BASE       "Classes\\EnemyBase.ecl",
   3 class   CLASS_PROJECTILE "Classes\\Projectile.ecl",
-  5 class   CLASS_BULLET     "Classes\\Bullet.ecl", // [Cecil]
 
  10 model   MODEL_GRUNT           "ModelsMP\\Enemies\\Grunt\\Grunt.mdl",
  11 model   MODEL_GUN_COMMANDER   "ModelsMP\\Enemies\\Grunt\\Gun_Commander.mdl",
@@ -71,13 +62,8 @@ components:
  50 sound   SOUND_IDLE            "ModelsMP\\Enemies\\Grunt\\Sounds\\Idle.wav",
  52 sound   SOUND_SIGHT           "ModelsMP\\Enemies\\Grunt\\Sounds\\Sight.wav",
  53 sound   SOUND_WOUND           "ModelsMP\\Enemies\\Grunt\\Sounds\\Wound.wav",
- //57 sound   SOUND_FIRE            "ModelsMP\\Enemies\\Grunt\\Sounds\\Fire.wav",
+ 57 sound   SOUND_FIRE            "ModelsMP\\Enemies\\Grunt\\Sounds\\Fire.wav",
  58 sound   SOUND_DEATH           "ModelsMP\\Enemies\\Grunt\\Sounds\\Death.wav",
-
- // [Cecil] New sounds
- 60 sound SOUND_AR2   "Sounds\\Enemies\\GruntFireAR2.wav",
- 61 sound SOUND_SPAS1 "Models\\Weapons\\SPAS12\\Sounds\\Fire1.wav",
- 62 sound SOUND_SPAS2 "Models\\Weapons\\SPAS12\\Sounds\\Fire2.wav",
 
 functions:
     
@@ -85,7 +71,7 @@ functions:
   virtual CTString GetPlayerKillDescription(const CTString &strPlayerName, const EDeath &eDeath)
   {
     CTString str;
-    str.PrintF(TRANS("An Overwatch Soldier killed %s"), strPlayerName);
+    str.PrintF(TRANS("A Grunt sent %s into the halls of Valhalla"), strPlayerName);
     return str;
   }
 
@@ -111,81 +97,6 @@ functions:
     }
   };
 
-  void AdjustDifficulty(void) {
-    // [Cecil] Reload the model
-    SetModel(MODEL_GRUNT);
-    switch (m_gtType) {
-      case GT_SOLDIER:
-        SetModelMainTexture(TEXTURE_SOLDIER);
-        AddAttachment(GRUNT_ATTACHMENT_GUN_SMALL, MODEL_GUN_SOLDIER, TEXTURE_GUN_SOLDIER);
-        GetModelObject()->StretchModel(FLOAT3D(STRETCH_SOLDIER, STRETCH_SOLDIER, STRETCH_SOLDIER));
-        break;
-      case GT_COMMANDER:
-        SetModelMainTexture(TEXTURE_COMMANDER);
-        AddAttachment(GRUNT_ATTACHMENT_GUN_COMMANDER, MODEL_GUN_COMMANDER, TEXTURE_GUN_COMMANDER);
-        GetModelObject()->StretchModel(FLOAT3D(STRETCH_COMMANDER, STRETCH_COMMANDER, STRETCH_COMMANDER));
-        break;
-    }
-    ModelChangeNotify();
-
-    // [Cecil] Increase health
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES2) {
-      FLOAT fHealth = GetHealth();
-
-      SetHealth(fHealth*2.0f);
-      m_fMaxHealth = fHealth*2.0f;
-    }
-
-    CEnemyBase::AdjustDifficulty();
-  };
-
-  // [Cecil] Drop weapons
-  void DropItems(void) {
-    if (IRnd() % 2) {
-      CEntityPointer pen = SpawnWeapon();
-      pen->Initialize();
-
-      CWeaponItem *penWeapon = (CWeaponItem*)&*pen;
-      penWeapon->m_bDropped = TRUE;
-      penWeapon->m_bPickupOnce = TRUE;
-      penWeapon->m_fDropTime = 20.0f;
-
-      switch (m_gtType) {
-        // 1/10 drops is AR2
-        case GT_SOLDIER: penWeapon->m_EwitType = (IRnd() % 10) ? WIT_SMG1 : WIT_AR2; break;
-        case GT_COMMANDER: penWeapon->m_EwitType = WIT_SPAS; break;
-      }
-
-      pen->Reinitialize();
-    }
-  };
-
-  // [Cecil] Better Enemies
-  void PrepareBullet(FLOAT3D vPos, FLOAT fDamage) {
-    CPlacement3D plBullet;
-    plBullet.pl_OrientationAngle = ANGLE3D(0, 0, 0);
-    plBullet.pl_PositionVector = vPos;
-    plBullet.RelativeToAbsolute(GetPlacement());
-
-    penBullet = CreateEntity(plBullet, CLASS_BULLET);
-    EBulletInit eInit;
-    eInit.penOwner = this;
-    eInit.fDamage = fDamage;
-    penBullet->Initialize(eInit);
-  };
-
-  void FireBullet(FLOAT3D vPos, FLOAT fDamage, FLOAT fJitter) {
-    PrepareBullet(vPos, fDamage);
-
-    // [Cecil] Get moving offset
-    FLOAT3D vOffset = ((CMovableEntity*)&*m_penEnemy)->en_vCurrentTranslationAbsolute * (FRnd()*0.5f);
-
-    ((CBullet&)*penBullet).CalcTarget(m_penEnemy, -vOffset, 250);
-    ((CBullet&)*penBullet).CalcJitterTarget(fJitter);
-    ((CBullet&)*penBullet).LaunchBullet(TRUE, TRUE, TRUE);
-    ((CBullet&)*penBullet).DestroyBullet();
-  };
-
   void Precache(void) {
     CEnemyBase::Precache();
     
@@ -199,24 +110,14 @@ functions:
     PrecacheSound(SOUND_IDLE);
     PrecacheSound(SOUND_SIGHT);
     PrecacheSound(SOUND_WOUND);
-    //PrecacheSound(SOUND_FIRE);
+    PrecacheSound(SOUND_FIRE);
     PrecacheSound(SOUND_DEATH);
-
-    // [Cecil] New sounds
-    PrecacheSound(SOUND_AR2);
-    PrecacheSound(SOUND_SPAS1);
-    PrecacheSound(SOUND_SPAS2);
   };
 
   /* Receive damage */
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType,
     FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) 
   {
-    // [Cecil] Ignore damage from allies
-    if (IsOfClass(penInflictor, "Grunt")) {
-      return;
-    }
-
     CEnemyBase::ReceiveDamage(penInflictor, dmtType, fDamageAmmount, vHitPoint, vDirection);
   };
 
@@ -325,31 +226,15 @@ procedures:
     StandingAnimFight();
     autowait(0.2f + FRnd()*0.25f);
 
-    // [Cecil] Shoot 2 bullets
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES1) {
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      FireBullet(AR2_FIRE, 5.0f, 75.0f);
-      PlaySound(m_soFire1, SOUND_AR2, SOF_3D);
+    StartModelAnim(GRUNT_ANIM_FIRE, 0);
+    ShootProjectile(PRT_GRUNT_PROJECTILE_SOL, FIREPOS_SOLDIER, ANGLE3D(0, 0, 0));
+    PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
 
-      autowait(0.15f + FRnd()*0.1f);
-
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      FireBullet(AR2_FIRE, FLOAT(IRnd()%3) + 3.0f, 30.0f);
-      PlaySound(m_soFire1, SOUND_AR2, SOF_3D);
-
-    } else if (TRUE) {
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_SOL, FIREPOS_SOLDIER, ANGLE3D(0, 0, 0));
-      //PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
-      PlaySound(m_soFire1, SOUND_AR2, SOF_3D);
-
-      autowait(0.15f + FRnd()*0.1f);
-
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_SOL, FIREPOS_SOLDIER, ANGLE3D(0, 0, 0));
-      //PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
-      PlaySound(m_soFire1, SOUND_AR2, SOF_3D);
-    }
+    autowait(0.15f + FRnd()*0.1f);
+    StartModelAnim(GRUNT_ANIM_FIRE, 0);
+    ShootProjectile(PRT_GRUNT_PROJECTILE_SOL, FIREPOS_SOLDIER, ANGLE3D(0, 0, 0));
+    PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
+    
 
     autowait(FRnd()*0.333f);
     return EEnd();
@@ -360,42 +245,29 @@ procedures:
     StandingAnimFight();
     autowait(0.2f + FRnd()*0.25f);
 
-    PlaySound(m_soFire1, SOUND_SPAS1 + IRnd()%2, SOF_3D);
+    StartModelAnim(GRUNT_ANIM_FIRE, 0);
+    ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER_DN, ANGLE3D(-20, 0, 0));
+    PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
 
-    // [Cecil] Shoot 7 bullets
-    if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES1) {
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
+    autowait(0.035f);
+    StartModelAnim(GRUNT_ANIM_FIRE, 0);
+    ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER_DN, ANGLE3D(-10, 0, 0));
+    PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
 
-      for (INDEX i = 0; i < 7; i++) {
-        FireBullet(FIREPOS_COMMANDER_DN, FLOAT(IRnd()%3) + 2.0f, 100.0f);
-      }
-      autowait(0.15f);
+    autowait(0.035f);
+    StartModelAnim(GRUNT_ANIM_FIRE, 0);
+    ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER_DN, ANGLE3D(0, 0, 0));
+    PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
 
-    } else if (TRUE) {
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER_DN, ANGLE3D(-20, 0, 0));
-      //PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
+    autowait(0.035f);
+    StartModelAnim(GRUNT_ANIM_FIRE, 0);
+    ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER_DN, ANGLE3D(10, 0, 0));
+    PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
 
-      autowait(0.035f);
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER_DN, ANGLE3D(-10, 0, 0));
-      //PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
-
-      autowait(0.035f);
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER_DN, ANGLE3D(0, 0, 0));
-      //PlaySound(m_soFire1, SOUND_FIRE, SOF_3D);
-
-      autowait(0.035f);
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER_DN, ANGLE3D(10, 0, 0));
-      //PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
-
-      autowait(0.035f);
-      StartModelAnim(GRUNT_ANIM_FIRE, 0);
-      ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER_DN, ANGLE3D(20, 0, 0));
-      //PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
-    }
+    autowait(0.035f);
+    StartModelAnim(GRUNT_ANIM_FIRE, 0);
+    ShootProjectile(PRT_GRUNT_PROJECTILE_COM, FIREPOS_COMMANDER_DN, ANGLE3D(20, 0, 0));
+    PlaySound(m_soFire2, SOUND_FIRE, SOF_3D);
 
     autowait(FRnd()*0.5f);
     return EEnd();

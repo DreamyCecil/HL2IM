@@ -2,14 +2,12 @@
 #define HL2F_INFALT    (1<<0) // Infinite Alt Ammo
 #define HL2F_BHOP      (1<<1) // Bunnyhopping
 #define HL2F_AUTOBHOP  (1<<2) // Automatically jump after landing
-#define HL2F_ENEMIES1  (1<<3) // Enemy improvements
-#define HL2F_ENEMIES2  (1<<4) // Enemy improvements with extras
+#define HL2F_ENEMIES1  (1<<3) // Use enemy replacements from Beta 0.7
+#define HL2F_ENEMIES2  (1<<4) // Use new enemy replacements
 #define HL2F_MATERIALS (1<<5) // Use texture materials or not
 #define HL2F_REINITMAP (1<<6) // Reinitialize some entities for compatibility (FE maps)
 #define HL2F_ENEMYDROP (1<<7) // Enemies drop their weapons
 #define HL2F_ADMINMENU (1<<8) // Everyone is allowed to use the admin menu
-
-#define HL2F_GM_MASK (HL2F_INFALT|HL2F_BHOP|HL2F_ENEMIES1|HL2F_ENEMIES2|HL2F_ENEMYDROP)
 
 // [Cecil] New Gamemodes
 enum EHL2Gamemode {

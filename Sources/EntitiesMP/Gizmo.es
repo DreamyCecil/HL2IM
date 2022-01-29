@@ -2,9 +2,6 @@
 %{
 #include "StdH.h"
 #include "Models/Enemies/Gizmo/Gizmo.h"
-
-// [Cecil]
-#include "EntitiesMP/Cecil/Effects.h"
 %}
 
 uses "EntitiesMP/EnemyBase";
@@ -48,7 +45,7 @@ functions:
   virtual CTString GetPlayerKillDescription(const CTString &strPlayerName, const EDeath &eDeath)
   {
     CTString str;
-    str.PrintF(TRANS("%s has caught a Headcrab"), strPlayerName);
+    str.PrintF(TRANS("%s ate a marsh hopper"), strPlayerName);
     return str;
   }
   virtual const CTFileName &GetComputerMessageName(void) const {
@@ -115,9 +112,7 @@ functions:
       eSpawnSpray.colBurnColor = C_WHITE|CT_OPAQUE;
       eSpawnSpray.fDamagePower = 2.0f;
       eSpawnSpray.fSizeMultiplier = 1.0f;
-      //eSpawnSpray.sptType = SPT_SLIME;
-      // [Cecil] Own type
-      eSpawnSpray.sptType = GIZMO_SPRAY;
+      eSpawnSpray.sptType = SPT_SLIME;
       eSpawnSpray.vDirection = en_vCurrentTranslationAbsolute/8.0f;
       eSpawnSpray.penOwner = this;
       penSpray->Initialize( eSpawnSpray);
@@ -163,14 +158,6 @@ functions:
         penEffect->Initialize(ese);
       }
     }
-  };
-
-  // [Cecil] Mod adjustments
-  void AdjustDifficulty(void) {
-    CEnemyBase::AdjustDifficulty();
-
-    // [Cecil] Own type
-    m_sptType = GIZMO_SPRAY;
   };
 
 procedures:
@@ -319,8 +306,7 @@ procedures:
     m_fBodyParts = 0;
     m_fDamageWounded = 0.0f;
     m_iScore = 500;
-    // [Cecil] Own type
-    m_sptType = GIZMO_SPRAY; //SPT_SLIME;
+    m_sptType = SPT_SLIME;
 
     en_fDeceleration = 150.0f;
 

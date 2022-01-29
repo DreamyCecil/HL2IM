@@ -49,7 +49,7 @@ extern FLOAT hl2_fJumpMultiplier;
 extern INDEX hl2_bBunnyhopping;
 extern INDEX hl2_bAutoBunnyhop;
 
-extern INDEX hl2_iBetterEnemies;
+extern INDEX hl2_iNewEnemies;
 extern INDEX hl2_bEnemyDrops;
 extern INDEX hl2_bUseMaterials;
 extern INDEX hl2_bReinitMap;
@@ -138,19 +138,19 @@ static void HL2_Parameters(CSessionProperties &sp) {
   sp.sp_iStartWeapons = hl2_iStartWeapons;
   sp.sp_fGravityGunPower = hl2_fGravityGunPower;
   
-  BOOL bBetterEnemies1 = (hl2_iBetterEnemies == 1);
-  BOOL bBetterEnemies2 = (hl2_iBetterEnemies == 2);
+  const BOOL bBetaEnemies = (hl2_iNewEnemies == 1);
+  const BOOL bNewEnemies = (hl2_iNewEnemies == 2);
 
   // flags
-  sp.sp_iHL2Flags |= (hl2_bInfiniteAlt       ? HL2F_INFALT    : 0)
-                   | (hl2_bBunnyhopping      ? HL2F_BHOP      : 0)
-                   | (hl2_bAutoBunnyhop      ? HL2F_AUTOBHOP  : 0)
-                   | (hl2_iBetterEnemies > 0 ? HL2F_ENEMIES1  : 0)
-                   | (hl2_iBetterEnemies > 1 ? HL2F_ENEMIES2  : 0)
-                   | (hl2_bUseMaterials      ? HL2F_MATERIALS : 0)
-                   | (hl2_bReinitMap         ? HL2F_REINITMAP : 0)
-                   | (hl2_bEnemyDrops        ? HL2F_ENEMYDROP : 0)
-                   | (hl2_bAdminMenu         ? HL2F_ADMINMENU : 0);
+  sp.sp_iHL2Flags |= (hl2_bInfiniteAlt  ? HL2F_INFALT    : 0)
+                   | (hl2_bBunnyhopping ? HL2F_BHOP      : 0)
+                   | (hl2_bAutoBunnyhop ? HL2F_AUTOBHOP  : 0)
+                   | (bBetaEnemies      ? HL2F_ENEMIES1  : 0)
+                   | (bNewEnemies       ? HL2F_ENEMIES2  : 0)
+                   | (hl2_bUseMaterials ? HL2F_MATERIALS : 0)
+                   | (hl2_bReinitMap    ? HL2F_REINITMAP : 0)
+                   | (hl2_bEnemyDrops   ? HL2F_ENEMYDROP : 0)
+                   | (hl2_bAdminMenu    ? HL2F_ADMINMENU : 0);
 
   // gamemodes
   sp.sp_iHLGamemode = hl2_iGamemode;
@@ -163,7 +163,6 @@ static void HL2_Parameters(CSessionProperties &sp) {
     case HLGM_BUNNYHUNT:
       sp.sp_fSpeedMultiplier = 1.5f;
       sp.sp_fJumpMultiplier = 1.5f;
-      sp.sp_iHL2Flags &= ~HL2F_GM_MASK;
       sp.sp_iHL2Flags |= HL2F_INFALT|HL2F_BHOP|HL2F_AUTOBHOP;
       break;
   }
