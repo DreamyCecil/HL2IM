@@ -356,15 +356,15 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     <ClCompile Include="Common\Particles.cpp" />
     <ClCompile Include="Common\PathFinding.cpp" />
     <ClCompile Include="Common\UI\UI.cpp" />
-    <ClCompile Include="Mod\Antlion.cpp" />
-    <ClCompile Include="Mod\AntlionGuard.cpp" />
-    <ClCompile Include="Mod\CombineElite.cpp" />
-    <ClCompile Include="Mod\CombineSoldier.cpp" />
-    <ClCompile Include="Mod\FastZombie.cpp" />
-    <ClCompile Include="Mod\Headcrab.cpp" />
-    <ClCompile Include="Mod\Manhack.cpp" />
-    <ClCompile Include="Mod\Merasmus.cpp" />
-    <ClCompile Include="Mod\Metrocop.cpp" />
+    <ClCompile Include="Mod\BetaEnemies\Antlion.cpp" />
+    <ClCompile Include="Mod\BetaEnemies\AntlionGuard.cpp" />
+    <ClCompile Include="Mod\BetaEnemies\CombineElite.cpp" />
+    <ClCompile Include="Mod\BetaEnemies\CombineSoldier.cpp" />
+    <ClCompile Include="Mod\BetaEnemies\FastZombie.cpp" />
+    <ClCompile Include="Mod\BetaEnemies\Headcrab.cpp" />
+    <ClCompile Include="Mod\BetaEnemies\Manhack.cpp" />
+    <ClCompile Include="Mod\BetaEnemies\Merasmus.cpp" />
+    <ClCompile Include="Mod\BetaEnemies\Metrocop.cpp" />
     <ClCompile Include="StdH\StdH.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">Create</PrecompiledHeader>
@@ -663,24 +663,24 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     <ClInclude Include="Common\Particles.h" />
     <ClInclude Include="Common\PathFinding.h" />
     <ClInclude Include="Common\UI\UI.h" />
-    <ClInclude Include="Mod\Antlion.h" />
-    <ClInclude Include="Mod\AntlionGuard.h" />
-    <ClInclude Include="Mod\AntlionGuard_tables.h" />
-    <ClInclude Include="Mod\Antlion_tables.h" />
-    <ClInclude Include="Mod\CombineElite.h" />
-    <ClInclude Include="Mod\CombineElite_tables.h" />
-    <ClInclude Include="Mod\CombineSoldier.h" />
-    <ClInclude Include="Mod\CombineSoldier_tables.h" />
-    <ClInclude Include="Mod\FastZombie.h" />
-    <ClInclude Include="Mod\FastZombie_tables.h" />
-    <ClInclude Include="Mod\Headcrab.h" />
-    <ClInclude Include="Mod\Headcrab_tables.h" />
-    <ClInclude Include="Mod\Manhack.h" />
-    <ClInclude Include="Mod\Manhack_tables.h" />
-    <ClInclude Include="Mod\Merasmus.h" />
-    <ClInclude Include="Mod\Merasmus_tables.h" />
-    <ClInclude Include="Mod\Metrocop.h" />
-    <ClInclude Include="Mod\Metrocop_tables.h" />
+    <ClInclude Include="Mod\BetaEnemies\Antlion.h" />
+    <ClInclude Include="Mod\BetaEnemies\AntlionGuard.h" />
+    <ClInclude Include="Mod\BetaEnemies\AntlionGuard_tables.h" />
+    <ClInclude Include="Mod\BetaEnemies\Antlion_tables.h" />
+    <ClInclude Include="Mod\BetaEnemies\CombineElite.h" />
+    <ClInclude Include="Mod\BetaEnemies\CombineElite_tables.h" />
+    <ClInclude Include="Mod\BetaEnemies\CombineSoldier.h" />
+    <ClInclude Include="Mod\BetaEnemies\CombineSoldier_tables.h" />
+    <ClInclude Include="Mod\BetaEnemies\FastZombie.h" />
+    <ClInclude Include="Mod\BetaEnemies\FastZombie_tables.h" />
+    <ClInclude Include="Mod\BetaEnemies\Headcrab.h" />
+    <ClInclude Include="Mod\BetaEnemies\Headcrab_tables.h" />
+    <ClInclude Include="Mod\BetaEnemies\Manhack.h" />
+    <ClInclude Include="Mod\BetaEnemies\Manhack_tables.h" />
+    <ClInclude Include="Mod\BetaEnemies\Merasmus.h" />
+    <ClInclude Include="Mod\BetaEnemies\Merasmus_tables.h" />
+    <ClInclude Include="Mod\BetaEnemies\Metrocop.h" />
+    <ClInclude Include="Mod\BetaEnemies\Metrocop_tables.h" />
     <ClInclude Include="StdH\StdH.h" />
     <ClInclude Include="Common\WeaponPositions.h" />
     <ClInclude Include="AirElemental.h" />
@@ -3810,176 +3810,176 @@ ecc EntitiesMP/Mod/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
 ecc EntitiesMP/Mod/%(Filename).es </Command>
     </CustomBuild>
-    <CustomBuild Include="Mod\Antlion.es">
+    <CustomBuild Include="Mod\BetaEnemies\Antlion.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
     </CustomBuild>
-    <CustomBuild Include="Mod\AntlionGuard.es">
+    <CustomBuild Include="Mod\BetaEnemies\AntlionGuard.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
     </CustomBuild>
-    <CustomBuild Include="Mod\CombineElite.es">
+    <CustomBuild Include="Mod\BetaEnemies\CombineElite.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
     </CustomBuild>
-    <CustomBuild Include="Mod\CombineSoldier.es">
+    <CustomBuild Include="Mod\BetaEnemies\CombineSoldier.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
     </CustomBuild>
-    <CustomBuild Include="Mod\FastZombie.es">
+    <CustomBuild Include="Mod\BetaEnemies\FastZombie.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
     </CustomBuild>
-    <CustomBuild Include="Mod\Headcrab.es">
+    <CustomBuild Include="Mod\BetaEnemies\Headcrab.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
     </CustomBuild>
-    <CustomBuild Include="Mod\Manhack.es">
+    <CustomBuild Include="Mod\BetaEnemies\Manhack.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
     </CustomBuild>
-    <CustomBuild Include="Mod\Merasmus.es">
+    <CustomBuild Include="Mod\BetaEnemies\Merasmus.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
     </CustomBuild>
-    <CustomBuild Include="Mod\Metrocop.es">
+    <CustomBuild Include="Mod\BetaEnemies\Metrocop.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">EntitiesMP/Mod/BetaEnemies/%(Filename).es</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd $(SolutionDir)
-ecc EntitiesMP/Mod/%(Filename).es </Command>
+ecc EntitiesMP/Mod/BetaEnemies/%(Filename).es </Command>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

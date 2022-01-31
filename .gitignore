@@ -81,6 +81,7 @@ Levels/*
 !Levels/empty
 Models/*
 ModelsMP/*
+ModelsSKA/*
 Music/*
 MusicMP/*
 Scripts/PersistentSymbols.ini
@@ -100,6 +101,10 @@ Sources/EntitiesMP/*.cpp
 !Sources/EntitiesMP/StdH/*
 Sources/EntitiesMP/Mod/*.h
 Sources/EntitiesMP/Mod/*.cpp
+Sources/EntitiesMP/Mod/BetaEnemies/*.h
+Sources/EntitiesMP/Mod/BetaEnemies/*.cpp
+Sources/EntitiesMP/Mod/Enemies/*.h
+Sources/EntitiesMP/Mod/Enemies/*.cpp
 Sources/Entities/*.cpp
 Sources/Entities/*.h
 !Sources/Entities/Common/*
