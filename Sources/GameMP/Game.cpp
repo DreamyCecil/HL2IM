@@ -1085,7 +1085,6 @@ void CGame::InitInternal( void)
   CECIL_InitBotMod();
 
   // [Cecil] Patch the world
-  extern void InitWorldPatches(void);
   InitWorldPatches();
 }
 

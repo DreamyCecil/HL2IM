@@ -1,11 +1,8 @@
-#include "StdAfx.h"
+#include "StdH.h"
+#include "WorldPatch.h"
 
-#include "Engine/Templates/Stock_CEntityClass.h"
-
-// [Cecil] TODO: Remove dependency on the engine and add the source file to GameMP
-#define DECL_DLL _declspec(dllimport)
 #include "Bots/Patcher/patcher.h"
-#undef DECL_DLL
+#include "Engine/Templates/Stock_CEntityClass.h"
 
 // [Cecil] Original function pointer
 typedef CEntity *(CWorld::*CCreateEntityFunc)(const CPlacement3D &, CEntityClass *);
@@ -49,7 +46,7 @@ class CWorldPatch : public CWorld {
       // Create entity from the new class
       CEntity *penNew = (this->*pCreateEntityFunc)(plPlacement, pecReplacement);
 
-      // Release the replaced class
+      // Release the replacement class
       _pEntityClassStock->Release(pecReplacement);
 
       return penNew;
@@ -57,7 +54,7 @@ class CWorldPatch : public CWorld {
 };
 
 // [Cecil] World patches
-extern void InitWorldPatches(void) {
+void InitWorldPatches(void) {
   pCreateEntityFunc = &CWorld::CreateEntity;
-	CPatch *pPatchCreate = new CPatch(pCreateEntityFunc, &CWorldPatch::P_CreateEntity, true, true);
+  CPatch *pPatchCreate = new CPatch(pCreateEntityFunc, &CWorldPatch::P_CreateEntity, true, true);
 };

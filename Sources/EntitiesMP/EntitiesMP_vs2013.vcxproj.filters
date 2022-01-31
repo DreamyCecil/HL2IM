@@ -696,6 +696,9 @@
     <ClCompile Include="Mod\AntlionGuard.cpp">
       <Filter>Source Files\Entity sources</Filter>
     </ClCompile>
+    <ClCompile Include="Cecil\WorldPatch.cpp">
+      <Filter>Source Files\Cecil sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Common.h">
@@ -1837,6 +1840,9 @@
     </ClInclude>
     <ClInclude Include="Mod\Metrocop_tables.h">
       <Filter>Header Files\Entity headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Cecil\WorldPatch.h">
+      <Filter>Header Files\Cecil headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

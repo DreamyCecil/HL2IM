@@ -8,7 +8,7 @@
 #ifdef  __DO_NOT_SHOW_PATCHER_WARNINGS__
 #pragma warning(disable:4311)
 #endif
-class DECL_DLL CPatch
+class CPatch
 {
 private:
 	//don't care about leaks, it is allocated only once

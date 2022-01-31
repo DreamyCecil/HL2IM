@@ -349,6 +349,7 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     <ClCompile Include="Cecil\Materials.cpp" />
     <ClCompile Include="Cecil\Physics.cpp" />
     <ClCompile Include="Cecil\Weapons.cpp" />
+    <ClCompile Include="Cecil\WorldPatch.cpp" />
     <ClCompile Include="Common\Common.cpp" />
     <ClCompile Include="Common\EmanatingParticles.cpp" />
     <ClCompile Include="Common\HUD.cpp" />
@@ -655,6 +656,7 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     <ClInclude Include="Cecil\Materials.h" />
     <ClInclude Include="Cecil\Physics.h" />
     <ClInclude Include="Cecil\Weapons.h" />
+    <ClInclude Include="Cecil\WorldPatch.h" />
     <ClInclude Include="Common\Common.h" />
     <ClInclude Include="Common\Flags.h" />
     <ClInclude Include="Common\GameInterface.h" />
