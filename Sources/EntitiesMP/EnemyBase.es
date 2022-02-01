@@ -270,6 +270,9 @@ functions:
     Cecil_PreMoving(this, m_vRotationDir);
   };
 
+  // [Cecil] Update enemy every step with some frequency
+  virtual void OnStep(void) {};
+
   void CEnemyBase(void) {
     m_tmPredict = 0;
   };
@@ -2311,7 +2314,12 @@ procedures:
             call DoPatrolling(); 
           }
           // if time is up
-          on (EReminder) : {
+          on (EReminder eReminder) : {
+            // [Cecil] Enemy loop
+            if (eReminder.iValue == ENEMY_STEP_VAL) {
+              pass;
+            }
+
             // stop patroling
             stop;
           }
@@ -2373,6 +2381,14 @@ procedures:
         on (EGravityGunStop) : { pass; }
         on (EGravityGunHold) : { pass; }
         on (EGravityGunPush) : { pass; }
+
+        // [Cecil] Pass enemy step function
+        on (EReminder eStep) : {
+          if (eStep.iValue == ENEMY_STEP_VAL) {
+            pass;
+          }
+          resume;
+        }
 
         // ignore all other events
         otherwise () : { resume; }
@@ -2628,6 +2644,14 @@ procedures:
         on (EGravityGunStop) : { pass; }
         on (EGravityGunHold) : { pass; }
         on (EGravityGunPush) : { pass; }
+
+        // [Cecil] Pass enemy step function
+        on (EReminder eStep) : {
+          if (eStep.iValue == ENEMY_STEP_VAL) {
+            pass;
+          }
+          resume;
+        }
 
         on (ESound) : { resume; } // ignore all sounds
         on (EWatch) : { resume; } // ignore watch
@@ -3158,6 +3182,14 @@ procedures:
       on (EGravityGunHold) : { pass; }
       on (EGravityGunPush) : { pass; }
 
+      // [Cecil] Pass enemy step function
+      on (EReminder eStep) : {
+        if (eStep.iValue == ENEMY_STEP_VAL) {
+          pass;
+        }
+        resume;
+      }
+
       // warn for all obsolete events
       on (EStartAttack) : {
         //CPrintF("%s: StartAttack event is obsolete!\n", GetName());
@@ -3227,6 +3259,14 @@ procedures:
       on (EGravityGunStop) : { pass; }
       on (EGravityGunHold) : { pass; }
       on (EGravityGunPush) : { pass; }
+
+      // [Cecil] Pass enemy step function
+      on (EReminder eStep) : {
+        if (eStep.iValue == ENEMY_STEP_VAL) {
+          pass;
+        }
+        resume;
+      }
     }
   };
 
@@ -3377,6 +3417,14 @@ procedures:
       }
       on (EGravityGunPush ePush) : {
         GravityGunPush(this, ePush.vDir);
+        resume;
+      }
+
+      // [Cecil] Call enemy step function
+      on (EReminder eStep) : {
+        if (eStep.iValue == ENEMY_STEP_VAL) {
+          OnStep();
+        }
         resume;
       }
     }

@@ -30,6 +30,7 @@
 
 // [Cecil] Own definitions
 #define ONE_TICK _pTimer->TickQuantum
+#define ENEMY_STEP_VAL INDEX(-123) // Reminder value for calling enemy step function
 
 // [Cecil] Own damage types (start with 19)
 #define DMT_RIFLE 19 // AR2
@@ -150,8 +151,9 @@ DECL_DLL void SendToTarget(CEntity *penSendEvent, EventEType eetEventType, CEnti
 // send event in range
 DECL_DLL void SendInRange(CEntity *penSource, EventEType eetEventType, const FLOATaabbox3D &boxRange);
 
+// [Cecil] Looped flag
 // spawn reminder
-DECL_DLL CEntityPointer SpawnReminder(CEntity *penOwner, FLOAT fWaitTime, INDEX iValue);
+DECL_DLL CEntityPointer SpawnReminder(CEntity *penOwner, FLOAT fWaitTime, INDEX iValue, BOOL bLooped = FALSE);
 // spawn flame
 DECL_DLL CEntityPointer SpawnFlame(CEntity *penOwner, CEntity *penAttach, const FLOAT3D &vSource);
 

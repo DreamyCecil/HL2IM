@@ -229,8 +229,9 @@ void SendInRange(CEntity *penSource, EventEType eetEventType, const FLOATaabbox3
   }
 };
 
+// [Cecil] Looped flag
 // spawn reminder
-CEntityPointer SpawnReminder(CEntity *penOwner, FLOAT fWaitTime, INDEX iValue) {
+CEntityPointer SpawnReminder(CEntity *penOwner, FLOAT fWaitTime, INDEX iValue, BOOL bLooped) {
   CEntityPointer penReminder;
   try {
     penReminder = penOwner->GetWorld()->CreateEntity_t
@@ -242,6 +243,7 @@ CEntityPointer SpawnReminder(CEntity *penOwner, FLOAT fWaitTime, INDEX iValue) {
   eri.penOwner = penOwner;
   eri.fWaitTime = fWaitTime;
   eri.iValue = iValue;
+  eri.bLooped = bLooped; // [Cecil]
   penReminder->Initialize(eri);
 
   return penReminder;
