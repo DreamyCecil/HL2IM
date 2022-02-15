@@ -101,6 +101,11 @@ public:
   INDEX sp_iHL2Flags;
   INDEX sp_iStartWeapons;
   FLOAT sp_fGravityGunPower;
+
+  // [Cecil] Clear the properties
+  void Clear(void) {
+    memset(this, 0, sizeof(CSessionProperties));
+  };
 };
 
 // NOTE: never instantiate CSessionProperties, as its size is not fixed to the size defined in engine
@@ -114,9 +119,13 @@ public:
 
   // must have exact the size as allocated block in engine
   CUniversalSessionProperties() { 
-    ASSERT(sizeof(CSessionProperties)<=NET_MAXSESSIONPROPERTIES); 
-    ASSERT(sizeof(CUniversalSessionProperties)==NET_MAXSESSIONPROPERTIES); 
-  }
+    ASSERT(sizeof(CSessionProperties)<=NET_MAXSESSIONPROPERTIES);
+    ASSERT(sizeof(CUniversalSessionProperties)==NET_MAXSESSIONPROPERTIES);
+    
+    // [Cecil] Clear on creation
+    memset(usp_aubDummy, 0, NET_MAXSESSIONPROPERTIES);
+  };
+
   operator CSessionProperties&(void) { return usp_sp; }
 };
 
