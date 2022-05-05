@@ -1,3 +1,3 @@
 @echo off
-start ..\..\..\Bin\SeriousEditor.exe +game HalfLifeStyled
+start ..\..\..\Bin\SeriousEditor.exe +game HL2IM
 exit

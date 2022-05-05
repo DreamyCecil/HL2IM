@@ -19,7 +19,7 @@ There are two ways to start the mod:
 1. Create a `.des` file in your Mods directory under the same name as this repository, open it in any text editor and type your mod name in it. Then you'll be able to launch your mod from the game's `Mods` list.
 2. Run `ModStart.bat` or `EditorStart.bat` from the Bin folder to open the editor or the mod.
 
-When running a selected project, make sure the mod in project properties **Debugging** -> **Command Arguments** is set to your mod name instead of `HalfLifeStyled` (example: `+game HL2IM_Mod`).
+When running a selected project, make sure the mod in project properties **Debugging** -> **Command Arguments** is set to your mod name instead of `HL2IM` (example: `+game HL2IM_Mod`).
 
 License
 -------
