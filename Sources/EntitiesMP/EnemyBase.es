@@ -186,6 +186,7 @@ properties:
 200 FLOAT3D m_vRotationDir = FLOAT3D(0.0f, -1.0f, 0.0f), // For rotation
 201 CEntityPointer m_penPlayerHolding, // Player that's holding the enemy with a gravity gun
 202 BOOL m_bHL2Enemy = FALSE, // Indicates a Half-Life enemy
+203 CEntityPointer m_penLastAttacker, // Who attacked the enemy last
 
 {
   TIME m_tmPredict;  // time to predict the entity to
@@ -725,6 +726,9 @@ functions:
     TIME tmNow = _pTimer->CurrentTick();
     TIME tmDelta = tmNow-m_tmLastDamage;
     m_tmLastDamage = tmNow;
+
+    // [Cecil] Remember last attacker
+    m_penLastAttacker = penInflictor;
 
     // fade damage out
     if (tmDelta>=_pTimer->TickQuantum*3) {
