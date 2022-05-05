@@ -6,10 +6,20 @@
 #include "EntitiesMP/Cecil/Weapons.h"
 
 // [Cecil] World conversion
-#include "EntitiesMP/DoorController.h"
-#include "EntitiesMP/PlayerMarker.h"
 #include "EntitiesMP/PlayerWeapons.h"
 #include "EntitiesMP/WorldBase.h"
+
+#include "EntitiesMP/Camera.h"
+#include "EntitiesMP/EnemyBase.h"
+#include "EntitiesMP/EnemySpawner.h"
+#include "EntitiesMP/Lightning.h"
+#include "EntitiesMP/MovingBrush.h"
+#include "EntitiesMP/PyramidSpaceShip.h"
+#include "EntitiesMP/StormController.h"
+
+#include "EntitiesMP/KeyItem.h"
+#include "EntitiesMP/DoorController.h"
+#include "EntitiesMP/PlayerMarker.h"
 
 // Pointer to this entity
 extern CEntity *_penGlobalController = NULL;
@@ -72,7 +82,7 @@ functions:
     {FOREACHINDYNAMICCONTAINER(GetWorld()->wo_cenEntities, CEntity, iten) {
       CEntity *pen = iten;
 
-      if (!IsOfClass(pen, "WorldBase")) {
+      if (!IsOfDllClass(pen, CWorldBase_DLLClass)) {
         continue;
       }
 
@@ -120,15 +130,20 @@ functions:
         CEntity *pen = iten;
 
         // [Cecil] Check for the entities that NEED to be updated rather than the ones that don't
-        if (!IsDerivedFromClass(pen, "Enemy Base") && !IsOfClass(pen, "Enemy Spawner")
-         && !IsOfClass(pen, "Trigger") && !IsOfClass(pen, "KeyItem") && !IsOfClass(pen, "Moving Brush")
-         && !IsOfClass(pen, "Storm controller") && !IsOfClass(pen, "PyramidSpaceShip") && !IsOfClass(pen, "Lightning")
-         && !IsOfClass(pen, "DoorController") && !IsOfClass(pen, "Touch Field")
-         && !IsOfClass(pen, "Player Marker")) {
+        if (!IsDerivedFromDllClass(pen, CEnemyBase_DLLClass)
+         && !IsOfDllClass(pen, CCamera_DLLClass)
+         && !IsOfDllClass(pen, CEnemySpawner_DLLClass)
+         && !IsOfDllClass(pen, CLightning_DLLClass)
+         && !IsOfDllClass(pen, CMovingBrush_DLLClass)
+         && !IsOfDllClass(pen, CPyramidSpaceShip_DLLClass)
+         && !IsOfDllClass(pen, CStormController_DLLClass)
+         && !IsOfDllClass(pen, CKeyItem_DLLClass)
+         && !IsOfDllClass(pen, CDoorController_DLLClass)
+         && !IsOfDllClass(pen, CPlayerMarker_DLLClass)) {
           continue;
         }
   
-        if (IsOfClass(pen, "Player Marker")) {
+        if (IsOfDllClass(pen, CPlayerMarker_DLLClass)) {
           CPlayerMarker *penWeapons = (CPlayerMarker *)pen;
           INDEX *piWeapons = &penWeapons->m_iGiveWeapons;
           INDEX *piTakeWeapons = &penWeapons->m_iTakeWeapons;
@@ -150,7 +165,7 @@ functions:
           *piTakeWeapons = iNewTakeWeapons;
           SERVER_REPORT("- Converted PlayerMarker");
 
-        } else if (IsOfClass(pen, "KeyItem")) {
+        } else if (IsOfDllClass(pen, CKeyItem_DLLClass)) {
           CKeyItem *penKey = (CKeyItem *)pen;
       
           switch (penKey->m_kitType) {
@@ -172,7 +187,7 @@ functions:
           SERVER_REPORT("- Converted KeyItem");
           iReinit++;
 
-        } else if (IsOfClass(pen, "DoorController")) {
+        } else if (IsOfDllClass(pen, CDoorController_DLLClass)) {
           CDoorController *penDoor = (CDoorController *)pen;
       
           switch (penDoor->m_kitKey) {
@@ -212,7 +227,6 @@ procedures:
 
     // travel between levels
     SetFlags(GetFlags()|ENF_CROSSESLEVELS|ENF_NOTIFYLEVELCHANGE);
-
 
     wait() {
       on (EBegin) : {
