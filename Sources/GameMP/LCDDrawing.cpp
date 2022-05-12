@@ -16,7 +16,7 @@ extern void LCDInit(void)
   try {
     _toBcgClouds.SetData_t(CTFILENAME("Textures\\General\\Background6.tex"));
     _toBcgGrid.SetData_t(CTFILENAME("Textures\\General\\Grid16x16-dot.tex"));
-    _toPointer.SetData_t(CTFILENAME("Textures\\General\\Pointer.tex",));
+    _toPointer.SetData_t(CTFILENAME("Textures\\General\\Pointer.tex"));
   } catch (char *strError) {
     FatalError("%s\n", strError);
   }
