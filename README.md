@@ -1,14 +1,13 @@
 # Half-Life 2 Immersion Mod
 This is the source code of a mod for classic Serious Sam: The Second Encounter v1.07 that tries to recreate the atmosphere of Half-Life 2 game by adding weapons, enemies, interface and a lot of other features ported directly from Half-Life 2.
-Based on [Serious Sam SDK v1.07 for Visual Studio 2013](https://github.com/DreamyCecil/SeriousSam_SDK107)
-
+Based on [Serious Engine 1 Mod SDK](https://github.com/DreamyCecil/SE1-ModSDK)
 
 Building
 --------
 
 To compile the source code, you'll need to use a compiler from Microsoft Visual C++ 6.0.
 
-Full guide: https://github.com/DreamyCecil/SeriousSam_SDK107#building
+Full guide: https://github.com/DreamyCecil/SE1-ModSDK#building
 
 Running
 -------
