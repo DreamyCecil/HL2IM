@@ -3063,19 +3063,23 @@ functions:
     CPerspectiveProjection3D prPerspectiveProjection;
     plr_fFOV = Clamp(plr_fFOV, 1.0f, 160.0f);
 
-    // [Cecil] Different FOV system
-    /*ANGLE aFOV = plr_fFOV;
+    ANGLE aFOV = plr_fFOV;
 
-    // disable zoom in deathmatch
-    if (!GetSP()->sp_bCooperative) {
-      aFOV = 90.0f;
-    }*/
+    // [Cecil] Steam patch workaround
+    if (!_bClassicsPatch) {
+      // Get aspect ratio of the current resolution
+      FLOAT fAspectRatio = FLOAT(pdp->GetWidth()) / FLOAT(pdp->GetHeight());
 
-    // [Cecil] Steam version of SeriousSam.exe workaround
-    BOOL bWidescreen = (FLOAT(pdp->GetHeight()) / FLOAT(pdp->GetWidth()) < 0.75f);
+      // 4:3 resolution = 1.0 ratio; 16:9 = 1.333 etc.
+      FLOAT fSquareRatio = fAspectRatio * (3.0f / 4.0f);
 
-    // [Cecil] New FOV system
-    ANGLE aFOV = (bWidescreen ? 110.0f : 90.0f);
+      // Take current FOV angle and apply square ratio to it
+      FLOAT fVerticalAngle = Tan(aFOV * 0.5f) * fSquareRatio;
+
+      // 90 FOV on 16:9 resolution will become 106.26...
+      aFOV = 2.0f * ATan(fVerticalAngle);
+    }
+
     CPlayerWeapons &penWeapons = (CPlayerWeapons&)*m_penWeapons;
 
     // [Cecil] Apply zoom
@@ -3093,11 +3097,6 @@ functions:
       aFOV *= (plr_fFOV / 90.0f);
       aFOV = Clamp(aFOV, 1.0f, 179.0f);
     }
-
-    // [Cecil] Steam version of SeriousSam.exe workaround
-    /*if (bWidescreen) {
-      aFOV -= 16.25f;
-    }*/
 
     ApplyShaking(plViewer);
 
