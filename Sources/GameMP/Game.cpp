@@ -858,6 +858,15 @@ void CGame::GameHandleTimer(void)
  */
 void CGame::InitInternal( void)
 {
+  // [Cecil] Detect Classics patch
+  {
+    CShellSymbol *pssAPI = _pShell->GetSymbol("CoreAPI", TRUE);
+
+    if (pssAPI != NULL) {
+      _bClassicsPatch = TRUE;
+    }
+  }
+
   gam_strCustomLevel = ""; // filename of custom level chosen
   gam_strSessionName = TRANS("Unnamed session"); // name of multiplayer network session
   gam_strJoinAddress = TRANS("serveraddress");   // join address

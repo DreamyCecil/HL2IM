@@ -15,6 +15,9 @@ extern INDEX ent_bReportBrokenChains;
 // [Cecil]
 #include "EntitiesMP/Cecil/Materials.h"
 
+// [Cecil] Not playing with a Classics patch by default
+BOOL _bClassicsPatch = FALSE;
+
 void CCompMessageID::Clear(void)
 {
   cmi_fnmFileName.Clear();

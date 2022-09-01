@@ -308,3 +308,6 @@ void SpawnHitTypeEffect(CEntity *pen, enum BulletHitType bhtType, BOOL bSound, F
 
 // [Cecil] Get certain vertex position
 FLOAT3D GetVertexPosition(CModelObject *pmo, const INDEX &iVtxIndex);
+
+// [Cecil] Playing with a Classics patch
+DECL_DLL extern BOOL _bClassicsPatch;
