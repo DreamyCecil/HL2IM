@@ -59,9 +59,9 @@ void UnloadMaterials(void);
 void SwitchMaterialConfig(INDEX iConfig);
 
 // Find position of the texture in a specific material
-INDEX FindMaterialTexture(CConfigBlock *pcb, string fnTex, string strMaterial);
+INDEX FindMaterialTexture(CConfigBlock *pcb, const CTFileName &fnTex, const CTString &strMaterial);
 // Find position and material of a specific texture
-INDEX TextureMaterialExists(CConfigBlock *pcb, string fnTex, INDEX &iMaterial);
+INDEX TextureMaterialExists(CConfigBlock *pcb, const CTFileName &fnTex, INDEX &iMaterial);
 // Apply existing materials to the world
 BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime);
 

@@ -1,11 +1,6 @@
-#include <Engine\Engine.h>
+#include <Engine/Engine.h>
 #include <GameMP/SessionProperties.h>
 #include <GameMP/PlayerSettings.h>
-
-// [Cecil]
-#include <string>
-#include <fstream>
-using namespace std;
 
 /* rcg10042001 protect against Visual C-isms. */
 #ifdef _MSC_VER

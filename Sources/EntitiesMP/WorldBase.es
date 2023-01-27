@@ -8,7 +8,7 @@
 
 // [Cecil] Materials
 #include "EntitiesMP/Cecil/Materials.h"
-extern string _astrMaterials[];
+extern const char *_astrMaterials[];
 %}
 
 uses "EntitiesMP\FogMarker";
@@ -567,7 +567,7 @@ void CWorldBase_OnWorldInit(CWorld *pwo) {
     INDEX iSurfaceIndex = SURFACE_LAST + iSur * ESRT_LAST;
 
     // surface names
-    CTString strSurName = _astrMaterials[7+iSur].c_str();
+    const CTString strSurName = _astrMaterials[7 + iSur];
 
     // normal
     pwo->wo_astSurfaceTypes[iSurfaceIndex+0].st_strName = strSurName;

@@ -5,9 +5,9 @@
 
 // Compatibility
 extern void (*_pJSON_PrintFunction)(const char *);
-extern string (*_pJSON_LoadConfigFile)(string);
+extern std::string (*_pJSON_LoadConfigFile)(std::string);
 
-string LoadConfigFile(string strFile) {
+std::string LoadConfigFile(std::string strFile) {
   CTFileStream strm;
   strm.Open_t(CTString(strFile.c_str()));
 
@@ -17,12 +17,12 @@ string LoadConfigFile(string strFile) {
   strm.Close();
 
   // return config
-  return strConfig;
+  return strConfig.str_String;
 };
 
 void HookFunctions(void) {
   _pJSON_PrintFunction = (void (*)(const char *))CPrintF;
-  _pJSON_LoadConfigFile = (string (*)(string))LoadConfigFile;
+  _pJSON_LoadConfigFile = (std::string (*)(std::string))LoadConfigFile;
 };
 
 // Loaded materials
@@ -99,7 +99,7 @@ void SaveMaterials(void) {
   }
 
   try {
-    string strMaterials = "";
+    std::string strMaterials = "";
     _pcbCurrentConfig->Print(strMaterials);
 
     CTString strSave = strMaterials.c_str();
@@ -154,25 +154,26 @@ void SwitchMaterialConfig(INDEX iConfig) {
 };
 
 // Relevant materials and their names
-extern string _astrMaterials[] = {
+const char *_astrMaterials[] = {
   "STONE", "SAND", "WATER", "RED_SAND", "GRASS", "WOOD", "SNOW", "METAL", "METAL_GRATE", "CHAINLINK", "TILES", "GLASS",
 };
-extern INDEX _aiMaterials[] = {
+
+INDEX _aiMaterials[] = {
   SURFACE_STONE, SURFACE_SAND, SURFACE_WATER, SURFACE_RED_SAND, SURFACE_GRASS, SURFACE_WOOD, SURFACE_SNOW,
   MATERIAL_VAR(METAL), MATERIAL_VAR(METAL_GRATE), MATERIAL_VAR(CHAINLINK), MATERIAL_VAR(TILES), MATERIAL_VAR(GLASS),
 };
 
-extern const INDEX _ctMaterials = 12;
+const INDEX _ctMaterials = 12;
 
 // Find position of the texture in a specific material
-INDEX FindMaterialTexture(CConfigBlock *pcb, string fnTex, string strMaterial) {
+INDEX FindMaterialTexture(CConfigBlock *pcb, const CTFileName &fnTex, const CTString &strMaterial) {
   if (strMaterial == "" || fnTex == "") {
     return -1;
   }
 
   // get the array of this material
   CConfigArray *caArray;
-  if (!pcb->GetValue(strMaterial, caArray)) {
+  if (!pcb->GetValue(strMaterial.str_String, caArray)) {
     return -1;
   }
 
@@ -197,7 +198,7 @@ INDEX FindMaterialTexture(CConfigBlock *pcb, string fnTex, string strMaterial) {
 };
 
 // Find position and material of a specific texture
-INDEX TextureMaterialExists(CConfigBlock *pcb, string fnTex, INDEX &iMaterial) {
+INDEX TextureMaterialExists(CConfigBlock *pcb, const CTFileName &fnTex, INDEX &iMaterial) {
   // go through all the materials (skip stone - 0)
   for (INDEX i = 1; i < _ctMaterials; i++) {
     INDEX iTex = FindMaterialTexture(pcb, fnTex, _astrMaterials[i]);
@@ -232,7 +233,7 @@ BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime) {
 
     for (INDEX iLayerCheck = 0; iLayerCheck < 3; iLayerCheck++) {
       CBrushPolygonTexture &bpt = pbpo->bpo_abptTextures[iLayerCheck];
-      string fnCheckTex = CTFileName(bpt.bpt_toTexture.GetName()).FileName();
+      CTString fnCheckTex = bpt.bpt_toTexture.GetName().FileName().str_String;
 
       // at least one texture exists
       if (fnCheckTex != "") {
@@ -321,7 +322,7 @@ BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime) {
     for (INDEX iLayer = 0; iLayer < 3; iLayer++) {
       // get the texture
       CBrushPolygonTexture &bpt = pbpo->bpo_abptTextures[iLayer];
-      string fnTex = CTFileName(bpt.bpt_toTexture.GetName()).FileName();
+      CTString fnTex = bpt.bpt_toTexture.GetName().FileName().str_String;
 
       if (fnTex == "") {
         continue;
@@ -396,7 +397,7 @@ extern CBrushPolygon *_pbpoMaterial;
 void SetMaterial(INDEX iLayer, INDEX iMat) {
   iLayer = Clamp(iLayer, (INDEX)0, (INDEX)2);
   iMat = Clamp(iMat, (INDEX)0, (INDEX)(_ctMaterials-1));
-  string strMat = _astrMaterials[iMat];
+  const char *strMat = _astrMaterials[iMat];
 
   // no polygon
   if (_pbpoMaterial == NULL) {
@@ -406,7 +407,7 @@ void SetMaterial(INDEX iLayer, INDEX iMat) {
 
   // get the texture
   CBrushPolygonTexture &bpt = _pbpoMaterial->bpo_abptTextures[iLayer];
-  string fnTex = CTFileName(bpt.bpt_toTexture.GetName()).FileName();
+  CTString fnTex = bpt.bpt_toTexture.GetName().FileName().str_String;
 
   // no texture on the layer
   if (fnTex == "") {
@@ -420,7 +421,7 @@ void SetMaterial(INDEX iLayer, INDEX iMat) {
   if (!_pcbCurrentConfig->GetValue(strMat, caArray)) {
     caArray = new CConfigArray();
     _pcbCurrentConfig->AddValue(strMat, caArray);
-    CPrintF(" Created '%s' material\n", strMat.c_str());
+    CPrintF(" Created '%s' material\n", strMat);
   }
 
   CConfigArray *caMaterial = caArray;
@@ -433,23 +434,22 @@ void SetMaterial(INDEX iLayer, INDEX iMat) {
   if (iTex != -1) {
     // same material
     if (iDeleteFromMat == iMat) {
-      CPrintF(" '%s' material was already assigned to this texture!\n", strMat.c_str());
+      CPrintF(" '%s' material was already assigned to this texture!\n", strMat);
       return;
     }
 
     // delete it
     _pcbCurrentConfig->GetValue(_astrMaterials[iDeleteFromMat], caArray);
     caArray->Delete(iTex);
-    CPrintF(" Texture was removed from material '%s'\n", _astrMaterials[iDeleteFromMat].c_str());
+    CPrintF(" Texture was removed from material '%s'\n", _astrMaterials[iDeleteFromMat]);
   }
 
   // add this texture to materials
-  string strPrint = "";
-  string strTexPath = fnTex;
-  caMaterial->AddValue(strTexPath);
+  std::string strPrint = "";
+  caMaterial->AddValue(fnTex.str_String);
   caMaterial->Print(strPrint, 0);
 
-  CPrintF("'%s' : %s\n\n Changed material for '%s'\n", strMat.c_str(), strPrint.c_str(), fnTex.c_str());
+  CPrintF("'%s' : %s\n\n Changed material for '%s'\n", strMat, strPrint.c_str(), fnTex);
 };
 
 // Remove material from the list
@@ -462,7 +462,7 @@ void RemoveMaterial(INDEX iLayer) {
 
   // get the texture
   CBrushPolygonTexture &bpt = _pbpoMaterial->bpo_abptTextures[iLayer];
-  string fnTex = CTFileName(bpt.bpt_toTexture.GetName()).FileName();
+  CTString fnTex = bpt.bpt_toTexture.GetName().FileName().str_String;
 
   // no texture on the layer
   if (fnTex == "") {
@@ -481,7 +481,7 @@ void RemoveMaterial(INDEX iLayer) {
     // delete it
     _pcbCurrentConfig->GetValue(_astrMaterials[iDeleteFromMat], caArray);
     caArray->Delete(iTex);
-    CPrintF(" Texture was removed from material '%s'\n", _astrMaterials[iDeleteFromMat].c_str());
+    CPrintF(" Texture was removed from material '%s'\n", _astrMaterials[iDeleteFromMat]);
 
   } else {
     CPrintF(" Material for this texture doesn't exist!\n");
@@ -502,7 +502,7 @@ void MaterialsHelp(void) {
   CPrintF("\n ^cffffff-- List of materials:\n\n");
 
   for (INDEX iMat = 0; iMat < _ctMaterials; iMat++) {
-    CPrintF(" %d - %s\n", iMat, _astrMaterials[iMat].c_str());
+    CPrintF(" %d - %s\n", iMat, _astrMaterials[iMat]);
   }
 
   CPrintF("\n");
