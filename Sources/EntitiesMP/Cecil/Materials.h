@@ -1,5 +1,16 @@
 // ***** [Cecil] This header is for Material functions only! ***** //
+
+#include <Engine/Base/Memory.h>
+
+#ifdef _DEBUG
+  #undef new
+#endif
+
 #include "EntitiesMP/Cecil/DreamyJSON/DreamyJSON.h"
+
+#ifdef _DEBUG
+  #define new DEBUG_NEW_CT
+#endif
 
 // Surface types
 enum ECecilSurfaceType {
