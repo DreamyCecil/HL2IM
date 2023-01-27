@@ -100,7 +100,7 @@
     <Filter Include="Header Files\Patcher headers">
       <UniqueIdentifier>{b3af6d48-d1e1-43b8-8265-98a0b77da992}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Class Files\Cecil\Enemies">
+    <Filter Include="Class Files\Cecil\BetaEnemies">
       <UniqueIdentifier>{cd619a5a-565c-4acd-837f-1bad35e9b06c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -2291,31 +2291,31 @@
       <Filter>Class Files\Cecil</Filter>
     </CustomBuild>
     <CustomBuild Include="Mod\BetaEnemies\Antlion.es">
-      <Filter>Class Files\Cecil\Enemies</Filter>
+      <Filter>Class Files\Cecil\BetaEnemies</Filter>
     </CustomBuild>
     <CustomBuild Include="Mod\BetaEnemies\AntlionGuard.es">
-      <Filter>Class Files\Cecil\Enemies</Filter>
+      <Filter>Class Files\Cecil\BetaEnemies</Filter>
     </CustomBuild>
     <CustomBuild Include="Mod\BetaEnemies\CombineElite.es">
-      <Filter>Class Files\Cecil\Enemies</Filter>
+      <Filter>Class Files\Cecil\BetaEnemies</Filter>
     </CustomBuild>
     <CustomBuild Include="Mod\BetaEnemies\CombineSoldier.es">
-      <Filter>Class Files\Cecil\Enemies</Filter>
+      <Filter>Class Files\Cecil\BetaEnemies</Filter>
     </CustomBuild>
     <CustomBuild Include="Mod\BetaEnemies\FastZombie.es">
-      <Filter>Class Files\Cecil\Enemies</Filter>
+      <Filter>Class Files\Cecil\BetaEnemies</Filter>
     </CustomBuild>
     <CustomBuild Include="Mod\BetaEnemies\Headcrab.es">
-      <Filter>Class Files\Cecil\Enemies</Filter>
+      <Filter>Class Files\Cecil\BetaEnemies</Filter>
     </CustomBuild>
     <CustomBuild Include="Mod\BetaEnemies\Manhack.es">
-      <Filter>Class Files\Cecil\Enemies</Filter>
+      <Filter>Class Files\Cecil\BetaEnemies</Filter>
     </CustomBuild>
     <CustomBuild Include="Mod\BetaEnemies\Merasmus.es">
-      <Filter>Class Files\Cecil\Enemies</Filter>
+      <Filter>Class Files\Cecil\BetaEnemies</Filter>
     </CustomBuild>
     <CustomBuild Include="Mod\BetaEnemies\Metrocop.es">
-      <Filter>Class Files\Cecil\Enemies</Filter>
+      <Filter>Class Files\Cecil\BetaEnemies</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
