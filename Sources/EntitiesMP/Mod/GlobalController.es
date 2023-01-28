@@ -68,6 +68,13 @@ functions:
     _penGlobalController = this;
   };
 
+  void Read_t(CTStream *istr) {
+    CRationalEntity::Read_t(istr);
+
+    // [Cecil] Update the level
+    UpdateLevel();
+  };
+
   // Count memory used by this object
   SLONG GetUsedMemory(void) {
     SLONG slUsedMemory = sizeof(CGlobalController) - sizeof(CRationalEntity) + CRationalEntity::GetUsedMemory();
@@ -117,9 +124,9 @@ functions:
     // mark as reinitialized
     if (penBase->m_bReinit) {
       return;
-    } else {
-      penBase->m_bReinit = TRUE;
     }
+
+    penBase->m_bReinit = TRUE;
 
     // Convert world
     if (iFlags & HL2F_REINITMAP) {
@@ -142,7 +149,7 @@ functions:
          && !IsOfDllClass(pen, CPlayerMarker_DLLClass)) {
           continue;
         }
-  
+
         if (IsOfDllClass(pen, CPlayerMarker_DLLClass)) {
           CPlayerMarker *penWeapons = (CPlayerMarker *)pen;
           INDEX *piWeapons = &penWeapons->m_iGiveWeapons;
@@ -155,7 +162,7 @@ functions:
             if (WeaponExists(*piWeapons, iGetWeapon)) {
               ConvertWeapon(iNewWeapons, iGetWeapon);
             }
-    
+
             if (WeaponExists(*piTakeWeapons, iGetWeapon)) {
               ConvertWeapon(iNewTakeWeapons, iGetWeapon);
             }
@@ -167,7 +174,7 @@ functions:
 
         } else if (IsOfDllClass(pen, CKeyItem_DLLClass)) {
           CKeyItem *penKey = (CKeyItem *)pen;
-      
+
           switch (penKey->m_kitType) {
             // Dummy keys
             case 4: penKey->m_kitType = KIT_JAGUARGOLDDUMMY; break;
@@ -189,7 +196,7 @@ functions:
 
         } else if (IsOfDllClass(pen, CDoorController_DLLClass)) {
           CDoorController *penDoor = (CDoorController *)pen;
-      
+
           switch (penDoor->m_kitKey) {
             // Dummy keys
             case 4: penDoor->m_kitKey = KIT_JAGUARGOLDDUMMY; break;
@@ -228,11 +235,10 @@ procedures:
     // travel between levels
     SetFlags(GetFlags()|ENF_CROSSESLEVELS|ENF_NOTIFYLEVELCHANGE);
 
+    autowait(0.05f);
+
     wait() {
       on (EBegin) : {
-        // [Cecil] Unload materials if they are still loaded in for some reason
-        UnloadMaterials();
-
         // [Cecil] Update the level
         UpdateLevel();
         resume;

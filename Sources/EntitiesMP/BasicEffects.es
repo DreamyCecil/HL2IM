@@ -23,7 +23,7 @@
 #define BULLET_LIFETIME 60.0f
 
 // [Cecil] List of currently existing bullet holes
-extern CDynamicContainer<CEntity> _cenBulletHoles = CDynamicContainer<CEntity>();
+CDynamicContainer<CEntity> _cenBulletHoles;
 %}
 
 uses "EntitiesMP/Light";

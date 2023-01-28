@@ -35,8 +35,9 @@ static CTFileName _fnCurrentConfig = CTString("Scripts\\GlobalMaterials.json");
 
 // Save and load materials of the world
 BOOL LoadMaterials(CWorld *pwo) {
+  // Unload current materials if they're still loaded
   if (_pcbCurrentConfig != NULL && _pcbCurrentConfig->Count() > 0) {
-    return FALSE;
+    UnloadMaterials();
   }
 
   HookFunctions();
@@ -44,7 +45,7 @@ BOOL LoadMaterials(CWorld *pwo) {
   _pwoConfigWorld = pwo;
   const CTFileName fnWorld = CTString("Scripts\\LevelMaterials\\" + pwo->wo_fnmFileName.FileName()+".json");
   const CTFileName fnGlobal = CTString("Scripts\\GlobalMaterials.json");
-  
+
   // load the config
   if (ParseConfig(fnWorld, _cbWorld)) {
     _fnCurrentConfig = fnWorld;
@@ -120,7 +121,7 @@ void SwitchMaterialConfig(INDEX iConfig) {
     case 1:
       _fnCurrentConfig = CTString("Scripts\\LevelMaterials\\" + _pwoConfigWorld->wo_fnmFileName.FileName()+".json");
       _pcbCurrentConfig = &_cbWorld;
-  
+
       // load level config
       if (ParseConfig(_fnCurrentConfig, _cbWorld)) {
         CPrintF(" Switched to level config (%s)\n", _fnCurrentConfig.FileName());
@@ -141,7 +142,7 @@ void SwitchMaterialConfig(INDEX iConfig) {
     default:
       _fnCurrentConfig = CTString("Scripts\\GlobalMaterials.json");
       _pcbCurrentConfig = &_cbGlobal;
-  
+
       // load global config
       if (ParseConfig(_fnCurrentConfig, _cbGlobal)) {
         CPrintF(" Switched to global config (GlobalMaterials.json)\n");
