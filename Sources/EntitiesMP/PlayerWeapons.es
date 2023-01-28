@@ -628,7 +628,7 @@ properties:
   // [Cecil] Flags of an object to restore
   ULONG m_ulObjectFlags;
   //ULONG m_ulObjectCollision;
-  FLOAT m_fObjectAngle;
+  ANGLE3D m_aObjectAngle;
 
   // [Cecil] Play warning sound when ammo is low
   BOOL m_bAmmoWarning;
@@ -891,7 +891,7 @@ functions:
     m_pbpoRayHit = NULL;
     m_ulObjectFlags = 0;
     //m_ulObjectCollision = 0;
-    m_fObjectAngle = 0;
+    m_aObjectAngle = ANGLE3D(0.0f, 0.0f, 0.0f);
     m_bAmmoWarning = FALSE;
     m_tmParticles = -100.0f;
   };
@@ -1417,7 +1417,7 @@ functions:
        || IsOfClass(pen, "RollingStone") || IsOfClass(pen, "Projectile")
        || IsOfClass(pen, "AntlionGuard") || IsOfClass(pen, "Merasmus")
        || IS_PLAYER(pen)
-       || pen->GetRenderType() != RT_MODEL) {
+       || (pen->GetRenderType() != RT_MODEL && pen->GetRenderType() != RT_SKAMODEL)) {
         return FALSE;
       }
     }
@@ -1444,7 +1444,8 @@ functions:
       }
 
       // can't pick invisible items
-      if (pen->GetRenderType() == RT_EDITORMODEL) {
+      if (pen->GetRenderType() == RT_EDITORMODEL
+       || pen->GetRenderType() == RT_SKAEDITORMODEL) {
         return FALSE;
       }
 
@@ -1505,7 +1506,8 @@ functions:
     FLOATaabbox3D boxSize;
     m_penHolding->GetBoundingBox(boxSize);
 
-    BOOL bFlyingEnemy = (IsDerivedFromClass(m_penHolding, "Enemy Fly") && ((CEnemyFly&)*m_penHolding).m_bInAir);
+    BOOL bFlyingEnemy = (IsDerivedFromClass(m_penHolding, "Enemy Fly") && ((CEnemyFly &)*m_penHolding).m_bInAir);
+
     FLOAT3D vOffset = FLOAT3D(0.0f, (bFlyingEnemy ? 0.0f : boxSize.Size()(2) / 2.0f), 0.0f) * mPlayer;
     vTargetPos -= vOffset;
 
@@ -1516,12 +1518,12 @@ functions:
     //aTargetDir(1) = aPlayer(1) + aView(1);
 
     // Follow the holder
-    CPlacement3D plTarget(vTargetPos, aTargetDir);
-    plTarget.pl_OrientationAngle(1) += m_fObjectAngle;
+    CPlacement3D plObject(FLOAT3D(0.0f, 0.0f, 0.0f), m_aObjectAngle);
+    plObject.RelativeToAbsolute(CPlacement3D(FLOAT3D(0.0f, 0.0f, 0.0f), aTargetDir));
 
     EGravityGunHold eHold;
-    eHold.vPos = plTarget.pl_PositionVector;
-    eHold.aRot = plTarget.pl_OrientationAngle;
+    eHold.vPos = vTargetPos;
+    eHold.aRot = plObject.pl_OrientationAngle;
     eHold.penHolder = this;
 
     eHold.ulFlags = m_ulObjectFlags & ~(EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY) | EPF_NOACCELERATION|EPF_ABSOLUTETRANSLATE;
@@ -1605,7 +1607,7 @@ functions:
     /*m_penHolding = penObject;
     m_ulObjectFlags = penObject->GetPhysicsFlags();
     //m_ulObjectCollision = penObject->GetCollisionFlags();
-    m_fObjectAngle = penObject->GetPlacement().pl_OrientationAngle(1) - (m_penPlayer->GetPlacement().pl_OrientationAngle(1) + GetPlayer()->en_plViewpoint.pl_OrientationAngle(1));*/
+    m_aObjectAngle = penObject->GetPlacement().pl_OrientationAngle - (m_penPlayer->GetPlacement().pl_OrientationAngle + GetPlayer()->en_plViewpoint.pl_OrientationAngle);*/
 
     EGravityGunStart eStart;
     eStart.penTarget = m_penPlayer;
@@ -1643,7 +1645,7 @@ functions:
     m_penHolding = NULL;
     m_ulObjectFlags = 0;
     //m_ulObjectCollision = 0;
-    m_fObjectAngle = 0;
+    m_aObjectAngle = ANGLE3D(0.0f, 0.0f, 0.0f);
 
     // stop holding sound
     GetPlayer()->m_soWeaponReload.Stop();
@@ -1665,7 +1667,7 @@ functions:
 
     *ostr << m_ulObjectFlags;
     //*ostr << m_ulObjectCollision;
-    *ostr << m_fObjectAngle;
+    *ostr << m_aObjectAngle;
   };
 
   // [Cecil] Read new variables
@@ -1676,7 +1678,7 @@ functions:
 
     *istr >> m_ulObjectFlags;
     //*istr >> m_ulObjectCollision;
-    *istr >> m_fObjectAngle;
+    *istr >> m_aObjectAngle;
   };
 
   // add to prediction any entities that this entity depends on
@@ -6661,7 +6663,14 @@ procedures:
         m_penHolding = penObject;
         m_ulObjectFlags = penObject->GetPhysicsFlags();
         //m_ulObjectCollision = penObject->GetCollisionFlags();
-        m_fObjectAngle = penObject->GetPlacement().pl_OrientationAngle(1) - (m_penPlayer->GetPlacement().pl_OrientationAngle(1) + GetPlayer()->en_plViewpoint.pl_OrientationAngle(1));
+
+        CPlacement3D plView = GetPlayer()->en_plViewpoint;
+        plView.RelativeToAbsoluteSmooth(m_penPlayer->GetPlacement());
+
+        CPlacement3D plObject = penObject->GetPlacement();
+        plObject.AbsoluteToRelative(plView);
+
+        m_aObjectAngle = plObject.pl_OrientationAngle;
 
         resume;
       }
@@ -6770,7 +6779,14 @@ procedures:
         m_penHolding = penObject;
         m_ulObjectFlags = penObject->GetPhysicsFlags();
         //m_ulObjectCollision = penObject->GetCollisionFlags();
-        m_fObjectAngle = penObject->GetPlacement().pl_OrientationAngle(1) - (m_penPlayer->GetPlacement().pl_OrientationAngle(1) + GetPlayer()->en_plViewpoint.pl_OrientationAngle(1));
+
+        CPlacement3D plView = GetPlayer()->en_plViewpoint;
+        plView.RelativeToAbsoluteSmooth(m_penPlayer->GetPlacement());
+
+        CPlacement3D plObject = penObject->GetPlacement();
+        plObject.AbsoluteToRelative(plView);
+
+        m_aObjectAngle = plObject.pl_OrientationAngle;
 
         resume;
       }

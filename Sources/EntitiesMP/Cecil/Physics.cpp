@@ -1,6 +1,8 @@
 #include "StdH.h"
 #include "Physics.h"
+
 #include "EntitiesMP/PlayerWeapons.h"
+#include "EntitiesMP/Mod/Radio.h"
 
 static FLOAT3D _vHandle;
 static CBrushPolygon *_pbpoNear;
@@ -202,7 +204,7 @@ void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold) {
   ULONG ulFlags = eHold.ulFlags;
   //ULONG ulCollision = eHold.ulCollision;
 
-  const BOOL bItem = IsDerivedFromClass(pen, "Item");
+  const BOOL bItem = IsDerivedFromDllClass(pen, CItem_DLLClass);
 
   pen->SetPhysicsFlags(ulFlags);
   //pen->SetCollisionFlags(ulCollision);
@@ -218,16 +220,19 @@ void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold) {
     pen->ForceFullStop();
   }
 
+  FLOAT3D vMoveSpeed = FLOAT3D(0.0f, 0.0f, 0.0f);
+
   if (fDiff > 0.0f) {
-    // slower speed
+    // Slower speed
     if (fDiff > 4.0f) {
-      pen->SetDesiredTranslation(vDiff / _pTimer->TickQuantum * 0.5f);
+      vMoveSpeed = vDiff * 0.5f;
     } else {
-      pen->SetDesiredTranslation(vDiff / _pTimer->TickQuantum);
+      vMoveSpeed = vDiff;
     }
-  } else {
-    pen->SetDesiredTranslation(FLOAT3D(0.0f, 0.0f, 0.0f));
   }
+
+  // Move
+  pen->SetDesiredTranslation(vMoveSpeed / _pTimer->TickQuantum);
 
   // Too far
   if (fDiff > 12.0f) {
@@ -242,20 +247,22 @@ void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold) {
     return;
   }
 
-  if (!bItem && !IsOfClass(pen, "Radio")) {
+  if (!bItem && !IsOfDllClass(pen, CRadio_DLLClass)) {
     return;
   }
 
-  // Angle difference
-  ANGLE3D aObject = pen->GetPlacement().pl_OrientationAngle;
-  ANGLE3D aAngle = ANGLE3D(plPos.pl_OrientationAngle(1), 0.0f, 0.0f) - aObject;
+  // Rotate
+  CPlacement3D plNewPos = plPos;
+  plNewPos.AbsoluteToRelativeSmooth(pen->GetPlacement());
+
+  ANGLE3D aAngle = plNewPos.pl_OrientationAngle;
 
   // Normalize angles
   aAngle(1) = Clamp(NormalizeAngle(aAngle(1)), -70.0f, 70.0f);
   aAngle(2) = Clamp(NormalizeAngle(aAngle(2)), -70.0f, 70.0f);
   aAngle(3) = Clamp(NormalizeAngle(aAngle(3)), -70.0f, 70.0f);
 
-  // Rotate
+  // Set rotation speed
   pen->SetDesiredRotation(aAngle / _pTimer->TickQuantum);
 };
 
