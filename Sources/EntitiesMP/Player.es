@@ -5020,46 +5020,39 @@ functions:
 
       // [Cecil] Weapon shake
       m_aLastWeaponShake = m_aWeaponShake;
-      ANGLE3D aShakeSpeed(0.0f, 0.0f, 0.0f);
-      ANGLE3D aTarget = ANGLE3D(0.0f, en_plViewpoint.pl_OrientationAngle(2), 0.0f);
+
+      FLOAT2D vShakeSpeed(0.0f, 0.0f);
 
       // [Cecil] Don't move while zoomed in
       if (GetPlayerWeapons()->m_iSniping == 0) {
-        aShakeSpeed(1) = -paAction.pa_aRotation(1) / 40.0f;
-
-        // don't move vertically if reached the limit
-        if (Abs(aTarget(2)) < PITCH_MAX) {
-          aShakeSpeed(2) = -Clamp(paAction.pa_aRotation(2) / 50.0f, -1.0f, 1.0f);
-        }
+        // Deviate horizontal angle and set desired vertical angle
+        vShakeSpeed(1) = -paAction.pa_aRotation(1) * 0.025f;
+        vShakeSpeed(2) = en_plViewpoint.pl_OrientationAngle(2) * 0.02f;
       }
 
-      //aTarget(2) = ClampUp(aTarget(2) / 20.0f, 0.0f);
-      aTarget(2) /= 20.0f;
+      // Determine delta to the normalized target angle horizontally
+      const FLOAT fDeltaX = Clamp(NormalizeAngle(-m_aWeaponShake(1)) / 3.0f, -15.0f, 15.0f);
 
-      for (INDEX iShakeAngle = 1; iShakeAngle <= 2; iShakeAngle++) {
-        ANGLE aShake = Clamp(NormalizeAngle(aTarget(iShakeAngle) - m_aWeaponShake(iShakeAngle)) / 3.0f, -15.0f, 15.0f);
+      // Move angle towards the target angle
+      if (Abs(m_aWeaponShake(1) + vShakeSpeed(1)) > 0.01f) {
+        vShakeSpeed(1) += fDeltaX;
+      } else {
+        vShakeSpeed(1) = 0.0f;
+      }
 
-        // different speed
-        if (iShakeAngle == 2) {
-          aShake = NormalizeAngle(aTarget(2) - m_aWeaponShake(2)) / 3.0f;
-        }
+      // Determine delta to the desired target angle vertically
+      const FLOAT fDeltaY = NormalizeAngle(vShakeSpeed(2) - m_aWeaponShake(2)) / 3.0f;
 
-        // decrease the angle
-        if (Abs(m_aWeaponShake(iShakeAngle) + aShakeSpeed(iShakeAngle)) > 0.1f) {
-          aShakeSpeed(iShakeAngle) += aShake;
-
-        // reset the angle
-        } else {
-          m_aWeaponShake(iShakeAngle) = 0.0f;
-          aShakeSpeed(iShakeAngle) = 0.0f;
-        }
+      // Move angle towards the target angle
+      if (Abs(fDeltaY) > 0.01f) {
+        vShakeSpeed(2) += fDeltaY;
+      } else {
+        vShakeSpeed(2) = 0.0f;
       }
 
       // [Cecil] Clamp the speed
-      aShakeSpeed(1) = Clamp(aShakeSpeed(1), -30.0f, 30.0f);
-      aShakeSpeed(2) = Clamp(aShakeSpeed(2), -30.0f, 30.0f);
-      aShakeSpeed(3) = Clamp(aShakeSpeed(3), -30.0f, 30.0f);
-      m_aWeaponShake += aShakeSpeed;
+      m_aWeaponShake(1) += Clamp(vShakeSpeed(1), -30.0f, 30.0f);
+      m_aWeaponShake(2) += Clamp(vShakeSpeed(2), -30.0f, 30.0f);
 
       // [Cecil] Expired captions
       for (INDEX iCaption = 0; iCaption <= CT_CAPTIONS; iCaption++) {

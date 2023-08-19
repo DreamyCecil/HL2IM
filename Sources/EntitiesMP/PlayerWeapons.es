@@ -1754,11 +1754,7 @@ functions:
                           ANGLE3D(AngleDeg(wpn_fH[iWeaponData]), AngleDeg(wpn_fP[iWeaponData]), AngleDeg(wpn_fB[iWeaponData])));
 
     // [Cecil] Weapon shake
-    /*plWeapon.pl_OrientationAngle(1) += Lerp(GetPlayer()->m_aLastWeaponShake(1), GetPlayer()->m_aWeaponShake(1), _pTimer->GetLerpFactor());
-    plWeapon.pl_OrientationAngle(2) += Lerp(GetPlayer()->m_aLastWeaponShake(2), GetPlayer()->m_aWeaponShake(2), _pTimer->GetLerpFactor());
-    plWeapon.pl_OrientationAngle(3) += Lerp(GetPlayer()->m_aLastWeaponShake(3), GetPlayer()->m_aWeaponShake(3), _pTimer->GetLerpFactor());*/
-
-    CPlayer *penPlayer = GetPlayer(); //(CPlayer*)m_penPlayer->GetPredictionTail();
+    CPlayer *penPlayer = GetPlayer(); //(CPlayer *)m_penPlayer->GetPredictionTail();
     ANGLE aShakeH = Lerp(penPlayer->m_aLastWeaponShake(1), penPlayer->m_aWeaponShake(1), _pTimer->GetLerpFactor());
     ANGLE aShakeP = Lerp(penPlayer->m_aLastWeaponShake(2), penPlayer->m_aWeaponShake(2), _pTimer->GetLerpFactor());
     ANGLE aShakeB = Lerp(penPlayer->m_aLastWeaponShake(3), penPlayer->m_aWeaponShake(3), _pTimer->GetLerpFactor());
