@@ -2251,14 +2251,16 @@ functions:
     const BOOL bAmmoWarning = (fCurAmmo <= 0.3f);
 
     // [Cecil] Play warning sound
-    if (m_bAmmoWarning != bAmmoWarning) {
+    CPlayerWeapons *pen = (CPlayerWeapons *)GetPredictionTail();
+
+    if (pen->m_bAmmoWarning != bAmmoWarning) {
       if (bAmmoWarning && _penViewPlayer == m_penPlayer) {
-        CPlayer &pl = (CPlayer&)*m_penPlayer;
+        CPlayer &pl = (CPlayer &)*m_penPlayer;
         pl.m_soOther.Set3DParameters(10.0f, 4.0f, 1.0f, 1.0f);
         PlaySound(pl.m_soOther, SOUND_WARNING, SOF_3D|SOF_VOLUMETRIC);
       }
 
-      m_bAmmoWarning = bAmmoWarning;
+      pen->m_bAmmoWarning = bAmmoWarning;
     }
 
     // [Cecil] Bar positions
