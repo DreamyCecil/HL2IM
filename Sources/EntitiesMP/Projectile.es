@@ -3544,7 +3544,7 @@ procedures:
         ANGLE aHeading = GetRotationSpeed( aWantedHeading, m_aRotateSpeed, fWaitFrequency);
 
         // factor used to decrease speed of projectiles oriented opposite of its target
-        FLOAT fSpeedDecreasingFactor = ((180-abs(aWantedHeading))/180.0f);
+        FLOAT fSpeedDecreasingFactor = ((180-Abs(aWantedHeading))/180.0f);
         // factor used to increase speed when far away from target
         FLOAT fSpeedIncreasingFactor = (vDesiredPosition-GetPlacement().pl_PositionVector).Length()/100;
         fSpeedIncreasingFactor = ClampDn(fSpeedIncreasingFactor, 1.0f);
@@ -3565,7 +3565,7 @@ procedures:
         FLOAT fRNDPitch = (FRnd()-0.5f)*90*fDistanceFactor;
 
         // if we are looking near direction of target
-        if( abs( aWantedHeading) < 30.0f)
+        if( Abs( aWantedHeading) < 30.0f)
         {
           // calculate pitch speed
           ANGLE aWantedPitch = GetRelativePitch( vDesiredDirection);
@@ -3646,7 +3646,7 @@ procedures:
         ANGLE aHeading = GetRotationSpeed( aWantedHeading, 5.0f/*m_aRotateSpeed*/, fWaitFrequency);
 
         // factor used to decrease speed of projectiles oriented opposite of its target
-        FLOAT fSpeedDecreasingFactor = ((180-abs(aWantedHeading))/180.0f);
+        FLOAT fSpeedDecreasingFactor = ((180-Abs(aWantedHeading))/180.0f);
         // factor used to increase speed when far away from target
         FLOAT fSpeedIncreasingFactor = (vDesiredPosition-GetPlacement().pl_PositionVector).Length()/100;
         fSpeedIncreasingFactor = ClampDn(fSpeedIncreasingFactor, 1.0f);
@@ -3665,7 +3665,7 @@ procedures:
         fDistanceFactor = ClampUp(fDistanceFactor, 4.0f);
         
         // if we are looking near direction of target
-        if( abs( aWantedHeading) < 30.0f)
+        if( Abs( aWantedHeading) < 30.0f)
         {
           bLockedOn = TRUE;
           // calculate pitch speed
@@ -3772,7 +3772,7 @@ procedures:
         ANGLE aHeading = GetRotationSpeed( aWantedHeading, m_aRotateSpeed, fWaitFrequency);
 
         // factor used to decrease speed of projectiles oriented opposite of its target
-        FLOAT fSpeedDecreasingFactor = ((180-abs(aWantedHeading))/180.0f);
+        FLOAT fSpeedDecreasingFactor = ((180-Abs(aWantedHeading))/180.0f);
         // factor used to increase speed when far away from target
         FLOAT fSpeedIncreasingFactor = (vDesiredPosition-GetPlacement().pl_PositionVector).Length()/100;
         fSpeedIncreasingFactor = ClampDn(fSpeedIncreasingFactor, 1.0f);
@@ -3792,7 +3792,7 @@ procedures:
         FLOAT fRNDHeading = (FRnd()-0.5f)*180*fDistanceFactor;
         
         // if we are looking near direction of target
-        if( abs( aWantedHeading) < 30.0f)
+        if( Abs( aWantedHeading) < 30.0f)
         {
           // adjust heading and pich
           SetDesiredRotation(ANGLE3D(aHeading+fRNDHeading,0,0));
