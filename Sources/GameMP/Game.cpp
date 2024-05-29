@@ -122,7 +122,6 @@ extern INDEX hl2_bAutoBunnyhop = FALSE;
 extern INDEX hl2_iNewEnemies = 2; // 0 - No, 1 - Beta 0.7, 2 - Yes
 extern INDEX hl2_bEnemyDrops = FALSE;
 extern INDEX hl2_bUseMaterials = TRUE;
-extern INDEX hl2_bReinitMap = FALSE;
 extern INDEX hl2_bAdminMenu = FALSE;
 
 // [Cecil] Menu music
@@ -992,7 +991,6 @@ void CGame::InitInternal( void)
   _pShell->DeclareSymbol("persistent user INDEX hl2_iNewEnemies;", &hl2_iNewEnemies);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bEnemyDrops;", &hl2_bEnemyDrops);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bUseMaterials;", &hl2_bUseMaterials);
-  _pShell->DeclareSymbol("persistent user INDEX hl2_bReinitMap;", &hl2_bReinitMap);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bAdminMenu;", &hl2_bAdminMenu);
 
   // [Cecil] Menu music
