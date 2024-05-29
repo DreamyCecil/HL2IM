@@ -4107,7 +4107,7 @@ procedures:
         GetEntityInfoPosition(m_penTarget, pei->vSourceCenter, m_vTarget);
         bTarget = TRUE;
 
-      } else if (ASSERT_ENTITY(m_penLauncher)) {
+      } else if (m_penLauncher != NULL && !(m_penLauncher->GetFlags() & ENF_DELETED)) {
         if (IS_PLAYER(m_penLauncher) && m_penLauncher->GetFlags() & ENF_ALIVE) {
           m_vTarget = ((CPlayer*)&*m_penLauncher)->GetPlayerWeapons()->m_vRayHit;
           bTarget = TRUE;
@@ -4163,7 +4163,7 @@ procedures:
           bHit &= !IsOfClass(epass.penOther, "Twister");
           if (bHit) {
             ProjectileTouch(epass.penOther);
-            if (ASSERT_ENTITY(m_penLauncher) && IS_PLAYER(m_penLauncher)) {
+            if (m_penLauncher != NULL && !(m_penLauncher->GetFlags() & ENF_DELETED) && IS_PLAYER(m_penLauncher)) {
               ((CPlayer*)&*m_penLauncher)->GetPlayerWeapons()->m_penMissle = NULL;
             }
             return EEnd();
@@ -4181,7 +4181,7 @@ procedures:
         
           if (bHit) {
             ProjectileTouch(etouch.penOther);
-            if (ASSERT_ENTITY(m_penLauncher) && IS_PLAYER(m_penLauncher)) {
+            if (m_penLauncher != NULL && !(m_penLauncher->GetFlags() & ENF_DELETED) && IS_PLAYER(m_penLauncher)) {
               ((CPlayer*)&*m_penLauncher)->GetPlayerWeapons()->m_penMissle = NULL;
             }
             return EEnd();
@@ -4192,7 +4192,7 @@ procedures:
         on (EDeath) : {
           if (m_bCanBeDestroyed) {
             ProjectileHit();
-            if (ASSERT_ENTITY(m_penLauncher) && IS_PLAYER(m_penLauncher)) {
+            if (m_penLauncher != NULL && !(m_penLauncher->GetFlags() & ENF_DELETED) && IS_PLAYER(m_penLauncher)) {
               ((CPlayer*)&*m_penLauncher)->GetPlayerWeapons()->m_penMissle = NULL;
             }
             return EEnd();

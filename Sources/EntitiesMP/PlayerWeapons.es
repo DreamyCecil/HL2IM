@@ -1450,7 +1450,7 @@ functions:
       }
 
       // check if it's already been picked
-      INDEX iPlayer = CECIL_PlayerIndex(GetPlayer());
+      INDEX iPlayer = GetPlayer()->GetMyPlayerIndex();
       BOOL bPickedAlready = (1 << iPlayer) & penItem.m_ulPickedMask;
       return !bPickedAlready;
     }
@@ -1589,8 +1589,8 @@ functions:
     }
 
     // unhold this object from other players
-    /*for (INDEX iPlayer = 0; iPlayer < CECIL_GetMaxPlayers(); iPlayer++) {
-      CEntity *pen = CECIL_GetPlayerEntity(iPlayer);
+    /*for (INDEX iPlayer = 0; iPlayer < CEntity::GetMaxPlayers(); iPlayer++) {
+      CEntity *pen = CEntity::GetPlayerEntity(iPlayer);
 
       if (pen == NULL || pen->GetFlags() & ENF_DELETED) {
         continue;
@@ -2018,7 +2018,7 @@ functions:
         m_fRayHitDistance = crRay.cr_fHitDistance;
 
         // found a movable entity
-        if (IsDerivedFromDllClass(m_penRayHit, CMovableEntity_DLLClass)) {
+        if (IsDerivedFromClass(m_penRayHit, "MovableEntity")) {
           break;
         }
       }

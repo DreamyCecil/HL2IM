@@ -328,11 +328,11 @@ functions:
   BOOL DistanceToAllPlayersGreaterThen(FLOAT fDistance)
   {
     // find actual number of players
-    INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
+    INDEX ctMaxPlayers = CEntity::GetMaxPlayers();
     CEntity *penPlayer;
     
     for(INDEX i=0; i<ctMaxPlayers; i++) {
-      penPlayer=CECIL_GetPlayerEntity(i);
+      penPlayer=CEntity::GetPlayerEntity(i);
       if (penPlayer) {
         if (DistanceTo(this, penPlayer)<fDistance) {
           return FALSE;
@@ -366,11 +366,11 @@ functions:
   void ChangeEnemyNumberForAllPlayers(INDEX iDelta)
   {
     // find actual number of players
-    INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
+    INDEX ctMaxPlayers = CEntity::GetMaxPlayers();
     CEntity *penPlayer;
     
     for(INDEX i=0; i<ctMaxPlayers; i++) {
-      penPlayer=CECIL_GetPlayerEntity(i);
+      penPlayer=CEntity::GetPlayerEntity(i);
       if (penPlayer) {
         // set totals for level and increment for game
         ((CPlayer &)*penPlayer).m_psLevelTotal.ps_iKills+=iDelta;
@@ -390,7 +390,7 @@ functions:
     }
 
     // summoner doesn't receive damage from other monsters
-    if(!IS_PLAYER(penInflictor)) {
+    if(!IsOfClass(penInflictor, "Player")) {
       return;
     }
 

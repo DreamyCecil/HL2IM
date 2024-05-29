@@ -1455,7 +1455,7 @@ CEntity *FixupCausedToPlayer(CEntity *penThis, CEntity *penCaused, BOOL bWarning
       (const char*)penThis->GetClass()->GetName());
   }
 
-  INDEX ctPlayers = CECIL_GetMaxPlayers();
+  INDEX ctPlayers = CEntity::GetMaxPlayers();
   if (ctPlayers==0) {
     return NULL;
   }
@@ -1464,8 +1464,8 @@ CEntity *FixupCausedToPlayer(CEntity *penThis, CEntity *penCaused, BOOL bWarning
   FLOAT fClosestPlayer = UpperLimit(0.0f);
 
   // for all players
-  for (INDEX iPlayer=0; iPlayer<CECIL_GetMaxPlayers(); iPlayer++) {
-    CEntity *penPlayer = CECIL_GetPlayerEntity(iPlayer);
+  for (INDEX iPlayer=0; iPlayer<CEntity::GetMaxPlayers(); iPlayer++) {
+    CEntity *penPlayer = CEntity::GetPlayerEntity(iPlayer);
     // if player exists
     if (penPlayer!=NULL) {
       // calculate distance to player

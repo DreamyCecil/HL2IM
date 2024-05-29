@@ -1098,9 +1098,6 @@ void CGame::InitInternal( void)
   // provide URL to the engine
   _strModURL = "http://www.croteam.com/mods/TheSecondEncounter";
 
-  // [Cecil] 2021-06-19: Bot mod
-  CECIL_InitBotMod();
-
   // [Cecil] Patch the world
   InitWorldPatches();
 }
@@ -1143,9 +1140,6 @@ void CGame::EndInternal(void)
   } catch (char *strError) {
     WarningMessage("Cannot load game settings:\n%s\nUsing defaults!", strError);
   }
-
-  // [Cecil] 2021-06-19: Bot mod
-  CECIL_EndBotMod();
 }
 
 BOOL CGame::NewGame(const CTString &strSessionName, const CTFileName &fnWorld,
@@ -1203,9 +1197,6 @@ BOOL CGame::NewGame(const CTString &strSessionName, const CTFileName &fnWorld,
       BOOL bWaitAllPlayers = sp.sp_bWaitAllPlayers && _pNetwork->IsNetworkEnabled();
       _pNetwork->StartPeerToPeer_t( strSessionName, fnWorld, 
         sp.sp_ulSpawnFlags, sp.sp_ctMaxPlayers, bWaitAllPlayers, &sp);
-
-      // [Cecil] 2021-06-19: Bot mod
-      CECIL_BotGameStart(sp);
       
       // [Cecil] Create global controller entity
       CWorld *pwo = &_pNetwork->ga_World;
@@ -1464,9 +1455,6 @@ BOOL CGame::SaveGame(const CTFileName &fnGame)
 void CGame::StopGame(void) {
   // disable computer quickly
   ComputerForceOff();
-
-  // [Cecil] 2021-06-19: Bot mod
-  CECIL_BotGameCleanup();
 
   // [Cecil] Stop menu music
   if (IsScriptSoundPlaying(5)) {
@@ -2306,11 +2294,6 @@ void CGame::GameRedrawView( CDrawPort *pdpDrawPort, ULONG ulFlags)
       }
     }}
 
-    // [Cecil] Add bots
-    for (INDEX iBot = 0; iBot < _cenPlayerBots.Count(); iBot++) {
-      CPlayerBot *penBot = _cenPlayerBots.Pointer(iBot);
-      cenPlayerEntities.Add(penBot);
-    }
     // [Cecil] Count non-local players
     ctNonlocals = cenPlayerEntities.Count();
 

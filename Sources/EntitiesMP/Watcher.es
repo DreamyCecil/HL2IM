@@ -46,11 +46,11 @@ functions:
   {
 //    CPrintF("Getting random number... ");
     // get maximum number of players in game
-    INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
+    INDEX ctMaxPlayers = CEntity::GetMaxPlayers();
     // find actual number of players
     INDEX ctActivePlayers = 0;
     {for(INDEX i=0; i<ctMaxPlayers; i++) {
-      if (CECIL_GetPlayerEntity(i)!=NULL) {
+      if (CEntity::GetPlayerEntity(i)!=NULL) {
         ctActivePlayers++;
       }
     }}
@@ -69,7 +69,7 @@ functions:
     // find its physical index
     INDEX iActivePlayer = 0;
     {for(INDEX i=0; i<ctMaxPlayers; i++) {
-      if (CECIL_GetPlayerEntity(i)!=NULL) {
+      if (CEntity::GetPlayerEntity(i)!=NULL) {
         if (iActivePlayer==iChosenActivePlayer) {
 //          CPrintF("actual index %d\n", iActivePlayer);
           return i;
@@ -87,8 +87,8 @@ functions:
     CEntity *penClosestPlayer = NULL;
     FLOAT fClosestPlayer = UpperLimit(0.0f);
     // for all players
-    for (INDEX iPlayer=0; iPlayer<CECIL_GetMaxPlayers(); iPlayer++) {
-      CEntity *penPlayer = CECIL_GetPlayerEntity(iPlayer);
+    for (INDEX iPlayer=0; iPlayer<CEntity::GetMaxPlayers(); iPlayer++) {
+      CEntity *penPlayer = CEntity::GetPlayerEntity(iPlayer);
       // if player is alive and visible
       if (penPlayer!=NULL && penPlayer->GetFlags()&ENF_ALIVE && !(penPlayer->GetFlags()&ENF_INVISIBLE)) {
         // calculate distance to player
@@ -127,13 +127,13 @@ functions:
     }
 
     // get maximum number of players in game
-    INDEX ctPlayers = CECIL_GetMaxPlayers();
+    INDEX ctPlayers = CEntity::GetMaxPlayers();
     // find first one after current sequence
     CEntity *penPlayer = NULL;
     m_iPlayerToCheck = (m_iPlayerToCheck+1)%ctPlayers;
     INDEX iFirstChecked = m_iPlayerToCheck;
     FOREVER {
-      penPlayer = CECIL_GetPlayerEntity(m_iPlayerToCheck);
+      penPlayer = CEntity::GetPlayerEntity(m_iPlayerToCheck);
       if (penPlayer!=NULL) {
         break;
       }
@@ -234,8 +234,8 @@ functions:
     fClosestPlayer = Min(fClosestPlayer, fRange);  // this is maximum considered range
 
     // for all other players
-    for (INDEX iPlayer=0; iPlayer<CECIL_GetMaxPlayers(); iPlayer++) {
-      CEntity *penPlayer = CECIL_GetPlayerEntity(iPlayer);
+    for (INDEX iPlayer=0; iPlayer<CEntity::GetMaxPlayers(); iPlayer++) {
+      CEntity *penPlayer = CEntity::GetPlayerEntity(iPlayer);
       if (penPlayer==NULL || penPlayer==penCurrentTarget) {
         continue;
       }
@@ -276,9 +276,9 @@ functions:
     INDEX iOffset = GetRandomPlayer();
 
     // for all other players
-    INDEX ctPlayers = CECIL_GetMaxPlayers();
+    INDEX ctPlayers = CEntity::GetMaxPlayers();
     for (INDEX iPlayer=0; iPlayer<ctPlayers; iPlayer++) {
-      CEntity *penPlayer = CECIL_GetPlayerEntity((iPlayer+iOffset)%ctPlayers);
+      CEntity *penPlayer = CEntity::GetPlayerEntity((iPlayer+iOffset)%ctPlayers);
       if (penPlayer==NULL || penPlayer==penCurrentTarget) {
         continue;
       }

@@ -73,26 +73,11 @@
     <Filter Include="Header Files\DreamyStructures headers">
       <UniqueIdentifier>{18081ac9-691e-479a-8f8f-c6026d059d46}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Class Files\BotMod">
-      <UniqueIdentifier>{b34f6546-2abc-4c20-8ed6-1c70205bfe85}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Bot Mod headers">
-      <UniqueIdentifier>{b7fb2cec-7562-43d2-a948-b00db9fe9d1f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Entity headers">
       <UniqueIdentifier>{3b2b9636-914b-4712-b741-44d3c7511331}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Bot Mod sources">
-      <UniqueIdentifier>{fbbc029d-bff5-494f-b3b5-99dfe88fa2cf}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Entity sources">
       <UniqueIdentifier>{e0883355-1b22-47bd-b673-2ef28e0efd4b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Bot Mod sources\Bot Entity sources">
-      <UniqueIdentifier>{1e862501-d62c-4f00-aaaa-9b5313a0a230}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Bot Mod headers\Bot Entity headers">
-      <UniqueIdentifier>{4bbc1ff0-3801-44b0-ad3a-d600d51278c4}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Patcher sources">
       <UniqueIdentifier>{9fc41158-e812-4d89-9e7c-21b32a2c5fba}</UniqueIdentifier>
@@ -626,42 +611,6 @@
     </ClCompile>
     <ClCompile Include="WorldSettingsController.cpp">
       <Filter>Source Files\Entity sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Bots\NetworkPatch\ServerIntegration.cpp">
-      <Filter>Source Files\Bot Mod sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Bots\NetworkPatch\StreamBlock.cpp">
-      <Filter>Source Files\Bot Mod sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Bots\BotMovement.cpp">
-      <Filter>Source Files\Bot Mod sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Bots\SandboxCommon.cpp">
-      <Filter>Source Files\Bot Mod sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Bots\AdvancedPaths.cpp">
-      <Filter>Source Files\Bot Mod sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Bots\BotFunctions.cpp">
-      <Filter>Source Files\Bot Mod sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Bots\BotModMain.cpp">
-      <Filter>Source Files\Bot Mod sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Bots\Classes\BotModGlobal.cpp">
-      <Filter>Source Files\Bot Mod sources\Bot Entity sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Bots\Classes\NavMeshGenerator.cpp">
-      <Filter>Source Files\Bot Mod sources\Bot Entity sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Bots\Classes\PlayerBot.cpp">
-      <Filter>Source Files\Bot Mod sources\Bot Entity sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Bots\BotWeapons.cpp">
-      <Filter>Source Files\Bot Mod sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Bots\SandboxActions.cpp">
-      <Filter>Source Files\Bot Mod sources</Filter>
     </ClCompile>
     <ClCompile Include="..\Bots\Patcher\patcher.cpp">
       <Filter>Source Files\Patcher sources</Filter>
@@ -1724,57 +1673,6 @@
     <ClInclude Include="WorldSettingsController_tables.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\Bots\_BotMod.h">
-      <Filter>Header Files\Bot Mod headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\AdvancedPaths.h">
-      <Filter>Header Files\Bot Mod headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\BotFunctions.h">
-      <Filter>Header Files\Bot Mod headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\BotModMain.h">
-      <Filter>Header Files\Bot Mod headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\BotMovement.h">
-      <Filter>Header Files\Bot Mod headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\SandboxCommon.h">
-      <Filter>Header Files\Bot Mod headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\NetworkPatch\ServerIntegration.h">
-      <Filter>Header Files\Bot Mod headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\NetworkPatch\StreamBlock.h">
-      <Filter>Header Files\Bot Mod headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\Classes\BotModGlobal.h">
-      <Filter>Header Files\Bot Mod headers\Bot Entity headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\Classes\BotModGlobal_tables.h">
-      <Filter>Header Files\Bot Mod headers\Bot Entity headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\Classes\NavMeshGenerator.h">
-      <Filter>Header Files\Bot Mod headers\Bot Entity headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\Classes\NavMeshGenerator_tables.h">
-      <Filter>Header Files\Bot Mod headers\Bot Entity headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\Classes\PlayerBot.h">
-      <Filter>Header Files\Bot Mod headers\Bot Entity headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\Classes\PlayerBot_tables.h">
-      <Filter>Header Files\Bot Mod headers\Bot Entity headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\BotWeapons.h">
-      <Filter>Header Files\Bot Mod headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\SandboxActions.h">
-      <Filter>Header Files\Bot Mod headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\PlayerCommon.h">
-      <Filter>Header Files\Bot Mod headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\Bots\Patcher\patcher.h">
       <Filter>Header Files\Patcher headers</Filter>
     </ClInclude>
@@ -2277,15 +2175,6 @@
     </CustomBuild>
     <CustomBuild Include="Mod\Sound3D.es">
       <Filter>Class Files\Cecil</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\Bots\Classes\PlayerBot.es">
-      <Filter>Class Files\BotMod</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\Bots\Classes\BotModGlobal.es">
-      <Filter>Class Files\BotMod</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\Bots\Classes\NavMeshGenerator.es">
-      <Filter>Class Files\BotMod</Filter>
     </CustomBuild>
     <CustomBuild Include="Mod\GlobalController.es">
       <Filter>Class Files\Cecil</Filter>

@@ -52,7 +52,6 @@ extern INDEX hl2_bAutoBunnyhop;
 extern INDEX hl2_iNewEnemies;
 extern INDEX hl2_bEnemyDrops;
 extern INDEX hl2_bUseMaterials;
-extern INDEX hl2_bReinitMap;
 extern INDEX hl2_bAdminMenu;
 
 static void SetGameModeParameters(CSessionProperties &sp) {
@@ -148,7 +147,6 @@ static void HL2_Parameters(CSessionProperties &sp) {
                    | (bBetaEnemies      ? HL2F_ENEMIES1  : 0)
                    | (bNewEnemies       ? HL2F_ENEMIES2  : 0)
                    | (hl2_bUseMaterials ? HL2F_MATERIALS : 0)
-                   | (hl2_bReinitMap    ? HL2F_REINITMAP : 0)
                    | (hl2_bEnemyDrops   ? HL2F_ENEMYDROP : 0)
                    | (hl2_bAdminMenu    ? HL2F_ADMINMENU : 0);
 

@@ -14,8 +14,7 @@
 #include <EntitiesMP/Global.h>
 #include <EntitiesMP/Common/Common.h>
 #include <EntitiesMP/Common/GameInterface.h>
-// [Cecil] 2021-06-19: Bot Mod
-#include "Bots/_BotMod.h"
+#include <EntitiesMP/Player.h>
 // [Cecil] World patches
 #include "EntitiesMP/Cecil/WorldPatch.h"
 

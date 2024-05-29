@@ -487,8 +487,8 @@ procedures:
         CEntity *penSelect = NULL;
         m_fLastDist = -1.0f;
 
-        for (INDEX iPlayer = 0; iPlayer < CECIL_GetMaxPlayers(); iPlayer++) {
-          CEntity *pen = CECIL_GetPlayerEntity(iPlayer);
+        for (INDEX iPlayer = 0; iPlayer < CEntity::GetMaxPlayers(); iPlayer++) {
+          CEntity *pen = CEntity::GetPlayerEntity(iPlayer);
 
           if (pen == NULL || pen->GetFlags() & ENF_DELETED) {
             continue;

@@ -296,19 +296,7 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Bots\AdvancedPaths.cpp" />
-    <ClCompile Include="..\Bots\BotFunctions.cpp" />
-    <ClCompile Include="..\Bots\BotModMain.cpp" />
-    <ClCompile Include="..\Bots\BotMovement.cpp" />
-    <ClCompile Include="..\Bots\BotWeapons.cpp" />
-    <ClCompile Include="..\Bots\NetworkPatch\ServerIntegration.cpp" />
-    <ClCompile Include="..\Bots\NetworkPatch\StreamBlock.cpp" />
     <ClCompile Include="..\Bots\Patcher\patcher.cpp" />
-    <ClCompile Include="..\Bots\SandboxActions.cpp" />
-    <ClCompile Include="..\Bots\SandboxCommon.cpp" />
-    <ClCompile Include="..\Bots\Classes\BotModGlobal.cpp" />
-    <ClCompile Include="..\Bots\Classes\NavMeshGenerator.cpp" />
-    <ClCompile Include="..\Bots\Classes\PlayerBot.cpp" />
     <ClCompile Include="Cecil\DreamyJSON\Base\Compatibility.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
@@ -617,25 +605,8 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     <ClCompile Include="Mod\Sound3D.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Bots\AdvancedPaths.h" />
-    <ClInclude Include="..\Bots\BotFunctions.h" />
-    <ClInclude Include="..\Bots\BotModMain.h" />
-    <ClInclude Include="..\Bots\BotMovement.h" />
-    <ClInclude Include="..\Bots\BotWeapons.h" />
-    <ClInclude Include="..\Bots\NetworkPatch\ServerIntegration.h" />
-    <ClInclude Include="..\Bots\NetworkPatch\StreamBlock.h" />
     <ClInclude Include="..\Bots\Patcher\patcher.h" />
     <ClInclude Include="..\Bots\Patcher\patcher_defines.h" />
-    <ClInclude Include="..\Bots\PlayerCommon.h" />
-    <ClInclude Include="..\Bots\SandboxActions.h" />
-    <ClInclude Include="..\Bots\SandboxCommon.h" />
-    <ClInclude Include="..\Bots\_BotMod.h" />
-    <ClInclude Include="..\Bots\Classes\BotModGlobal.h" />
-    <ClInclude Include="..\Bots\Classes\BotModGlobal_tables.h" />
-    <ClInclude Include="..\Bots\Classes\NavMeshGenerator.h" />
-    <ClInclude Include="..\Bots\Classes\NavMeshGenerator_tables.h" />
-    <ClInclude Include="..\Bots\Classes\PlayerBot.h" />
-    <ClInclude Include="..\Bots\Classes\PlayerBot_tables.h" />
     <ClInclude Include="Cecil\DreamyJSON\Base\Compatibility.h" />
     <ClInclude Include="Cecil\DreamyJSON\Base\Formatting.h" />
     <ClInclude Include="Cecil\DreamyJSON\ConfigBase.h" />
@@ -3156,51 +3127,6 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\Bots\Classes\BotModGlobal.es">
-      <FileType>Document</FileType>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
-    </CustomBuild>
-    <CustomBuild Include="..\Bots\Classes\NavMeshGenerator.es">
-      <FileType>Document</FileType>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
-    </CustomBuild>
-    <CustomBuild Include="..\Bots\Classes\PlayerBot.es">
-      <FileType>Document</FileType>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
-    </CustomBuild>
     <None Include="Cecil\DreamyStructures\DataArray.inl" />
     <None Include="Cecil\DreamyStructures\DataList.inl" />
     <None Include="Cecil\DreamyStructures\DataMap.inl" />

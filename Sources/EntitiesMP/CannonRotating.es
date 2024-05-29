@@ -189,11 +189,11 @@ virtual CTString GetPlayerKillDescription(const CTString &strPlayerName, const E
 
   CPlayer *AcquireTarget() {
     // find actual number of players
-    INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
+    INDEX ctMaxPlayers = CEntity::GetMaxPlayers();
     CEntity *penPlayer;
 
     for(INDEX i=0; i<ctMaxPlayers; i++) {
-      penPlayer=CECIL_GetPlayerEntity(i);
+      penPlayer=CEntity::GetPlayerEntity(i);
       if (penPlayer!=NULL && DistanceTo(this, penPlayer)<m_fFiringRangeFar) {
         // if this player is more or less directly in front of the shooter
         if (IsInTheLineOfFire(penPlayer, m_fViewAngle)) {

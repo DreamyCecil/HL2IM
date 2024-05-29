@@ -407,11 +407,11 @@ functions:
 
     // TODO: decomment this when shockwave is fixed
     /*// see if any of the players are really close to us
-    INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
+    INDEX ctMaxPlayers = CEntity::GetMaxPlayers();
     CEntity *penPlayer;
         
     for(INDEX i=0; i<ctMaxPlayers; i++) {
-      penPlayer=CECIL_GetPlayerEntity(i);
+      penPlayer=CEntity::GetPlayerEntity(i);
       if (penPlayer!=NULL) {
         if (DistanceTo(this, penPlayer)<m_fShockwaveTreshold &&
           _pTimer->CurrentTick()>(m_tmLastShockwave+m_fShockwavePeriod)) {

@@ -354,7 +354,40 @@ static void KillAllEnemies(CEntity *penKiller) {
 #define PITCH_MAX   90.0f
 #define BANKING_MAX 45.0f
 
-// [Cecil] NOTE: Player flags and actions have been moved to Bots/PlayerCommon.h for usability across many files
+// Player flags
+#define PLF_INITIALIZED           (1UL<<0)   // set when player entity is ready to function
+#define PLF_VIEWROTATIONCHANGED   (1UL<<1)   // for adjusting view rotation separately from legs
+#define PLF_JUMPALLOWED           (1UL<<2)   // if jumping is allowed
+#define PLF_SYNCWEAPON            (1UL<<3)   // weapon model needs to be synchronized before rendering
+#define PLF_AUTOMOVEMENTS         (1UL<<4)   // complete automatic control of movements
+#define PLF_DONTRENDER            (1UL<<5)   // don't render view (used at end of level)
+#define PLF_CHANGINGLEVEL         (1UL<<6)   // mark that we next are to appear at start of new level
+#define PLF_APPLIEDACTION         (1UL<<7)   // used to detect when player is not connected
+#define PLF_NOTCONNECTED          (1UL<<8)   // set if the player is not connected
+#define PLF_LEVELSTARTED          (1UL<<9)   // marks that level start time was recorded
+#define PLF_ISZOOMING             (1UL<<10)  // marks that player is zoomed in with the sniper
+#define PLF_RESPAWNINPLACE        (1UL<<11)  // don't move to marker when respawning (for current death only)
+
+// Defines representing flags used to fill player buttoned actions
+#define PLACT_FIRE            (1L<<0)
+#define PLACT_RELOAD          (1L<<1)
+#define PLACT_WEAPON_NEXT     (1L<<2)
+#define PLACT_WEAPON_PREV     (1L<<3)
+#define PLACT_WEAPON_FLIP     (1L<<4)
+#define PLACT_USE             (1L<<5)
+#define PLACT_COMPUTER        (1L<<6)
+#define PLACT_3RD_PERSON_VIEW (1L<<7)
+#define PLACT_CENTER_VIEW     (1L<<8)
+#define PLACT_USE_HELD        (1L<<9)
+// [Cecil] Different zoom
+#define PLACT_ZOOM       (1L<<10)
+#define PLACT_SNIPER_USE (1L<<11)
+// [Cecil] Removed FIREBOMB because it doesn't exist anymore
+#define PLACT_FLASHLIGHT (1L<<12)
+#define PLACT_ALTFIRE    (1L<<13)
+#define PLACT_MENU       (1L<<14)
+#define PLACT_SELECT_WEAPON_SHIFT (15)
+#define PLACT_SELECT_WEAPON_MASK  (0x1FL<<PLACT_SELECT_WEAPON_SHIFT)
                                      
 #define MAX_WEAPONS 30
 
@@ -1617,21 +1650,6 @@ components:
 226 texture TEXTURE_FLESH_ORANGE "Models\\Effects\\Debris\\Fruits\\Orange.tex",
 
 functions:
-  // [Cecil] 2021-06-19: Bot mod
-
-  // Check if selected point is a current one
-  virtual BOOL CurrentPoint(CBotPathPoint *pbppExclude) { return FALSE; };
-  // Identify as a bot
-  virtual BOOL IsBot(void) { return FALSE; };
-  // Apply action for bots
-  virtual void BotApplyAction(CPlayerAction &paAction) {};
-  // Change bot's speed
-  virtual void BotSpeed(FLOAT3D &vTranslation) {};
-  // Initialize the bot
-  virtual void InitBot(void) {};
-  // Bot destructor
-  virtual void EndBot(void) {};
-
   // [Cecil] Swim sound
   INDEX SwimSound(void) {
     INDEX iRnd = IRnd()%7 + 1;
@@ -2858,7 +2876,7 @@ functions:
         fIntensity = 0.5f-0.5f*cos((m_tmInvisibility-tmNow)*(6.0f*3.1415927f/3.0f));
       }
 
-      if (_ulPlayerRenderingMask == 1<<CECIL_PlayerIndex(this)) {
+      if (_ulPlayerRenderingMask == 1<<GetMyPlayerIndex()) {
         colAlpha = (colAlpha&0xffffff00)|(INDEX)(INVISIBILITY_ALPHA_LOCAL+(FLOAT)(254-INVISIBILITY_ALPHA_LOCAL)*fIntensity);
       } else if (TRUE) {
         if (m_tmInvisibility - tmNow < 1.28f) {
@@ -3213,9 +3231,8 @@ functions:
 
       // render the view
       ASSERT(IsValidFloat(plViewer.pl_OrientationAngle(1))&&IsValidFloat(plViewer.pl_OrientationAngle(2))&&IsValidFloat(plViewer.pl_OrientationAngle(3)));
-      _ulPlayerRenderingMask = 1<<CECIL_PlayerIndex(this);
+      _ulPlayerRenderingMask = 1<<GetMyPlayerIndex();
       RenderView(*en_pwoWorld, *penViewer, apr, *pdp);
-      CECIL_WorldOverlayRender(this, penViewer, apr, pdp); // [Cecil] Bot mod
       _ulPlayerRenderingMask = 0;
 
       if (iEye == STEREO_LEFT) {
@@ -3236,7 +3253,6 @@ functions:
           plLight.pl_PositionVector, _colViewerLight, _colViewerAmbient, 
           penViewer == this && (GetFlags()&ENF_ALIVE), iEye);
       }
-      CECIL_HUDOverlayRender(this, penViewer, apr, pdp); // [Cecil] Bot mod
 
       // [Cecil] Render menu
       //if (m_bDisableInput) {
@@ -3320,7 +3336,7 @@ functions:
 
       // render the view
       ASSERT(IsValidFloat(plViewer.pl_OrientationAngle(1))&&IsValidFloat(plViewer.pl_OrientationAngle(2))&&IsValidFloat(plViewer.pl_OrientationAngle(3)));
-      _ulPlayerRenderingMask = 1<<CECIL_PlayerIndex(this);
+      _ulPlayerRenderingMask = 1<<GetMyPlayerIndex();
       RenderView(*en_pwoWorld, *penViewer, apr, *pdpCamera);
       _ulPlayerRenderingMask = 0;
 
@@ -4961,9 +4977,6 @@ functions:
       CheckGameEnd();
     }
 
-    // [Cecil] 2021-06-19: Apply action for bot mod
-    BotApplyAction(paAction);
-
     // limit speeds against abusing
     paAction.pa_vTranslation(1) = Clamp(paAction.pa_vTranslation(1), -plr_fMoveSpeed, plr_fMoveSpeed);
     paAction.pa_vTranslation(2) = Clamp(paAction.pa_vTranslation(2), -plr_fSpeedUp,   plr_fSpeedUp);
@@ -5488,9 +5501,6 @@ functions:
     if (m_iHAXFlags & HAXF_NOCLIP) {
       vTranslation *= 2.0f;
     }
-
-    // [Cecil] 2021-06-19: Adjust bot's speed for bot mod
-    BotSpeed(vTranslation);
 
     CContentType &ctUp = GetWorld()->wo_actContentTypes[en_iUpContent];
     CContentType &ctDn = GetWorld()->wo_actContentTypes[en_iDnContent];
@@ -6693,8 +6703,8 @@ functions:
       }
       // get min distance from any player
       FLOAT fMinD = UpperLimit(0.0f);
-      for (INDEX iPlayer=0; iPlayer<CECIL_GetMaxPlayers(); iPlayer++) {
-        CPlayer *ppl = CECIL_GetPlayerEntity(iPlayer);
+      for (INDEX iPlayer=0; iPlayer<CEntity::GetMaxPlayers(); iPlayer++) {
+        CPlayer *ppl = (CPlayer *)CEntity::GetPlayerEntity(iPlayer);
         if (ppl==NULL) { 
           continue;
         }
@@ -6792,8 +6802,6 @@ functions:
     SetCollisionFlags(ECF_MODEL|((ECBI_PLAYER)<<ECB_IS));
     SetFlags(GetFlags()|ENF_ALIVE);
 
-    InitBot(); // [Cecil] 2021-06-19: Bot Mod
-
     // animation
     StartModelAnim(PLAYER_ANIM_STAND, AOF_LOOPING);
     TeleportPlayer(WLT_FIXED, FALSE);
@@ -6802,7 +6810,7 @@ functions:
 
   FLOAT3D GetTeleportingOffset(void) {
     // find player index
-    INDEX iPlayer = CECIL_PlayerIndex(this);
+    INDEX iPlayer = GetMyPlayerIndex();
 
     // create offset from marker
     const FLOAT fOffsetY = 0.1f;  // how much to offset up (as precaution not to spawn in floor)
@@ -6853,7 +6861,7 @@ functions:
     }
 
     // find player index
-    INDEX iPlayer = CECIL_PlayerIndex(this);
+    INDEX iPlayer = GetMyPlayerIndex();
     // player placement
     CPlacement3D plSet = GetPlacement();
     // teleport in dummy space to avoid auto teleport frag
@@ -7237,8 +7245,8 @@ functions:
     // if we are in coop
     if (GetSP()->sp_bCooperative && !GetSP()->sp_bSinglePlayer) {
       // for each player
-      for(INDEX iPlayer=0; iPlayer<CECIL_GetMaxPlayers(); iPlayer++) {
-        CPlayer *ppl = CECIL_GetPlayerEntity(iPlayer);
+      for(INDEX iPlayer=0; iPlayer<CEntity::GetMaxPlayers(); iPlayer++) {
+        CPlayer *ppl = (CPlayer *)CEntity::GetPlayerEntity(iPlayer);
         if (ppl!=NULL) {
           // put it at marker
           CPlacement3D pl = ppam->GetPlacement();
@@ -8688,9 +8696,6 @@ procedures:
 
     // spawn teleport effect
     SpawnTeleport();
-
-    // [Cecil] 2021-06-19: Bot mod
-    EndBot();
 
     // [Cecil] Stop holding if needed
     if (GetPlayerWeapons()->m_penHolding != NULL) {

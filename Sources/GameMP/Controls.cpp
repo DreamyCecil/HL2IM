@@ -257,66 +257,6 @@ void CControls::Load_t( CTFileName fnFile)
   }
 	while( !strmFile.AtEOF());
 
-  // [Cecil] TEMP 2021-06-13: Bot mod buttons
-  if (fnFile == CTString("Controls\\System\\Common.ctl")) {
-    // create a button
-    #define CREATE_BOT_BUTTON(_Var, _Name) \
-      CTString strBot##_Var = _Name; \
-      BOOL bBot##_Var = FALSE
-
-    // check the button
-    #define CHECK_BOT_BUTTON(_Var) \
-      if (ba.ba_strName == strBot##_Var) bBot##_Var = TRUE
-
-    // add the button
-    #define ADD_BOT_BUTTON(_Var, _Button, _Command) \
-      if (!bBot##_Var) { \
-        CButtonAction &baBot = AddButtonAction(); \
-        baBot.ba_strName = strBot##_Var; baBot.ba_iFirstKey = _Button; \
-        baBot.ba_strCommandLineWhenPressed = MODCOM_NAME(_Command); \
-        baBot.ba_strCommandLineWhenReleased = ""; \
-        baBot.ba_lnNode.Remove(); ctrl_lhButtonActions.AddHead(baBot.ba_lnNode); \
-      }
-    
-    CREATE_BOT_BUTTON(ADD,      "Add NavMesh point");
-    CREATE_BOT_BUTTON(DELETE,   "Delete NavMesh point");
-    CREATE_BOT_BUTTON(INFO,     "NavMesh point info");
-    CREATE_BOT_BUTTON(SELECT,   "NavMesh select point");
-    CREATE_BOT_BUTTON(CONNECT,  "NavMesh connection type");
-    CREATE_BOT_BUTTON(TOPLAYER, "NavMesh move to player");
-    CREATE_BOT_BUTTON(SNAP,     "NavMesh position snapping");
-    CREATE_BOT_BUTTON(INCRANGE, "NavMesh increase range");
-    CREATE_BOT_BUTTON(DECRANGE, "NavMesh decrease range");
-    CREATE_BOT_BUTTON(QUICKBOT, "Quick bot add");
-
-    // check if any of the buttons exist
-    FOREACHINLIST(CButtonAction, ba_lnNode, ctrl_lhButtonActions, itba) {
-      CButtonAction &ba = *itba;
-
-      CHECK_BOT_BUTTON(ADD);
-      CHECK_BOT_BUTTON(DELETE);
-      CHECK_BOT_BUTTON(INFO);
-      CHECK_BOT_BUTTON(SELECT);
-      CHECK_BOT_BUTTON(CONNECT);
-      CHECK_BOT_BUTTON(TOPLAYER);
-      CHECK_BOT_BUTTON(SNAP);
-      CHECK_BOT_BUTTON(INCRANGE);
-      CHECK_BOT_BUTTON(DECRANGE);
-      CHECK_BOT_BUTTON(QUICKBOT);
-    }
-
-    ADD_BOT_BUTTON(QUICKBOT, KID_EQUALS,      "QuickBot();");
-    ADD_BOT_BUTTON(DECRANGE, KID_PAGEDOWN,    "AddNavMeshPointRange(-1.0);");
-    ADD_BOT_BUTTON(INCRANGE, KID_PAGEUP,      "AddNavMeshPointRange(1.0);");
-    ADD_BOT_BUTTON(SNAP,     KID_NUMSLASH,    "SnapNavMeshPoint(0.25);");
-    ADD_BOT_BUTTON(TOPLAYER, KID_NUMMULTIPLY, "TeleportNavMeshPoint(0.5);");
-    ADD_BOT_BUTTON(CONNECT,  KID_NUMDECIMAL,  "NavMeshConnectionType();");
-    ADD_BOT_BUTTON(SELECT,   KID_NUM1,        "NavMeshSelectPoint();");
-    ADD_BOT_BUTTON(INFO,     KID_NUMENTER,    "NavMeshPointInfo();");
-    ADD_BOT_BUTTON(DELETE,   KID_NUMMINUS,    "DeleteNavMeshPoint();");
-    ADD_BOT_BUTTON(ADD,      KID_NUMPLUS,     "AddNavMeshPoint(0.5);");
-  }
-
 /*
   // search for talk button
   BOOL bHasTalk = FALSE;

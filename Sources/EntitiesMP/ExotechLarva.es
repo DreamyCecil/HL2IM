@@ -224,11 +224,11 @@ functions:
     }
 
     // find actual number of players
-    INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
+    INDEX ctMaxPlayers = CEntity::GetMaxPlayers();
     CEntity *penPlayer;
     
     for(INDEX i=0; i<ctMaxPlayers; i++) {
-      penPlayer=CECIL_GetPlayerEntity(i);
+      penPlayer=CEntity::GetPlayerEntity(i);
       if (penPlayer!=NULL && DistanceTo(this, penPlayer)<200.0f) {
         // if there is no valid enemy
         if (penPlayer!=NULL && (penPlayer->GetFlags()&ENF_ALIVE) && 
@@ -244,11 +244,11 @@ functions:
     BOOL bClose = FALSE;
 
     // find actual number of players
-    INDEX ctMaxPlayers = CECIL_GetMaxPlayers();
+    INDEX ctMaxPlayers = CEntity::GetMaxPlayers();
     CEntity *penPlayer;
     
     for(INDEX i=0; i<ctMaxPlayers; i++) {
-      penPlayer=CECIL_GetPlayerEntity(i);
+      penPlayer=CEntity::GetPlayerEntity(i);
       if (penPlayer!=NULL) {
         if ((penPlayer->GetFlags()&ENF_ALIVE) && 
             !(penPlayer->GetFlags()&ENF_DELETED) &&

@@ -213,12 +213,12 @@ FLOAT InfoUpdate(const INDEX &iCurrentValue, INDEX &iLastValue, TIME &tmChanged)
 extern INDEX SetAllPlayersStats( INDEX iSortKey) {
   // determine maximum number of players for this session
   INDEX iPlayers    = 0;
-  INDEX iMaxPlayers = CECIL_GetMaxPlayers();
+  INDEX iMaxPlayers = CEntity::GetMaxPlayers();
   CPlayer *penCurrent;
   // loop thru potentional players 
   for( INDEX i=0; i<iMaxPlayers; i++)
   { // ignore non-existent players
-    penCurrent = CECIL_GetPlayerEntity(i);
+    penCurrent = (CPlayer *)CEntity::GetPlayerEntity(i);
     if( penCurrent==NULL) continue;
     // fill in player parameters
     _apenPlayers[iPlayers] = penCurrent;
