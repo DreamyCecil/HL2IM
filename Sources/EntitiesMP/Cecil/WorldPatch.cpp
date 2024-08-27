@@ -16,8 +16,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdH.h"
 #include "WorldPatch.h"
 
-#include "Bots/Patcher/patcher.h"
-#include "Engine/Templates/Stock_CEntityClass.h"
+#include <Extras/XGizmo/Patcher/patcher.h>
+#include <Extras/XGizmo/Patcher/patcher.cpp>
+
+#include <Engine/Templates/Stock_CEntityClass.h>
 
 // [Cecil] Original function pointer
 typedef CEntity *(CWorld::*CCreateEntityFunc)(const CPlacement3D &, CEntityClass *);

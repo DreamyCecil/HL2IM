@@ -1,0 +1,3 @@
+[submodule "Sources/Extras/XGizmo"]
+	path = Sources/Extras/XGizmo
+	url = https://github.com/SamClassicPatch/XGizmo.git
