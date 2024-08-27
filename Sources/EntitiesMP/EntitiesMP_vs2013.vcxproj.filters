@@ -61,29 +61,14 @@
     <Filter Include="Source Files\Cecil sources">
       <UniqueIdentifier>{264fb539-9604-4444-a94a-3030026c7eca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\DreamyJSON sources">
-      <UniqueIdentifier>{f669cb9f-455a-4d99-8aa3-5db8efc3ddcb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Cecil headers">
       <UniqueIdentifier>{87b4c27b-2980-43dd-b8c8-75edc0e01b3b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\DreamyJSON headers">
-      <UniqueIdentifier>{3ca968fc-9b0f-494d-a965-b20487229801}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\DreamyStructures headers">
-      <UniqueIdentifier>{18081ac9-691e-479a-8f8f-c6026d059d46}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Entity headers">
       <UniqueIdentifier>{3b2b9636-914b-4712-b741-44d3c7511331}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Entity sources">
       <UniqueIdentifier>{e0883355-1b22-47bd-b673-2ef28e0efd4b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Patcher sources">
-      <UniqueIdentifier>{9fc41158-e812-4d89-9e7c-21b32a2c5fba}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Patcher headers">
-      <UniqueIdentifier>{b3af6d48-d1e1-43b8-8265-98a0b77da992}</UniqueIdentifier>
     </Filter>
     <Filter Include="Class Files\Cecil\BetaEnemies">
       <UniqueIdentifier>{cd619a5a-565c-4acd-837f-1bad35e9b06c}</UniqueIdentifier>
@@ -122,24 +107,6 @@
     </ClCompile>
     <ClCompile Include="Common\UI\UI.cpp">
       <Filter>Source Files\Cecil sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Cecil\DreamyJSON\Base\Compatibility.cpp">
-      <Filter>Source Files\DreamyJSON sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Cecil\DreamyJSON\Base\Formatting.cpp">
-      <Filter>Source Files\DreamyJSON sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Cecil\DreamyJSON\Containers\ConfigArray.cpp">
-      <Filter>Source Files\DreamyJSON sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Cecil\DreamyJSON\Containers\ConfigBlock.cpp">
-      <Filter>Source Files\DreamyJSON sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Cecil\DreamyJSON\Parser\ConfigParser.cpp">
-      <Filter>Source Files\DreamyJSON sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Cecil\DreamyJSON\Values\ConfigValue.cpp">
-      <Filter>Source Files\DreamyJSON sources</Filter>
     </ClCompile>
     <ClCompile Include="Mod\Radio.cpp">
       <Filter>Source Files\Entity sources</Filter>
@@ -612,9 +579,6 @@
     <ClCompile Include="WorldSettingsController.cpp">
       <Filter>Source Files\Entity sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\Bots\Patcher\patcher.cpp">
-      <Filter>Source Files\Patcher sources</Filter>
-    </ClCompile>
     <ClCompile Include="Mod\GlobalController.cpp">
       <Filter>Source Files\Entity sources</Filter>
     </ClCompile>
@@ -685,54 +649,6 @@
     </ClInclude>
     <ClInclude Include="Cecil\Weapons.h">
       <Filter>Header Files\Cecil headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyJSON\ConfigBase.h">
-      <Filter>Header Files\DreamyJSON headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyJSON\ConfigElement.h">
-      <Filter>Header Files\DreamyJSON headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyJSON\DreamyJSON.h">
-      <Filter>Header Files\DreamyJSON headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyJSON\Values\ConfigValue.h">
-      <Filter>Header Files\DreamyJSON headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyJSON\Parser\ConfigParser.h">
-      <Filter>Header Files\DreamyJSON headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyJSON\Parser\ParserToken.h">
-      <Filter>Header Files\DreamyJSON headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyJSON\Containers\ConfigArray.h">
-      <Filter>Header Files\DreamyJSON headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyJSON\Containers\ConfigBlock.h">
-      <Filter>Header Files\DreamyJSON headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyJSON\Base\Compatibility.h">
-      <Filter>Header Files\DreamyJSON headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyJSON\Base\Formatting.h">
-      <Filter>Header Files\DreamyJSON headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyStructures\DataArray.h">
-      <Filter>Header Files\DreamyStructures headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyStructures\DataList.h">
-      <Filter>Header Files\DreamyStructures headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyStructures\DataMap.h">
-      <Filter>Header Files\DreamyStructures headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyStructures\DataStack.h">
-      <Filter>Header Files\DreamyStructures headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyStructures\DataStructures.h">
-      <Filter>Header Files\DreamyStructures headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Cecil\DreamyStructures\DataTemplates.h">
-      <Filter>Header Files\DreamyStructures headers</Filter>
     </ClInclude>
     <ClInclude Include="Mod\Radio.h">
       <Filter>Header Files\Entity headers</Filter>
@@ -1673,12 +1589,6 @@
     <ClInclude Include="WorldSettingsController_tables.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\Bots\Patcher\patcher.h">
-      <Filter>Header Files\Patcher headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Bots\Patcher\patcher_defines.h">
-      <Filter>Header Files\Patcher headers</Filter>
-    </ClInclude>
     <ClInclude Include="Mod\GlobalController.h">
       <Filter>Header Files\Entity headers</Filter>
     </ClInclude>
@@ -2206,19 +2116,5 @@
     <CustomBuild Include="Mod\BetaEnemies\Metrocop.es">
       <Filter>Class Files\Cecil\BetaEnemies</Filter>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Cecil\DreamyStructures\DataArray.inl">
-      <Filter>Header Files\DreamyStructures headers</Filter>
-    </None>
-    <None Include="Cecil\DreamyStructures\DataList.inl">
-      <Filter>Header Files\DreamyStructures headers</Filter>
-    </None>
-    <None Include="Cecil\DreamyStructures\DataMap.inl">
-      <Filter>Header Files\DreamyStructures headers</Filter>
-    </None>
-    <None Include="Cecil\DreamyStructures\DataStack.inl">
-      <Filter>Header Files\DreamyStructures headers</Filter>
-    </None>
   </ItemGroup>
 </Project>

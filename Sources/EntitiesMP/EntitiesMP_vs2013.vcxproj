@@ -26,6 +26,7 @@
     <Keyword>MFCProj</Keyword>
     <ProjectGuid>{D9F67AA1-970A-BFDD-6BE9-BD0CDCE98A10}</ProjectGuid>
     <ProjectName>EntitiesMP</ProjectName>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -168,7 +169,7 @@ copy vs2013\Release\$(TargetName).lib $(SolutionDir)..\Bin\ &gt;nul</Command>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <OmitFramePointers>false</OmitFramePointers>
       <StringPooling>true</StringPooling>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_SE1_10;_WINDOWS;_WINDLL;_USRDLL;_USE_32BIT_TIME_T;DIRECT3D_VERSION=0x0800;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_SE1_10;_WINDOWS;_WINDLL;_USRDLL;DIRECT3D_VERSION=0x0800;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>StdH.h</PrecompiledHeaderFile>
       <DisableSpecificWarnings>4996;4333</DisableSpecificWarnings>
@@ -296,43 +297,6 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Bots\Patcher\patcher.cpp" />
-    <ClCompile Include="Cecil\DreamyJSON\Base\Compatibility.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Cecil\DreamyJSON\Base\Formatting.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Cecil\DreamyJSON\Containers\ConfigArray.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Cecil\DreamyJSON\Containers\ConfigBlock.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Cecil\DreamyJSON\Parser\ConfigParser.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Cecil\DreamyJSON\Values\ConfigValue.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="Cecil\Effects.cpp" />
     <ClCompile Include="Cecil\Materials.cpp" />
     <ClCompile Include="Cecil\Physics.cpp" />
@@ -605,24 +569,6 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     <ClCompile Include="Mod\Sound3D.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Bots\Patcher\patcher.h" />
-    <ClInclude Include="..\Bots\Patcher\patcher_defines.h" />
-    <ClInclude Include="Cecil\DreamyJSON\Base\Compatibility.h" />
-    <ClInclude Include="Cecil\DreamyJSON\Base\Formatting.h" />
-    <ClInclude Include="Cecil\DreamyJSON\ConfigBase.h" />
-    <ClInclude Include="Cecil\DreamyJSON\ConfigElement.h" />
-    <ClInclude Include="Cecil\DreamyJSON\Containers\ConfigArray.h" />
-    <ClInclude Include="Cecil\DreamyJSON\Containers\ConfigBlock.h" />
-    <ClInclude Include="Cecil\DreamyJSON\DreamyJSON.h" />
-    <ClInclude Include="Cecil\DreamyJSON\Parser\ConfigParser.h" />
-    <ClInclude Include="Cecil\DreamyJSON\Parser\ParserToken.h" />
-    <ClInclude Include="Cecil\DreamyJSON\Values\ConfigValue.h" />
-    <ClInclude Include="Cecil\DreamyStructures\DataArray.h" />
-    <ClInclude Include="Cecil\DreamyStructures\DataList.h" />
-    <ClInclude Include="Cecil\DreamyStructures\DataMap.h" />
-    <ClInclude Include="Cecil\DreamyStructures\DataStack.h" />
-    <ClInclude Include="Cecil\DreamyStructures\DataStructures.h" />
-    <ClInclude Include="Cecil\DreamyStructures\DataTemplates.h" />
     <ClInclude Include="Cecil\Effects.h" />
     <ClInclude Include="Cecil\Materials.h" />
     <ClInclude Include="Cecil\Physics.h" />
@@ -3127,10 +3073,6 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Cecil\DreamyStructures\DataArray.inl" />
-    <None Include="Cecil\DreamyStructures\DataList.inl" />
-    <None Include="Cecil\DreamyStructures\DataMap.inl" />
-    <None Include="Cecil\DreamyStructures\DataStack.inl" />
     <CustomBuild Include="Mod\GlobalController.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
