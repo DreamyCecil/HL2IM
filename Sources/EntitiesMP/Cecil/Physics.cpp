@@ -1,8 +1,23 @@
+/* Copyright (c) 2024 Dreamy Cecil
+This program is free software; you can redistribute it and/or modify
+it under the terms of version 2 of the GNU General Public License as published by
+the Free Software Foundation
+
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
+
 #include "StdH.h"
 #include "Physics.h"
 
-#include "EntitiesMP/PlayerWeapons.h"
-#include "EntitiesMP/Mod/Radio.h"
+#include <EntitiesMP/PlayerWeapons.h>
+#include <EntitiesMP/Mod/Radio.h>
 
 static FLOAT3D _vHandle;
 static CBrushPolygon *_pbpoNear;
@@ -154,8 +169,8 @@ CBrushPolygon *GetNearestPolygon_Portal(CEntity *pen, FLOAT3D &vPoint, FLOATplan
 // [Cecil] Start holding an entity with the gravity gun
 void GravityGunStart(CMovableEntity *pen, CEntity *penHolder) {
   // unhold this object from other players
-  for (INDEX iPlayer = 0; iPlayer < CECIL_GetMaxPlayers(); iPlayer++) {
-    CEntity *penPlayer = CECIL_GetPlayerEntity(iPlayer);
+  for (INDEX iPlayer = 0; iPlayer < CEntity::GetMaxPlayers(); iPlayer++) {
+    CEntity *penPlayer = CEntity::GetPlayerEntity(iPlayer);
 
     if (penPlayer == NULL || penPlayer->GetFlags() & ENF_DELETED) {
       continue;
@@ -204,7 +219,7 @@ void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold) {
   ULONG ulFlags = eHold.ulFlags;
   //ULONG ulCollision = eHold.ulCollision;
 
-  const BOOL bItem = IsDerivedFromDllClass(pen, CItem_DLLClass);
+  const BOOL bItem = IsDerivedFromClass(pen, "Item");
 
   pen->SetPhysicsFlags(ulFlags);
   //pen->SetCollisionFlags(ulCollision);
@@ -247,7 +262,7 @@ void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold) {
     return;
   }
 
-  if (!bItem && !IsOfDllClass(pen, CRadio_DLLClass)) {
+  if (!bItem && !IsOfClass(pen, "Radio")) {
     return;
   }
 
