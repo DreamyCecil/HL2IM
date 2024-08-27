@@ -13,17 +13,7 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
-#include <Engine/Base/Memory.h>
-
-#ifdef _DEBUG
-  #undef new
-#endif
-
-#include <EntitiesMP/Cecil/DreamyJSON/DreamyJSON.h>
-
-#ifdef _DEBUG
-  #define new DEBUG_NEW_CT
-#endif
+#include <Extras/XGizmo/Base/IniConfig.h>
 
 // Surface types
 enum ECecilSurfaceType {
@@ -68,18 +58,16 @@ NEW_SURFACE(GLASS,       4);
 BOOL LoadMaterials(CWorld *pwo);
 void SaveMaterials(void);
 void UnloadMaterials(void);
+
 // Switch between material configs
 void SwitchMaterialConfig(INDEX iConfig);
 
-// Find position of the texture in a specific material
-INDEX FindMaterialTexture(CConfigBlock *pcb, const CTFileName &fnTex, const CTString &strMaterial);
-// Find position and material of a specific texture
-INDEX TextureMaterialExists(CConfigBlock *pcb, const CTFileName &fnTex, INDEX &iMaterial);
 // Apply existing materials to the world
 BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime);
 
 // Set material for this polygon
 void SetMaterial(INDEX iLayer, INDEX iMat);
+
 // Remove material from the list
 void RemoveMaterial(INDEX iLayer);
 

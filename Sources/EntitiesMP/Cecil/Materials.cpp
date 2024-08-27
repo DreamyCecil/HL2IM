@@ -16,153 +16,135 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdH.h"
 #include "Materials.h"
 
-// Compatibility
-extern void (*_pJSON_PrintFunction)(const char *);
-extern std::string (*_pJSON_LoadConfigFile)(std::string);
-
-std::string LoadConfigFile(std::string strFile) {
-  CTFileStream strm;
-  strm.Open_t(CTString(strFile.c_str()));
-
-  // read until the end
-  CTString strConfig = "";
-  strConfig.ReadUntilEOF_t(strm);
-  strm.Close();
-
-  // return config
-  return strConfig.str_String;
-};
-
-void HookFunctions(void) {
-  _pJSON_PrintFunction = (void (*)(const char *))CPrintF;
-  _pJSON_LoadConfigFile = (std::string (*)(std::string))LoadConfigFile;
-};
-
 // Loaded materials
-static CConfigBlock _cbGlobal;
-static CConfigBlock _cbWorld;
-static CConfigBlock *_pcbCurrentConfig = NULL;
+static CIniConfig _iniGlobal;
+static CIniConfig _iniWorld;
+static CIniConfig *_piniCurrent = NULL;
+
+#define GLOBAL_MATERIALS_CONFIG "Scripts\\GlobalMaterials.ini"
 
 static CWorld *_pwoConfigWorld = NULL;
-static CTFileName _fnCurrentConfig = CTString("Scripts\\GlobalMaterials.json");
+static CTString _strCurrentConfig = GLOBAL_MATERIALS_CONFIG;
 
 // Save and load materials of the world
 BOOL LoadMaterials(CWorld *pwo) {
   // Unload current materials if they're still loaded
-  if (_pcbCurrentConfig != NULL && _pcbCurrentConfig->Count() > 0) {
+  if (_piniCurrent != NULL && !_piniCurrent->IsEmpty()) {
     UnloadMaterials();
   }
 
-  HookFunctions();
-
   _pwoConfigWorld = pwo;
-  const CTFileName fnWorld = CTString("Scripts\\LevelMaterials\\" + pwo->wo_fnmFileName.FileName()+".json");
-  const CTFileName fnGlobal = CTString("Scripts\\GlobalMaterials.json");
+  const CTFileName fnWorld = CTString("Scripts\\LevelMaterials\\" + pwo->wo_fnmFileName.FileName()+".ini");
 
   // load the config
-  if (ParseConfig(fnWorld, _cbWorld)) {
-    _fnCurrentConfig = fnWorld;
-    _pcbCurrentConfig = &_cbWorld;
+  try {
+    _iniWorld.Load_t(fnWorld, TRUE);
+    _strCurrentConfig = fnWorld;
+    _piniCurrent = &_iniWorld;
 
     // apply global materials if needed
-    int iLoad = 0;
-    if (_cbWorld.GetValue("LoadGlobal", iLoad) && iLoad)
-    {
-      if (ParseConfig(fnGlobal, _cbGlobal)) {
-        _pcbCurrentConfig = &_cbGlobal;
-        _fnCurrentConfig = fnGlobal;
+    if (_iniWorld.GetBoolValue("Properties", "LoadGlobal", FALSE)) {
+      try {
+        _iniGlobal.Load_t(GLOBAL_MATERIALS_CONFIG, TRUE);
+        _strCurrentConfig = GLOBAL_MATERIALS_CONFIG;
+        _piniCurrent = &_iniGlobal;
 
-      } else {
-        CPrintF(" Couldn't load global config, only using world config.\n");
+      } catch (char *strError) {
+        CPrintF(" Couldn't load global config: %s\n", strError);
+        CPrintF(" Only using world config.\n");
       }
     }
 
-  // load global config instead
-  } else if (ParseConfig(fnGlobal, _cbGlobal)) {
-    CPrintF(" Couldn't load world config, using global config instead.\n");
-    _fnCurrentConfig = fnGlobal;
-    _pcbCurrentConfig = &_cbGlobal;
+    return TRUE;
 
-  // delete if couldn't load
-  } else {
-    CPrintF(" Couldn't load any materials!\n (neither world config, nor 'GlobalMaterials.json')\n");
-    _cbGlobal.Clear();
-    _cbWorld.Clear();
+  // load global config instead
+  } catch (char *strError) {
+    (void)strError;
+    //CPrintF(" Couldn't load world config: %s\n", strError);
+    //CPrintF(" Trying to load global config instead.\n");
   }
 
-  return TRUE;
+  try {
+    _iniGlobal.Load_t(GLOBAL_MATERIALS_CONFIG, TRUE);
+    _strCurrentConfig = GLOBAL_MATERIALS_CONFIG;
+    _piniCurrent = &_iniGlobal;
+    return TRUE;
+
+  } catch (char *strError) {
+    // delete if couldn't load
+    CPrintF(" Couldn't load global config: %s\n", strError);
+    _iniGlobal.Clear();
+    _iniWorld.Clear();
+  }
+
+  return FALSE;
 };
 
 void UnloadMaterials(void) {
-  if (_pcbCurrentConfig == NULL) {
-    return;
-  }
+  if (_piniCurrent == NULL) return;
 
-  _cbGlobal.Clear();
-  _cbWorld.Clear();
+  _iniGlobal.Clear();
+  _iniWorld.Clear();
 
-  _pcbCurrentConfig = NULL;
+  _piniCurrent = NULL;
   _pwoConfigWorld = NULL;
-  _fnCurrentConfig = CTString("Scripts\\GlobalMaterials.json");
+  _strCurrentConfig = GLOBAL_MATERIALS_CONFIG;
 };
 
 void SaveMaterials(void) {
-  if (_pcbCurrentConfig->Count() <= 0) {
+  if (_piniCurrent->IsEmpty()) {
     CPrintF(" Materials aren't loaded!\n");
     return;
   }
 
   try {
-    std::string strMaterials = "";
-    _pcbCurrentConfig->Print(strMaterials);
+    _piniCurrent->Save_t(_strCurrentConfig);
+    CPrintF(" Resaved config into '%s'\n", _strCurrentConfig.str_String);
 
-    CTString strSave = strMaterials.c_str();
-    strSave.Save_t(_fnCurrentConfig);
-
-    CPrintF(" Resaved config into '%s'\n", _fnCurrentConfig);
   } catch (char *strError) {
-    CPrintF("%s\n", strError);
+    CPrintF(" Couldn't resave '%s':\n%s\n", _strCurrentConfig.str_String, strError);
   }
 };
 
 // Switch between material configs
 void SwitchMaterialConfig(INDEX iConfig) {
-  HookFunctions();
-
   switch (iConfig) {
     // level config
     case 1:
-      _fnCurrentConfig = CTString("Scripts\\LevelMaterials\\" + _pwoConfigWorld->wo_fnmFileName.FileName()+".json");
-      _pcbCurrentConfig = &_cbWorld;
+      _strCurrentConfig = CTString("Scripts\\LevelMaterials\\" + _pwoConfigWorld->wo_fnmFileName.FileName()+".ini");
+      _piniCurrent = &_iniWorld;
 
       // load level config
-      if (ParseConfig(_fnCurrentConfig, _cbWorld)) {
-        CPrintF(" Switched to level config (%s)\n", _fnCurrentConfig.FileName());
+      try {
+        _iniWorld.Load_t(_strCurrentConfig, TRUE);
+        CPrintF(" Switched to level config (%s)\n", _strCurrentConfig.str_String);
 
       // just create a new one if couldn't load
-      } else {
-        CPrintF(" Couldn't load level config, creating a new one! (%s)\n", _fnCurrentConfig);
+      } catch (char *strError) {
+        CPrintF(" Couldn't load world config: %s\n", strError);
+        CPrintF(" Creating a new config: %s\n", _strCurrentConfig.str_String);
 
         // mark it to use global config
-        int iDummy = 0;
-        if (!_pcbCurrentConfig->GetValue("LoadGlobal", iDummy)) {
-          _pcbCurrentConfig->AddValue("LoadGlobal", (INDEX)1);
+        if (!_piniCurrent->KeyExists("Properties", "LoadGlobal")) {
+          _piniCurrent->SetBoolValue("Properties", "LoadGlobal", TRUE);
         }
       }
       break;
 
     // global config
     default:
-      _fnCurrentConfig = CTString("Scripts\\GlobalMaterials.json");
-      _pcbCurrentConfig = &_cbGlobal;
+      _strCurrentConfig = GLOBAL_MATERIALS_CONFIG;
+      _piniCurrent = &_iniGlobal;
 
       // load global config
-      if (ParseConfig(_fnCurrentConfig, _cbGlobal)) {
-        CPrintF(" Switched to global config (GlobalMaterials.json)\n");
+      try {
+        _iniGlobal.Load_t(_strCurrentConfig, TRUE);
+        CPrintF(" Switched to global config (%s)\n", GLOBAL_MATERIALS_CONFIG);
 
       // just create a new one if couldn't load
-      } else {
-        CPrintF(" Couldn't load global config, creating a new one! (Scripts\\GlobalMaterials.json)\n");
+      } catch (char *strError) {
+        CPrintF(" Couldn't load global config: %s\n", strError);
+        CPrintF(" Creating a new config: %s\n", GLOBAL_MATERIALS_CONFIG);
       }
   }
 };
@@ -172,54 +154,21 @@ const char *_astrMaterials[] = {
   "STONE", "SAND", "WATER", "RED_SAND", "GRASS", "WOOD", "SNOW", "METAL", "METAL_GRATE", "CHAINLINK", "TILES", "GLASS",
 };
 
-INDEX _aiMaterials[] = {
+static INDEX _aiMaterials[] = {
   SURFACE_STONE, SURFACE_SAND, SURFACE_WATER, SURFACE_RED_SAND, SURFACE_GRASS, SURFACE_WOOD, SURFACE_SNOW,
   MATERIAL_VAR(METAL), MATERIAL_VAR(METAL_GRATE), MATERIAL_VAR(CHAINLINK), MATERIAL_VAR(TILES), MATERIAL_VAR(GLASS),
 };
 
-const INDEX _ctMaterials = 12;
+static const INDEX _ctMaterials = ARRAYCOUNT(_aiMaterials);
 
-// Find position of the texture in a specific material
-INDEX FindMaterialTexture(CConfigBlock *pcb, const CTFileName &fnTex, const CTString &strMaterial) {
-  if (strMaterial == "" || fnTex == "") {
-    return -1;
-  }
-
-  // get the array of this material
-  CConfigArray *caArray;
-  if (!pcb->GetValue(strMaterial.str_String, caArray)) {
-    return -1;
-  }
-
-  INDEX ctTextures = caArray->Count();
-
-  // no textures for that material
-  if (ctTextures <= 0) {
-    return -1;
-  }
-
-  // find the texture
-  for (INDEX iTex = 0; iTex < ctTextures; iTex++) {
-    CConfigValue &cv = (*caArray)[iTex];
-
-    // found the texture
-    if (fnTex == cv.cv_strValue) {
-      return iTex;
-    }
-  }
-
-  return -1;
-};
-
-// Find position and material of a specific texture
-INDEX TextureMaterialExists(CConfigBlock *pcb, const CTFileName &fnTex, INDEX &iMaterial) {
-  // go through all the materials (skip stone - 0)
+// Find material of a specific texture
+static INDEX FindTextureMaterial(CIniConfig &ini, const CTFileName &fnTex) {
+  // Go through all the materials (skip stone - 0)
   for (INDEX i = 1; i < _ctMaterials; i++) {
-    INDEX iTex = FindMaterialTexture(pcb, fnTex, _astrMaterials[i]);
-
-    if (iTex != -1) {
-      iMaterial = i;
-      return iTex;
+    // Check full path and then just the filename
+    if (ini.GetValue("Materials", fnTex.str_String, "") == _astrMaterials[i]
+     || ini.GetValue("Materials", fnTex.FileName().str_String, "") == _astrMaterials[i]) {
+      return i;
     }
   }
 
@@ -228,11 +177,8 @@ INDEX TextureMaterialExists(CConfigBlock *pcb, const CTFileName &fnTex, INDEX &i
 
 // Apply existing materials to the world
 BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime) {
-  CConfigBlock *pcbApply = (bWorld ? &_cbWorld : &_cbGlobal);
-
-  if (pcbApply->Count() <= 0) {
-    return FALSE;
-  }
+  CIniConfig *piniApply = (bWorld ? &_iniWorld : &_iniGlobal);
+  if (piniApply->IsEmpty()) return FALSE;
 
   // go through all brush polygons
   {FOREACHINSTATICARRAY(_pwoConfigWorld->wo_baBrushes.ba_apbpo, CBrushPolygon *, itbpo) {
@@ -247,7 +193,7 @@ BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime) {
 
     for (INDEX iLayerCheck = 0; iLayerCheck < 3; iLayerCheck++) {
       CBrushPolygonTexture &bpt = pbpo->bpo_abptTextures[iLayerCheck];
-      CTString fnCheckTex = bpt.bpt_toTexture.GetName().FileName().str_String;
+      const CTFileName &fnCheckTex = bpt.bpt_toTexture.GetName();
 
       // at least one texture exists
       if (fnCheckTex != "") {
@@ -336,15 +282,13 @@ BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime) {
     for (INDEX iLayer = 0; iLayer < 3; iLayer++) {
       // get the texture
       CBrushPolygonTexture &bpt = pbpo->bpo_abptTextures[iLayer];
-      CTString fnTex = bpt.bpt_toTexture.GetName().FileName().str_String;
+      const CTFileName &fnTex = bpt.bpt_toTexture.GetName();
 
-      if (fnTex == "") {
-        continue;
-      }
+      if (fnTex == "") continue;
 
-      INDEX iMaterialInTheList = 0;
+      INDEX iMaterialInTheList = FindTextureMaterial(*piniApply, fnTex);
 
-      if (TextureMaterialExists(pcbApply, fnTex, iMaterialInTheList) != -1) {
+      if (iMaterialInTheList != -1) {
         iMaterial = _aiMaterials[iMaterialInTheList];
         break;
       }
@@ -411,7 +355,6 @@ extern CBrushPolygon *_pbpoMaterial;
 void SetMaterial(INDEX iLayer, INDEX iMat) {
   iLayer = Clamp(iLayer, (INDEX)0, (INDEX)2);
   iMat = Clamp(iMat, (INDEX)0, (INDEX)(_ctMaterials-1));
-  const char *strMat = _astrMaterials[iMat];
 
   // no polygon
   if (_pbpoMaterial == NULL) {
@@ -421,7 +364,7 @@ void SetMaterial(INDEX iLayer, INDEX iMat) {
 
   // get the texture
   CBrushPolygonTexture &bpt = _pbpoMaterial->bpo_abptTextures[iLayer];
-  CTString fnTex = bpt.bpt_toTexture.GetName().FileName().str_String;
+  const CTFileName &fnTex = bpt.bpt_toTexture.GetName();
 
   // no texture on the layer
   if (fnTex == "") {
@@ -429,41 +372,10 @@ void SetMaterial(INDEX iLayer, INDEX iMat) {
     return;
   }
 
-  CConfigArray *caArray;
+  const char *strMat = _astrMaterials[iMat];
+  _piniCurrent->SetValue("Materials", fnTex.str_String, strMat);
 
-  // create the needed material
-  if (!_pcbCurrentConfig->GetValue(strMat, caArray)) {
-    caArray = new CConfigArray();
-    _pcbCurrentConfig->AddValue(strMat, caArray);
-    CPrintF(" Created '%s' material\n", strMat);
-  }
-
-  CConfigArray *caMaterial = caArray;
-
-  // remove texture from the other material
-  INDEX iDeleteFromMat = 0;
-  INDEX iTex = TextureMaterialExists(_pcbCurrentConfig, fnTex, iDeleteFromMat);
-
-  // try to find the texture first
-  if (iTex != -1) {
-    // same material
-    if (iDeleteFromMat == iMat) {
-      CPrintF(" '%s' material was already assigned to this texture!\n", strMat);
-      return;
-    }
-
-    // delete it
-    _pcbCurrentConfig->GetValue(_astrMaterials[iDeleteFromMat], caArray);
-    caArray->Delete(iTex);
-    CPrintF(" Texture was removed from material '%s'\n", _astrMaterials[iDeleteFromMat]);
-  }
-
-  // add this texture to materials
-  std::string strPrint = "";
-  caMaterial->AddValue(fnTex.str_String);
-  caMaterial->Print(strPrint, 0);
-
-  CPrintF("'%s' : %s\n\n Changed material for '%s'\n", strMat, strPrint.c_str(), fnTex);
+  CPrintF(" Set %s material for '%s'\n", strMat, fnTex.str_String);
 };
 
 // Remove material from the list
@@ -476,7 +388,7 @@ void RemoveMaterial(INDEX iLayer) {
 
   // get the texture
   CBrushPolygonTexture &bpt = _pbpoMaterial->bpo_abptTextures[iLayer];
-  CTString fnTex = bpt.bpt_toTexture.GetName().FileName().str_String;
+  const CTFileName &fnTex = bpt.bpt_toTexture.GetName();
 
   // no texture on the layer
   if (fnTex == "") {
@@ -484,40 +396,30 @@ void RemoveMaterial(INDEX iLayer) {
     return;
   }
 
-  CConfigArray *caArray;
-
-  // remove texture from the material
-  INDEX iDeleteFromMat = 0;
-  INDEX iTex = TextureMaterialExists(_pcbCurrentConfig, fnTex, iDeleteFromMat);
-
-  // try to find the texture first
-  if (iTex != -1) {
-    // delete it
-    _pcbCurrentConfig->GetValue(_astrMaterials[iDeleteFromMat], caArray);
-    caArray->Delete(iTex);
-    CPrintF(" Texture was removed from material '%s'\n", _astrMaterials[iDeleteFromMat]);
-
+  // Check full path and then just the filename
+  if (_piniCurrent->Delete("Materials", fnTex.str_String)
+   || _piniCurrent->Delete("Materials", fnTex.FileName().str_String)) {
+    CPrintF(" Material has been removed from '%s'!\n", fnTex.str_String);
   } else {
-    CPrintF(" Material for this texture doesn't exist!\n");
-    return;
+    CPrintF(" '%s' doesn't have a material set to it!\n", fnTex.str_String);
   }
 };
 
 // Help with functions
 void MaterialsHelp(void) {
-  CPrintF("\n ^cffffff-- Materials help:\n\n");
+  CPutString("\n ^cffffff-- Materials help:\n\n");
 
-  CPrintF(" _bMaterialCheck - select polygon under the crosshair\n");
-  CPrintF(" SetMaterial(layer, material) - set material for a layer of the selected polygon\n");
-  CPrintF(" RemoveMaterial(layer) - remove material using a certain layer of the selected polygon\n");
-  CPrintF(" ResaveMaterials() - resave current materials config\n");
-  CPrintF(" SwitchMaterialConfig(level) - switch between global and level config (0 or 1)\n");
+  CPutString(" _bMaterialCheck - select polygon under the crosshair\n");
+  CPutString(" SetMaterial(layer, material) - set material for a layer of the selected polygon\n");
+  CPutString(" RemoveMaterial(layer) - remove material using a certain layer of the selected polygon\n");
+  CPutString(" ResaveMaterials() - resave current materials config\n");
+  CPutString(" SwitchMaterialConfig(level) - switch between global and level config (0 or 1)\n");
 
-  CPrintF("\n ^cffffff-- List of materials:\n\n");
+  CPutString("\n ^cffffff-- List of materials:\n\n");
 
   for (INDEX iMat = 0; iMat < _ctMaterials; iMat++) {
     CPrintF(" %d - %s\n", iMat, _astrMaterials[iMat]);
   }
 
-  CPrintF("\n");
+  CPutString("\n");
 };
