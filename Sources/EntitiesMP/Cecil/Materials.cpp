@@ -16,6 +16,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdH.h"
 #include "Materials.h"
 
+#include <XGizmo/Base/IniConfig.h>
+
 // Loaded materials
 static CIniConfig _iniGlobal;
 static CIniConfig _iniWorld;

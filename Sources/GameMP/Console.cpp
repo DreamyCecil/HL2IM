@@ -318,7 +318,7 @@ static void Key_Return(void)
   #define CHEAT_PREFIX "please"
   if (strEditingLine.HasPrefix(CHEAT_PREFIX) || strEditingLine.HasPrefix("/" CHEAT_PREFIX)) {
     strEditingLine.RemovePrefix(CHEAT_PREFIX);
-    strEditingLine.RemovePrefix("/ "CHEAT_PREFIX);
+    strEditingLine.RemovePrefix("/ " CHEAT_PREFIX);
     strEditingLine.TrimSpacesLeft();
 
     if (strEditingLine == "god") {

@@ -16,8 +16,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdH.h"
 #include "WorldPatch.h"
 
-#include <Extras/XGizmo/Patcher/patcher.h>
-#include <Extras/XGizmo/Patcher/patcher.cpp>
+// Define the patcher
+#include <XGizmo/Patcher/patcher.h>
+#include <XGizmo/Patcher/patcher.cpp>
 
 #include <Engine/Templates/Stock_CEntityClass.h>
 
