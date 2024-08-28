@@ -73,34 +73,34 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>vs2013\$(Configuration)\</OutDir>
-    <IntDir>vs2013\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Obj\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>$(ProjectName)D</TargetName>
     <IncludePath>$(SolutionDir);$(SolutionDir)Extras;$(SolutionDir)Engine107;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Engine107;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(OutDir);$(SolutionDir)Engine107;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">
-    <OutDir>vs2013\$(Configuration)\</OutDir>
-    <IntDir>vs2013\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Obj\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>$(ProjectName)D</TargetName>
     <IncludePath>$(SolutionDir);$(SolutionDir)Extras;$(SolutionDir)Engine110;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Engine110;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(OutDir);$(SolutionDir)Engine110;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>vs2013\$(Configuration)\</OutDir>
-    <IntDir>vs2013\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Obj\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir);$(SolutionDir)Extras;$(SolutionDir)Engine107;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Engine107;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(OutDir);$(SolutionDir)Engine107;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">
-    <OutDir>vs2013\$(Configuration)\</OutDir>
-    <IntDir>vs2013\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Obj\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir);$(SolutionDir)Extras;$(SolutionDir)Engine110;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Engine110;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(OutDir);$(SolutionDir)Engine110;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -141,13 +141,13 @@
       <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
-    <CustomBuildStep>
-      <Command>copy vs2013\Debug\$(TargetName).dll $(SolutionDir)..\Bin\Debug\ &gt;nul
-copy vs2013\Debug\$(TargetName).map $(SolutionDir)..\Bin\Debug\ &gt;nul
-copy vs2013\Debug\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Command>
-      <Message>Copying %(Filename) binaries to $(ENGINE_DIR)\Bin\Debug</Message>
-      <Outputs>$(SolutionDir)..\Bin\Debug\$(InputName).dll;%(Outputs)</Outputs>
-    </CustomBuildStep>
+    <PostBuildEvent>
+      <Message>Copying %(TargetName) binaries to Bin</Message>
+      <Command>copy "$(OutDir)$(TargetFileName)" "$(SolutionDir)..\Bin\Debug\" &gt;nul</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>del "$(OutDir)$(TargetFileName)" &gt;nul</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">
     <ClCompile>
@@ -188,13 +188,13 @@ copy vs2013\Debug\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Command
       <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
-    <CustomBuildStep>
-      <Command>copy vs2013\Debug_110\$(TargetName).dll $(SolutionDir)..\Bin\Debug\ &gt;nul
-copy vs2013\Debug_110\$(TargetName).map $(SolutionDir)..\Bin\Debug\ &gt;nul
-copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Command>
-      <Message>Copying %(Filename) binaries to $(ENGINE_DIR)\Bin\Debug</Message>
-      <Outputs>$(SolutionDir)..\Bin\Debug\$(InputName).dll;%(Outputs)</Outputs>
-    </CustomBuildStep>
+    <PostBuildEvent>
+      <Message>Copying %(TargetName) binaries to Bin</Message>
+      <Command>copy "$(OutDir)$(TargetFileName)" "$(SolutionDir)..\Bin\Debug\" &gt;nul</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>del "$(OutDir)$(TargetFileName)" &gt;nul</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -235,13 +235,13 @@ copy vs2013\Debug_110\$(TargetName).lib $(SolutionDir)..\Bin\Debug\ &gt;nul</Com
       <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
-    <CustomBuildStep>
-      <Command>copy vs2013\Release\$(TargetName).dll $(SolutionDir)..\Bin\ &gt;nul
-copy vs2013\Release\$(TargetName).map $(SolutionDir)..\Bin\ &gt;nul
-copy vs2013\Release\$(TargetName).lib $(SolutionDir)..\Bin\ &gt;nul</Command>
-      <Message>Copying %(Filename) binaries to $(ENGINE_DIR)\Bin</Message>
-      <Outputs>$(SolutionDir)..\Bin\$(InputName).dll;%(Outputs)</Outputs>
-    </CustomBuildStep>
+    <PostBuildEvent>
+      <Message>Copying %(TargetName) binaries to Bin</Message>
+      <Command>copy "$(OutDir)$(TargetFileName)" "$(SolutionDir)..\Bin\" &gt;nul</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>del "$(OutDir)$(TargetFileName)" &gt;nul</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">
     <ClCompile>
@@ -283,13 +283,13 @@ copy vs2013\Release\$(TargetName).lib $(SolutionDir)..\Bin\ &gt;nul</Command>
       <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
-    <CustomBuildStep>
-      <Command>copy vs2013\Release_110\$(TargetName).dll $(SolutionDir)..\Bin\ &gt;nul
-copy vs2013\Release_110\$(TargetName).map $(SolutionDir)..\Bin\ &gt;nul
-copy vs2013\Release_110\$(TargetName).lib $(SolutionDir)..\Bin\ &gt;nul</Command>
-      <Message>Copying %(Filename) binaries to $(ENGINE_DIR)\Bin</Message>
-      <Outputs>$(SolutionDir)..\Bin\$(InputName).dll;%(Outputs)</Outputs>
-    </CustomBuildStep>
+    <PostBuildEvent>
+      <Message>Copying %(TargetName) binaries to Bin</Message>
+      <Command>copy "$(OutDir)$(TargetFileName)" "$(SolutionDir)..\Bin\" &gt;nul</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>del "$(OutDir)$(TargetFileName)" &gt;nul</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ActionsListControl.cpp">
