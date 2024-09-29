@@ -5058,7 +5058,7 @@ functions:
       const FLOAT fDeltaY = NormalizeAngle(vShakeSpeed(2) - m_aWeaponShake(2)) / 3.0f;
 
       // Move angle towards the target angle
-      if (Abs(fDeltaY) > 0.01f) {
+      if (Abs(fDeltaY) > 0.0f) {
         vShakeSpeed(2) += fDeltaY;
       } else {
         vShakeSpeed(2) = 0.0f;
@@ -5251,6 +5251,11 @@ functions:
 
     // check if highscore has changed
     CheckHighScore();
+
+    if (!IsPredictor()) {
+      // [Cecil] Move picked objects around
+      GetPlayerWeapons()->HoldingObject();
+    }
   };
 
 
@@ -6010,9 +6015,6 @@ functions:
       lsAmbient.ls_ulFlags = 0;
       ((CLight&)*m_penFLAmbient).m_lsLightSource.SetLightSourceWithNoDiscarding(lsAmbient);
     }
-
-    // [Cecil] Move picked objects around
-    GetPlayerWeapons()->HoldingObject();
 
     // [Cecil] Separate gravity gun control
     if (GetPlayerWeapons()->m_iCurrentWeapon == WEAPON_GRAVITYGUN) {
@@ -8369,13 +8371,7 @@ procedures:
 /************************************************************
  *                        M  A  I  N                        *
  ************************************************************/
-  // [Cecil] 2021-06-19: Jump into SubMain procedure
   Main() {
-    jump SubMain();
-  };
-
-  // [Cecil] Sub-procedure for bot mod
-  SubMain() {
     // remember start time
     time_t tmStart;
     time(&tmStart);

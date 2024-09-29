@@ -55,6 +55,8 @@ extern INDEX hl2_colUIMain;
 extern INDEX hl2_colUIEmpty;
 extern INDEX hl2_bCrosshairColoring;
 
+#include "EntitiesMP/Cecil/Physics.h"
+
 // [Cecil] Current viewer player
 extern CEntity *_penViewPlayer;
 
@@ -1529,7 +1531,8 @@ functions:
     eHold.ulFlags = m_ulObjectFlags & ~(EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY) | EPF_NOACCELERATION|EPF_ABSOLUTETRANSLATE;
     //eHold.ulCollision = m_ulObjectCollision | ((ECBI_PLAYER)<<ECB_PASS);
 
-    m_penHolding->SendEvent(eHold);
+    CMovableEntity *pen = (CMovableEntity *)&*m_penHolding;
+    GravityGunHolding(pen, eHold);
 
     // Move
     /*CMovableEntity &pen = (CMovableEntity&)*m_penHolding;
