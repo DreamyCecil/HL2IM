@@ -69,6 +69,14 @@ static CTextureObject _toHAXMenu;
 #define HAXF_GOD    (1<<0)
 #define HAXF_NOCLIP (1<<1)
 
+// [Cecil] Physical state
+enum EPlayerPhysics {
+  PPH_NORMAL, // Collide with the world normally
+  PPH_NOCLIP, // Ignore world collision
+  PPH_DEAD,   // Corpse
+  PPH_INIT,   // Initializing/rebirth
+};
+
 // [Cecil] Current viewer player
 extern CEntity *_penViewPlayer = NULL;
 
@@ -1978,6 +1986,50 @@ functions:
   // [Cecil] Set movement speed
   void PlayerMove(FLOAT3D vDir) {
     SetDesiredTranslation(vDir);
+  };
+
+  // [Cecil] Set rotation speed
+  void PlayerRotate(ANGLE3D aRot) {
+    SetDesiredRotation(aRot);
+  };
+
+  // [Cecil] Set physics flags depending on the state
+  void SetPhysics(ULONG eState, BOOL bPhysics, BOOL bCollision) {
+    ULONG ulPhysics = 0;
+    ULONG ulCollision = 0;
+
+    switch (eState) {
+      case PPH_DEAD:
+        ulPhysics = EPF_MODEL_CORPSE;
+        ulCollision = ECF_CORPSE;
+        break;
+
+      case PPH_NOCLIP:
+        // Don't be affected by gravity and ignore basic collisions
+        ulPhysics = (GetPhysicsFlags() & ~(EPF_TRANSLATEDBYGRAVITY | EPF_ORIENTEDBYGRAVITY));
+        ulCollision = (GetCollisionFlags() & ~((ECBI_BRUSH | ECBI_MODEL) << ECB_TEST));
+        break;
+
+      case PPH_NORMAL:
+        // Be affected by gravity and allow basic collisions
+        ulPhysics = (GetPhysicsFlags() | (EPF_TRANSLATEDBYGRAVITY | EPF_ORIENTEDBYGRAVITY));
+        ulCollision = (GetCollisionFlags() | ((ECBI_BRUSH | ECBI_MODEL) << ECB_TEST));
+        break;
+
+      default:
+        // Initialize the player
+        ulPhysics = (EPF_MODEL_WALKING | EPF_HASLUNGS);
+        ulCollision = (ECF_MODEL | ((ECBI_PLAYER) << ECB_IS));
+        break;
+    }
+
+    if (bPhysics) {
+      SetPhysicsFlags(ulPhysics);
+    }
+
+    if (bCollision) {
+      SetCollisionFlags(ulCollision);
+    }
   };
 
   // [Cecil] Update crosshair position to avoid twitching
@@ -3983,8 +4035,7 @@ functions:
 
     // reset to a dummy state
     ForceFullStop();
-    SetPhysicsFlags(GetPhysicsFlags() & ~(EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY));
-    SetCollisionFlags(GetCollisionFlags() & ~((ECBI_BRUSH|ECBI_MODEL)<<ECB_TEST));
+    SetPhysics(PPH_NOCLIP, TRUE, TRUE); // [Cecil]
     en_plLastViewpoint.pl_OrientationAngle = en_plViewpoint.pl_OrientationAngle = ANGLE3D(0,0,0);
 
     StartModelAnim(PLAYER_ANIM_STAND, 0);
@@ -4000,8 +4051,7 @@ functions:
     }
     m_ulFlags &= ~PLF_NOTCONNECTED;
 
-    SetPhysicsFlags(GetPhysicsFlags() | (EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY));
-    SetCollisionFlags(GetCollisionFlags() | ((ECBI_BRUSH|ECBI_MODEL)<<ECB_TEST));
+    SetPhysics(PPH_NORMAL, TRUE, TRUE); // [Cecil]
   };
 
   // check if player is connected or not
@@ -5171,8 +5221,7 @@ functions:
     BOOL bNeedNoclip = (GetPhysicsFlags() & EPF_TRANSLATEDBYGRAVITY) || (GetCollisionFlags() & ((ECBI_BRUSH|ECBI_MODEL)<<ECB_TEST));
 
     if (bHAX && bNeedNoclip) {
-      SetCollisionFlags(GetCollisionFlags() & ~((ECBI_BRUSH|ECBI_MODEL)<<ECB_TEST));
-      SetPhysicsFlags(GetPhysicsFlags() & ~(EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY));
+      SetPhysics(PPH_NOCLIP, TRUE, TRUE); // [Cecil]
       en_plViewpoint.pl_OrientationAngle = ANGLE3D(0, 0, 0);
       m_pstState = PST_FALL;
       en_pbpoStandOn = NULL;
@@ -5180,8 +5229,7 @@ functions:
       m_fFallTime = 1.0f;
 
     } else if (!bHAX && !bNeedNoclip) {
-      SetCollisionFlags(GetCollisionFlags() | ((ECBI_BRUSH|ECBI_MODEL)<<ECB_TEST));
-      SetPhysicsFlags(GetPhysicsFlags() | EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY);
+      SetPhysics(PPH_NORMAL, TRUE, TRUE); // [Cecil]
       en_plViewpoint.pl_OrientationAngle = ANGLE3D(0, 0, 0);
     }
 
@@ -5582,7 +5630,7 @@ functions:
 
     // flying mode - rotate whole player
     if (!(GetPhysicsFlags() & EPF_TRANSLATEDBYGRAVITY)) {
-      SetDesiredRotation(paAction.pa_aRotation);
+      PlayerRotate(paAction.pa_aRotation);
       StartModelAnim(PLAYER_ANIM_STAND, AOF_LOOPING|AOF_NORESTART);
       PlayerMove(vTranslation);
 
@@ -5861,7 +5909,7 @@ functions:
 
       // translation rotate player for heading
       if (vTranslation.Length() > 0.1f) {
-        SetDesiredRotation(ANGLE3D(en_plViewpoint.pl_OrientationAngle(1)/_pTimer->TickQuantum, 0.0f, 0.0f));
+        PlayerRotate(ANGLE3D(en_plViewpoint.pl_OrientationAngle(1)/_pTimer->TickQuantum, 0.0f, 0.0f));
 
         if (m_ulFlags & PLF_VIEWROTATIONCHANGED) {
           m_ulFlags &= ~PLF_VIEWROTATIONCHANGED;
@@ -5876,16 +5924,16 @@ functions:
       // rotate head, body and legs
       } else {
         m_ulFlags |= PLF_VIEWROTATIONCHANGED;
-        SetDesiredRotation(ANGLE3D(0.0f, 0.0f, 0.0f));
+        PlayerRotate(ANGLE3D(0.0f, 0.0f, 0.0f));
 
         ANGLE aDiff = en_plViewpoint.pl_OrientationAngle(1) - HEADING_MAX;
         if (aDiff > 0.0f) {
-          SetDesiredRotation(ANGLE3D(aDiff/_pTimer->TickQuantum, 0.0f, 0.0f));
+          PlayerRotate(ANGLE3D(aDiff/_pTimer->TickQuantum, 0.0f, 0.0f));
         }
 
         aDiff = en_plViewpoint.pl_OrientationAngle(1) + HEADING_MAX;
         if (aDiff < 0.0f) {
-          SetDesiredRotation(ANGLE3D(aDiff/_pTimer->TickQuantum, 0.0f, 0.0f));
+          PlayerRotate(ANGLE3D(aDiff/_pTimer->TickQuantum, 0.0f, 0.0f));
         }
 
         RoundViewAngle(en_plViewpoint.pl_OrientationAngle(1), HEADING_MAX);
@@ -6336,19 +6384,19 @@ functions:
     // fly mode
     BOOL bIsFlying = !(GetPhysicsFlags() & EPF_TRANSLATEDBYGRAVITY);
     if (bFlyOn && !bIsFlying) {
-      SetPhysicsFlags(GetPhysicsFlags() & ~(EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY));
+      SetPhysics(PPH_NOCLIP, TRUE, FALSE); // [Cecil]
       en_plViewpoint.pl_OrientationAngle = ANGLE3D(0, 0, 0);
     } else if (!bFlyOn && bIsFlying) {
-      SetPhysicsFlags(GetPhysicsFlags() | EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY);
+      SetPhysics(PPH_NORMAL, TRUE, FALSE); // [Cecil]
       en_plViewpoint.pl_OrientationAngle = ANGLE3D(0, 0, 0);
     }
 
     // ghost mode
     BOOL bIsGhost = !(GetCollisionFlags() & ((ECBI_BRUSH|ECBI_MODEL)<<ECB_TEST));
     if (cht_bGhost && !bIsGhost) {
-      SetCollisionFlags(GetCollisionFlags() & ~((ECBI_BRUSH|ECBI_MODEL)<<ECB_TEST));
+      SetPhysics(PPH_NOCLIP, FALSE, TRUE); // [Cecil]
     } else if (!cht_bGhost && bIsGhost) {
-      SetCollisionFlags(GetCollisionFlags() | ((ECBI_BRUSH|ECBI_MODEL)<<ECB_TEST));
+      SetPhysics(PPH_NORMAL, FALSE, TRUE); // [Cecil]
     }
 
     // invisible mode
@@ -6800,8 +6848,7 @@ functions:
     Particles_AfterBurner_Prepare(this);
 
     // set flags
-    SetPhysicsFlags(EPF_MODEL_WALKING|EPF_HASLUNGS);
-    SetCollisionFlags(ECF_MODEL|((ECBI_PLAYER)<<ECB_IS));
+    SetPhysics(PPH_INIT, TRUE, TRUE); // [Cecil]
     SetFlags(GetFlags()|ENF_ALIVE);
 
     // animation
@@ -7508,7 +7555,7 @@ procedures:
     SetFlags(GetFlags()&~ENF_ALIVE);
     // stop player
     PlayerMove(FLOAT3D(0.0f, 0.0f, 0.0f));
-    SetDesiredRotation(ANGLE3D(0.0f, 0.0f, 0.0f));
+    PlayerRotate(ANGLE3D(0.0f, 0.0f, 0.0f));
 
     // remove weapon from hand
     ((CPlayerAnimator&)*m_penAnimator).RemoveWeapon();
@@ -7565,9 +7612,7 @@ procedures:
     CModelObject &moBody = GetModelObject()->GetAttachmentModel(PLAYER_ATTACHMENT_TORSO)->amo_moModelObject;
     moBody.PlayAnim(iAnim2, 0);
 
-    // set physic flags
-    SetPhysicsFlags(EPF_MODEL_CORPSE);
-    SetCollisionFlags(ECF_CORPSE);
+    SetPhysics(PPH_DEAD, TRUE, TRUE); // [Cecil]
 
     // set density to float out of water
     en_fDensity = 400.0f;
@@ -7689,7 +7734,7 @@ procedures:
     SetFlags(GetFlags()&~ENF_ALIVE);
     // stop player
     PlayerMove(FLOAT3D(0.0f, 0.0f, 0.0f));
-    SetDesiredRotation(ANGLE3D(0.0f, 0.0f, 0.0f));
+    PlayerRotate(ANGLE3D(0.0f, 0.0f, 0.0f));
 
     // look straight
     StartModelAnim(PLAYER_ANIM_STAND, 0);
@@ -8004,9 +8049,9 @@ procedures:
     // put it at marker
     Teleport(GetActionMarker()->GetPlacement());
     // make it rotate in spawnpose
-    SetPhysicsFlags(GetPhysicsFlags() & ~(EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY));
+    SetPhysics(PPH_NOCLIP, TRUE, FALSE); // [Cecil]
     m_ulFlags|=PLF_AUTOMOVEMENTS;
-    SetDesiredRotation(ANGLE3D(60,0,0));
+    PlayerRotate(ANGLE3D(60,0,0));
     StartModelAnim(PLAYER_ANIM_SPAWNPOSE, AOF_LOOPING);
     CModelObject &moBody = GetModelObject()->GetAttachmentModel(PLAYER_ATTACHMENT_TORSO)->amo_moModelObject;
     moBody.PlayAnim(BODY_ANIM_SPAWNPOSE, AOF_LOOPING);
@@ -8026,8 +8071,8 @@ procedures:
     GetModelObject()->mo_colBlendColor = colAlpha|0xFF;
 
     // put it to normal state
-    SetPhysicsFlags(GetPhysicsFlags() | EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY);
-    SetDesiredRotation(ANGLE3D(0,0,0));
+    SetPhysics(PPH_NORMAL, TRUE, FALSE); // [Cecil]
+    PlayerRotate(ANGLE3D(0,0,0));
     m_ulFlags&=~PLF_AUTOMOVEMENTS;
 
     // play animation to fall down
@@ -8053,10 +8098,10 @@ procedures:
     // put it at marker
     Teleport(GetActionMarker()->GetPlacement());
     // make it rotate in spawnpose
-    SetPhysicsFlags(GetPhysicsFlags() & ~(EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY));
+    SetPhysics(PPH_NOCLIP, TRUE, FALSE); // [Cecil]
     m_ulFlags |= PLF_AUTOMOVEMENTS;
 
-    SetDesiredRotation(ANGLE3D(60,0,0));
+    PlayerRotate(ANGLE3D(60,0,0));
     PlayerMove(FLOAT3D(0, 20.0f, 0));
 
     StartModelAnim(PLAYER_ANIM_SPAWNPOSE, AOF_LOOPING);
@@ -8330,14 +8375,14 @@ procedures:
         jump TheEnd();
 
       } else if (GetActionMarker()->m_paaAction == PAA_NOGRAVITY) {
-        SetPhysicsFlags(GetPhysicsFlags() & ~(EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY));
+        SetPhysics(PPH_NOCLIP, TRUE, FALSE); // [Cecil]
 
         if (GetActionMarker()->GetParent() != NULL) {
           SetParent(GetActionMarker()->GetParent());
         }
 
       } else if (GetActionMarker()->m_paaAction == PAA_TURNONGRAVITY) {
-        SetPhysicsFlags(GetPhysicsFlags()|EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY);
+        SetPhysics(PPH_NORMAL, TRUE, FALSE); // [Cecil]
         SetParent(NULL);
 
       } else if (TRUE) {
@@ -8516,7 +8561,7 @@ procedures:
         // stop player
         if (m_penActionMarker==NULL) {
           PlayerMove(FLOAT3D(0.0f, 0.0f, 0.0f));
-          SetDesiredRotation(ANGLE3D(0.0f, 0.0f, 0.0f));
+          PlayerRotate(ANGLE3D(0.0f, 0.0f, 0.0f));
         }
         // stop firing
         ((CPlayerWeapons&)*m_penWeapons).SendEvent(EReleaseWeapon());
