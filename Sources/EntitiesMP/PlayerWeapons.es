@@ -2006,12 +2006,12 @@ functions:
       plRay[4] = CPlacement3D(plCrosshair.pl_PositionVector, plCrosshair.pl_OrientationAngle + ANGLE3D( 0.0f, -5.0f, 0.0f));
 
       for (INDEX i = 0; i < 5; i++) {
-        CCastRay crRay(m_penPlayer, plRay[i]);
+        CCecilCastRay crRay(m_penPlayer, plRay[i]);
         crRay.cr_bHitTranslucentPortals = FALSE;
         crRay.cr_fTestR = 0.5f;
         crRay.cr_bPhysical = FALSE;
-        crRay.cr_ttHitModels = CCastRay::TT_COLLISIONBOX;
-        GetWorld()->CastRay(crRay);
+        crRay.cr_ttHitModels = CCecilCastRay::TT_COLLISIONBOX;
+        crRay.Cast(GetWorld());
 
         vRayOrigin = crRay.cr_vOrigin;
         vRayTarget = crRay.cr_vTarget;
@@ -2028,11 +2028,11 @@ functions:
 
     } else {
       // cast ray
-      CCastRay crRay(m_penPlayer, plCrosshair);
+      CCecilCastRay crRay(m_penPlayer, plCrosshair);
       crRay.cr_bHitTranslucentPortals = FALSE;
       crRay.cr_bPhysical = FALSE;
-      crRay.cr_ttHitModels = CCastRay::TT_COLLISIONBOX;
-      GetWorld()->CastRay(crRay);
+      crRay.cr_ttHitModels = CCecilCastRay::TT_COLLISIONBOX;
+      crRay.Cast(GetWorld());
 
       vRayOrigin = crRay.cr_vOrigin;
       vRayTarget = crRay.cr_vTarget;
@@ -2963,7 +2963,7 @@ functions:
     // for each ray
     for (INDEX i = 0; i < 5; i++) {
       // cast a ray to find if any model
-      CCastRay crRay(m_penPlayer, vBase, vDest[i]);
+      CCecilCastRay crRay(m_penPlayer, vBase, vDest[i]);
       //crRay.cr_bHitTranslucentPortals = FALSE;
       // [Cecil] Hit "portal" surfaces
       crRay.cr_bHitPortals = TRUE;
@@ -2971,8 +2971,8 @@ functions:
       crRay.cr_bPhysical = TRUE;
 
       crRay.cr_fTestR = fThickness;
-      crRay.cr_ttHitModels = CCastRay::TT_COLLISIONBOX;
-      GetWorld()->CastRay(crRay);
+      crRay.cr_ttHitModels = CCecilCastRay::TT_COLLISIONBOX;
+      crRay.Cast(GetWorld());
       
       // if hit something
       if (crRay.cr_penHit != NULL && crRay.cr_fHitDistance < fDistance) {
@@ -3126,11 +3126,11 @@ functions:
     // for each ray
     for (INDEX i=0; i<3; i++) {
       // cast a ray to find if any model
-      CCastRay crRay( m_penPlayer, vBase, vDest[i]);
+      CCecilCastRay crRay( m_penPlayer, vBase, vDest[i]);
       crRay.cr_bHitTranslucentPortals = FALSE;
       crRay.cr_fTestR = fThickness;
-      crRay.cr_ttHitModels = CCastRay::TT_COLLISIONBOX;
-      GetWorld()->CastRay(crRay);
+      crRay.cr_ttHitModels = CCecilCastRay::TT_COLLISIONBOX;
+      crRay.Cast(GetWorld());
 
       // if hit something
       if (crRay.cr_penHit!=NULL)

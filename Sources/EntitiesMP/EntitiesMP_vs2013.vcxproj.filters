@@ -642,6 +642,9 @@
     <ClCompile Include="Cecil\Collision\BSPInline.cpp">
       <Filter>Source Files\Cecil sources\Collision sources</Filter>
     </ClCompile>
+    <ClCompile Include="Cecil\Collision\WorldRayCasting.cpp">
+      <Filter>Source Files\Cecil sources\Collision sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Common.h">
@@ -1683,6 +1686,9 @@
       <Filter>Header Files\Cecil headers</Filter>
     </ClInclude>
     <ClInclude Include="Cecil\Collision\WorldCollision.h">
+      <Filter>Header Files\Cecil headers\Collision headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Cecil\Collision\WorldRayCasting.h">
       <Filter>Header Files\Cecil headers\Collision headers</Filter>
     </ClInclude>
   </ItemGroup>

@@ -139,10 +139,10 @@ functions:
   // launch one bullet
   void LaunchBullet(BOOL bSound, BOOL bTrail, BOOL bHitFX) {
     // cast a ray to find bullet target
-    CCastRay crRay( m_penOwner, GetPlacement().pl_PositionVector, m_vTarget);
+    CCecilCastRay crRay( m_penOwner, GetPlacement().pl_PositionVector, m_vTarget);
     crRay.cr_bHitPortals = TRUE;
     crRay.cr_bHitTranslucentPortals = TRUE;
-    crRay.cr_ttHitModels = CCastRay::TT_COLLISIONBOX;
+    crRay.cr_ttHitModels = CCecilCastRay::TT_COLLISIONBOX;
     crRay.cr_bPhysical = FALSE;
     crRay.cr_fTestR = m_fBulletSize;
     FLOAT3D vHitDirection;
@@ -152,10 +152,10 @@ functions:
     while (ctCasts < 10) {
       if (ctCasts == 0) {
         // perform first cast
-        GetWorld()->CastRay(crRay);       
+        crRay.Cast(GetWorld());
       } else {
         // next casts
-        GetWorld()->ContinueCast(crRay);
+        crRay.ContinueCast(GetWorld());
       }
       ctCasts++;
 
@@ -220,7 +220,7 @@ functions:
             FLOAT3D vDistance;
 
             // look behind the entity (for back-stains)
-            GetWorld()->ContinueCast(crRay);
+            crRay.ContinueCast(GetWorld());
             if (crRay.cr_penHit != NULL && crRay.cr_pbpoBrushPolygon != NULL
              && crRay.cr_penHit->GetRenderType() == RT_BRUSH) {
               vDistance = crRay.cr_vHit-vOldHitPos;

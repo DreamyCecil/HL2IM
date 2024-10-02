@@ -305,6 +305,7 @@
     </ClCompile>
     <ClCompile Include="Cecil\Collision\MovableEntityMethods.cpp" />
     <ClCompile Include="Cecil\Collision\WorldCollision.cpp" />
+    <ClCompile Include="Cecil\Collision\WorldRayCasting.cpp" />
     <ClCompile Include="Cecil\Effects.cpp" />
     <ClCompile Include="Cecil\Materials.cpp" />
     <ClCompile Include="Cecil\Physics.cpp" />
@@ -582,6 +583,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cecil\Collision\WorldCollision.h" />
+    <ClInclude Include="Cecil\Collision\WorldRayCasting.h" />
     <ClInclude Include="Cecil\Effects.h" />
     <ClInclude Include="Cecil\Materials.h" />
     <ClInclude Include="Cecil\Physics.h" />
