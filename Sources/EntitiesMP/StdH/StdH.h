@@ -2,6 +2,13 @@
 #include <GameMP/SessionProperties.h>
 #include <GameMP/PlayerSettings.h>
 
+// [Cecil] Property type for TIME
+#define ENGINE_SPECIFIC_EPT_TIME CEntityProperty::EPT_FLOAT
+
+// [Cecil] Property definition
+#define ENGINE_SPECIFIC_PROP_DEF(_Type, _EnumPtr, _ID, _Offset, _Name, _Shortcut, _Variable, _Color, _Flags) \
+  CEntityProperty(_Type, _EnumPtr, _ID, _Offset, _Name, _Shortcut, _Color, _Flags)
+
 /* rcg10042001 protect against Visual C-isms. */
 #ifdef _MSC_VER
 #define DECL_DLL _declspec(dllexport)
