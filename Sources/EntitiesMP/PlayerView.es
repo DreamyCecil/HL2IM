@@ -87,7 +87,7 @@ functions:
   {
     // 3rd person view
     FLOAT fDistance = 1.0f;
-    CPlacement3D pl = ((CPlayerEntity&) *m_penOwner).en_plViewpoint;
+    CPlacement3D pl = ((CCecilPlayerEntity &)*m_penOwner).en_plViewpoint;
     BOOL bFollowCrossHair;
 
     if (m_iViewType == VT_3RDPERSONVIEW) {
@@ -200,7 +200,7 @@ functions:
   {
     // 3rd person view
     FLOAT fDistance = 1.0f;
-    CPlacement3D pl = ((CPlayerEntity&) *m_penOwner).en_plViewpoint;
+    CPlacement3D pl = ((CCecilPlayerEntity &)*m_penOwner).en_plViewpoint;
     
     pl.pl_PositionVector += FLOAT3D(tmp_af[4],tmp_af[5],tmp_af[6]);
     pl.pl_OrientationAngle = ANGLE3D(0.0f, tmp_af[1], 0.0f);

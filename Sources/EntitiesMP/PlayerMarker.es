@@ -56,7 +56,7 @@ functions:
         (GetSP()->sp_bSinglePlayer && GetSP()->sp_gmGameMode!=CSessionProperties::GM_FLYOVER)
         && IS_PLAYER(penCaused)) {
         // if the player wants auto-save
-        CPlayerSettings *pps = (CPlayerSettings *) (((CPlayerEntity*)penCaused)->en_pcCharacter.pc_aubAppearance);
+        CPlayerSettings *pps = (CPlayerSettings *) (((CCecilPlayerEntity *)penCaused)->en_pcCharacter.pc_aubAppearance);
         if (pps->ps_ulFlags&PSF_AUTOSAVE) {
           // save now
           _pShell->Execute("gam_bQuickSave=1;");

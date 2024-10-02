@@ -114,7 +114,7 @@ functions:
     if (!IS_PLAYER(pen)) {
       return FALSE;
     }
-    INDEX iPlayer = ((CPlayerEntity *)pen)->GetMyPlayerIndex();
+    INDEX iPlayer = ((CCecilPlayerEntity *)pen)->GetMyPlayerIndex();
     BOOL bPickedAlready = (1<<iPlayer)&m_ulPickedMask;
     m_ulPickedMask |= (1<<iPlayer);
     return bPickedAlready;

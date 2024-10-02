@@ -83,102 +83,10 @@ extern CEntity *_penViewPlayer = NULL;
 extern void JumpFromBouncer(CEntity *penToBounce, CEntity *penBouncer);
 // from game
 #define GRV_SHOWEXTRAS  (1L<<0)   // add extra stuff like console, weapon, pause
-
-// [Cecil] Movement rework
-
-// add acceleration to velocity
-static inline void AddAcceleration(FLOAT3D &vCurrentVelocity, const FLOAT3D &vDesiredVelocity, FLOAT fAcceleration, FLOAT fDecceleration) {
-  // if desired velocity is smaller than current velocity
-  if (vDesiredVelocity.Length() < vCurrentVelocity.Length()) {
-    fAcceleration = fDecceleration;
-  }
-  // find difference between current and desired velocities
-  FLOAT3D vDelta = vDesiredVelocity-vCurrentVelocity;
-  // accelerate in the direction of the difference with given maximum acceleration
-  FLOAT fDelta = vDelta.Length();
-  if (fDelta > fAcceleration) {
-    vCurrentVelocity += vDelta*(fAcceleration/fDelta);
-  } else {
-    vCurrentVelocity = vDesiredVelocity;
-  }
-};
-
-// add gravity acceleration to velocity along an axis
-static inline void AddGAcceleration(FLOAT3D &vCurrentVelocity, const FLOAT3D &vGDir, FLOAT fGA, FLOAT fGV) {
-  // disassemble speed
-  FLOAT3D vCurrentParallel, vCurrentOrthogonal;
-  GetParallelAndNormalComponents(vCurrentVelocity, vGDir, vCurrentOrthogonal, vCurrentParallel);
-
-  if (_pNetwork->ga_ulDemoMinorVersion <= 2) {
-    Swap(vCurrentOrthogonal, vCurrentParallel);
-  }
-
-  FLOAT3D vCurrentOrthogonalOrg = vCurrentOrthogonal;
-  // add accelleration to parallel speed
-  vCurrentOrthogonal += vGDir*fGA;
-
-  // if going down at max speed
-  if (vCurrentOrthogonal % vGDir >= fGV) {
-    // clamp
-    vCurrentOrthogonal = vGDir*fGV;
-  } else {
-    vCurrentOrthogonalOrg = vCurrentOrthogonal;
-  }
-
-  if (_pNetwork->ga_ulDemoMinorVersion>2) {
-    vCurrentOrthogonal = vCurrentOrthogonalOrg;
-  }
-
-  // assemble speed back
-  vCurrentVelocity = vCurrentParallel+vCurrentOrthogonal;
-};
-
-// NOTE:
-// this is pulled out into a separate function because, otherwise, VC6 generates
-// invalid code when optimizing this. no clue why is that so.
-#pragma inline_depth(0)
-static void CheckAndAddGAcceleration(CMovableEntity *pen, FLOAT3D &vTranslationAbsolute, FLOAT fTickQuantum) {
-  // if there is forcefield involved
-  if (pen->en_fForceA > 0.01f) {
-    // add force acceleration
-    FLOAT fGV = pen->en_fForceV * fTickQuantum;
-    FLOAT fGA = pen->en_fForceA * fTickQuantum * fTickQuantum;
-    AddGAcceleration(vTranslationAbsolute, pen->en_vForceDir, fGA, fGV);
-  }
-};
-#pragma inline_depth()  // see important note above
-
-
-// add acceleration to velocity, but only along a plane
-static inline void AddAccelerationOnPlane(FLOAT3D &vCurrentVelocity, const FLOAT3D &vDesiredVelocity, FLOAT fAcceleration, FLOAT fDecceleration, const FLOAT3D &vPlaneNormal) {
-  FLOAT3D vCurrentParallel, vCurrentOrthogonal;
-  GetParallelAndNormalComponents(vCurrentVelocity, vPlaneNormal, vCurrentOrthogonal, vCurrentParallel);
-  FLOAT3D vDesiredParallel;
-  GetNormalComponent(vDesiredVelocity, vPlaneNormal, vDesiredParallel);
-  AddAcceleration(vCurrentParallel, vDesiredParallel, fAcceleration, fDecceleration);
-  vCurrentVelocity = vCurrentParallel + vCurrentOrthogonal;
-};
-
-// add acceleration to velocity, for roller-coaster slope -- slow!
-static inline void AddAccelerationOnPlane2(FLOAT3D &vCurrentVelocity, const FLOAT3D &vDesiredVelocity,
-                                           FLOAT fAcceleration, FLOAT fDecceleration, const FLOAT3D &vPlaneNormal, const FLOAT3D &vGravity) {
-  // get down and horizontal direction
-  FLOAT3D vDn;
-  GetNormalComponent(vGravity, vPlaneNormal, vDn);
-  vDn.Normalize();
-  FLOAT3D vRt = vPlaneNormal*vDn;
-  vRt.Normalize();
-
-  // add only horizontal acceleration
-  FLOAT3D vCurrentParallel, vCurrentOrthogonal;
-  GetParallelAndNormalComponents(vCurrentVelocity, vRt, vCurrentParallel, vCurrentOrthogonal);
-  FLOAT3D vDesiredParallel;
-  GetParallelComponent(vDesiredVelocity, vRt, vDesiredParallel);
-  AddAcceleration(vCurrentParallel, vDesiredParallel, fAcceleration, fDecceleration);
-  vCurrentVelocity = vCurrentParallel + vCurrentOrthogonal;
-};
-
 %}
+
+// [Cecil] New base class
+uses "EntitiesMP/Mod/Base/PlayerEntity";
 
 enum PlayerViewType {
   0 PVT_PLAYEREYES      "",
@@ -1271,7 +1179,7 @@ void PrintPlayerDeathMessage(CPlayer *ppl, const EDeath &eDeath) {
 }
 %}
 
-class export CPlayer : CPlayerEntity {
+class export CPlayer : CCecilPlayerEntity {
 name      "Player";
 thumbnail "";
 features  "ImplementsOnInitClass", "ImplementsOnEndClass", "CanBePredictable";
@@ -1984,12 +1892,12 @@ functions:
   };
 
   // [Cecil] Set movement speed
-  void PlayerMove(FLOAT3D vDir) {
+  void PlayerMove(const FLOAT3D &vDir) {
     SetDesiredTranslation(vDir);
   };
 
   // [Cecil] Set rotation speed
-  void PlayerRotate(ANGLE3D aRot) {
+  void PlayerRotate(const ANGLE3D &aRot) {
     SetDesiredRotation(aRot);
   };
 
@@ -2030,6 +1938,25 @@ functions:
     if (bCollision) {
       SetCollisionFlags(ulCollision);
     }
+  };
+
+  // [Cecil] Teleport player somewhere
+  void PlacePlayer(const CPlacement3D &pl, BOOL bTelefrag) {
+    if (ODE_IsStarted() && PhysObj().IsCreated()) {
+      PhysObj().SetPos(pl.pl_PositionVector);
+
+      FLOATmatrix3D mRot;
+      MakeRotationMatrix(mRot, pl.pl_OrientationAngle);
+      PhysObj().SetRotMat(mRot);
+    }
+
+    CPlacement3D plFrom = GetPlacement();
+    Teleport(pl, bTelefrag);
+    AfterTeleport(plFrom, CPlacement3D(FLOAT3D(0, 0, 0), ANGLE3D(0, 0, 0)));
+  };
+
+  void PlacePlayer(const CPlacement3D &pl) {
+    PlacePlayer(pl, TRUE);
   };
 
   // [Cecil] Update crosshair position to avoid twitching
@@ -2196,7 +2123,7 @@ functions:
 
   export void Copy(CEntity &enOther, ULONG ulFlags)
   {
-    CPlayerEntity::Copy(enOther, ulFlags);
+    CCecilPlayerEntity::Copy(enOther, ulFlags);
     CPlayer *penOther = (CPlayer *)(&enOther);
     m_moRender.Copy(penOther->m_moRender);
     m_psLevelStats = penOther->m_psLevelStats;
@@ -2301,7 +2228,7 @@ functions:
   /* Write to stream. */
   void Write_t( CTStream *ostr) // throw char *
   {
-    CPlayerEntity::Write_t(ostr);
+    CCecilPlayerEntity::Write_t(ostr);
     // save array of messages
     ostr->WriteID_t("MSGS");
     INDEX ctMsg = m_acmiMessages.Count();
@@ -2317,7 +2244,7 @@ functions:
 
   /* Read from stream. */
   void Read_t( CTStream *istr) {
-    CPlayerEntity::Read_t(istr);
+    CCecilPlayerEntity::Read_t(istr);
     // clear flying shells data array
     ClearShellLaunchData();
     ClearBulletSprayLaunchData();
@@ -2871,7 +2798,7 @@ functions:
       }      
     }
 
-    return CPlayerEntity::AdjustShadingParameters(vLightDirection, colLight, colAmbient);
+    return CCecilPlayerEntity::AdjustShadingParameters(vLightDirection, colLight, colAmbient);
   };
 
   // get a different model object for rendering
@@ -3528,446 +3455,12 @@ functions:
   void PreMoving(void) {
     ((CPlayerAnimator&)*m_penAnimator).StoreLast();
 
-    // [Cecil] Rewritten below
-    //CPlayerEntity::PreMoving();
-
-    // change collision box if possible
-    if (en_iCollisionBox != en_iWantedCollisionBox) {
-      ChangeCollisionBoxIndexNow(en_iWantedCollisionBox);
-    }
-
-    if (en_pciCollisionInfo == NULL) {
-      return;
-    }
-
-    // remember old placement for lerping
-    en_plLastPlacement = en_plPlacement;
-
-    // for each child of the mover
-    {FOREACHINLIST(CEntity, en_lnInParent, en_lhChildren, itenChild) {
-      // if the child is movable, yet not in movers list
-      if ((itenChild->en_ulPhysicsFlags&EPF_MOVABLE)
-        &&!((CMovableEntity*)&*itenChild)->en_lnInMovers.IsLinked()) {
-        CMovableEntity *penChild = ((CMovableEntity*)&*itenChild);
-        // remember old placement for lerping
-        penChild->en_plLastPlacement = penChild->en_plPlacement;  
-      }
-    }}
-
-    FLOAT fTickQuantum = _pTimer->TickQuantum; // used for normalizing from SI units to game ticks
-
-    // NOTE: this limits maximum velocity of any entity in game.
-    // it is absolutely neccessary in order to prevent extreme slowdowns in physics.
-    // if you plan to increase this one radically, consider decreasing 
-    // collision grid cell size!
-    // currently limited to a bit less than speed of sound (not that it is any specificaly
-    // relevant constant, but it is just handy)
-    const FLOAT fMaxSpeed = 300.0f;
-    en_vCurrentTranslationAbsolute(1) = Clamp(en_vCurrentTranslationAbsolute(1), -fMaxSpeed, +fMaxSpeed);
-    en_vCurrentTranslationAbsolute(2) = Clamp(en_vCurrentTranslationAbsolute(2), -fMaxSpeed, +fMaxSpeed);
-    en_vCurrentTranslationAbsolute(3) = Clamp(en_vCurrentTranslationAbsolute(3), -fMaxSpeed, +fMaxSpeed);
-
-    // if the entity is a model
-    if (en_RenderType == RT_MODEL || en_RenderType == RT_EDITORMODEL ||
-        en_RenderType == RT_SKAMODEL || en_RenderType == RT_SKAEDITORMODEL) {
-      // test for field containment
-      TestFields(en_iUpContent, en_iDnContent, en_fImmersionFactor);
-      // if entity has sticky feet
-      if (en_ulPhysicsFlags & EPF_STICKYFEET) {
-        // find gravity towards nearest polygon
-        FLOAT3D vPoint;
-        FLOATplane3D plPlane;
-        FLOAT fDistanceToEdge;
-        if (GetNearestPolygon(vPoint, plPlane, fDistanceToEdge)) {
-          en_vGravityDir = -(FLOAT3D&)plPlane;
-        }
-      }
-    }
-
-    CContentType &ctDn = en_pwoWorld->wo_actContentTypes[en_iDnContent];
-    CContentType &ctUp = en_pwoWorld->wo_actContentTypes[en_iUpContent];
-
-    // test entity breathing
-    TestBreathing(ctUp);
-    // test content damage
-    TestContentDamage(ctDn, en_fImmersionFactor);
-
-    // test surface damage
-    if (en_penReference != NULL) {
-      CSurfaceType &stReference = en_pwoWorld->wo_astSurfaceTypes[en_iReferenceSurface];
-      TestSurfaceDamage(stReference);
-    }
-   
-    // calculate content fluid factors
-    const FLOAT fImmer = en_fImmersionFactor;
-    const FLOAT fRevIm = (1-fImmer);
-
-    FLOAT fBouyancy = 1 - (ctDn.ct_fDensity/en_fDensity) * fImmer
-                        - (ctUp.ct_fDensity/en_fDensity) * fRevIm;
-
-    FLOAT fSpeedModifier = ctDn.ct_fSpeedMultiplier * fImmer
-                         + ctUp.ct_fSpeedMultiplier * fRevIm;
-
-    FLOAT fFluidFriction = ctDn.ct_fFluidFriction * fImmer
-                         + ctUp.ct_fFluidFriction * fRevIm;
-
-    FLOAT fControlMultiplier = ctDn.ct_fControlMultiplier * fImmer
-                             + ctUp.ct_fControlMultiplier * fRevIm;
-
-    // transform relative desired translation into absolute
-    FLOAT3D vDesiredTranslationAbsolute = en_vDesiredTranslationRelative;
-
-    // relative absolute
-    if (!(en_ulPhysicsFlags & EPF_ABSOLUTETRANSLATE)) {
-      vDesiredTranslationAbsolute *= en_mRotation;
-    }
-
-    // transform translation and rotation into tick time units
-    vDesiredTranslationAbsolute *= fTickQuantum;
-
-    ANGLE3D aRotationRelative;
-    aRotationRelative(1) = en_aDesiredRotationRelative(1) * fTickQuantum;
-    aRotationRelative(2) = en_aDesiredRotationRelative(2) * fTickQuantum;
-    aRotationRelative(3) = en_aDesiredRotationRelative(3) * fTickQuantum;
-
-    // make absolute matrix rotation from relative angle rotation
-    FLOATmatrix3D mRotationAbsolute;
-
-    if ((en_ulPhysicsFlags & EPF_ONBLOCK_MASK) == EPF_ONBLOCK_PUSH) {
-      FLOATmatrix3D mNewRotation;
-      MakeRotationMatrixFast(mNewRotation, en_plPlacement.pl_OrientationAngle+aRotationRelative);
-      mRotationAbsolute = mNewRotation * !en_mRotation;
-
-    } else {
-      MakeRotationMatrixFast(mRotationAbsolute, aRotationRelative);
-      mRotationAbsolute = en_mRotation*(mRotationAbsolute * !en_mRotation);
-    }
-
-    // modify desired speed for fluid parameters
-    vDesiredTranslationAbsolute *= fSpeedModifier;
-
-    // remember jumping strength (if any)
-    FLOAT fJump = -en_mRotation.GetColumn(2) % vDesiredTranslationAbsolute;
-
-    BOOL bReferenceMovingInY = FALSE;
-    BOOL bReferenceRotatingNonY = FALSE;
-
-    // if we have a CMovableEntity for a reference entity
-    if (en_penReference != NULL && (en_penReference->en_ulPhysicsFlags & EPF_MOVABLE)) {
-      CMovableEntity *penReference = (CMovableEntity*)(CEntity*)en_penReference;
-
-      // get reference deltas for this tick
-      const FLOAT3D &vReferenceTranslation = penReference->en_vIntendedTranslation;
-      const FLOATmatrix3D &mReferenceRotation = penReference->en_mIntendedRotation;
-
-      // calculate radius of this entity relative to reference
-      FLOAT3D vRadius = en_plPlacement.pl_PositionVector - penReference->en_plPlacement.pl_PositionVector;
-      FLOAT3D vReferenceDelta = vReferenceTranslation + vRadius*mReferenceRotation - vRadius;
-
-      // add the deltas to this entity
-      vDesiredTranslationAbsolute += vReferenceDelta;
-      mRotationAbsolute = mReferenceRotation*mRotationAbsolute;
-
-      // remember if reference is moving in y
-      bReferenceMovingInY = (vReferenceDelta % en_vGravityDir != 0.0f);
-      bReferenceRotatingNonY = ((en_vGravityDir*mReferenceRotation) % en_vGravityDir) > 0.01f;
-    }
-
-    FLOAT3D vTranslationAbsolute = en_vCurrentTranslationAbsolute*fTickQuantum;
-
-    // initially not orienting
-    en_ulPhysicsFlags &= ~EPF_ORIENTINGTOGRAVITY;
-
-    // if the entity is rotated by gravity
-    if (en_ulPhysicsFlags & EPF_ORIENTEDBYGRAVITY) {
-      // find entity's down vector
-      FLOAT3D vDown;
-      vDown(1) = -en_mRotation(1,2);
-      vDown(2) = -en_mRotation(2,2);
-      vDown(3) = -en_mRotation(3,2);
-
-      // find angle entities down and gravity down
-      FLOAT fCos = vDown % en_vGravityDir;
-      // if substantial
-      if (fCos < 0.99999f) {
-        // mark
-        en_ulPhysicsFlags |= EPF_ORIENTINGTOGRAVITY;
-
-        // limit the angle rotation
-        ANGLE a = ACos(fCos);
-
-        if (Abs(a) > 20) {
-          a = 20*Sgn(a);
-        }
-
-        FLOAT fRad = RadAngle(a);
-
-        // make rotation axis
-        FLOAT3D vAxis = vDown*en_vGravityDir;
-        FLOAT fLen = vAxis.Length();
-        if (fLen < 0.01f) {
-          vAxis(1) = en_mRotation(1, 3);
-          vAxis(2) = en_mRotation(2, 3);
-          vAxis(3) = en_mRotation(3, 3);
-        // NOTE: must have this patch for smooth rocking on moving brushes
-        // (should infact do fRad/=fLen always)
-        } else if (!bReferenceRotatingNonY) {
-          fRad /= fLen;
-        }
-
-        vAxis *= fRad;
-
-        // make rotation matrix
-        FLOATmatrix3D mGRotation;
-        mGRotation(1,1) = 1;
-        mGRotation(1,2) = -vAxis(3);
-        mGRotation(1,3) = vAxis(2);
-
-        mGRotation(2,1) = vAxis(3);
-        mGRotation(2,2) = 1;
-        mGRotation(2,3) = -vAxis(1);
-
-        mGRotation(3,1) = -vAxis(2);
-        mGRotation(3,2) = vAxis(1);
-        mGRotation(3,3) = 1;
-        OrthonormalizeRotationMatrix(mGRotation);
-
-        // add the gravity rotation
-        mRotationAbsolute = mGRotation*mRotationAbsolute;
-      }
-    }
-
-    // initially not floating
-    en_ulPhysicsFlags &= ~EPF_FLOATING;
-
-    FLOAT ACC = en_fAcceleration * fTickQuantum * fTickQuantum;
-    FLOAT DEC = en_fDeceleration * fTickQuantum * fTickQuantum;
-
-    // if the entity is not affected by gravity
-    if (!(en_ulPhysicsFlags & EPF_TRANSLATEDBYGRAVITY)) {
-      // accellerate towards desired absolute translation
-      if (en_ulPhysicsFlags & EPF_NOACCELERATION) {
-        vTranslationAbsolute = vDesiredTranslationAbsolute;
-      } else {
-        AddAcceleration(vTranslationAbsolute, vDesiredTranslationAbsolute, ACC*fControlMultiplier, DEC*fControlMultiplier);
-      }
-
-    // if swimming
-    } else if ((fBouyancy*en_fGravityA < 0.5f && (ctDn.ct_ulFlags & (CTF_SWIMABLE|CTF_FLYABLE)))) {
-      // mark that
-      en_ulPhysicsFlags |= EPF_FLOATING;
-      // accellerate towards desired absolute translation
-      if (en_ulPhysicsFlags & EPF_NOACCELERATION) {
-        vTranslationAbsolute = vDesiredTranslationAbsolute;
-      } else {
-        AddAcceleration(vTranslationAbsolute, vDesiredTranslationAbsolute, ACC*fControlMultiplier, DEC*fControlMultiplier);
-      }
-
-      // add gravity acceleration
-      if (fBouyancy < -0.1f) {
-        FLOAT fGV=en_fGravityV*fTickQuantum*fSpeedModifier;
-        FLOAT fGA=(en_fGravityA*-fBouyancy)*fTickQuantum*fTickQuantum;
-        AddAcceleration(vTranslationAbsolute, en_vGravityDir*-fGV, fGA, fGA);
-      } else if (fBouyancy > +0.1f) {
-        FLOAT fGV = en_fGravityV*fTickQuantum*fSpeedModifier;
-        FLOAT fGA = (en_fGravityA*fBouyancy)*fTickQuantum*fTickQuantum;
-        AddAcceleration(vTranslationAbsolute, en_vGravityDir*fGV, fGA, fGA);
-      }
-
-    // if the entity is affected by gravity
-    } else {
-      BOOL bGravityAlongPolygon = TRUE;
-      // if there is no fixed remembered stand-on polygon or the entity is not on it anymore
-      if (en_pbpoStandOn == NULL || !IsStandingOnPolygon(en_pbpoStandOn) || bReferenceMovingInY
-       || (en_ulPhysicsFlags & EPF_ORIENTINGTOGRAVITY)) {
-        // clear the stand on polygon
-        en_pbpoStandOn = NULL;
-        if (en_penReference == NULL || bReferenceMovingInY) {
-          bGravityAlongPolygon = FALSE;
-        }
-      }
-
-      // if gravity can cause the entity to fall
-      if (!bGravityAlongPolygon) {
-        // add gravity acceleration
-        FLOAT fGV = en_fGravityV * fTickQuantum * fSpeedModifier;
-        FLOAT fGA = (en_fGravityA*fBouyancy) * fTickQuantum * fTickQuantum;
-        AddGAcceleration(vTranslationAbsolute, en_vGravityDir, fGA, fGV);
-
-      // if entity can only slide down its stand-on polygon
-      } else {
-        // disassemble gravity to parts parallel and normal to plane
-        FLOAT3D vPolygonDir = -en_vReferencePlane;
-        // NOTE: normal to plane=paralel to plane normal vector!
-        FLOAT3D vGParallel, vGNormal;
-        GetParallelAndNormalComponents(en_vGravityDir, vPolygonDir, vGNormal, vGParallel);
-        // add gravity part parallel to plane
-        FLOAT fFactor = vGParallel.Length();
-
-        if (fFactor > 0.001f) {
-          FLOAT fGV = en_fGravityV * fTickQuantum * fSpeedModifier;
-          FLOAT fGA = (en_fGravityA * fBouyancy) * fTickQuantum * fTickQuantum;
-          AddGAcceleration(vTranslationAbsolute, vGParallel/fFactor, fGA*fFactor, fGV*fFactor);
-        }
-
-        // kill your normal-to-polygon speed if towards polygon and small
-        FLOAT fPolyGA = (vPolygonDir % en_vGravityDir)*en_fGravityA;
-        FLOAT fYSpeed = vPolygonDir % vTranslationAbsolute;
-
-        if (fYSpeed > 0 && fYSpeed < fPolyGA) {
-          vTranslationAbsolute -= vPolygonDir * fYSpeed;
-        }
-
-        // if a bouncer
-        if ((en_ulPhysicsFlags & EPF_ONBLOCK_MASK) == EPF_ONBLOCK_BOUNCE) {
-          // rotate slower
-          en_aDesiredRotationRelative *= en_fJumpControlMultiplier;
-          if (en_aDesiredRotationRelative.Length() < 10) {
-            en_aDesiredRotationRelative = ANGLE3D(0, 0, 0);
-          }
-        }
-      }
-
-      CSurfaceType &stReference = en_pwoWorld->wo_astSurfaceTypes[en_iReferenceSurface];
-
-      // if it has a reference entity
-      if (en_penReference != NULL) {
-        FLOAT fPlaneY = (en_vGravityDir%en_vReferencePlane);
-        FLOAT fPlaneYAbs = Abs(fPlaneY);
-        FLOAT fFriction = stReference.st_fFriction;
-
-        // if on a steep slope
-        if ((fPlaneY >= -stReference.st_fClimbSlopeCos && fPlaneY < 0)
-         || (stReference.st_ulFlags & STF_SLIDEDOWNSLOPE) && fPlaneY > -0.99f) {
-          en_ulPhysicsFlags |= EPF_ONSTEEPSLOPE;
-
-          // accellerate horizontaly towards desired absolute translation
-          AddAccelerationOnPlane2(
-            vTranslationAbsolute, 
-            vDesiredTranslationAbsolute,
-            ACC*fPlaneYAbs*fPlaneYAbs*fFriction*fControlMultiplier,
-            DEC*fPlaneYAbs*fPlaneYAbs*fFriction*fControlMultiplier,
-            en_vReferencePlane,
-            en_vGravityDir);
-
-          // [Cecil] Accelerate on slopes
-          /*FLOAT fReset = vTranslationAbsolute(2);
-
-          AddAccelerationOnPlane(
-            vTranslationAbsolute, 
-            vDesiredTranslationAbsolute,
-            ACC*fPlaneYAbs*fPlaneYAbs*fFriction*fControlMultiplier,
-            DEC*fPlaneYAbs*fPlaneYAbs*fFriction*fControlMultiplier,
-            en_vReferencePlane);
-
-          vTranslationAbsolute(2) = fReset;
-
-          IncreaseAcceleration(TRUE);*/
-
-        // if not on a steep slope
-        } else {
-          en_ulPhysicsFlags &= ~EPF_ONSTEEPSLOPE;
-
-          // accellerate on plane towards desired absolute translation
-          AddAccelerationOnPlane(
-            vTranslationAbsolute, 
-            vDesiredTranslationAbsolute,
-            ACC*fPlaneYAbs*fPlaneYAbs*fFriction*fControlMultiplier,
-            DEC*fPlaneYAbs*fPlaneYAbs*fFriction*fControlMultiplier,
-            en_vReferencePlane);
-        }
-
-        // if wants to jump and can jump
-        if (fJump < -0.01f && (fPlaneY < -stReference.st_fJumpSlopeCos
-         || _pTimer->CurrentTick() > en_tmLastSignificantVerticalMovement + 0.25f) ) {
-          // jump
-          vTranslationAbsolute += en_vGravityDir*fJump;
-          en_tmJumped = _pTimer->CurrentTick();
-          en_pbpoStandOn = NULL;
-        }
-
-      // if it doesn't have a reference entity
-      } else {
-        // if can control after jump
-        if (en_tmMaxJumpControl < 0.0f || _pTimer->CurrentTick() - en_tmJumped < en_tmMaxJumpControl) {
-          // accellerate horizontaly, but slower
-          AddAccelerationOnPlane(
-            vTranslationAbsolute, 
-            vDesiredTranslationAbsolute,
-            ACC*fControlMultiplier*en_fJumpControlMultiplier,
-            DEC*fControlMultiplier*en_fJumpControlMultiplier,
-            FLOATplane3D(en_vGravityDir, 0));
-        }
-
-        // if wants to jump and can jump
-        if (fJump < -0.01f && _pTimer->CurrentTick() > en_tmLastSignificantVerticalMovement + 0.25f) {
-          // jump
-          vTranslationAbsolute += en_vGravityDir*fJump;
-          en_tmJumped = _pTimer->CurrentTick();
-          en_pbpoStandOn = NULL;
-        }
-      }
-    }
-
-    // check for force-field acceleration
-    // NOTE: pulled out because of a bug in VC code generator, see function comments above
-    CheckAndAddGAcceleration(this, vTranslationAbsolute, fTickQuantum);
-
-    // slow down if there is fluid friction involved
-    if (fFluidFriction > 0.01f) {
-      AddAcceleration(vTranslationAbsolute, FLOAT3D(0.0f, 0.0f, 0.0f), 0.0f, DEC*fFluidFriction);
-    }
-
-    // if may slow down spinning
-    if ((en_ulPhysicsFlags& EPF_CANFADESPINNING) && ((ctDn.ct_ulFlags & CTF_FADESPINNING) || (ctUp.ct_ulFlags & CTF_FADESPINNING))) {
-      // reduce desired rotation
-      en_aDesiredRotationRelative *= (1-fSpeedModifier*0.05f);
-
-      if (en_aDesiredRotationRelative.Length() < 10) {
-        en_aDesiredRotationRelative = ANGLE3D(0, 0, 0);
-      }
-    }
-
-    // discard reference entity (will be recalculated)
-    if (en_pbpoStandOn == NULL && (vTranslationAbsolute.ManhattanNorm() > 1E-5f
-     || en_vReferencePlane % en_vGravityDir < 0.0f)) {
-      en_penReference = NULL;
-      en_vReferencePlane = FLOAT3D(0.0f, 0.0f, 0.0f);
-      en_iReferenceSurface = 0;
-    }
-
-    en_vIntendedTranslation = vTranslationAbsolute;
-    en_mIntendedRotation = mRotationAbsolute;
-
-    //-- estimate future movements for collision caching
-
-    // make box of the entity for its current rotation
-    FLOATaabbox3D box;
-    en_pciCollisionInfo->MakeBoxAtPlacement(FLOAT3D(0, 0, 0), en_mRotation, box);
-
-    // if it is a light source
-    {CLightSource *pls = GetLightSource();
-    if (pls != NULL && !(pls->ls_ulFlags & LSF_LENSFLAREONLY)) {
-      // expand the box to be sure that it contains light range
-      box |= FLOATaabbox3D(FLOAT3D(0, 0, 0), pls->ls_rFallOff);
-    }}
-
-    // add a bit around it
-    box.ExpandByFactor(_pShell->GetFLOAT("phy_fCollisionCacheAround")-1.0f);
-    // make box go few ticks ahead of the entity
-    box += en_plPlacement.pl_PositionVector;
-    en_boxMovingEstimate = box;
-    box += en_vIntendedTranslation * _pShell->GetFLOAT("phy_fCollisionCacheAhead");
-    en_boxMovingEstimate |= box;
-
-    // clear applied movement to be updated during movement
-    en_vAppliedTranslation = FLOAT3D(0.0f, 0.0f, 0.0f);
-    en_mAppliedRotation.Diagonal(1.0f);
+    CCecilPlayerEntity::PreMoving();
   };
 
   // do moving
   void DoMoving(void) {
-    CPlayerEntity::DoMoving();
+    CCecilPlayerEntity::DoMoving();
     ((CPlayerAnimator&)*m_penAnimator).AnimateBanking();
 
     if (m_penView != NULL) {
@@ -3981,7 +3474,7 @@ functions:
 
   // postmoving for soft player up-down movement
   void PostMoving(void) {
-    CPlayerEntity::PostMoving();
+    CCecilPlayerEntity::PostMoving();
     // never allow a player to be removed from the list of movers
     en_ulFlags &= ~ENF_INRENDERING;
 
@@ -4061,7 +3554,7 @@ functions:
 
   // create a checksum value for sync-check
   void ChecksumForSync(ULONG &ulCRC, INDEX iExtensiveSyncCheck) {
-    CPlayerEntity::ChecksumForSync(ulCRC, iExtensiveSyncCheck);
+    CCecilPlayerEntity::ChecksumForSync(ulCRC, iExtensiveSyncCheck);
     CRC_AddLONG(ulCRC, m_psLevelStats.ps_iScore);
     CRC_AddLONG(ulCRC, m_iMana);
 
@@ -4075,7 +3568,7 @@ functions:
   // dump sync data to text file
   void DumpSync_t(CTStream &strm, INDEX iExtensiveSyncCheck)  // throw char *
   {
-    CPlayerEntity::DumpSync_t(strm, iExtensiveSyncCheck);
+    CCecilPlayerEntity::DumpSync_t(strm, iExtensiveSyncCheck);
     strm.FPrintF_t("Score: %d\n", m_psLevelStats.ps_iScore);
     strm.FPrintF_t("m_iMana:  %d\n", m_iMana);
     strm.FPrintF_t("m_fManaFraction: %g(%08x)\n", m_fManaFraction, (ULONG&)m_fManaFraction);
@@ -4389,7 +3882,7 @@ functions:
     DamageImpact(dmtType, fSubHealth, vHitPoint, vDirection);
 
     // receive damage
-    CPlayerEntity::ReceiveDamage(penInflictor, dmtType, fSubHealth, vHitPoint, vDirection);
+    CCecilPlayerEntity::ReceiveDamage(penInflictor, dmtType, fSubHealth, vHitPoint, vDirection);
 
     // red screen and hit translation
     if (fDamage > 1.0f) {
@@ -6914,7 +6407,7 @@ functions:
     // player placement
     CPlacement3D plSet = GetPlacement();
     // teleport in dummy space to avoid auto teleport frag
-    Teleport(CPlacement3D(FLOAT3D(32000.0f+100.0f*iPlayer, 32000.0f, 0), ANGLE3D(0, 0, 0)));
+    PlacePlayer(CPlacement3D(FLOAT3D(32000.0f+100.0f*iPlayer, 32000.0f, 0), ANGLE3D(0, 0, 0)));
     // force yourself to standing state
     ForceCollisionBoxIndexChange(PLAYER_COLLISION_BOX_STAND);
     en_plViewpoint.pl_PositionVector(2) = plr_fViewHeightStand;
@@ -7009,7 +6502,7 @@ functions:
       m_iMana  = GetSP()->sp_iInitialMana;
       m_fArmor = 0.0f;
       // teleport where you were when you were killed
-      Teleport(CPlacement3D(m_vDied, m_aDied));
+      PlacePlayer(CPlacement3D(m_vDied, m_aDied));
 
     // if start marker is found
     } else if (pen != NULL) {
@@ -7073,17 +6566,17 @@ functions:
       if (EwltType == WLT_RELATIVE) {
         plSet.AbsoluteToRelative(_SwcWorldChange.plLink);   // relative to link position
         plSet.RelativeToAbsolute(CpmStart.GetPlacement());  // absolute to start marker position
-        Teleport(plSet);
+        PlacePlayer(plSet);
       // fixed start position
       } else if (EwltType == WLT_FIXED) {
         CPlacement3D plNew = CpmStart.GetPlacement();
         vOffsetRel*=CpmStart.en_mRotation;
         plNew.pl_PositionVector += vOffsetRel;
-        Teleport(plNew);
+        PlacePlayer(plNew);
       // error -> teleport to zero
       } else {
         ASSERTALWAYS("Unknown world link type");
-        Teleport(CPlacement3D(FLOAT3D(0, 0, 0)+vOffsetRel, ANGLE3D(0, 0, 0)));
+        PlacePlayer(CPlacement3D(FLOAT3D(0, 0, 0)+vOffsetRel, ANGLE3D(0, 0, 0)));
       }
       // if there is a start trigger target
       if (CpmStart.m_penTarget != NULL) {
@@ -7100,7 +6593,7 @@ functions:
       // set weapons
       ((CPlayerWeapons&)*m_penWeapons).InitializeWeapons(0, 0, 0, 0, TRUE);
       // start position
-      Teleport(CPlacement3D(FLOAT3D(0, 0, 0)+vOffsetRel, ANGLE3D(0, 0, 0)));
+      PlacePlayer(CPlacement3D(FLOAT3D(0, 0, 0)+vOffsetRel, ANGLE3D(0, 0, 0)));
     }
     // send teleport event to all entities in range
     SendEventInRange(ETeleport(), FLOATaabbox3D(GetPlacement().pl_PositionVector, 200.0f));
@@ -7301,7 +6794,7 @@ functions:
           CPlacement3D pl = ppam->GetPlacement();
           FLOAT3D vOffsetRel = ppl->GetTeleportingOffset();
           pl.pl_PositionVector += vOffsetRel*ppam->en_mRotation;
-          ppl->Teleport(pl, FALSE);
+          ppl->PlacePlayer(pl, FALSE);
           // remember new respawn place
           ppl->m_vDied = pl.pl_PositionVector;
           ppl->m_aDied = pl.pl_OrientationAngle;
@@ -7314,7 +6807,7 @@ functions:
       CPlacement3D pl = ppam->GetPlacement();
       FLOAT3D vOffsetRel = GetTeleportingOffset();
       pl.pl_PositionVector += vOffsetRel*ppam->en_mRotation;
-      Teleport(pl, FALSE);
+      PlacePlayer(pl, FALSE);
     }
   }
 
@@ -8047,7 +7540,7 @@ procedures:
     SwitchToEditorModel();
 
     // put it at marker
-    Teleport(GetActionMarker()->GetPlacement());
+    PlacePlayer(GetActionMarker()->GetPlacement());
     // make it rotate in spawnpose
     SetPhysics(PPH_NOCLIP, TRUE, FALSE); // [Cecil]
     m_ulFlags|=PLF_AUTOMOVEMENTS;
@@ -8096,7 +7589,7 @@ procedures:
   TravellingInBeam()
   {
     // put it at marker
-    Teleport(GetActionMarker()->GetPlacement());
+    PlacePlayer(GetActionMarker()->GetPlacement());
     // make it rotate in spawnpose
     SetPhysics(PPH_NOCLIP, TRUE, FALSE); // [Cecil]
     m_ulFlags |= PLF_AUTOMOVEMENTS;
@@ -8120,7 +7613,7 @@ procedures:
     // put it at marker
     CPlacement3D pl = GetActionMarker()->GetPlacement();
     pl.pl_PositionVector += FLOAT3D(0, 0.01f, 0)*GetActionMarker()->en_mRotation;
-    Teleport(pl);
+    PlacePlayer(pl);
     en_plViewpoint.pl_OrientationAngle(1) = 20.0f;
     en_plLastViewpoint.pl_OrientationAngle = en_plViewpoint.pl_OrientationAngle;
 
@@ -8683,7 +8176,7 @@ procedures:
       on (EGravityGunHold) : { resume; }
 
       on (EGravityGunPush ePush) : {
-        GravityGunPush(this, ePush.vDir);
+        GravityGunPush((CMovableEntity *)this, ePush.vDir);
         resume;
       }
 
