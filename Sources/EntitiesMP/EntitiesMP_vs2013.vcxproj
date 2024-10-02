@@ -303,6 +303,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Cecil\Collision\CollisionCommon.cpp" />
     <ClCompile Include="Cecil\Collision\MovableEntityMethods.cpp" />
     <ClCompile Include="Cecil\Collision\WorldCollision.cpp" />
     <ClCompile Include="Cecil\Collision\WorldRayCasting.cpp" />
@@ -582,6 +583,7 @@
     <ClCompile Include="Mod\Sound3D.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Cecil\Collision\CollisionCommon.h" />
     <ClInclude Include="Cecil\Collision\WorldCollision.h" />
     <ClInclude Include="Cecil\Collision\WorldRayCasting.h" />
     <ClInclude Include="Cecil\Effects.h" />

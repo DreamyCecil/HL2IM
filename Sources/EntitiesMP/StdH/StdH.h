@@ -23,6 +23,8 @@
 #include <XGizmo/Objects/SymbolPtr.h>
 
 // [Cecil] New physics
+#include <EntitiesMP/Cecil/Collision/WorldRayCasting.h>
+
 #include <EntitiesMP/Mod/Base/MovableEntity.h>
 #include <EntitiesMP/Mod/Base/MovableModelEntity.h>
 #include <EntitiesMP/Mod/Base/MovableBrushEntity.h>

@@ -38,14 +38,16 @@ static inline FLOAT3D CalculateRayOrigin(const CPlacement3D &plRay)
   // origin is the position from the placement
   return plRay.pl_PositionVector;
 }
+
+// [Cecil] Added distance multiplier passed by the constructor
 // calculate target position from ray placement
-static inline FLOAT3D CalculateRayTarget(const CPlacement3D &plRay)
+static inline FLOAT3D CalculateRayTarget(const CPlacement3D &plRay, FLOAT fDistance)
 {
   // calculate direction of the ray
   FLOAT3D vDirection;
   AnglesToDirectionVector(plRay.pl_OrientationAngle, vDirection);
   // make target be from the origin in that direction
-  return plRay.pl_PositionVector+vDirection;
+  return plRay.pl_PositionVector + vDirection * fDistance;
 }
 
 /*
@@ -59,7 +61,7 @@ void CCecilCastRay::Init(CEntity *penOrigin, const FLOAT3D &vOrigin, const FLOAT
   cr_vTarget = vTarget;
   cr_bAllowOverHit = FALSE;
   cr_pbpoIgnore = NULL;
-  cr_penIgnore = NULL;
+  cr_cenIgnore.Clear(); // [Cecil]
 
   cr_bHitPortals = FALSE;
   cr_bHitTranslucentPortals = TRUE;
@@ -82,13 +84,13 @@ void CCecilCastRay::Init(CEntity *penOrigin, const FLOAT3D &vOrigin, const FLOAT
  */
 CCecilCastRay::CCecilCastRay(CEntity *penOrigin, const CPlacement3D &plOrigin)
 {
-  Init(penOrigin, CalculateRayOrigin(plOrigin), CalculateRayTarget(plOrigin));
+  Init(penOrigin, CalculateRayOrigin(plOrigin), CalculateRayTarget(plOrigin, 1.0f));
   // mark last found hit point in infinity
   cr_fHitDistance = UpperLimit(0.0f);
 }
 CCecilCastRay::CCecilCastRay(CEntity *penOrigin, const CPlacement3D &plOrigin, FLOAT fMaxTestDistance)
 {
-  Init(penOrigin, CalculateRayOrigin(plOrigin), CalculateRayTarget(plOrigin));
+  Init(penOrigin, CalculateRayOrigin(plOrigin), CalculateRayTarget(plOrigin, fMaxTestDistance));
   // mark last found hit point just as far away as we wan't to test
   cr_fHitDistance = fMaxTestDistance;
 }
@@ -223,6 +225,83 @@ void CCecilCastRay::TestModelCollisionBox(CEntity *penModel)
   }
 }
 
+// [Cecil] Test the box around the model instead of collision spheres
+void CCecilCastRay::TestModelBoundingBox(CEntity *penModel) {
+  // No collision box
+  CCollisionInfo *pci = penModel->en_pciCollisionInfo;
+  if (pci == NULL) return;
+
+  // Shoot ray through 12 triangles of a bounding box around the model instead of collision spheres
+  const FLOAT3D &vEntity = penModel->GetPlacement().pl_PositionVector;
+  const FLOATmatrix3D &mEntity = penModel->GetRotationMatrix();
+  FLOATaabbox3D boxCollision;
+
+  if (penModel->en_RenderType == CEntity::RT_MODEL || penModel->en_RenderType == CEntity::RT_EDITORMODEL) {
+    CModelObject *pmo = penModel->GetModelObject();
+
+    //pmo->GetData()->GetAllFramesBBox(boxCollision);
+    pmo->GetCurrentFrameBBox(boxCollision);
+    boxCollision.StretchByVector(pmo->mo_Stretch);
+
+  } else if (penModel->en_RenderType == CEntity::RT_SKAMODEL || penModel->en_RenderType == CEntity::RT_SKAEDITORMODEL) {
+    CModelInstance *pmi = penModel->GetModelInstance();
+
+    //pmi->GetAllFramesBBox(boxCollision);
+    pmi->GetCurrentColisionBox(boxCollision);
+    boxCollision.StretchByVector(pmi->mi_vStretch);
+
+  } else {
+    ASSERTALWAYS("Unknown model type");
+  }
+
+  CollisionTris_t aTris;
+  GetTrisFromBox(boxCollision, aTris);
+
+  for (INDEX iTri = 0; iTri < 12; iTri++) {
+    const CollisionTrianglePositions_t &tri = aTris[iTri];
+    FLOAT3D v0 = vEntity + tri[0] * mEntity;
+    FLOAT3D v1 = vEntity + tri[1] * mEntity;
+    FLOAT3D v2 = vEntity + tri[2] * mEntity;
+
+    const FLOATplane3D plPolygon = FLOATplane3D(v0, v1, v2);
+
+    // Get distances of ray points from the polygon plane
+    FLOAT fDistance0 = plPolygon.PointDistance(cr_vOrigin);
+    FLOAT fDistance1 = plPolygon.PointDistance(cr_vTarget);
+
+    // If the ray hits the polygon plane
+    if (fDistance0 >= 0 && fDistance0 >= fDistance1) {
+      // Calculate fraction of line before intersection
+      FLOAT fFraction = fDistance0 / ((fDistance0 - fDistance1) + 0.0000001f/*correction*/);
+      // Calculate intersection coordinate
+      FLOAT3D vHitPoint = cr_vOrigin + (cr_vTarget - cr_vOrigin) * fFraction;
+      // Calculate intersection distance
+      FLOAT fHitDistance = (vHitPoint - cr_vOrigin).Length();
+
+      // Skip this triangle if the hit point is too far
+      if (fHitDistance > cr_fHitDistance) continue;
+
+      // Find major axes of the polygon plane
+      INDEX iMajorAxis1, iMajorAxis2;
+      GetMajorAxesForPlane(plPolygon, iMajorAxis1, iMajorAxis2);
+
+      // Intersect the triangle
+      CIntersector isIntersector(vHitPoint(iMajorAxis1), vHitPoint(iMajorAxis2));
+      isIntersector.AddEdge(v0(iMajorAxis1), v0(iMajorAxis2), v1(iMajorAxis1), v1(iMajorAxis2));
+      isIntersector.AddEdge(v1(iMajorAxis1), v1(iMajorAxis2), v2(iMajorAxis1), v2(iMajorAxis2));
+      isIntersector.AddEdge(v2(iMajorAxis1), v2(iMajorAxis2), v0(iMajorAxis1), v0(iMajorAxis2));
+
+      if (isIntersector.IsIntersecting()) {
+        // Set the current entity as new hit target
+        cr_fHitDistance = fHitDistance;
+        cr_penHit = penModel;
+        cr_pbscBrushSector = NULL;
+        cr_pbpoBrushPolygon = NULL;
+      }
+    }
+  }
+};
+
 void CCecilCastRay::TestModelFull(CEntity *penModel, CModelObject &mo)
 {
   // NOTE: this contains an ugly hack to simulate good trivial rejection
@@ -303,6 +382,11 @@ void CCecilCastRay::TestModel(CEntity *penModel)
   // if full testing
   } else if (cr_ttHitModels==TT_FULL || cr_ttHitModels==TT_FULLSEETHROUGH) {
     TestModelFull(penModel, mo);
+
+  // [Cecil] Bounding box testing
+  } else if (cr_ttHitModels == TT_BOUNDINGBOX) {
+    TestModelBoundingBox(penModel);
+
   // must be no other testing
   } else {
     ASSERT(FALSE);
@@ -336,7 +420,12 @@ void CCecilCastRay::TestSkaModel(CEntity *penModel)
     TestModelCollisionBox(penModel);
   // if full testing
   } else if (cr_ttHitModels==TT_FULL || cr_ttHitModels==TT_FULLSEETHROUGH) {
-     TestSkaModelFull(penModel, mi);
+    TestSkaModelFull(penModel, mi);
+
+  // [Cecil] Bounding box testing
+  } else if (cr_ttHitModels == TT_BOUNDINGBOX) {
+    TestModelBoundingBox(penModel);
+
   // must be no other testing
   } else {
     ASSERT(FALSE);
@@ -610,10 +699,13 @@ void CCecilCastRay::TestWholeWorld(CWorld *pwoWorld)
   // for each entity in the world
   {FOREACHINDYNAMICCONTAINER(pwoWorld->wo_cenEntities, CEntity, itenInWorld) {
     // if it is the origin of the ray
-    if (itenInWorld==cr_penOrigin || itenInWorld==cr_penIgnore) {
+    if (itenInWorld==cr_penOrigin /*|| itenInWorld==cr_penIgnore*/) {
       // skip it
       continue;
     }
+
+    // [Cecil] One of the ignored entities
+    if (cr_cenIgnore.IsMember(itenInWorld)) continue;
 
     // if it is a brush and testing against brushes is disabled
     if( (itenInWorld->en_RenderType == CEntity::RT_BRUSH ||
@@ -630,7 +722,7 @@ void CCecilCastRay::TestWholeWorld(CWorld *pwoWorld)
       && cr_ttHitModels != TT_NONE)
     //  and if cast type is TT_FULL_SEETROUGH then model is not
     //  ENF_SEETROUGH
-      && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX) &&
+      && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX || cr_ttHitModels == TT_BOUNDINGBOX) &&
            (itenInWorld->en_ulFlags&ENF_SEETHROUGH))) {
       // test it against the model entity
       TestModel(itenInWorld);
@@ -641,7 +733,7 @@ void CCecilCastRay::TestWholeWorld(CWorld *pwoWorld)
       && cr_ttHitModels != TT_NONE)
     //  and if cast type is TT_FULL_SEETROUGH then model is not
     //  ENF_SEETROUGH
-      && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX) &&
+      && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX || cr_ttHitModels == TT_BOUNDINGBOX) &&
            (itenInWorld->en_ulFlags&ENF_SEETHROUGH))) {
       TestSkaModel(itenInWorld);
     } else if (itenInWorld->en_RenderType == CEntity::RT_TERRAIN) {
@@ -694,10 +786,14 @@ void CCecilCastRay::TestThroughSectors(void)
     // for each entity in the sector
     {FOREACHDSTOFSRC(pbsc->bsc_rsEntities, CEntity, en_rdSectors, pen)
       // if it is the origin of the ray
-      if (pen==cr_penOrigin || pen==cr_penIgnore) {
+      if (pen==cr_penOrigin /*|| pen==cr_penIgnore*/) {
         // skip it
         continue;
       }
+
+      // [Cecil] One of the ignored entities
+      if (cr_cenIgnore.IsMember(pen)) continue;
+
       // if it is a model and testing against models is enabled
       if(((pen->en_RenderType == CEntity::RT_MODEL
         ||(pen->en_RenderType == CEntity::RT_EDITORMODEL
@@ -705,7 +801,7 @@ void CCecilCastRay::TestThroughSectors(void)
         && cr_ttHitModels != TT_NONE)
       //  and if cast type is TT_FULL_SEETROUGH then model is not
       //  ENF_SEETROUGH
-        && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX) &&
+        && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX || cr_ttHitModels == TT_BOUNDINGBOX) &&
              (pen->en_ulFlags&ENF_SEETHROUGH))) {
         // test it against the model entity
         TestModel(pen);
@@ -716,7 +812,7 @@ void CCecilCastRay::TestThroughSectors(void)
         && cr_ttHitModels != TT_NONE)
       //  and if cast type is TT_FULL_SEETROUGH then model is not
       //  ENF_SEETROUGH
-        && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX) &&
+        && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX || cr_ttHitModels == TT_BOUNDINGBOX) &&
              (pen->en_ulFlags&ENF_SEETHROUGH))) {
         // test it against the ska model entity
         TestSkaModel(pen);
@@ -790,8 +886,13 @@ void CCecilCastRay::Cast(CWorld *pwoWorld)
 void CCecilCastRay::ContinueCast(CWorld *pwoWorld)
 {
   cr_pbpoIgnore = cr_pbpoBrushPolygon;
-  if (cr_penHit->GetRenderType()==CEntity::RT_MODEL) {
-    cr_penIgnore = cr_penHit;
+
+  // [Cecil] Also for RT_EDITORMODEL, RT_SKAMODEL and RT_SKAEDITORMODEL
+  switch (cr_penHit->en_RenderType) {
+    case CEntity::RT_MODEL: case CEntity::RT_EDITORMODEL:
+    case CEntity::RT_SKAMODEL: case CEntity::RT_SKAEDITORMODEL:
+      cr_cenIgnore.Add(cr_penHit);
+      break;
   }
 
   cr_vOrigin = cr_vHit;

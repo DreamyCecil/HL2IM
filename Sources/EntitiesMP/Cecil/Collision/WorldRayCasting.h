@@ -31,12 +31,13 @@ public:
     TT_COLLISIONBOX,    // do testing by collision box
     TT_FULL,            // do full testing
     TT_FULLSEETHROUGH,  // do full testing without entities marked as see through
+    TT_BOUNDINGBOX,     // [Cecil] Test through 6 sides of a box around the current animation frame
   };
 public:
   BOOL cr_bAllowOverHit;                // set if the ray can hit behind its target
   ULONG cr_ulPassablePolygons;          // flags mask for pass-through testing
   CBrushPolygon *cr_pbpoIgnore;         // polygon that is origin of the continuted ray (is never hit by the ray)
-  CEntity *cr_penIgnore;                // entity that is origin of the continuted ray (is never hit by the ray)
+  CEntities cr_cenIgnore;               // [Cecil] Entities to ignore in the ray's path
 
   /* Internal construction helper. */
   void Init(CEntity *penOrigin, const FLOAT3D &vOrigin, const FLOAT3D &vTarget);
@@ -52,6 +53,10 @@ public:
   /* Test against a model entity. */
   void TestModelSimple(CEntity *penModel, CModelObject &mo);
   void TestModelCollisionBox(CEntity *penModel);
+
+  // [Cecil] Test the box around the model instead of collision spheres
+  void TestModelBoundingBox(CEntity *penModel);
+
   void TestModelFull(CEntity *penModel, CModelObject &mo);
   void TestSkaModelSimple(CEntity *penModel, CModelInstance &mi);
 	void TestSkaModelFull(CEntity *penModel, CModelInstance &mi);

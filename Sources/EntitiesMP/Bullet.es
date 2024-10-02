@@ -142,7 +142,7 @@ functions:
     CCecilCastRay crRay( m_penOwner, GetPlacement().pl_PositionVector, m_vTarget);
     crRay.cr_bHitPortals = TRUE;
     crRay.cr_bHitTranslucentPortals = TRUE;
-    crRay.cr_ttHitModels = CCecilCastRay::TT_COLLISIONBOX;
+    crRay.cr_ttHitModels = CCecilCastRay::TT_BOUNDINGBOX;
     crRay.cr_bPhysical = FALSE;
     crRay.cr_fTestR = m_fBulletSize;
     FLOAT3D vHitDirection;

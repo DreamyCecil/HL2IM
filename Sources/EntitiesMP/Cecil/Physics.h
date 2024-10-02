@@ -13,8 +13,7 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
-// Similar to EPF_STICKYFEET but only affects rotation
-#define EPF_ROTATETOPLANE (1UL<<17)
+#include <EntitiesMP/Cecil/Collision/CollisionCommon.h>
 
 // GetNearestPolygon() but with portal polygons
 void SearchThroughSectors_Portal(void);
