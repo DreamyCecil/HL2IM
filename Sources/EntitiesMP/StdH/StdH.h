@@ -18,6 +18,16 @@
 #define DECL_DLL 
 #endif
 
+// [Cecil] Extras
+#include <XGizmo/Entities/BaseClasses.h>
+#include <XGizmo/Objects/SymbolPtr.h>
+
+// [Cecil] New physics
+#include <EntitiesMP/Mod/Base/MovableEntity.h>
+#include <EntitiesMP/Mod/Base/MovableModelEntity.h>
+#include <EntitiesMP/Mod/Base/MovableBrushEntity.h>
+#include <EntitiesMP/Mod/Base/PlayerEntity.h>
+
 #include "..\Global.h"
 #include "..\Common\Flags.h"
 #include "..\Common\Common.h"
