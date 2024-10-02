@@ -520,11 +520,11 @@ void CWorldBase_OnWorldInit(CWorld *pwo) {
   pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fClimbSlopeCos = Cos(45.0f);
 
   ASSERT(18==SURFACE_WOOD);
-  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_strName = "Wood";
-  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fJumpSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD].st_strName = "Wood";
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD].st_fJumpSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_WOOD].st_fClimbSlopeCos = Cos(45.0f);
 
   ASSERT(19==SURFACE_GRASS_SLIDING);
   pwo->wo_astSurfaceTypes[SURFACE_GRASS_SLIDING].st_strName = "Grass sliding";
