@@ -305,9 +305,10 @@ struct SSpawnHitEffectArgs {
   FLOAT3D vHitPoint;
   FLOAT3D vHitDirection; // a.k.a. incomming bullet direction
   FLOAT3D vDistance;
+  CEntity *penParent; // Entity to parent the effect to immediately
 
   SSpawnHitEffectArgs() : pen(NULL), bhtType((BulletHitType)0), bSound(FALSE), vHitNormal(0, 0, 0), vHitPoint(0, 0, 0),
-    vHitDirection(0, 0, 0), vDistance(0, 0, 0)
+    vHitDirection(0, 0, 0), vDistance(0, 0, 0), penParent(NULL)
   {
   };
 };

@@ -467,6 +467,9 @@ CEntity *SpawnHitTypeEffect(const SSpawnHitEffectArgs &args)
       FLOAT fRVz = vIncommingBulletDir(3) - 2*fNz*fNV;
       ese.vStretch = FLOAT3D(fRVx, fRVy, fRVz);
 
+      // [Cecil] Entity to parent to
+      ese.penParent = args.penParent;
+
       try {
         // [Cecil] Random depth
         FLOAT fDepth = pen->FRnd() * 0.009f + 0.001f;

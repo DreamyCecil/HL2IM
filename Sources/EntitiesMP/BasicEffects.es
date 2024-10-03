@@ -99,6 +99,7 @@ event ESpawnEffect {
   FLOAT3D vDirection,             // direction oriented effects
   FLOAT3D vStretch,               // stretch effect model
   COLOR colMuliplier,             // color multiplier
+  CEntityPointer penParent,       // [Cecil] Entity to parent this effect to
 };
 
 %{
@@ -666,69 +667,95 @@ functions:
   // [Cecil] Added stretch flag
   // parent the effect if needed and adjust size not to get out of the polygon
   void ParentToNearestPolygonAndStretch(void) {
-    // find nearest polygon
+    CEntity *penNearEntity = NULL;
+
+    // For finding the nearest polygon
     FLOAT3D vPoint; 
     FLOATplane3D plPlaneNormal;
     FLOAT fDistanceToEdge;
-    CBrushPolygon *pbpoNearBrush = NULL; //GetNearestPolygon(vPoint, plPlaneNormal, fDistanceToEdge);
+    CBrushPolygon *pbpoNearBrush = NULL;
 
-    // [Cecil] Bullet check
-    BOOL bBullet = FALSE;
-    BOOL bGlass = FALSE;
+    CForceStrength fsGravity, fsField;
 
-    // [Cecil] Changed to BET_BULLETSTAINSTONE .. BET_BULLETSTAINREDSANDNOSOUND range and added own types
-    if ((m_betType >= BET_BULLETSTAINSTONE && m_betType <= BET_BULLETSTAINREDSANDNOSOUND)
-     || (m_betType >= BET_BULLETSTAINGRASS && m_betType <= BET_BULLETSTAINWOODNOSOUND)
-     || (m_betType >= BET_BULLETSTAINSNOW  && m_betType <= BET_BULLETSTAINSNOWNOSOUND)
-     || (m_betType >= BET_BULLET_METAL && m_betType <= BET_BULLET_GLASS_NOSOUND))
-    {
-      // [Cecil] Check for portal polygons too
-      pbpoNearBrush = GetNearestPolygon_Portal(this, vPoint, plPlaneNormal, fDistanceToEdge);
+    // [Cecil] Already parented to something
+    if (GetParent() != NULL) {
+      penNearEntity = GetParent();
+
+      // Determine gravity vector from the closest polygon
+      pbpoNearBrush = GetNearestPolygon(vPoint, plPlaneNormal, fDistanceToEdge);
 
       if (pbpoNearBrush != NULL) {
         CBrushSector *pbscContent = pbpoNearBrush->bpo_pbscSector;
         INDEX iForceType = pbscContent->GetForceType();
-        CEntity *penNearBrush = pbscContent->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity;
-        CForceStrength fsGravity;
-        CForceStrength fsField;
-        penNearBrush->GetForce(iForceType, en_plPlacement.pl_PositionVector, fsGravity, fsField);
-        // remember gravity vector
-        m_vGravity = fsGravity.fs_vDirection;
 
-      // [Cecil] Try again
+        CEntity *penNearBrush = pbscContent->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity;
+        penNearBrush->GetForce(iForceType, GetPlacement().pl_PositionVector, fsGravity, fsField);
+
+        m_vGravity = fsGravity.fs_vDirection;
+      }
+
+      // [Cecil] TODO: Pass this distance from somewhere
+      // Reset distance to edge for the actual effect
+      fDistanceToEdge = 1.0f;
+
+    } else {
+      // [Cecil] Bullet check
+      BOOL bBullet = FALSE;
+      BOOL bGlass = FALSE;
+
+      // [Cecil] Changed to BET_BULLETSTAINSTONE .. BET_BULLETSTAINREDSANDNOSOUND range and added own types
+      if ((m_betType >= BET_BULLETSTAINSTONE && m_betType <= BET_BULLETSTAINREDSANDNOSOUND)
+       || (m_betType >= BET_BULLETSTAINGRASS && m_betType <= BET_BULLETSTAINWOODNOSOUND)
+       || (m_betType >= BET_BULLETSTAINSNOW  && m_betType <= BET_BULLETSTAINSNOWNOSOUND)
+       || (m_betType >= BET_BULLET_METAL && m_betType <= BET_BULLET_GLASS_NOSOUND))
+      {
+        // [Cecil] Check for portal polygons too
+        pbpoNearBrush = GetNearestPolygon_Portal(this, vPoint, plPlaneNormal, fDistanceToEdge);
+
+        if (pbpoNearBrush != NULL) {
+          CBrushSector *pbscContent = pbpoNearBrush->bpo_pbscSector;
+          INDEX iForceType = pbscContent->GetForceType();
+          CEntity *penNearBrush = pbscContent->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity;
+          penNearBrush->GetForce(iForceType, en_plPlacement.pl_PositionVector, fsGravity, fsField);
+          // remember gravity vector
+          m_vGravity = fsGravity.fs_vDirection;
+
+        // [Cecil] Try again
+        } else {
+          pbpoNearBrush = GetNearestPolygon(vPoint, plPlaneNormal, fDistanceToEdge);
+        }
+
+        // [Cecil]
+        bBullet = TRUE;
+        bGlass = (m_betType == BET_BULLET_GLASS || m_betType == BET_BULLET_GLASS_NOSOUND);
+
       } else {
+        // [Cecil] Moved from above
         pbpoNearBrush = GetNearestPolygon(vPoint, plPlaneNormal, fDistanceToEdge);
       }
 
-      // [Cecil]
-      bBullet = TRUE;
-      bGlass = (m_betType == BET_BULLET_GLASS || m_betType == BET_BULLET_GLASS_NOSOUND);
-
-    } else {
-      // [Cecil] Moved from above
-      pbpoNearBrush = GetNearestPolygon(vPoint, plPlaneNormal, fDistanceToEdge);
-    }
-
-    // [Cecil] Check for portal polygons if it's not a bullet
-    // if there is none, or if it is portal, or it is not near enough
-    if (pbpoNearBrush == NULL || (pbpoNearBrush->bpo_ulFlags & BPOF_PORTAL && !bBullet)
-      || (vPoint-GetPlacement().pl_PositionVector).ManhattanNorm() > 0.1f*3) {
-      // dissapear
-      SwitchToEditorModel();
-      return;
-
-    // [Cecil] Test for polygons being pure portals and not semi-transparent (e.g. glass)
-    } else if (pbpoNearBrush->bpo_ulFlags & BPOF_PORTAL
-            && pbpoNearBrush->bpo_ulFlags & (BPOF_TRANSPARENT|BPOF_TRANSLUCENT)) {
-      if (bBullet && !bGlass) {
+      // [Cecil] Check for portal polygons if it's not a bullet
+      // if there is none, or if it is portal, or it is not near enough
+      if (pbpoNearBrush == NULL || (pbpoNearBrush->bpo_ulFlags & BPOF_PORTAL && !bBullet)
+        || (vPoint-GetPlacement().pl_PositionVector).ManhattanNorm() > 0.1f*3) {
+        // disappear
         SwitchToEditorModel();
         return;
+
+      // [Cecil] Test for polygons being pure portals and not semi-transparent (e.g. glass)
+      } else if (pbpoNearBrush->bpo_ulFlags & BPOF_PORTAL
+              && pbpoNearBrush->bpo_ulFlags & (BPOF_TRANSPARENT|BPOF_TRANSLUCENT)) {
+        if (bBullet && !bGlass) {
+          SwitchToEditorModel();
+          return;
+        }
       }
+
+      penNearEntity = pbpoNearBrush->bpo_pbscSector->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity;
     }
 
     // [Cecil] Removed "else" and added returns above instead
     // if polygon is found
-    CEntity *penNearBrush = pbpoNearBrush->bpo_pbscSector->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity;
     FLOATaabbox3D box;
     en_pmoModelObject->GetCurrentFrameBBox(box);
     box.StretchByVector(en_pmoModelObject->mo_Stretch);
@@ -749,7 +776,7 @@ functions:
       Stretch();
       ModelChangeNotify();
       // set parent to that brush
-      SetParent(penNearBrush);
+      SetParent(penNearEntity);
     }
   };
 
@@ -1639,7 +1666,12 @@ procedures:
     m_vStretch = eSpawn.vStretch;
     m_betType = eSpawn.betType;
     m_colMultiplyColor = eSpawn.colMuliplier;
-    
+
+    // [Cecil] Parent to some entity
+    if (eSpawn.penParent != NULL) {
+      SetParent(eSpawn.penParent);
+    }
+
     switch (m_betType) {
       case BET_ROCKET: ProjectileExplosion(); break;
       case BET_ROCKET_PLANE: ProjectilePlaneExplosion(); break;

@@ -219,6 +219,11 @@ functions:
           args.vHitPoint = crRay.cr_vHit;
           args.vHitDirection = vHitDirection;
 
+          // [Cecil] Parent to non-brush entities immediately
+          if (!bHitBrush) {
+            args.penParent = crRay.cr_penHit;
+          }
+
           SpawnHitTypeEffect(args);
         }
 
