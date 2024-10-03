@@ -1418,6 +1418,9 @@ properties:
   CStaticArray<CTString> m_astrCaptions;
   CStaticArray<FLOAT> m_atmCaptionsIn;
   CStaticArray<FLOAT> m_atmCaptionsOut;
+
+  // [Cecil] Alternative to en_pbpoStandOn that can mimic brush polygons
+  SCollisionPolygon m_cpoStandOn;
 }
 
 components:
@@ -2100,10 +2103,21 @@ functions:
       m_atmCaptionsOut[i] = -100.0f;
     }
 
+    // [Cecil] Reset polygon
+    m_cpoStandOn.Reset();
+
     // [Cecil] Load HAX menu title
     CTString fnHAX;
     fnHAX.PrintF("Textures\\Interface\\HAXMenu.tex");
     _toHAXMenu.SetData_t(fnHAX);
+  };
+
+  // [Cecil] Initialize entity
+  void OnInitialize(const CEntityEvent &eeInput) {
+    CCecilPlayerEntity::OnInitialize(eeInput);
+
+    // Reset polygon
+    m_cpoStandOn.Reset();
   };
 
   class CPlayerWeapons *GetPlayerWeapons(void) {
@@ -2143,11 +2157,17 @@ functions:
       //m_lsLightSource;
       SetupLightSource(); //? is this ok !!!!
 
+      // [Cecil] Copy polygon
+      m_cpoStandOn = penOther->m_cpoStandOn;
+
     // if normal copying
     } else {
       // copy messages
       m_acmiMessages = penOther->m_acmiMessages;
       m_ctUnreadMessages = penOther->m_ctUnreadMessages;
+
+      // [Cecil] Reset polygon
+      m_cpoStandOn.Reset();
     }
   }
 
@@ -4718,6 +4738,7 @@ functions:
       en_plViewpoint.pl_OrientationAngle = ANGLE3D(0, 0, 0);
       m_pstState = PST_FALL;
       en_pbpoStandOn = NULL;
+      m_cpoStandOn.Reset(); // [Cecil]
       en_penReference = NULL;
       m_fFallTime = 1.0f;
 
@@ -5224,8 +5245,8 @@ functions:
 
         // if just fell to ground
         if (pstOld == PST_FALL && (m_pstState == PST_STAND || m_pstState == PST_CROUCH)) {
-          if (en_pbpoStandOn != NULL) {
-            m_iLastSurface = en_pbpoStandOn->bpo_bppProperties.bpp_ubSurfaceType;
+          if (m_cpoStandOn.bHit) {
+            m_iLastSurface = m_cpoStandOn.ubSurface;
 
             m_soFootL.Set3DParameters(20.0f, 2.0f, 1.5f, 1.0f);
             PlaySound(m_soFootL, SurfaceStepSound(this), SOF_3D);
@@ -5375,7 +5396,7 @@ functions:
 
       // [Cecil] Source Movement Simulation
       if (GetSP()->sp_iHL2Flags & HL2F_BHOP) {
-        if (en_pbpoStandOn != NULL && !(GetPhysicsFlags() & EPF_ONSTEEPSLOPE)) {
+        if (m_cpoStandOn.bHit && !(GetPhysicsFlags() & EPF_ONSTEEPSLOPE)) {
           if (m_tmAirTime < _pTimer->CurrentTick() - ONE_TICK) {
             m_fSpeedLimit = 0.0f;
           }
@@ -5448,8 +5469,8 @@ functions:
       TIME tmNow = _pTimer->CurrentTick();
 
       // [Cecil] Surface type
-      if (en_pbpoStandOn != NULL) {
-        m_iLastSurface = en_pbpoStandOn->bpo_bppProperties.bpp_ubSurfaceType;
+      if (m_cpoStandOn.bHit) {
+        m_iLastSurface = m_cpoStandOn.ubSurface;
 
       // No ground
       } else {

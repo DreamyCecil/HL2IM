@@ -170,45 +170,57 @@ functions:
 
       m_vHitPoint = crRay.cr_vHit;
 
-      // if brush hitted
-      if (crRay.cr_penHit->GetRenderType() == RT_BRUSH && crRay.cr_pbpoBrushPolygon != NULL) {
-        CBrushPolygon *pbpo = crRay.cr_pbpoBrushPolygon;
-        FLOAT3D vHitNormal = FLOAT3D(pbpo->bpo_pbplPlane->bpl_plAbsolute);
-        // obtain surface type
-        INDEX iSurfaceType = pbpo->bpo_bppProperties.bpp_ubSurfaceType;
-        BulletHitType bhtType = BHT_BRUSH_STONE;
-        // get content type
-        INDEX iContent = pbpo->bpo_pbscSector->GetContentType();
-        CContentType &ct = GetWorld()->wo_actContentTypes[iContent];
-        
-        bhtType = (BulletHitType) GetBulletHitTypeForSurface(iSurfaceType);
+      // [Cecil] Spawn a bullet hole at the hit polygon
+      if (crRay.cr_cpoPolygon.bHit)
+      {
+        FLOAT3D vHitNormal = FLOAT3D(crRay.cr_cpoPolygon.plPolygon);
 
-        // if this is under water polygon
-        if (ct.ct_ulFlags & CTF_BREATHABLE_GILLS) {
-          // if we hit water surface
-          if (iSurfaceType == SURFACE_WATER) {
-            vHitNormal = -vHitNormal;
+        // Obtain surface type
+        const INDEX iSurfaceType = crRay.cr_cpoPolygon.ubSurface;
+        BulletHitType bhtType = (BulletHitType)GetBulletHitTypeForSurface(iSurfaceType);
 
-            bhtType=BHT_BRUSH_WATER;
+        BOOL bPassable = FALSE;
 
-          // if we hit stone under water
-          } else {
-            bhtType = BHT_BRUSH_UNDER_WATER;
+        // If hit an actual brush polygon
+        const BOOL bHitBrush = (crRay.cr_cpoPolygon.pbpoHit != NULL);
+
+        if (bHitBrush) {
+          // Get content type
+          CBrushPolygon *pbpo = crRay.cr_cpoPolygon.pbpoHit;
+
+          const INDEX iContent = pbpo->bpo_pbscSector->GetContentType();
+          const CContentType &ct = GetWorld()->wo_actContentTypes[iContent];
+
+          // If this is an underwater polygon
+          if (ct.ct_ulFlags & CTF_BREATHABLE_GILLS) {
+            // And we hit a water surface
+            if (iSurfaceType == SURFACE_WATER) {
+              vHitNormal = -vHitNormal;
+              bhtType = BHT_BRUSH_WATER;
+
+            // And we hit stone underwater
+            } else {
+              bhtType = BHT_BRUSH_UNDER_WATER;
+            }
           }
+
+          // Determine if the polygon can be shot through
+          bPassable = pbpo->bpo_ulFlags & (BPOF_PASSABLE | BPOF_SHOOTTHRU);
         }
 
-        // spawn hit effect
-        BOOL bPassable = pbpo->bpo_ulFlags & (BPOF_PASSABLE|BPOF_SHOOTTHRU);
+        // Spawn hit effect
         if (!bPassable || iSurfaceType == SURFACE_WATER) {
           SpawnHitTypeEffect(this, bhtType, bSound, vHitNormal, crRay.cr_vHit, vHitDirection, FLOAT3D(0.0f, 0.0f, 0.0f));
         }
 
+        // Hit something, no need to continue
         if (!bPassable) {
           break;
         }
+      }
 
       // if not brush
-      } else {
+      if (crRay.cr_penHit->GetRenderType() != RT_BRUSH) {
         // if flesh entity
         if (crRay.cr_penHit->GetEntityInfo() != NULL) {
           if (((EntityInfo*)crRay.cr_penHit->GetEntityInfo())->Eeibt == EIBT_FLESH
@@ -221,10 +233,10 @@ functions:
 
             // look behind the entity (for back-stains)
             crRay.ContinueCast(GetWorld());
-            if (crRay.cr_penHit != NULL && crRay.cr_pbpoBrushPolygon != NULL
+            if (crRay.cr_penHit != NULL && crRay.cr_cpoPolygon.bHit
              && crRay.cr_penHit->GetRenderType() == RT_BRUSH) {
               vDistance = crRay.cr_vHit-vOldHitPos;
-              vHitNormal = FLOAT3D(crRay.cr_pbpoBrushPolygon->bpo_pbplPlane->bpl_plAbsolute);
+              vHitNormal = FLOAT3D(crRay.cr_cpoPolygon.plPolygon);
 
             } else {
               vDistance = FLOAT3D(0.0f, 0.0f, 0.0f);

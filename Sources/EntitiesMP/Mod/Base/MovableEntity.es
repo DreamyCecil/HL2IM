@@ -250,8 +250,10 @@ functions:
   void SendTouchEvent(const CCecilClipMove &cmMove);
   void SendBlockEvent(CCecilClipMove &cmMove);
 
-  BOOL IsStandingOnPolygon(CBrushPolygon *pbpo);
-  BOOL IsPolygonBelowPoint(CBrushPolygon *pbpo, const FLOAT3D &vPoint, FLOAT fMaxDist);
+  // [Cecil] Collision polygons instead of brush polygons
+  BOOL IsStandingOnPolygon(const SCollisionPolygon &cpo);
+  BOOL IsPolygonBelowPoint(const SCollisionPolygon &cpo, const FLOAT3D &vPoint, FLOAT fMaxDist);
+
   virtual BOOL AllowForGroundPolygon(CBrushPolygon *pbpo);
   BOOL IsSomeNearPolygonBelowPoint(const FLOAT3D &vPoint, FLOAT fMaxDist);
   BOOL IsSomeSectorPolygonBelowPoint(CBrushSector *pbsc, const FLOAT3D &vPoint, FLOAT fMaxDist);

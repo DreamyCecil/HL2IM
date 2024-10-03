@@ -19,6 +19,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
+#include "CollisionCommon.h"
+
 /*
  * A class used for clipping a movement.
  */
@@ -131,7 +133,7 @@ public:
 
 // these are filled by clipping algorithm:
   CEntity *cm_penHit;             // entity hit when moving. NULL if nothing was hit
-  CBrushPolygon *cm_pbpoHit;      // brush polygon that was hit (NULL if did not hit a brush)
+  SCollisionPolygon cm_cpoHit;    // [Cecil] For mimicking brush polygons, if not colliding with real ones
   FLOAT cm_fMovementFraction;     // fraction of movement done before hitting
   FLOATplane3D cm_plClippedPlane; // the plane that was hit (in absolute space)
   FLOAT3D cm_vClippedLine;        // vector describing part of test line that was clipped

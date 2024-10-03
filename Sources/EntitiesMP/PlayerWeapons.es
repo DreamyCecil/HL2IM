@@ -2982,25 +2982,28 @@ functions:
         vHit = crRay.cr_vHit;
         
         // [Cecil] Only check brushes for the first one
-        //if (i == 0) {
-          // brush
-          if (crRay.cr_penHit->GetRenderType() == RT_BRUSH && i == 0) {
-            INDEX iSurfaceType = crRay.cr_pbpoBrushPolygon->bpo_bppProperties.bpp_ubSurfaceType;
-            EffectParticlesType eptType = GetParticleEffectTypeForSurface(iSurfaceType);
+        //if (i == 0)
+        {
+          // [Cecil] Spawn a bullet hole at the hit polygon
+          if (i == 0 && crRay.cr_cpoPolygon.bHit) {
+            const INDEX iSurfaceType = crRay.cr_cpoPolygon.ubSurface;
+            const EffectParticlesType eptType = GetParticleEffectTypeForSurface(iSurfaceType);
             
-            FLOAT3D vNormal = crRay.cr_pbpoBrushPolygon->bpo_pbplPlane->bpl_plAbsolute;
-            FLOAT3D vReflected = vDir - vNormal * (2.0f*(vNormal % vDir));
-
-            // [Cecil] Added bullet instead
-            //CPlayer &pl = (CPlayer&)*m_penPlayer;
-            //pl.AddBulletSpray(vBase+vFront, eptType, vReflected);
+            const FLOAT3D vNormal = crRay.cr_cpoPolygon.plPolygon;
+            const FLOAT3D vReflected = vDir - vNormal * (2.0f*(vNormal % vDir));
 
             // [Cecil]
             iSurfaceReturn = iSurfaceType;
             iHitReturn = 2;
 
             // [Cecil] Bullet
-            BOOL bPassable = crRay.cr_pbpoBrushPolygon->bpo_ulFlags & (BPOF_PASSABLE|BPOF_SHOOTTHRU);
+            BOOL bPassable = FALSE;
+            const BOOL bHitBrush = (crRay.cr_cpoPolygon.pbpoHit != NULL);
+
+            if (bHitBrush) {
+              bPassable = crRay.cr_cpoPolygon.pbpoHit->bpo_ulFlags & (BPOF_PASSABLE | BPOF_SHOOTTHRU);
+            }
+
             if (!bPassable && iSurfaceType != SURFACE_WATER) {
               FLOAT3D vHitDirection;
               AnglesToDirectionVector(plKnife.pl_OrientationAngle, vHitDirection);
@@ -3010,9 +3013,10 @@ functions:
             } else {
               ((CPlayer&)*m_penPlayer).AddBulletSpray(vBase+vFront, eptType, vReflected);
             }
+          }
 
           // model
-          } else if (crRay.cr_penHit->GetRenderType() == RT_MODEL) {
+          if (crRay.cr_penHit->GetRenderType() == RT_MODEL) {
             BOOL bRender = TRUE;
             FLOAT3D vSpillDir = -((CPlayer&)*m_penPlayer).en_vGravityDir * 0.5f;
             SprayParticlesType sptType = SPT_NONE;
@@ -3058,12 +3062,13 @@ functions:
             }
             iHitReturn = 1;
           }
+        }
 
         // [Cecil] Check from above
         if (i == 0) {
           // don't search any more
           break;
-        }        
+        }
       }
     }
 
@@ -3142,12 +3147,13 @@ functions:
         vHit = crRay.cr_vHit;
 
         if (i == 0) {
-          if (crRay.cr_penHit->GetRenderType() == RT_BRUSH) {
-            INDEX iSurfaceType=crRay.cr_pbpoBrushPolygon->bpo_bppProperties.bpp_ubSurfaceType;
-            EffectParticlesType eptType=GetParticleEffectTypeForSurface(iSurfaceType);
+          // [Cecil] Using new collision polygon structure
+          if (crRay.cr_penHit->GetRenderType() == RT_BRUSH && crRay.cr_cpoPolygon.bHit) {
+            const INDEX iSurfaceType = crRay.cr_cpoPolygon.ubSurface;
+            const EffectParticlesType eptType = GetParticleEffectTypeForSurface(iSurfaceType);
 
-            FLOAT3D vNormal=crRay.cr_pbpoBrushPolygon->bpo_pbplPlane->bpl_plAbsolute;
-            FLOAT3D vReflected = vDir-vNormal*(2.0f*(vNormal%vDir));
+            const FLOAT3D vNormal = crRay.cr_cpoPolygon.plPolygon;
+            const FLOAT3D vReflected = vDir-vNormal*(2.0f*(vNormal%vDir));
             ((CPlayer&)*m_penPlayer).AddBulletSpray( vBase+vFront, eptType, vReflected);
 
             // shake view

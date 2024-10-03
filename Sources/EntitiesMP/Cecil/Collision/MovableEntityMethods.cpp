@@ -17,6 +17,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <EntitiesMP/Mod/Base/MovableEntity.h>
 #include <EntitiesMP/Mod/Base/MovableModelEntity.h>
+#include <EntitiesMP/Player.h>
 
 #include "CollisionCommon.h"
 #include "WorldCollision.h"
@@ -344,6 +345,13 @@ void CCecilMovableEntity::FakeJump(const FLOAT3D &vOrgSpeed, const FLOAT3D &vDir
   // no reference while bouncing
   en_penReference = NULL;
   en_pbpoStandOn = NULL;
+
+  // [Cecil]
+  if (IsDerivedFromID(this, CPlayer_ClassID)) {
+    CPlayer *penPlayer = (CPlayer *)this;
+    penPlayer->m_cpoStandOn.Reset();
+  }
+
   en_vReferencePlane = FLOAT3D(0.0f, 0.0f, 0.0f);
   en_iReferenceSurface = 0;
 
@@ -718,7 +726,7 @@ void CCecilMovableEntity::SendBlockEvent(CCecilClipMove &cmMove)
   SendEvent(eBlock);
 }
 
-BOOL CCecilMovableEntity::IsStandingOnPolygon(CBrushPolygon *pbpo)
+BOOL CCecilMovableEntity::IsStandingOnPolygon(const SCollisionPolygon &cpo)
 {
   // if cannot optimize for standing on handle
   if (en_pciCollisionInfo==NULL 
@@ -727,13 +735,16 @@ BOOL CCecilMovableEntity::IsStandingOnPolygon(CBrushPolygon *pbpo)
     return FALSE;
   }
 
-  // if polygon is not valid for standing on any more (brush turned off collision)
-  if (pbpo->bpo_pbscSector->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity->en_ulCollisionFlags==0) {
-    // not standing on polygon
-    return FALSE;
+  // [Cecil] Check brush polygons
+  if (cpo.pbpoHit != NULL) {
+    // if polygon is not valid for standing on any more (brush turned off collision)
+    if (cpo.pbpoHit->bpo_pbscSector->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity->en_ulCollisionFlags==0) {
+      // not standing on polygon
+      return FALSE;
+    }
   }
 
-  const FLOATplane3D &plPolygon = pbpo->bpo_pbplPlane->bpl_plAbsolute;
+  const FLOATplane3D &plPolygon = cpo.plPolygon;
   // get stand-on handle
   FLOAT3D vHandle = en_plPlacement.pl_PositionVector;
   vHandle(1)+=en_pciCollisionInfo->ci_fHandleY*en_mRotation(1,2);
@@ -753,16 +764,7 @@ BOOL CCecilMovableEntity::IsStandingOnPolygon(CBrushPolygon *pbpo)
 
   // create an intersector
   CIntersector isIntersector(vHandle(iMajorAxis1), vHandle(iMajorAxis2));
-  // for all edges in the polygon
-  FOREACHINSTATICARRAY(pbpo->bpo_abpePolygonEdges, CBrushPolygonEdge, itbpePolygonEdge) {
-    // get edge vertices (edge direction is irrelevant here!)
-    const FLOAT3D &vVertex0 = itbpePolygonEdge->bpe_pbedEdge->bed_pbvxVertex0->bvx_vAbsolute;
-    const FLOAT3D &vVertex1 = itbpePolygonEdge->bpe_pbedEdge->bed_pbvxVertex1->bvx_vAbsolute;
-    // pass the edge to the intersector
-    isIntersector.AddEdge(
-      vVertex0(iMajorAxis1), vVertex0(iMajorAxis2),
-      vVertex1(iMajorAxis1), vVertex1(iMajorAxis2));
-  }
+  cpo.AddEdges(isIntersector, iMajorAxis1, iMajorAxis2); // [Cecil]
 
   // if the point is inside polygon
   if (isIntersector.IsIntersecting()) {
@@ -776,17 +778,19 @@ BOOL CCecilMovableEntity::IsStandingOnPolygon(CBrushPolygon *pbpo)
 }
 
 // check whether a polygon is below given point, but not too far away
-BOOL CCecilMovableEntity::IsPolygonBelowPoint(CBrushPolygon *pbpo, const FLOAT3D &vPoint, FLOAT fMaxDist)
+BOOL CCecilMovableEntity::IsPolygonBelowPoint(const SCollisionPolygon &cpo, const FLOAT3D &vPoint, FLOAT fMaxDist)
 {
-  // if passable or not allowed as ground
-  if ((pbpo->bpo_ulFlags&BPOF_PASSABLE)
-    ||!AllowForGroundPolygon(pbpo)) {
-    // it cannot be below
-    return FALSE;
+  // [Cecil] Check brush polygons
+  if (cpo.pbpoHit != NULL) {
+    // if passable or not allowed as ground
+    if ((cpo.pbpoHit->bpo_ulFlags & BPOF_PASSABLE) || !AllowForGroundPolygon(cpo.pbpoHit)) {
+      // it cannot be below
+      return FALSE;
+    }
   }
 
   // get polygon plane
-  const FLOATplane3D &plPolygon = pbpo->bpo_pbplPlane->bpl_plAbsolute;
+  const FLOATplane3D &plPolygon = cpo.plPolygon;
 
   // determine polygon orientation relative to gravity
   FLOAT fCos = ((const FLOAT3D &)plPolygon)%en_vGravityDir;
@@ -797,7 +801,7 @@ BOOL CCecilMovableEntity::IsPolygonBelowPoint(CBrushPolygon *pbpo, const FLOAT3D
   }
 
   // if polygon's steepness is too high
-  CSurfaceType &stReference = en_pwoWorld->wo_astSurfaceTypes[pbpo->bpo_bppProperties.bpp_ubSurfaceType];
+  CSurfaceType &stReference = en_pwoWorld->wo_astSurfaceTypes[cpo.ubSurface];
   if (fCos>=-stReference.st_fClimbSlopeCos&&fCos<0
     ||stReference.st_ulFlags&STF_SLIDEDOWNSLOPE) {
     // it cannot be below
@@ -828,16 +832,7 @@ BOOL CCecilMovableEntity::IsPolygonBelowPoint(CBrushPolygon *pbpo, const FLOAT3D
 
   // create an intersector
   CIntersector isIntersector(vProjected(iMajorAxis1), vProjected(iMajorAxis2));
-  // for all edges in the polygon
-  FOREACHINSTATICARRAY(pbpo->bpo_abpePolygonEdges, CBrushPolygonEdge, itbpePolygonEdge) {
-    // get edge vertices (edge direction is irrelevant here!)
-    const FLOAT3D &vVertex0 = itbpePolygonEdge->bpe_pbedEdge->bed_pbvxVertex0->bvx_vAbsolute;
-    const FLOAT3D &vVertex1 = itbpePolygonEdge->bpe_pbedEdge->bed_pbvxVertex1->bvx_vAbsolute;
-    // pass the edge to the intersector
-    isIntersector.AddEdge(
-      vVertex0(iMajorAxis1), vVertex0(iMajorAxis2),
-      vVertex1(iMajorAxis1), vVertex1(iMajorAxis2));
-  }
+  cpo.AddEdges(isIntersector, iMajorAxis1, iMajorAxis2); // [Cecil]
 
   // if the point is inside polygon
   if (isIntersector.IsIntersecting()) {
@@ -869,8 +864,13 @@ BOOL CCecilMovableEntity::IsSomeSectorPolygonBelowPoint(CBrushSector *pbsc, cons
   // for each polygon in the sector
   FOREACHINSTATICARRAY(pbsc->bsc_abpoPolygons, CBrushPolygon, itbpo) {
     CBrushPolygon *pbpo = itbpo;
+
+    // [Cecil] Create collision polygon
+    SCollisionPolygon cpo;
+    cpo.HitBrushPolygon(pbpo);
+
     // if it is below
-    if (IsPolygonBelowPoint(pbpo, vPoint, fMaxDist)) {
+    if (IsPolygonBelowPoint(cpo, vPoint, fMaxDist)) {
       // there is some
       return TRUE;
     }
@@ -887,10 +887,20 @@ BOOL CCecilMovableEntity::WouldFallInNextPosition(void)
     // don't check
     return FALSE;
   }
-  
+
+  // [Cecil] Check collision polygon
+  SCollisionPolygon cpoBelow;
+
+  if (IsDerivedFromID(this, CPlayer_ClassID)) {
+    CPlayer *penPlayer = (CPlayer *)this;
+    cpoBelow = penPlayer->m_cpoStandOn;
+    
   // if the stand-on polygon is near below
-  if (en_pbpoStandOn!=NULL &&
-    IsPolygonBelowPoint(en_pbpoStandOn, en_vNextPosition, en_fStepDnHeight)) {
+  } else if (en_pbpoStandOn != NULL) {
+    cpoBelow.HitBrushPolygon(en_pbpoStandOn);
+  }
+
+  if (cpoBelow.bHit && IsPolygonBelowPoint(cpoBelow, en_vNextPosition, en_fStepDnHeight)) {
     // it won't fall
     return FALSE;
   }
@@ -902,8 +912,10 @@ BOOL CCecilMovableEntity::WouldFallInNextPosition(void)
   // for each cached near polygon
   for(INDEX iPolygon=0; iPolygon<apbpo.Count(); iPolygon++) {
     CBrushPolygon *pbpo = apbpo[iPolygon];
+    cpoBelow.HitBrushPolygon(pbpo); // [Cecil]
+
     // if it is below
-    if (IsPolygonBelowPoint(pbpo, en_vNextPosition, en_fStepDnHeight)) {
+    if (IsPolygonBelowPoint(cpoBelow, en_vNextPosition, en_fStepDnHeight)) {
       // it won't fall
       lhActiveSectors.RemAll();
       return FALSE;
@@ -1076,9 +1088,11 @@ BOOL CCecilMovableEntity::TryToGoUpstairs(const FLOAT3D &vTranslationAbsolute, c
       // find hit surface
       INDEX iSurfaceHit = 0;
       BOOL bHitStairsNow = FALSE;
-      if (cm.cm_pbpoHit!=NULL) {
-        bHitStairsNow = cm.cm_pbpoHit->bpo_ulFlags&BPOF_STAIRS;
-        iSurfaceHit = cm.cm_pbpoHit->bpo_bppProperties.bpp_ubSurfaceType;
+
+      // [Cecil]
+      if (cm.cm_cpoHit.bHit) {
+        bHitStairsNow = cm.cm_cpoHit.bStairs;
+        iSurfaceHit = cm.cm_cpoHit.ubSurface;
       }
       CSurfaceType &stHit = en_pwoWorld->wo_astSurfaceTypes[iSurfaceHit];
 
@@ -1226,15 +1240,15 @@ BOOL CCecilMovableEntity::TryToMove(CCecilMovableEntity *penPusher, BOOL bTransl
     }
 
     // if hit brush
-    if (cmMove.cm_pbpoHit!=NULL) {
+    if (cmMove.cm_cpoHit.bHit) {
       // if polygon is stairs, and the entity can climb stairs
-      if ((cmMove.cm_pbpoHit->bpo_ulFlags&BPOF_STAIRS)
+      if ((cmMove.cm_cpoHit.bStairs)
         &&((en_ulPhysicsFlags&EPF_ONBLOCK_MASK)==EPF_ONBLOCK_CLIMBORSLIDE)) {
         // adjust against sliding upwards
         cmMove.cm_plClippedPlane = FLOATplane3D(-en_vGravityDir, 0);
       }
       // if cannot be damaged by impact
-      INDEX iSurface = cmMove.cm_pbpoHit->bpo_bppProperties.bpp_ubSurfaceType;
+      INDEX iSurface = cmMove.cm_cpoHit.ubSurface; // [Cecil]
 
       if (en_pwoWorld->wo_astSurfaceTypes[iSurface].st_ulFlags&STF_NOIMPACT) {
         // remember that
@@ -1252,11 +1266,17 @@ BOOL CCecilMovableEntity::TryToMove(CCecilMovableEntity *penPusher, BOOL bTransl
       en_penReference = cmMove.cm_penHit;
 //        CPrintF("    newreference id%08x\n", en_penReference->en_ulID);
       en_vReferencePlane = (FLOAT3D&)cmMove.cm_plClippedPlane;
-      en_pbpoStandOn = cmMove.cm_pbpoHit;  // is NULL if not hit a brush
-      if (cmMove.cm_pbpoHit==NULL) {
+      en_pbpoStandOn = cmMove.cm_cpoHit.pbpoHit;  // is NULL if not hit a brush
+      if (!cmMove.cm_cpoHit.bHit) {
         en_iReferenceSurface = 0;
       } else {
-        en_iReferenceSurface = cmMove.cm_pbpoHit->bpo_bppProperties.bpp_ubSurfaceType;
+        en_iReferenceSurface = cmMove.cm_cpoHit.ubSurface; // [Cecil]
+
+        // [Cecil]
+        if (IsDerivedFromID(this, CPlayer_ClassID)) {
+          CPlayer *penPlayer = (CPlayer *)this;
+          penPlayer->m_cpoStandOn = cmMove.cm_cpoHit;
+        }
       }
     }
 
@@ -1370,9 +1390,8 @@ BOOL CCecilMovableEntity::TryToMove(CCecilMovableEntity *penPusher, BOOL bTransl
         ASSERT(IsValidFloat(_vSlideOffDir(1)));
 
         // if entity hit a brush polygon
-        if (cmMove.cm_pbpoHit!=NULL) {
-          CSurfaceType &stHit = en_pwoWorld->wo_astSurfaceTypes[
-            cmMove.cm_pbpoHit->bpo_bppProperties.bpp_ubSurfaceType];
+        if (cmMove.cm_cpoHit.bHit) {
+          CSurfaceType &stHit = en_pwoWorld->wo_astSurfaceTypes[cmMove.cm_cpoHit.ubSurface]; // [Cecil]
 
           // if it is not beeing pushed, and it can climb stairs
           if (penPusher==NULL
@@ -1385,7 +1404,7 @@ BOOL CCecilMovableEntity::TryToMove(CCecilMovableEntity *penPusher, BOOL bTransl
             // if there are any further problems, i recommend choosing
             // the plane that is more orthogonal to the movement direction.
             FLOAT3D &vHitPlane = (FLOAT3D&)cmMove.cm_plClippedPlane;//cmMove.cm_pbpoHit->bpo_pbplPlane->bpl_plAbsolute;
-            BOOL bHitStairs = cmMove.cm_pbpoHit->bpo_ulFlags&BPOF_STAIRS;
+            BOOL bHitStairs = cmMove.cm_cpoHit.bStairs; // [Cecil]
             // if the plane hit is steep enough to climb on it 
             // (cannot climb low slopes as if those were stairs)
             if ((vHitPlane%en_vGravityDir>-stHit.st_fClimbSlopeCos)
@@ -1756,11 +1775,31 @@ void CCecilMovableEntity::PreMoving(void)
   // if the entity is affected by gravity
   } else {
     BOOL bGravityAlongPolygon = TRUE;
+
+    // [Cecil] Check collision polygon
+    SCollisionPolygon cpoStanding;
+
+    if (IsDerivedFromID(this, CPlayer_ClassID)) {
+      CPlayer *penPlayer = (CPlayer *)this;
+      cpoStanding = penPlayer->m_cpoStandOn;
+
+    // if the stand-on polygon is near below
+    } else if (en_pbpoStandOn != NULL) {
+      cpoStanding.HitBrushPolygon(en_pbpoStandOn);
+    }
+
     // if there is no fixed remembered stand-on polygon or the entity is not on it anymore
-    if (en_pbpoStandOn==NULL || !IsStandingOnPolygon(en_pbpoStandOn) || bReferenceMovingInY
+    if (!cpoStanding.bHit || !IsStandingOnPolygon(cpoStanding) || bReferenceMovingInY
       || (en_ulPhysicsFlags&EPF_ORIENTINGTOGRAVITY)) {
       // clear the stand on polygon
-      en_pbpoStandOn=NULL;
+      en_pbpoStandOn = NULL;
+
+      // [Cecil]
+      if (IsDerivedFromID(this, CPlayer_ClassID)) {
+        CPlayer *penPlayer = (CPlayer *)this;
+        penPlayer->m_cpoStandOn.Reset();
+      }
+
       if (en_penReference == NULL || bReferenceMovingInY) {
         bGravityAlongPolygon = FALSE;
       }
@@ -1849,6 +1888,12 @@ void CCecilMovableEntity::PreMoving(void)
         vTranslationAbsolute += en_vGravityDir * fJump;
         en_tmJumped = _pTimer->CurrentTick();
         en_pbpoStandOn = NULL;
+
+        // [Cecil]
+        if (IsDerivedFromID(this, CPlayer_ClassID)) {
+          CPlayer *penPlayer = (CPlayer *)this;
+          penPlayer->m_cpoStandOn.Reset();
+        }
       }
 
     // if it doesn't have a reference entity
@@ -1870,6 +1915,12 @@ void CCecilMovableEntity::PreMoving(void)
         vTranslationAbsolute += en_vGravityDir * fJump;
         en_tmJumped = _pTimer->CurrentTick();
         en_pbpoStandOn = NULL;
+
+        // [Cecil]
+        if (IsDerivedFromID(this, CPlayer_ClassID)) {
+          CPlayer *penPlayer = (CPlayer *)this;
+          penPlayer->m_cpoStandOn.Reset();
+        }
       }
     }
   }
@@ -1895,8 +1946,16 @@ void CCecilMovableEntity::PreMoving(void)
     }
   }
 
+  // [Cecil]
+  BOOL bStandOn = (en_pbpoStandOn != NULL);
+
+  if (IsDerivedFromID(this, CPlayer_ClassID)) {
+    CPlayer *penPlayer = (CPlayer *)this;
+    bStandOn = penPlayer->m_cpoStandOn.bHit;
+  }
+
   // discard reference entity (will be recalculated)
-  if (en_pbpoStandOn==NULL && (vTranslationAbsolute.ManhattanNorm()>1E-5f || 
+  if (!bStandOn && (vTranslationAbsolute.ManhattanNorm()>1E-5f || 
     en_vReferencePlane%en_vGravityDir<0.0f)) {
     en_penReference = NULL;
     en_vReferencePlane = FLOAT3D(0.0f, 0.0f, 0.0f);

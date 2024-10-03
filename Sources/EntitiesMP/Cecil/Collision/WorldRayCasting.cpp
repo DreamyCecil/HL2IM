@@ -72,8 +72,8 @@ void CCecilCastRay::Init(CEntity *penOrigin, const FLOAT3D &vOrigin, const FLOAT
   cr_bHitTerrainInvisibleTris = FALSE;
   cr_fTestR = 0;
 
-	cr_bFindBone = TRUE;
-	cr_iBoneHit	 = -1;
+  cr_bFindBone = TRUE;
+  cr_iBoneHit	 = -1;
 
   cl_plRay.pl_PositionVector = vOrigin;
   DirectionVectorToAngles((vTarget-vOrigin).Normalize(), cl_plRay.pl_OrientationAngle);
@@ -175,7 +175,7 @@ void CCecilCastRay::TestModelSimple(CEntity *penModel, CModelObject &mo)
     cr_fHitDistance=fSphereHitDistance;
     cr_penHit = penModel;
     cr_pbscBrushSector = NULL;
-    cr_pbpoBrushPolygon = NULL;
+    cr_cpoPolygon.Reset(); // [Cecil]
   }
 }
 
@@ -220,7 +220,7 @@ void CCecilCastRay::TestModelCollisionBox(CEntity *penModel)
       cr_fHitDistance=fOneSphereHitDistance;
       cr_penHit = penModel;
       cr_pbscBrushSector = NULL;
-      cr_pbpoBrushPolygon = NULL;
+      cr_cpoPolygon.Reset(); // [Cecil]
     }
   }
 }
@@ -296,7 +296,8 @@ void CCecilCastRay::TestModelBoundingBox(CEntity *penModel) {
         cr_fHitDistance = fHitDistance;
         cr_penHit = penModel;
         cr_pbscBrushSector = NULL;
-        cr_pbpoBrushPolygon = NULL;
+        // [Cecil] TODO: Implement custom surfaces
+        cr_cpoPolygon.HitFakePolygon(v0, v1, v2, plPolygon, 0, FALSE); // [Cecil]
       }
     }
   }
@@ -335,7 +336,7 @@ void CCecilCastRay::TestModelFull(CEntity *penModel, CModelObject &mo)
     cr_fHitDistance=fHitDistance;
     cr_penHit = penModel;
     cr_pbscBrushSector = NULL;
-    cr_pbpoBrushPolygon = NULL;
+    cr_cpoPolygon.Reset(); // [Cecil]
   }
 }
 
@@ -457,7 +458,7 @@ void CCecilCastRay::TestSkaModelSimple(CEntity *penModel, CModelInstance &mi)
     cr_fHitDistance=fSphereHitDistance;
     cr_penHit = penModel;
     cr_pbscBrushSector = NULL;
-    cr_pbpoBrushPolygon = NULL;
+    cr_cpoPolygon.Reset(); // [Cecil]
   }
 }
 
@@ -482,34 +483,34 @@ void CCecilCastRay::TestSkaModelFull(CEntity *penModel, CModelInstance &mi)
 
   // if the ray hits the sphere closer than closest found hit point yet
   if (fSphereHitDistance<cr_fHitDistance && fSphereHitDistance>0.0f) {
-		FLOAT fTriangleHitDistance;
+    FLOAT fTriangleHitDistance;
     // set the current entity as new hit target
 //    cr_fHitDistance=fSphereHitDistance;
 //    cr_penHit = penModel;
 //    cr_pbscBrushSector = NULL;
-//    cr_pbpoBrushPolygon = NULL;
+//    cr_cpoPolygon.Reset(); // [Cecil]
 
-		INDEX iBoneID = -1;
-		if (cr_bFindBone) {
-			fTriangleHitDistance = RM_TestRayCastHit(mi,penModel->en_mRotation,penModel->en_plPlacement.pl_PositionVector,cr_vOrigin,cr_vTarget,cr_fHitDistance,&iBoneID);
-		}	else {
-			fTriangleHitDistance = RM_TestRayCastHit(mi,penModel->en_mRotation,penModel->en_plPlacement.pl_PositionVector,cr_vOrigin,cr_vTarget,cr_fHitDistance,NULL);
-		}
+    INDEX iBoneID = -1;
+    if (cr_bFindBone) {
+      fTriangleHitDistance = RM_TestRayCastHit(mi,penModel->en_mRotation,penModel->en_plPlacement.pl_PositionVector,cr_vOrigin,cr_vTarget,cr_fHitDistance,&iBoneID);
+    } else {
+      fTriangleHitDistance = RM_TestRayCastHit(mi,penModel->en_mRotation,penModel->en_plPlacement.pl_PositionVector,cr_vOrigin,cr_vTarget,cr_fHitDistance,NULL);
+    }
 
-		if (fTriangleHitDistance<cr_fHitDistance && fTriangleHitDistance>0.0f) {
-			// set the current entity as new hit target
-			cr_fHitDistance=fTriangleHitDistance;
-			cr_penHit = penModel;
-			cr_pbscBrushSector = NULL;
-			cr_pbpoBrushPolygon = NULL;
-			
-			if (cr_bFindBone) {
-				cr_iBoneHit = iBoneID;
-			}
-		}
+    if (fTriangleHitDistance<cr_fHitDistance && fTriangleHitDistance>0.0f) {
+      // set the current entity as new hit target
+      cr_fHitDistance=fTriangleHitDistance;
+      cr_penHit = penModel;
+      cr_pbscBrushSector = NULL;
+      cr_cpoPolygon.Reset(); // [Cecil]
+
+      if (cr_bFindBone) {
+        cr_iBoneHit = iBoneID;
+      }
+    }
 
   }
-	return;
+  return;
 }
 
 void CCecilCastRay::TestTerrain(CEntity *penTerrain)
@@ -525,13 +526,13 @@ void CCecilCastRay::TestTerrain(CEntity *penTerrain)
   FLOAT fHitDistance = TestRayCastHit(ptrTerrain,penTerrain->en_mRotation, penTerrain->en_plPlacement.pl_PositionVector,
                                       cr_vOrigin,cr_vTarget,cr_fHitDistance,cr_bHitTerrainInvisibleTris);
 
-	if (fHitDistance<cr_fHitDistance && fHitDistance>0.0f) {
-		// set the current entity as new hit target
-		cr_fHitDistance=fHitDistance;
-		cr_penHit = penTerrain;
-		cr_pbscBrushSector = NULL;
-		cr_pbpoBrushPolygon = NULL;
-	}*/
+  if (fHitDistance<cr_fHitDistance && fHitDistance>0.0f) {
+    // set the current entity as new hit target
+    cr_fHitDistance=fHitDistance;
+    cr_penHit = penTerrain;
+    cr_pbscBrushSector = NULL;
+    cr_cpoPolygon.Reset(); // [Cecil]
+  }*/
 }
 
 /*
@@ -633,7 +634,7 @@ void CCecilCastRay::TestBrushSector(CBrushSector *pbscSector)
             cr_fHitDistance=fHitDistance;
             cr_penHit = pbscSector->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity;
             cr_pbscBrushSector = pbscSector;
-            cr_pbpoBrushPolygon = &bpoPolygon;
+            cr_cpoPolygon.HitBrushPolygon(&bpoPolygon); // [Cecil]
           }
         // if the ray just plainly hit it
         } else {
@@ -641,7 +642,7 @@ void CCecilCastRay::TestBrushSector(CBrushSector *pbscSector)
           cr_fHitDistance=fHitDistance;
           cr_penHit = pbscSector->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity;
           cr_pbscBrushSector = pbscSector;
-          cr_pbpoBrushPolygon = &bpoPolygon;
+          cr_cpoPolygon.HitBrushPolygon(&bpoPolygon); // [Cecil]
         }
       }
     }
@@ -851,7 +852,7 @@ void CCecilCastRay::TestThroughSectors(void)
 void CCecilCastRay::Cast(CWorld *pwoWorld)
 {
   // initially no polygon is found
-  cr_pbpoBrushPolygon= NULL;
+  cr_cpoPolygon.Reset(); // [Cecil]
   cr_pbscBrushSector = NULL;
   cr_penHit = NULL;
   if (cr_bPhysical) {
@@ -875,7 +876,7 @@ void CCecilCastRay::Cast(CWorld *pwoWorld)
     TestWholeWorld(pwoWorld);
   }
 
-	// calculate the hit point from the hit distance
+  // calculate the hit point from the hit distance
   cr_vHit = cr_vOrigin + (cr_vTarget-cr_vOrigin).Normalize()*cr_fHitDistance;
 }
 
@@ -885,7 +886,7 @@ void CCecilCastRay::Cast(CWorld *pwoWorld)
  */
 void CCecilCastRay::ContinueCast(CWorld *pwoWorld)
 {
-  cr_pbpoIgnore = cr_pbpoBrushPolygon;
+  cr_pbpoIgnore = cr_cpoPolygon.pbpoHit; // [Cecil]
 
   // [Cecil] Also for RT_EDITORMODEL, RT_SKAMODEL and RT_SKAEDITORMODEL
   switch (cr_penHit->en_RenderType) {

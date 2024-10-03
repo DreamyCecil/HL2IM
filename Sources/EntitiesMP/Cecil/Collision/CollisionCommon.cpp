@@ -17,6 +17,56 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "CollisionCommon.h"
 
+// Hit brush polygon
+void SCollisionPolygon::HitBrushPolygon(CBrushPolygon *pbpoSet) {
+  if (pbpoSet == NULL) {
+    Reset();
+    return;
+  }
+
+  bHit = TRUE;
+  pbpoHit = pbpoSet;
+  plPolygon = pbpoSet->bpo_pbplPlane->bpl_plAbsolute;
+  ubSurface = pbpoSet->bpo_bppProperties.bpp_ubSurfaceType;
+  bStairs = pbpoSet->bpo_ulFlags & BPOF_STAIRS;
+};
+
+// Hit fake polygon
+void SCollisionPolygon::HitFakePolygon(const FLOAT3D &v0, const FLOAT3D &v1, const FLOAT3D &v2,
+  const FLOATplane3D &plSetPlane, UBYTE ubSetSurface, BOOL bSetStairs)
+{
+  bHit = TRUE;
+  pbpoHit = NULL;
+  avPolygon[0] = v0;
+  avPolygon[1] = v1;
+  avPolygon[2] = v2;
+
+  plPolygon = plSetPlane;
+  ubSurface = ubSetSurface;
+  bStairs = bSetStairs;
+};
+
+// Add polygon edges to intersector
+void SCollisionPolygon::AddEdges(CIntersector &is, INDEX iMajorAxis1, INDEX iMajorAxis2) const {
+  // Real polygon
+  if (pbpoHit != NULL) {
+    FOREACHINSTATICARRAY(pbpoHit->bpo_abpePolygonEdges, CBrushPolygonEdge, itbpePolygonEdge) {
+      // Get edge vertices (edge direction is irrelevant here)
+      const FLOAT3D &v0 = itbpePolygonEdge->bpe_pbedEdge->bed_pbvxVertex0->bvx_vAbsolute;
+      const FLOAT3D &v1 = itbpePolygonEdge->bpe_pbedEdge->bed_pbvxVertex1->bvx_vAbsolute;
+
+      is.AddEdge(v0(iMajorAxis1), v0(iMajorAxis2), v1(iMajorAxis1), v1(iMajorAxis2));
+    }
+
+    return;
+  }
+
+  // Fake polygon
+  is.AddEdge(avPolygon[0](iMajorAxis1), avPolygon[0](iMajorAxis2), avPolygon[1](iMajorAxis1), avPolygon[1](iMajorAxis2));
+  is.AddEdge(avPolygon[1](iMajorAxis1), avPolygon[1](iMajorAxis2), avPolygon[2](iMajorAxis1), avPolygon[2](iMajorAxis2));
+  is.AddEdge(avPolygon[2](iMajorAxis1), avPolygon[2](iMajorAxis2), avPolygon[0](iMajorAxis1), avPolygon[0](iMajorAxis2));
+};
+
 // Get a list of triangles from a bounding box (12 tris = 2 per 6 cube sides)
 void GetTrisFromBox(FLOATaabbox3D box, CollisionTris_t &aTris) {
   const FLOAT3D &v0 = box.Min();

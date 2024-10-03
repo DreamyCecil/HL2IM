@@ -89,7 +89,7 @@ CCecilClipMove::CCecilClipMove(CCecilMovableEntity *penEntity)
 {
   // clear last-hit statistics
   cm_penHit = NULL;
-  cm_pbpoHit = NULL;
+  cm_cpoHit.Reset(); // [Cecil]
   cm_fMovementFraction = 2.0f;
 
   cm_penMoving = penEntity;
@@ -213,7 +213,7 @@ inline void CCecilClipMove::ClipMovingPointToSphere(
       cm_plClippedPlane = plClippedPlane*cm_mBToAbsolute+cm_vBToAbsolute;
       // remember hit entity
       cm_penHit = cm_penTested;
-      cm_pbpoHit = cm_pbpoTested;
+      cm_cpoHit.HitBrushPolygon(cm_pbpoTested); // [Cecil]
     }
   }
 }
@@ -279,7 +279,7 @@ inline void CCecilClipMove::ClipMovingPointToCylinder(
         cm_plClippedPlane = plClippedPlane*cm_mBToAbsolute+cm_vBToAbsolute;
         // remember hit entity
         cm_penHit = cm_penTested;
-        cm_pbpoHit = cm_pbpoTested;
+        cm_cpoHit.HitBrushPolygon(cm_pbpoTested); // [Cecil]
       }
     }
   }
@@ -352,7 +352,7 @@ void CCecilClipMove::ClipMovingSphereToBrushPolygon(const CMovingSphere &msMovin
           cm_plClippedPlane = plPolygon*cm_mBToAbsolute+cm_vBToAbsolute;
           // remember hit entity
           cm_penHit = cm_penTested;
-          cm_pbpoHit = cm_pbpoTested;
+          cm_cpoHit.HitBrushPolygon(cm_pbpoTested); // [Cecil]
         }
       }
     }
@@ -431,7 +431,8 @@ void CCecilClipMove::ClipMovingSphereToTriangle(
           cm_plClippedPlane = plPolygon*cm_mBToAbsolute+cm_vBToAbsolute;
           // remember hit entity
           cm_penHit = cm_penTested;
-          cm_pbpoHit = cm_pbpoTested;
+          // [Cecil] TODO: Implement custom surfaces
+          cm_cpoHit.HitFakePolygon(v0, v1, v2, cm_plClippedPlane, 0, FALSE); // [Cecil]
         }
       }
     }
