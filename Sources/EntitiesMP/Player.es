@@ -45,7 +45,6 @@
 #include "EntitiesMP/Light.h"           // Flashlight
 #include "EntitiesMP/Cecil/Physics.h"   // Source physics simulation
 #include "EntitiesMP/Cecil/Effects.h"   // Effects
-#include "EntitiesMP/Cecil/Materials.h" // Surface materials
 #include "EntitiesMP/Cecil/Weapons.h"   // Weapon flags
 #include "EntitiesMP/Common/UI/UI.h"    // UI elements
 #include "HL2Models/ItemHandler.h"      // Item attachments
@@ -7932,6 +7931,12 @@ procedures:
  *                        M  A  I  N                        *
  ************************************************************/
   Main() {
+    CPrintF("New player at %f\n", _pTimer->CurrentTick());
+    // Restart physics
+    if (ODE_IsStarted()) {
+      ODE_Start();
+    }
+
     // remember start time
     time_t tmStart;
     time(&tmStart);

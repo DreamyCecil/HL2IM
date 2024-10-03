@@ -1,19 +1,5 @@
-// common headers for flesh entity classes
-
-#define SURFACE_STONE           0 // [Cecil] For convenience
-#define SURFACE_SAND            9
-#define SURFACE_WATER          12
-#define SURFACE_RED_SAND       13
-#define SURFACE_GRASS          17
-#define SURFACE_GRASS_SLIDING  19
-#define SURFACE_GRASS_NOIMPACT 20
-#define SURFACE_WOOD           18
-#define SURFACE_SNOW           21
-// [Cecil] Special types
-#define SURFACE_WOOD_SLIDING 22
-#define SURFACE_WOOD_SLOPE   23
-// [Cecil] Last default surface
-#define SURFACE_LAST 24
+// [Cecil] New surface materials
+#include <EntitiesMP/Cecil/Materials.h>
 
 // Bit shifters for ammo
 #define AMMO_NAPALM        4 // [Cecil] 357

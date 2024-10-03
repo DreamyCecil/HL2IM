@@ -18,6 +18,47 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <XGizmo/Base/IniConfig.h>
 
+// Surface types as an editable enum type
+EP_ENUMBEG(EWorldSurfaceType)
+  EP_ENUMVALUE(SURFACE_STONE,                     "Standard"),
+  EP_ENUMVALUE(SURFACE_ICE,                       "Ice"),
+  EP_ENUMVALUE(SURFACE_STONE_NOSTEP,              "Standard - no step"),
+  EP_ENUMVALUE(SURFACE_STONE_HIGHSTAIRS,          "Standard - high stairs"),
+  EP_ENUMVALUE(SURFACE_ICE_CLIMBABLESLOPE,        "Ice climbable slope"),
+  EP_ENUMVALUE(SURFACE_ICE_SLIDINGSLOPE,          "Ice sliding slope"),
+  EP_ENUMVALUE(SURFACE_ICE_LESSSLIDING,           "Ice less sliding"),
+  EP_ENUMVALUE(SURFACE_ROLLERCOASTER,             "Roller coaster"),
+  EP_ENUMVALUE(SURFACE_LAVA,                      "Lava"),
+  EP_ENUMVALUE(SURFACE_SAND,                      "Sand"),
+  EP_ENUMVALUE(SURFACE_CLIMBABLESLOPE,            "Clibamble Slope"),
+  EP_ENUMVALUE(SURFACE_STONE_NOIMPACT,            "Standard - no impact"),
+  EP_ENUMVALUE(SURFACE_WATER,                     "Water"),
+  EP_ENUMVALUE(SURFACE_RED_SAND,                  "Red sand"),
+  EP_ENUMVALUE(SURFACE_ICE_SLIDINGSLOPE_NOIMPACT, "Ice sliding slope no impact"),
+  EP_ENUMVALUE(SURFACE_ROLLERCOASTER_NOIMPACT,    "Roller coaster no impact"),
+  EP_ENUMVALUE(SURFACE_STONE_HIGHSTAIRS_NOIMPACT, "Standard - high stairs no impact"),
+  EP_ENUMVALUE(SURFACE_GRASS,                     "Grass"),
+  EP_ENUMVALUE(SURFACE_WOOD,                      "Wood"),
+  EP_ENUMVALUE(SURFACE_GRASS_SLIDING,             "Grass sliding"),
+  EP_ENUMVALUE(SURFACE_GRASS_NOIMPACT,            "Grass no impact"),
+  EP_ENUMVALUE(SURFACE_SNOW,                      "Snow"),
+  EP_ENUMVALUE(SURFACE_WOOD_SLIDING,              "Wood sliding"),
+  EP_ENUMVALUE(SURFACE_WOOD_SLOPE,                "Wood high slope"),
+
+  // New surfaces
+  NEW_ENUM_SURFACE(METAL),
+  NEW_ENUM_SURFACE(METAL_GRATE),
+  NEW_ENUM_SURFACE(CHAINLINK),
+  NEW_ENUM_SURFACE(TILES),
+  NEW_ENUM_SURFACE(GLASS),
+EP_ENUMEND(EWorldSurfaceType);
+
+// Get surface type for a non-brush entity
+INDEX GetSurfaceForEntity(CEntity *pen) {
+  // Unknown entity
+  return SURFACE_STONE;
+};
+
 // Loaded materials
 static CIniConfig _iniGlobal;
 static CIniConfig _iniWorld;
@@ -260,11 +301,11 @@ BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime) {
 
       // new surfaces
       default: {
-        if (iPolygonType >= SURFACE_LAST) {
+        if (iPolygonType >= SURFACE_LAST_VANILLA) {
           // [material] - [the normal type of this material]
           // e.g. SUR_METAL_NOIMPACT - SUR_METAL_NORMAL
-          INDEX iShifted = (iPolygonType - SURFACE_LAST);
-          iType = (iShifted - INDEX(floor(iShifted / ESRT_LAST))*ESRT_LAST);
+          INDEX iShifted = (iPolygonType - SURFACE_LAST_VANILLA);
+          iType = (iShifted - INDEX(iShifted / ESRT_LAST) * ESRT_LAST);
         }
       }
     }
@@ -297,7 +338,7 @@ BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime) {
     }
 
     // apply the material
-    if (iMaterial >= SURFACE_LAST) {
+    if (iMaterial >= SURFACE_LAST_VANILLA) {
       // determine the material for new surfaces
       iMaterial += iType;
 

@@ -2,7 +2,6 @@
 %{
 #include "StdH.h"
 
-#include "EntitiesMP/Cecil/Materials.h"
 #include "EntitiesMP/Cecil/Weapons.h"
 
 // [Cecil] World conversion

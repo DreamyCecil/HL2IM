@@ -12,9 +12,6 @@
 #include "ModelsMP/Player/SeriousSam/Head.h"
 extern INDEX ent_bReportBrokenChains;
 
-// [Cecil]
-#include <EntitiesMP/Cecil/Materials.h>
-
 // [Cecil] Not playing with a Classics patch by default
 BOOL _bClassicsPatch = FALSE;
 

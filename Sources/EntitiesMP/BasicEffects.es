@@ -6,9 +6,8 @@
 #include "Models/Effects/ShockWave01/ShockWave.h"
 #include "Models/Effects/BloodOnTheWall01/Blood.h"
 #include "EntitiesMP/MovingBrush.h"
-// [Cecil] Materials
+// [Cecil]
 #include "EntitiesMP/Cecil/Effects.h"
-#include "EntitiesMP/Cecil/Materials.h"
 #include "EntitiesMP/Cecil/Physics.h"
 
 #define EXPLOSION_GRENADE_TEXTURE_ANIM_FAST 0

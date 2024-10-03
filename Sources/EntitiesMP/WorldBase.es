@@ -7,7 +7,6 @@
 #include "EntitiesMP/SoundHolder.h"
 
 // [Cecil] Materials
-#include "EntitiesMP/Cecil/Materials.h"
 extern const char *_astrMaterials[];
 %}
 
@@ -397,206 +396,171 @@ void CWorldBase_OnWorldInit(CWorld *pwo) {
   pwo->wo_aitIlluminationTypes[8].it_strName = "Misc 2";
   pwo->wo_aitIlluminationTypes[9].it_strName = "Misc 3";
 
-  // [Cecil] Put variables into the ones that have them
-  // surfaces
-  pwo->wo_astSurfaceTypes[SURFACE_STONE].st_strName = "Standard";
+  // [Cecil] Set names from the enum
+  for (INDEX iSurfaceName = 0; iSurfaceName < SURFACE_LAST_OVERALL; iSurfaceName++) {
+    pwo->wo_astSurfaceTypes[iSurfaceName].st_strName = EWorldSurfaceType_enum.NameForValue(iSurfaceName);
+  }
+
+  // [Cecil] Replaced indices with enum types
   pwo->wo_astSurfaceTypes[SURFACE_STONE].st_fFriction = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_STONE].st_fStairsHeight = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_STONE].st_fJumpSlopeCos = Cos(45.0f);
   pwo->wo_astSurfaceTypes[SURFACE_STONE].st_fClimbSlopeCos = Cos(45.0f);
 
-  pwo->wo_astSurfaceTypes[1].st_strName = "Ice";
-  pwo->wo_astSurfaceTypes[1].st_fFriction = 0.045f;
-  pwo->wo_astSurfaceTypes[1].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[1].st_fJumpSlopeCos = Cos(5.0f);
-  pwo->wo_astSurfaceTypes[1].st_fClimbSlopeCos = Cos(5.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ICE].st_fFriction = 0.045f;
+  pwo->wo_astSurfaceTypes[SURFACE_ICE].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_ICE].st_fJumpSlopeCos = Cos(5.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ICE].st_fClimbSlopeCos = Cos(5.0f);
 
-  pwo->wo_astSurfaceTypes[2].st_strName = "Standard - no step";
-  pwo->wo_astSurfaceTypes[2].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[2].st_fStairsHeight = -0.2f;
-  pwo->wo_astSurfaceTypes[2].st_fJumpSlopeCos = Cos(10.0f);
-  pwo->wo_astSurfaceTypes[2].st_fClimbSlopeCos = Cos(10.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_NOSTEP].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_NOSTEP].st_fStairsHeight = -0.2f;
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_NOSTEP].st_fJumpSlopeCos = Cos(10.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_NOSTEP].st_fClimbSlopeCos = Cos(10.0f);
 
-  pwo->wo_astSurfaceTypes[3].st_strName = "Standard - high stairs";
-  pwo->wo_astSurfaceTypes[3].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[3].st_fStairsHeight = 2.0f;
-  pwo->wo_astSurfaceTypes[3].st_fJumpSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[3].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_HIGHSTAIRS].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_HIGHSTAIRS].st_fStairsHeight = 2.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_HIGHSTAIRS].st_fJumpSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_HIGHSTAIRS].st_fClimbSlopeCos = Cos(45.0f);
 
-  pwo->wo_astSurfaceTypes[4].st_strName = "Ice climbable slope";
-  pwo->wo_astSurfaceTypes[4].st_fFriction = 0.05f;
-  pwo->wo_astSurfaceTypes[4].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[4].st_fJumpSlopeCos = Cos(15.0f);
-  pwo->wo_astSurfaceTypes[4].st_fClimbSlopeCos = Cos(15.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_CLIMBABLESLOPE].st_fFriction = 0.05f;
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_CLIMBABLESLOPE].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_CLIMBABLESLOPE].st_fJumpSlopeCos = Cos(15.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_CLIMBABLESLOPE].st_fClimbSlopeCos = Cos(15.0f);
 
-  pwo->wo_astSurfaceTypes[5].st_strName = "Ice sliding slope";
-  pwo->wo_astSurfaceTypes[5].st_fFriction = 0.001f;
-  pwo->wo_astSurfaceTypes[5].st_fStairsHeight = 0.0f;
-  pwo->wo_astSurfaceTypes[5].st_fJumpSlopeCos = Cos(5.0f);
-  pwo->wo_astSurfaceTypes[5].st_fClimbSlopeCos = Cos(5.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_SLIDINGSLOPE].st_fFriction = 0.001f;
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_SLIDINGSLOPE].st_fStairsHeight = 0.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_SLIDINGSLOPE].st_fJumpSlopeCos = Cos(5.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_SLIDINGSLOPE].st_fClimbSlopeCos = Cos(5.0f);
 
-  pwo->wo_astSurfaceTypes[6].st_strName = "Ice less sliding";
-  pwo->wo_astSurfaceTypes[6].st_fFriction = 0.06f;
-  pwo->wo_astSurfaceTypes[6].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[6].st_fJumpSlopeCos = Cos(5.0f);
-  pwo->wo_astSurfaceTypes[6].st_fClimbSlopeCos = Cos(5.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_LESSSLIDING].st_fFriction = 0.06f;
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_LESSSLIDING].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_LESSSLIDING].st_fJumpSlopeCos = Cos(5.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_LESSSLIDING].st_fClimbSlopeCos = Cos(5.0f);
 
-  pwo->wo_astSurfaceTypes[7].st_strName = "Roller coaster";
-  pwo->wo_astSurfaceTypes[7].st_fFriction = 0.1f;
-  pwo->wo_astSurfaceTypes[7].st_fStairsHeight = 0.0f;
-  pwo->wo_astSurfaceTypes[7].st_fJumpSlopeCos = Cos(5.0f);
-  pwo->wo_astSurfaceTypes[7].st_fClimbSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[7].st_ulFlags = STF_SLIDEDOWNSLOPE;
+  pwo->wo_astSurfaceTypes[SURFACE_ROLLERCOASTER].st_fFriction = 0.1f;
+  pwo->wo_astSurfaceTypes[SURFACE_ROLLERCOASTER].st_fStairsHeight = 0.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_ROLLERCOASTER].st_fJumpSlopeCos = Cos(5.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ROLLERCOASTER].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ROLLERCOASTER].st_ulFlags = STF_SLIDEDOWNSLOPE;
 
-  pwo->wo_astSurfaceTypes[8].st_strName = "Lava";
-  pwo->wo_astSurfaceTypes[8].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[8].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[8].st_fJumpSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[8].st_fClimbSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[8].st_iWalkDamageType = DMT_BURNING;
-  pwo->wo_astSurfaceTypes[8].st_fWalkDamageAmount = 2.0f;
-  pwo->wo_astSurfaceTypes[8].st_tmWalkDamageFrequency = 0.5f;
-  
-  ASSERT(9==SURFACE_SAND);
-  pwo->wo_astSurfaceTypes[SURFACE_SAND].st_strName = "Sand";
+  pwo->wo_astSurfaceTypes[SURFACE_LAVA].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_LAVA].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_LAVA].st_fJumpSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_LAVA].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_LAVA].st_iWalkDamageType = DMT_BURNING;
+  pwo->wo_astSurfaceTypes[SURFACE_LAVA].st_fWalkDamageAmount = 2.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_LAVA].st_tmWalkDamageFrequency = 0.5f;
+
   pwo->wo_astSurfaceTypes[SURFACE_SAND].st_fFriction = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_SAND].st_fStairsHeight = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_SAND].st_fJumpSlopeCos = Cos(45.0f);
   pwo->wo_astSurfaceTypes[SURFACE_SAND].st_fClimbSlopeCos = Cos(45.0f);
 
-  pwo->wo_astSurfaceTypes[10].st_strName = "Clibamble Slope";
-  pwo->wo_astSurfaceTypes[10].st_fFriction = 2.0f;
-  pwo->wo_astSurfaceTypes[10].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[10].st_fJumpSlopeCos = Cos(60.0f);
-  pwo->wo_astSurfaceTypes[10].st_fClimbSlopeCos = Cos(60.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_CLIMBABLESLOPE].st_fFriction = 2.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_CLIMBABLESLOPE].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_CLIMBABLESLOPE].st_fJumpSlopeCos = Cos(60.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_CLIMBABLESLOPE].st_fClimbSlopeCos = Cos(60.0f);
 
-  pwo->wo_astSurfaceTypes[11].st_strName = "Standard - no impact";
-  pwo->wo_astSurfaceTypes[11].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[11].st_fStairsHeight = 1.0f;
-  pwo->wo_astSurfaceTypes[11].st_fJumpSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[11].st_fClimbSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[11].st_ulFlags = STF_NOIMPACT;
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_NOIMPACT].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_NOIMPACT].st_fStairsHeight = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_NOIMPACT].st_fJumpSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_NOIMPACT].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_NOIMPACT].st_ulFlags = STF_NOIMPACT;
 
-  ASSERT(12==SURFACE_WATER);
-  pwo->wo_astSurfaceTypes[SURFACE_WATER].st_strName = "Water";
   pwo->wo_astSurfaceTypes[SURFACE_WATER].st_fFriction = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_WATER].st_fStairsHeight = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_WATER].st_fJumpSlopeCos = Cos(45.0f);
   pwo->wo_astSurfaceTypes[SURFACE_WATER].st_fClimbSlopeCos = Cos(45.0f);
 
-  ASSERT(13==SURFACE_RED_SAND);
-  pwo->wo_astSurfaceTypes[SURFACE_RED_SAND].st_strName = "Red sand";
   pwo->wo_astSurfaceTypes[SURFACE_RED_SAND].st_fFriction = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_RED_SAND].st_fStairsHeight = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_RED_SAND].st_fJumpSlopeCos = Cos(45.0f);
   pwo->wo_astSurfaceTypes[SURFACE_RED_SAND].st_fClimbSlopeCos = Cos(45.0f);
 
-  pwo->wo_astSurfaceTypes[14].st_strName = "Ice sliding slope no impact";
-  pwo->wo_astSurfaceTypes[14].st_fFriction = 0.001f;
-  pwo->wo_astSurfaceTypes[14].st_fStairsHeight = 0.0f;
-  pwo->wo_astSurfaceTypes[14].st_fJumpSlopeCos = Cos(5.0f);
-  pwo->wo_astSurfaceTypes[14].st_fClimbSlopeCos = Cos(5.0f);
-  pwo->wo_astSurfaceTypes[14].st_ulFlags = STF_NOIMPACT;
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_SLIDINGSLOPE_NOIMPACT].st_fFriction = 0.001f;
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_SLIDINGSLOPE_NOIMPACT].st_fStairsHeight = 0.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_SLIDINGSLOPE_NOIMPACT].st_fJumpSlopeCos = Cos(5.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_SLIDINGSLOPE_NOIMPACT].st_fClimbSlopeCos = Cos(5.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ICE_SLIDINGSLOPE_NOIMPACT].st_ulFlags = STF_NOIMPACT;
 
-  pwo->wo_astSurfaceTypes[15].st_strName = "Roller coaster no impact";
-  pwo->wo_astSurfaceTypes[15].st_fFriction = 0.1f;
-  pwo->wo_astSurfaceTypes[15].st_fStairsHeight = 0.0f;
-  pwo->wo_astSurfaceTypes[15].st_fJumpSlopeCos = Cos(5.0f);
-  pwo->wo_astSurfaceTypes[15].st_fClimbSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[15].st_ulFlags = STF_SLIDEDOWNSLOPE | STF_NOIMPACT;
+  pwo->wo_astSurfaceTypes[SURFACE_ROLLERCOASTER_NOIMPACT].st_fFriction = 0.1f;
+  pwo->wo_astSurfaceTypes[SURFACE_ROLLERCOASTER_NOIMPACT].st_fStairsHeight = 0.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_ROLLERCOASTER_NOIMPACT].st_fJumpSlopeCos = Cos(5.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ROLLERCOASTER_NOIMPACT].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_ROLLERCOASTER_NOIMPACT].st_ulFlags = STF_SLIDEDOWNSLOPE | STF_NOIMPACT;
 
-  pwo->wo_astSurfaceTypes[16].st_strName = "Standard - high stairs no impact";
-  pwo->wo_astSurfaceTypes[16].st_fFriction = 1.0f;
-  pwo->wo_astSurfaceTypes[16].st_fStairsHeight = 2.0f;
-  pwo->wo_astSurfaceTypes[16].st_fJumpSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[16].st_fClimbSlopeCos = Cos(45.0f);
-  pwo->wo_astSurfaceTypes[16].st_ulFlags = STF_NOIMPACT;
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_HIGHSTAIRS_NOIMPACT].st_fFriction = 1.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_HIGHSTAIRS_NOIMPACT].st_fStairsHeight = 2.0f;
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_HIGHSTAIRS_NOIMPACT].st_fJumpSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_HIGHSTAIRS_NOIMPACT].st_fClimbSlopeCos = Cos(45.0f);
+  pwo->wo_astSurfaceTypes[SURFACE_STONE_HIGHSTAIRS_NOIMPACT].st_ulFlags = STF_NOIMPACT;
 
-  ASSERT(17==SURFACE_GRASS);
-  pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_strName = "Grass";
   pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fFriction = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fStairsHeight = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fJumpSlopeCos = Cos(45.0f);
   pwo->wo_astSurfaceTypes[SURFACE_GRASS].st_fClimbSlopeCos = Cos(45.0f);
 
-  ASSERT(18==SURFACE_WOOD);
-  pwo->wo_astSurfaceTypes[SURFACE_WOOD].st_strName = "Wood";
   pwo->wo_astSurfaceTypes[SURFACE_WOOD].st_fFriction = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_WOOD].st_fStairsHeight = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_WOOD].st_fJumpSlopeCos = Cos(45.0f);
   pwo->wo_astSurfaceTypes[SURFACE_WOOD].st_fClimbSlopeCos = Cos(45.0f);
 
-  ASSERT(19==SURFACE_GRASS_SLIDING);
-  pwo->wo_astSurfaceTypes[SURFACE_GRASS_SLIDING].st_strName = "Grass sliding";
   pwo->wo_astSurfaceTypes[SURFACE_GRASS_SLIDING].st_fFriction = 0.1f;
   pwo->wo_astSurfaceTypes[SURFACE_GRASS_SLIDING].st_fStairsHeight = 0.0f;
   pwo->wo_astSurfaceTypes[SURFACE_GRASS_SLIDING].st_fJumpSlopeCos = Cos(5.0f);
   pwo->wo_astSurfaceTypes[SURFACE_GRASS_SLIDING].st_fClimbSlopeCos = Cos(45.0f);
   pwo->wo_astSurfaceTypes[SURFACE_GRASS_SLIDING].st_ulFlags = STF_SLIDEDOWNSLOPE;
 
-  ASSERT(20==SURFACE_GRASS_NOIMPACT);
-  pwo->wo_astSurfaceTypes[SURFACE_GRASS_NOIMPACT].st_strName = "Grass no impact";
   pwo->wo_astSurfaceTypes[SURFACE_GRASS_NOIMPACT].st_fFriction = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_GRASS_NOIMPACT].st_fStairsHeight = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_GRASS_NOIMPACT].st_fJumpSlopeCos = Cos(45.0f);
   pwo->wo_astSurfaceTypes[SURFACE_GRASS_NOIMPACT].st_fClimbSlopeCos = Cos(45.0f);
   pwo->wo_astSurfaceTypes[SURFACE_GRASS_NOIMPACT].st_ulFlags = STF_NOIMPACT;
 
-  ASSERT(21==SURFACE_SNOW);
-  pwo->wo_astSurfaceTypes[SURFACE_SNOW].st_strName = "Snow";
   pwo->wo_astSurfaceTypes[SURFACE_SNOW].st_fFriction = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_SNOW].st_fStairsHeight = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_SNOW].st_fJumpSlopeCos = Cos(45.0f);
   pwo->wo_astSurfaceTypes[SURFACE_SNOW].st_fClimbSlopeCos = Cos(45.0f);
 
   // [Cecil] Special types
-  pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLIDING].st_strName = "Wood sliding";
   pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLIDING].st_fFriction = 0.045f;
   pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLIDING].st_fStairsHeight = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLIDING].st_fJumpSlopeCos = Cos(5.0f);
   pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLIDING].st_fClimbSlopeCos = Cos(5.0f);
 
-  pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLOPE].st_strName = "Wood high slope";
   pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLOPE].st_fFriction = 2.0f;
   pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLOPE].st_fStairsHeight = 1.0f;
   pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLOPE].st_fJumpSlopeCos = Cos(60.0f);
   pwo->wo_astSurfaceTypes[SURFACE_WOOD_SLOPE].st_fClimbSlopeCos = Cos(60.0f);
 
-  // [Cecil] Add new surfaces
-  for (INDEX iSur = 0; iSur < CT_NEW_SURFACES; iSur++) {
-    INDEX iSurfaceIndex = SURFACE_LAST + iSur * ESRT_LAST;
+  // [Cecil] Setup new surfaces
+  for (INDEX iNewSurface = 0; iNewSurface < CT_NEW_SURFACES; iNewSurface++) {
+    INDEX iSurfaceIndex = SURFACE_LAST_VANILLA + iNewSurface * ESRT_LAST;
 
-    // surface names
-    const CTString strSurName = _astrMaterials[7 + iSur];
+    // Normal
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_NORMAL].st_fFriction = 1.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_NORMAL].st_fStairsHeight = 1.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_NORMAL].st_fJumpSlopeCos = Cos(45.0f);
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_NORMAL].st_fClimbSlopeCos = Cos(45.0f);
 
-    // normal
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+0].st_strName = strSurName;
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+0].st_fFriction = 1.0f;
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+0].st_fStairsHeight = 1.0f;
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+0].st_fJumpSlopeCos = Cos(45.0f);
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+0].st_fClimbSlopeCos = Cos(45.0f);
+    // Sliding
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_SLIDING].st_fFriction = 0.045f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_SLIDING].st_fStairsHeight = 1.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_SLIDING].st_fJumpSlopeCos = Cos(5.0f);
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_SLIDING].st_fClimbSlopeCos = Cos(5.0f);
 
-    // sliding
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+1].st_strName = strSurName+" sliding";
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+1].st_fFriction = 0.045f;
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+1].st_fStairsHeight = 1.0f;
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+1].st_fJumpSlopeCos = Cos(5.0f);
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+1].st_fClimbSlopeCos = Cos(5.0f);
+    // No impact
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_NOIMPACT].st_fFriction = 1.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_NOIMPACT].st_fStairsHeight = 1.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_NOIMPACT].st_fJumpSlopeCos = Cos(45.0f);
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_NOIMPACT].st_fClimbSlopeCos = Cos(45.0f);
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_NOIMPACT].st_ulFlags = STF_NOIMPACT;
 
-    // no impact
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+2].st_strName = strSurName+" no impact";
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+2].st_fFriction = 1.0f;
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+2].st_fStairsHeight = 1.0f;
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+2].st_fJumpSlopeCos = Cos(45.0f);
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+2].st_fClimbSlopeCos = Cos(45.0f);
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+2].st_ulFlags = STF_NOIMPACT;
-
-    // high slope
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+3].st_strName = strSurName+" high slope";
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+3].st_fFriction = 2.0f;
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+3].st_fStairsHeight = 1.0f;
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+3].st_fJumpSlopeCos = Cos(60.0f);
-    pwo->wo_astSurfaceTypes[iSurfaceIndex+3].st_fClimbSlopeCos = Cos(60.0f);
+    // High slope
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_SLOPE].st_fFriction = 2.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_SLOPE].st_fStairsHeight = 1.0f;
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_SLOPE].st_fJumpSlopeCos = Cos(60.0f);
+    pwo->wo_astSurfaceTypes[iSurfaceIndex + ESRT_SLOPE].st_fClimbSlopeCos = Cos(60.0f);
   }
   
   // contents

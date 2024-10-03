@@ -13,6 +13,13 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
+#ifndef CECIL_INCL_MATERIALS_H
+#define CECIL_INCL_MATERIALS_H
+
+#ifdef PRAGMA_ONCE
+  #pragma once
+#endif
+
 // Surface types
 enum ECecilSurfaceType {
   ESRT_NORMAL,
@@ -25,12 +32,17 @@ enum ECecilSurfaceType {
 
 // New surface definition
 #define NEW_SURFACE(Type, Offset) \
-enum ENUM_##Type##_SURFACE_LIST { \
-  SUR_##Type##_NORMAL   = SURFACE_LAST + Offset*ESRT_LAST + 0, \
-  SUR_##Type##_SLIDING  = SURFACE_LAST + Offset*ESRT_LAST + 1, \
-  SUR_##Type##_NOIMPACT = SURFACE_LAST + Offset*ESRT_LAST + 2, \
-  SUR_##Type##_SLOPE    = SURFACE_LAST + Offset*ESRT_LAST + 3, \
-}
+  SUR_##Type##_NORMAL   = SURFACE_LAST_VANILLA + Offset * ESRT_LAST + 0, \
+  SUR_##Type##_SLIDING  = SURFACE_LAST_VANILLA + Offset * ESRT_LAST + 1, \
+  SUR_##Type##_NOIMPACT = SURFACE_LAST_VANILLA + Offset * ESRT_LAST + 2, \
+  SUR_##Type##_SLOPE    = SURFACE_LAST_VANILLA + Offset * ESRT_LAST + 3
+
+// New surface definition in an editable enum
+#define NEW_ENUM_SURFACE(Type) \
+  EP_ENUMVALUE(SUR_##Type##_NORMAL,   #Type), \
+  EP_ENUMVALUE(SUR_##Type##_SLIDING,  #Type " sliding"), \
+  EP_ENUMVALUE(SUR_##Type##_NOIMPACT, #Type " no impact"), \
+  EP_ENUMVALUE(SUR_##Type##_SLOPE,    #Type " high slope")
 
 // Check for the material in a switch-case block
 #define MATERIAL_CASES(Type) \
@@ -41,16 +53,62 @@ case SUR_##Type##_SLOPE
 
 #define MATERIAL_VAR(Type) SUR_##Type##_NORMAL
 
-// Print material names (should be the same)
-#define MATERIAL_NAMES(Name) Name, Name, Name, Name
+// Surface types as an editable enum type
+enum EWorldSurfaceType {
+  // Vanilla surfaces
+  SURFACE_SAND           =  9,
+  SURFACE_WATER          = 12,
+  SURFACE_RED_SAND       = 13,
+  SURFACE_GRASS          = 17,
+  SURFACE_GRASS_SLIDING  = 19,
+  SURFACE_GRASS_NOIMPACT = 20,
+  SURFACE_WOOD           = 18,
+  SURFACE_SNOW           = 21,
 
-// New surfaces
+  // Types for vanilla surfaces
+  SURFACE_STONE                     =  0,
+  SURFACE_ICE                       =  1,
+  SURFACE_STONE_NOSTEP              =  2,
+  SURFACE_STONE_HIGHSTAIRS          =  3,
+  SURFACE_ICE_CLIMBABLESLOPE        =  4,
+  SURFACE_ICE_SLIDINGSLOPE          =  5,
+  SURFACE_ICE_LESSSLIDING           =  6,
+  SURFACE_ROLLERCOASTER             =  7,
+  SURFACE_LAVA                      =  8,
+  SURFACE_CLIMBABLESLOPE            = 10,
+  SURFACE_STONE_NOIMPACT            = 11,
+  SURFACE_ICE_SLIDINGSLOPE_NOIMPACT = 14,
+  SURFACE_ROLLERCOASTER_NOIMPACT    = 15,
+  SURFACE_STONE_HIGHSTAIRS_NOIMPACT = 16,
+
+  // New special surfaces
+  SURFACE_WOOD_SLIDING = 22,
+  SURFACE_WOOD_SLOPE   = 23,
+
+  // Last default surface (don't use)
+  SURFACE_LAST_VANILLA,
+
+  // New surfaces
+  NEW_SURFACE(METAL,       0),
+  NEW_SURFACE(METAL_GRATE, 1),
+  NEW_SURFACE(CHAINLINK,   2),
+  NEW_SURFACE(TILES,       3),
+  NEW_SURFACE(GLASS,       4),
+
+  // Last overall surface (don't use)
+  SURFACE_LAST_OVERALL,
+};
+
 #define CT_NEW_SURFACES 5
-NEW_SURFACE(METAL,       0);
-NEW_SURFACE(METAL_GRATE, 1);
-NEW_SURFACE(CHAINLINK,   2);
-NEW_SURFACE(TILES,       3);
-NEW_SURFACE(GLASS,       4);
+
+extern DECL_DLL CEntityPropertyEnumType EWorldSurfaceType_enum;
+
+inline void ClearToDefault(EWorldSurfaceType &e) {
+  e = (EWorldSurfaceType)0;
+};
+
+// Get surface type for a non-brush entity
+INDEX GetSurfaceForEntity(CEntity *pen);
 
 // Load and resave materials of the world
 BOOL LoadMaterials(CWorld *pwo);
@@ -71,3 +129,5 @@ void RemoveMaterial(INDEX iLayer);
 
 // Help with functions
 void MaterialsHelp(void);
+
+#endif
