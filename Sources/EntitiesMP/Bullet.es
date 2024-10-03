@@ -210,7 +210,16 @@ functions:
 
         // Spawn hit effect
         if (!bPassable || iSurfaceType == SURFACE_WATER) {
-          SpawnHitTypeEffect(this, bhtType, bSound, vHitNormal, crRay.cr_vHit, vHitDirection, FLOAT3D(0.0f, 0.0f, 0.0f));
+          // [Cecil]
+          SSpawnHitEffectArgs args;
+          args.pen = this;
+          args.bhtType = bhtType;
+          args.bSound = bSound;
+          args.vHitNormal = vHitNormal;
+          args.vHitPoint = crRay.cr_vHit;
+          args.vHitDirection = vHitDirection;
+
+          SpawnHitTypeEffect(args);
         }
 
         // Hit something, no need to continue
@@ -242,20 +251,29 @@ functions:
               vDistance = FLOAT3D(0.0f, 0.0f, 0.0f);
               vHitNormal = FLOAT3D(0, 0, 0);
             }
-            
+
+            // [Cecil]
+            SSpawnHitEffectArgs args;
+            args.pen = this;
+            args.bSound = bSound;
+            args.vHitNormal = vHitNormal;
+            args.vHitPoint = crRay.cr_vHit;
+            args.vHitDirection = vHitDirection;
+            args.vDistance = vDistance;
+
             // spawn red blood hit spill effect
-            BulletHitType eHitType = BHT_FLESH;
+            args.bhtType = BHT_FLESH;
 
             // [Cecil] HL2 enemies
             if (IsOfClass(penOfFlesh, "Antlion") || IsOfClass(penOfFlesh, "AntlionGuard") || IsOfClass(penOfFlesh, "Headcrab")) {
-              eHitType = BHT_GOO;
+              args.bhtType = BHT_GOO;
 
             } else if (IsOfClass(penOfFlesh, "Gizmo") || IsOfClass(penOfFlesh, "Beast")) {
               // spawn green blood hit spill effect
-              eHitType = BHT_ACID;
+              args.bhtType = BHT_ACID;
             }
 
-            SpawnHitTypeEffect(this, eHitType, bSound, vHitNormal, crRay.cr_vHit, vHitDirection, vDistance);
+            SpawnHitTypeEffect(args);
 
             // [Cecil] Impact sound
             INDEX iImpactSound = 0;

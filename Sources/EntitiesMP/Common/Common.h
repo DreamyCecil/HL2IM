@@ -296,10 +296,25 @@ DECL_DLL inline FLOAT DistanceTo(CEntity *penE1, CEntity *penE2) {
 BulletHitType GetBulletHitTypeForSurface(INDEX iSurfaceType);
 EffectParticlesType GetParticleEffectTypeForSurface(INDEX iSurfaceType);
 
-// [Cecil] Returns spawned effect
+// [Cecil] Special structure for spawning hit effects
+struct SSpawnHitEffectArgs {
+  CEntity *pen; // Entity that spawns the effect
+  enum BulletHitType bhtType;
+  BOOL bSound;
+  FLOAT3D vHitNormal;
+  FLOAT3D vHitPoint;
+  FLOAT3D vHitDirection; // a.k.a. incomming bullet direction
+  FLOAT3D vDistance;
+
+  SSpawnHitEffectArgs() : pen(NULL), bhtType((BulletHitType)0), bSound(FALSE), vHitNormal(0, 0, 0), vHitPoint(0, 0, 0),
+    vHitDirection(0, 0, 0), vDistance(0, 0, 0)
+  {
+  };
+};
+
+// [Cecil] Replaced arguments with a struct; returning spawned effect
 // spawn effect from hit type
-void SpawnHitTypeEffect(CEntity *pen, enum BulletHitType bhtType, BOOL bSound, FLOAT3D vHitNormal, FLOAT3D vHitPoint,
-                        FLOAT3D vIncommingBulletDir, FLOAT3D vDistance, CEntity **penReturn = NULL);
+CEntity *SpawnHitTypeEffect(const SSpawnHitEffectArgs &args);
 
 #define FRndIn(a, b) (a + FRnd()*(b - a))
 

@@ -347,11 +347,21 @@ BulletHitType GetBulletHitTypeForSurface(INDEX iSurfaceType)
   return bhtType;
 }
 
-// [Cecil] Returns spawned effect
+// [Cecil] Replaced arguments with a struct; returning spawned effect
 // spawn effect from hit type
-void SpawnHitTypeEffect(CEntity *pen, enum BulletHitType bhtType, BOOL bSound, FLOAT3D vHitNormal, FLOAT3D vHitPoint,
-                        FLOAT3D vIncommingBulletDir, FLOAT3D vDistance, CEntity **penReturn)
+CEntity *SpawnHitTypeEffect(const SSpawnHitEffectArgs &args)
 {
+  // [Cecil] Retrieve arguments
+  CEntity *pen = args.pen;
+  const BulletHitType bhtType = args.bhtType;
+  const BOOL bSound = args.bSound;
+  const FLOAT3D &vHitNormal = args.vHitNormal;
+  const FLOAT3D &vHitPoint = args.vHitPoint;
+  const FLOAT3D &vIncommingBulletDir = args.vHitDirection;
+  const FLOAT3D &vDistance = args.vDistance;
+
+  CEntity *penReturn = NULL;
+
   switch (bhtType) {
     case BHT_BRUSH_STONE:
     case BHT_BRUSH_SAND:
@@ -462,12 +472,8 @@ void SpawnHitTypeEffect(CEntity *pen, enum BulletHitType bhtType, BOOL bSound, F
         FLOAT fDepth = pen->FRnd() * 0.009f + 0.001f;
 
         CPlacement3D plHit = CPlacement3D(vHitPoint-vIncommingBulletDir * fDepth, pen->GetPlacement().pl_OrientationAngle);
-        CEntityPointer penHit = pen->GetWorld()->CreateEntity_t(plHit, CTFILENAME("Classes\\BasicEffect.ecl"));
-        penHit->Initialize(ese);
-
-        if (penReturn != NULL) {
-          *penReturn = penHit;
-        }
+        penReturn = pen->GetWorld()->CreateEntity_t(plHit, CTFILENAME("Classes\\BasicEffect.ecl"));
+        penReturn->Initialize(ese);
 
       } catch (char *strError) {
         FatalError(TRANS("Cannot create basic effect class: %s"), strError);
@@ -510,12 +516,8 @@ void SpawnHitTypeEffect(CEntity *pen, enum BulletHitType bhtType, BOOL bSound, F
           try {
             // spawn effect
             CPlacement3D plHit = CPlacement3D(vHitPoint-vIncommingBulletDir*0.1f, pen->GetPlacement().pl_OrientationAngle);
-            CEntityPointer penHit = pen->GetWorld()->CreateEntity_t(plHit , CTFILENAME("Classes\\BasicEffect.ecl"));
-            penHit->Initialize(ese);
-
-            if (penReturn != NULL) {
-              *penReturn = penHit;
-            }
+            penReturn = pen->GetWorld()->CreateEntity_t(plHit , CTFILENAME("Classes\\BasicEffect.ecl"));
+            penReturn->Initialize(ese);
 
           } catch (char *strError) {
             FatalError(TRANS("Cannot create basic effect class: %s"), strError);
@@ -525,6 +527,9 @@ void SpawnHitTypeEffect(CEntity *pen, enum BulletHitType bhtType, BOOL bSound, F
       break;
     }
   }
+
+  // [Cecil] Return spawned effect
+  return penReturn;
 };
 
 // spawn flame

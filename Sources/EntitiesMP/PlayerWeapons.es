@@ -3009,7 +3009,17 @@ functions:
               AnglesToDirectionVector(plKnife.pl_OrientationAngle, vHitDirection);
               BulletHitType bhtType = (BulletHitType)GetBulletHitTypeForSurface(iSurfaceType);
 
-              SpawnHitTypeEffect(this, bhtType, FALSE, FLOAT3D(vNormal), crRay.cr_vHit, vHitDirection, FLOAT3D(0.0f, 0.0f, 0.0f));
+              // [Cecil]
+              SSpawnHitEffectArgs args;
+              args.pen = this;
+              args.bhtType = bhtType;
+              args.bSound = FALSE;
+              args.vHitNormal = vNormal;
+              args.vHitPoint = crRay.cr_vHit;
+              args.vHitDirection = vHitDirection;
+
+              SpawnHitTypeEffect(args);
+
             } else {
               ((CPlayer&)*m_penPlayer).AddBulletSpray(vBase+vFront, eptType, vReflected);
             }

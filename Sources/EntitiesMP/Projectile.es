@@ -1460,8 +1460,16 @@ void CrossbowRodHit(void) {
     // spawn hit effect
     BOOL bPassable = pbpo->bpo_ulFlags & (BPOF_PASSABLE|BPOF_SHOOTTHRU);
     if (!bPassable || iSurfaceType == SURFACE_WATER) {
-      CEntity *penEffect = NULL;
-      SpawnHitTypeEffect(this, bhtType, TRUE, vHitNormal, vPoint, vHitDirection, FLOAT3D(0.0f, 0.0f, 0.0f), &penEffect);
+      // [Cecil]
+      SSpawnHitEffectArgs args;
+      args.pen = this;
+      args.bhtType = bhtType;
+      args.bSound = TRUE;
+      args.vHitNormal = vHitNormal;
+      args.vHitPoint = vPoint;
+      args.vHitDirection = vHitDirection;
+
+      CEntity *penEffect = SpawnHitTypeEffect(args);
 
       if (penEffect != NULL) {
         ESpawnEffect eseRod;
