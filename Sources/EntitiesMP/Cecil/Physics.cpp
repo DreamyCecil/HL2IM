@@ -418,39 +418,35 @@ void Cecil_PreMoving(CMovableEntity *pen, FLOAT3D &vRotationDir) {
     // test for field containment
     pen->TestFields(pen->en_iUpContent, pen->en_iDnContent, pen->en_fImmersionFactor);
 
-    // [Cecil] Rotate the entity towards the plane below it
-    if (pen->en_ulPhysicsFlags & EPF_ROTATETOPLANE)
-    {
-      const FLOAT fMaxDist = 2.0f;
-      // cast the ray towards the gravity direction
-      CCastRay crBelow(pen, pen->en_plPlacement.pl_PositionVector, pen->en_plPlacement.pl_PositionVector + pen->en_vGravityDir*fMaxDist);
-      crBelow.cr_ttHitModels = CCastRay::TT_NONE;
-      crBelow.cr_bHitTranslucentPortals = FALSE;
-      pen->GetWorld()->CastRay(crBelow);
+    // [Cecil] Set to gravity direction by default
+    vRotationDir = pen->en_vGravityDir;
 
-      // if hit a brush polygon
-      if (crBelow.cr_penHit != NULL && crBelow.cr_pbpoBrushPolygon != NULL) {
-        // calculate angles
-        FLOAT3D vNewDir = -(FLOAT3D&)crBelow.cr_pbpoBrushPolygon->bpo_pbplPlane->bpl_plAbsolute;
-        ANGLE3D aCur, aDes;
-        DirectionVectorToAngles(vRotationDir, aCur);
-        DirectionVectorToAngles(vNewDir, aDes);
-        // find angle difference
-        aDes -= aCur;
-        aDes(1) = NormalizeAngle(aDes(1));
-        aDes(2) = NormalizeAngle(aDes(2));
-        aDes(3) = NormalizeAngle(aDes(3));
-        // if the difference is not that big
-        if (Abs(aDes(2)) < 45 && Abs(aDes(3)) < 45) {
-          // set the plane vector
+    // [Cecil] Rotate the entity towards the plane below it
+    if (pen->en_ulPhysicsFlags & EPF_ROTATETOPLANE) {
+      FLOAT3D vPoint;
+      FLOATplane3D plPlane;
+      FLOAT fDistanceToEdge;
+      CBrushPolygon *pbpo = pen->GetNearestPolygon(vPoint, plPlane, fDistanceToEdge);
+
+      // If it's closer than 2 meters
+      if (pbpo != NULL && (vPoint - pen->GetPlacement().pl_PositionVector).Length() <= 2.0f) {
+        // Calculate angles of the current gravity and the plane
+        FLOAT3D vNewDir = -(FLOAT3D &)plPlane;
+        ANGLE3D aSource, aDest;
+        DirectionVectorToAnglesNoSnap(pen->en_vGravityDir, aSource);
+        DirectionVectorToAnglesNoSnap(vNewDir, aDest);
+
+        // Find angle difference
+        aDest -= aSource;
+        aDest(1) = NormalizeAngle(aDest(1));
+        aDest(2) = NormalizeAngle(aDest(2));
+        aDest(3) = NormalizeAngle(aDest(3));
+
+        // Set plane vector only if the difference is small enough
+        if (Abs(aDest(2)) < 46.0f && Abs(aDest(3)) < 46.0f) {
           vRotationDir = vNewDir;
         }
-      } else {
-        // reset rotation direction
-        vRotationDir = pen->en_vGravityDir;
       }
-    } else {
-      vRotationDir = pen->en_vGravityDir;
     }
 
     // if entity has sticky feet
@@ -700,6 +696,9 @@ void Cecil_PreMoving(CMovableEntity *pen, FLOAT3D &vRotationDir) {
 
     CSurfaceType &stReference = pen->en_pwoWorld->wo_astSurfaceTypes[pen->en_iReferenceSurface];
 
+    // [Cecil] Enough time since last significant movement for jumping
+    const BOOL bAllowedToJump = (_pTimer->CurrentTick() > pen->en_tmLastSignificantVerticalMovement + 0.25f);
+
     // if it has a reference entity
     if (pen->en_penReference!=NULL) {
       FLOAT fPlaneY = (pen->en_vGravityDir%pen->en_vReferencePlane);
@@ -729,8 +728,7 @@ void Cecil_PreMoving(CMovableEntity *pen, FLOAT3D &vRotationDir) {
           pen->en_vReferencePlane);
       }
       // if wants to jump and can jump
-      if (fJump<-0.01f && (fPlaneY<-stReference.st_fJumpSlopeCos
-        || _pTimer->CurrentTick()>pen->en_tmLastSignificantVerticalMovement+0.25f) ) {
+      if (fJump<-0.01f && (fPlaneY<-stReference.st_fJumpSlopeCos || bAllowedToJump)) {
         // jump
         vTranslationAbsolute += pen->en_vGravityDir*fJump;
         pen->en_tmJumped = _pTimer->CurrentTick();
@@ -739,8 +737,9 @@ void Cecil_PreMoving(CMovableEntity *pen, FLOAT3D &vRotationDir) {
 
     // if it doesn't have a reference entity
     } else {//if (en_penReference==NULL) 
+      // [Cecil] Infinite air control, if negative
       // if can control after jump
-      if (_pTimer->CurrentTick()-pen->en_tmJumped<pen->en_tmMaxJumpControl) {
+      if (pen->en_tmMaxJumpControl < 0.0f || _pTimer->CurrentTick() - pen->en_tmJumped < pen->en_tmMaxJumpControl) {
         // accellerate horizontaly, but slower
         AddAccelerationOnPlane(
           vTranslationAbsolute, 
@@ -751,8 +750,7 @@ void Cecil_PreMoving(CMovableEntity *pen, FLOAT3D &vRotationDir) {
       }
 
       // if wants to jump and can jump
-      if (fJump<-0.01f && 
-        _pTimer->CurrentTick()>pen->en_tmLastSignificantVerticalMovement+0.25f) {
+      if (fJump<-0.01f && bAllowedToJump) {
         // jump
         vTranslationAbsolute += pen->en_vGravityDir*fJump;
         pen->en_tmJumped = _pTimer->CurrentTick();
@@ -805,12 +803,17 @@ void Cecil_PreMoving(CMovableEntity *pen, FLOAT3D &vRotationDir) {
     ASSERT(!(pls->ls_ulFlags & LSF_DIRECTIONAL));
     box |= FLOATaabbox3D(FLOAT3D(0,0,0), pls->ls_rFallOff);
   }}
+
+  // [Cecil] Symbols
+  static CSymbolPtr pfCollisionCacheAround("phy_fCollisionCacheAround");
+  static CSymbolPtr pfCollisionCacheAhead("phy_fCollisionCacheAhead");
+
   // add a bit around it
-  box.ExpandByFactor(_pShell->GetFLOAT("phy_fCollisionCacheAround") - 1.0f);
+  box.ExpandByFactor(pfCollisionCacheAround.GetFloat() - 1.0f);
   // make box go few ticks ahead of the entity
   box += pen->en_plPlacement.pl_PositionVector;
   pen->en_boxMovingEstimate  = box;
-  box += pen->en_vIntendedTranslation * _pShell->GetFLOAT("phy_fCollisionCacheAhead");
+  box += pen->en_vIntendedTranslation * pfCollisionCacheAhead.GetFloat();
   pen->en_boxMovingEstimate |= box;
 
   // clear applied movement to be updated during movement
