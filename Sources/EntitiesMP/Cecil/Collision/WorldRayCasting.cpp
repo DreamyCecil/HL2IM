@@ -227,6 +227,14 @@ void CCecilCastRay::TestModelCollisionBox(CEntity *penModel)
 
 // [Cecil] Test the box around the model instead of collision spheres
 void CCecilCastRay::TestModelBoundingBox(CEntity *penModel) {
+  // [Cecil] Doesn't have a custom shape, do regular collision testing
+  if (!(penModel->GetPhysicsFlags() & EPF_CUSTOMCOLLISION)) {
+    TestModelCollisionBox(penModel);
+    return;
+  }
+
+  // [Cecil] TODO: Implement sphere and cylinder collisions
+
   // No collision box
   CCollisionInfo *pci = penModel->en_pciCollisionInfo;
   if (pci == NULL) return;

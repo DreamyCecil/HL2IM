@@ -113,5 +113,8 @@ void GetTrisFromBox(FLOATaabbox3D box, CollisionTris_t &aTris);
 
 // New physics flags
 #define EPF_ROTATETOPLANE          (1UL << 17) // Similar to EPF_STICKYFEET but it only affects rotation towards the plane
+#define EPF_COLLIDEWITHCUSTOM      (1UL << 18) // Collide with a custom collision surrounding all model vertices, discarding its original collision
+#define EPF_CUSTOMCOLLISION        (1UL << 19) // For marking objects with custom collision shapes
+#define EPF_COLLIDEWITHCUSTOM_EXCL (1UL << 20) // If EPF_COLLIDEWITHCUSTOM is set, only collides with custom shapes if objects are marked with EPF_CUSTOMCOLLISION
 
 #endif

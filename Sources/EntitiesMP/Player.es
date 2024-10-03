@@ -1930,7 +1930,7 @@ functions:
 
       default:
         // Initialize the player
-        ulPhysics = (EPF_MODEL_WALKING | EPF_HASLUNGS);
+        ulPhysics = (EPF_MODEL_WALKING | EPF_HASLUNGS | EPF_COLLIDEWITHCUSTOM | EPF_COLLIDEWITHCUSTOM_EXCL);
         ulCollision = (ECF_MODEL | ((ECBI_PLAYER) << ECB_IS));
         break;
     }

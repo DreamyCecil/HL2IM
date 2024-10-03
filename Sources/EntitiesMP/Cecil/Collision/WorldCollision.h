@@ -27,6 +27,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 class CCecilClipMove {
 private:
   BOOL cm_bMovingBrush;  // set if moving a brush (some things are reversed then)
+  BOOL cm_bPreciseCollision; // [Cecil] Requires precise clipping with a custom shaped collision
   class CCecilMovableEntity *cm_penMoving;  // entity that is moving
   CEntity *cm_penA;      // entity A - can be only model
   CEntity *cm_penB;      // entity B - can be either model or brush
@@ -106,6 +107,10 @@ public:
 
   /* Prepare projections and spheres for movement clipping. */
   void PrepareProjectionsAndSpheres(void);
+
+  // [Cecil] Precise model-to-model clipping
+  // If returns FALSE, proceeds with regular sphere-to-sphere clipping
+  BOOL ClipModelMoveToPreciseModel(void);
 
   /* Clip movement if B is a model. */
   void ClipModelMoveToModel(void);

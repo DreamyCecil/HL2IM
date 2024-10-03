@@ -970,6 +970,24 @@ BOOL CCecilMovableEntity::WouldFallInNextPosition(void)
           continue;
         }
 
+        // [Cecil] Treat custom shaped collisions as valid standing surfaces, like terrains
+        if ((en_ulPhysicsFlags & EPF_COLLIDEWITHCUSTOM)
+          && (pen->en_RenderType == CEntity::RT_MODEL || pen->en_RenderType == CEntity::RT_EDITORMODEL
+          || pen->en_RenderType == CEntity::RT_SKAMODEL || pen->en_RenderType == CEntity::RT_SKAEDITORMODEL))
+        {
+          BOOL bCustomCollision = TRUE;
+
+          // Only exclusively against models marked with custom collision
+          if (en_ulPhysicsFlags & EPF_COLLIDEWITHCUSTOM_EXCL) {
+            bCustomCollision = !!(pen->GetPhysicsFlags() & EPF_CUSTOMCOLLISION);
+          }
+
+          if (bCustomCollision) {
+            bSupportFound = TRUE;
+            goto out;
+          }
+        }
+
         if (pen->en_RenderType!=CEntity::RT_BRUSH&&
             pen->en_RenderType!=CEntity::RT_FIELDBRUSH) {
           break;  // brushes are sorted first in list

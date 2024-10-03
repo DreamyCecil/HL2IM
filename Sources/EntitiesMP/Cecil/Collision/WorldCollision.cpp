@@ -107,25 +107,46 @@ CCecilClipMove::CCecilClipMove(CCecilMovableEntity *penEntity)
       penEntity->en_RenderType==CEntity::RT_SKAMODEL ||
       penEntity->en_RenderType==CEntity::RT_SKAEDITORMODEL ) {
     cm_bMovingBrush = FALSE;
+    cm_bPreciseCollision = FALSE; // [Cecil]
 
-    // remember entity and placements
-    cm_penA = penEntity;
-    GetPositionsOfEntity(cm_penA, cm_vA0, cm_mA0, cm_vA1, cm_mA1);
+    // [Cecil] Entity has a custom collision
+    if (penEntity->GetPhysicsFlags() & EPF_CUSTOMCOLLISION) {
+      cm_bPreciseCollision = TRUE;
 
-    // create spheres for the entity
-    ASSERT(penEntity->en_pciCollisionInfo!=NULL);
-    cm_pamsA = &penEntity->en_pciCollisionInfo->ci_absSpheres;
+      // Remember entity and placements
+      cm_penB = penEntity;
+      GetPositionsOfEntity(cm_penB, cm_vB0, cm_mB0, cm_vB1, cm_mB1);
 
-    // create aabbox for entire movement path
-    FLOATaabbox3D box0, box1;
-    penEntity->en_pciCollisionInfo->MakeBoxAtPlacement(cm_vA0, cm_mA0, box0);
-    penEntity->en_pciCollisionInfo->MakeBoxAtPlacement(cm_vA1, cm_mA1, box1);
-    cm_boxMovementPath  = box0;
-    cm_boxMovementPath |= box1;
+      ASSERT(penEntity->en_pciCollisionInfo != NULL);
+
+      // Create bounding box for the entire movement path
+      FLOATaabbox3D box0, box1;
+      penEntity->en_pciCollisionInfo->MakeBoxAtPlacement(cm_vB0, cm_mB0, box0);
+      penEntity->en_pciCollisionInfo->MakeBoxAtPlacement(cm_vB1, cm_mB1, box1);
+      cm_boxMovementPath  = box0;
+      cm_boxMovementPath |= box1;
+
+    } else {
+      // remember entity and placements
+      cm_penA = penEntity;
+      GetPositionsOfEntity(cm_penA, cm_vA0, cm_mA0, cm_vA1, cm_mA1);
+
+      // create spheres for the entity
+      ASSERT(penEntity->en_pciCollisionInfo!=NULL);
+      cm_pamsA = &penEntity->en_pciCollisionInfo->ci_absSpheres;
+
+      // create aabbox for entire movement path
+      FLOATaabbox3D box0, box1;
+      penEntity->en_pciCollisionInfo->MakeBoxAtPlacement(cm_vA0, cm_mA0, box0);
+      penEntity->en_pciCollisionInfo->MakeBoxAtPlacement(cm_vA1, cm_mA1, box1);
+      cm_boxMovementPath  = box0;
+      cm_boxMovementPath |= box1;
+    }
 
   // if entity is brush
   } else if (penEntity->en_RenderType==CEntity::RT_BRUSH) {
     cm_bMovingBrush = TRUE;
+    cm_bPreciseCollision = FALSE; // [Cecil]
 
     // remember entity and placements
     cm_penB = penEntity;
@@ -727,11 +748,52 @@ void GetFrameVerticesForEachTriangle(CModelObject *pmo, INDEX iCurrentMip, INDEX
   }
 };
 
+// [Cecil] Precise model-to-model clipping
+// If returns FALSE, proceeds with regular sphere-to-sphere clipping
+BOOL CCecilClipMove::ClipModelMoveToPreciseModel(void) {
+  // Don't collide with custom shapes at all
+  if (!(cm_penA->GetPhysicsFlags() & EPF_COLLIDEWITHCUSTOM)) {
+    return FALSE;
+  }
+
+  // Don't collide with custom shapes if they aren't exclusively marked as such
+  if (cm_penA->GetPhysicsFlags() & EPF_COLLIDEWITHCUSTOM_EXCL && !(cm_penB->GetPhysicsFlags() & EPF_CUSTOMCOLLISION)) {
+    return FALSE;
+  }
+
+  // [Cecil] TODO: Implement sphere and cylinder collisions
+  FLOATaabbox3D boxCollision;
+
+  if (cm_penB->en_RenderType == CEntity::RT_MODEL || cm_penB->en_RenderType == CEntity::RT_EDITORMODEL) {
+    CModelObject *pmo = cm_penB->GetModelObject();
+    pmo->GetData()->GetAllFramesBBox(boxCollision);
+    boxCollision.StretchByVector(pmo->mo_Stretch);
+
+  } else {
+    CModelInstance *pmi = cm_penB->GetModelInstance();
+    pmi->GetAllFramesBBox(boxCollision);
+    boxCollision.StretchByVector(pmi->mi_vStretch);
+  }
+
+  CollisionTris_t aTris;
+  GetTrisFromBox(boxCollision, aTris);
+
+  for (INDEX iTri = 0; iTri < 12; iTri++) {
+    const CollisionTrianglePositions_t &tri = aTris[iTri];
+    ClipMoveToTriangle(tri[0], tri[1], tri[2]);
+  }
+
+  return TRUE;
+};
+
 /*
  * Clip movement if B is a model.
  */
 void CCecilClipMove::ClipModelMoveToModel(void)
 {
+  // [Cecil] Try doing precise clipping, if it's needed
+  if (ClipModelMoveToPreciseModel()) return;
+
   // assumes that all spheres in one entity have same radius
   FLOAT fRB = (*cm_pamsB)[0].ms_fR;
 
@@ -816,24 +878,47 @@ void CCecilClipMove::ClipMoveToModel(CEntity *penModel)
 {
   // if not possibly colliding
   ASSERT(penModel->en_pciCollisionInfo!=NULL);
-  const FLOATaabbox3D &boxModel = penModel->en_pciCollisionInfo->ci_boxCurrent;
-  if (
-    (cm_boxMovementPath.Min()(1)>boxModel.Max()(1)) ||
-    (cm_boxMovementPath.Max()(1)<boxModel.Min()(1)) ||
-    (cm_boxMovementPath.Min()(2)>boxModel.Max()(2)) ||
-    (cm_boxMovementPath.Max()(2)<boxModel.Min()(2)) ||
-    (cm_boxMovementPath.Min()(3)>boxModel.Max()(3)) ||
-    (cm_boxMovementPath.Max()(3)<boxModel.Min()(3))) {
-    // do nothing
-    return;
+
+  // [Cecil] Ignore bounding box for models
+  if (penModel->en_RenderType != CEntity::RT_MODEL && penModel->en_RenderType != CEntity::RT_EDITORMODEL
+   && penModel->en_RenderType != CEntity::RT_SKAMODEL && penModel->en_RenderType != CEntity::RT_SKAEDITORMODEL)
+  {
+    const FLOATaabbox3D &boxModel = penModel->en_pciCollisionInfo->ci_boxCurrent;
+    if (
+      (cm_boxMovementPath.Min()(1)>boxModel.Max()(1)) ||
+      (cm_boxMovementPath.Max()(1)<boxModel.Min()(1)) ||
+      (cm_boxMovementPath.Min()(2)>boxModel.Max()(2)) ||
+      (cm_boxMovementPath.Max()(2)<boxModel.Min()(2)) ||
+      (cm_boxMovementPath.Min()(3)>boxModel.Max()(3)) ||
+      (cm_boxMovementPath.Max()(3)<boxModel.Min()(3))) {
+      // do nothing
+      return;
+    }
   }
 
   // remember tested entity
   cm_penTested = penModel;
   cm_pbpoTested = NULL;
 
+  // [Cecil] If clipping precisely
+  if (cm_bPreciseCollision) {
+    // Physics object is B and still model is A
+    cm_penA = penModel;
+    GetPositionsOfEntity(cm_penA, cm_vA0, cm_mA0, cm_vA1, cm_mA1);
+
+    // Create bounding spheres for the model
+    ASSERT(penModel->en_pciCollisionInfo != NULL);
+    cm_pamsA = &penModel->en_pciCollisionInfo->ci_absSpheres;
+
+    // Prepare new projections and spheres
+    PrepareProjectionsAndSpheres();
+    FindAbsoluteMovementBoxForA();
+
+    // Clip model to model
+    ClipModelMoveToPreciseModel();
+
   // if clipping a moving model
-  if (!cm_bMovingBrush) {
+  } else if (!cm_bMovingBrush) {
     // moving model is A and other model is B
     cm_penB = penModel;
     GetPositionsOfEntity(cm_penB, cm_vB0, cm_mB0, cm_vB1, cm_mB1);
