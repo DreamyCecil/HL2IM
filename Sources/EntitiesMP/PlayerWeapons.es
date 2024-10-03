@@ -57,6 +57,25 @@ extern INDEX hl2_bCrosshairColoring;
 
 #include "EntitiesMP/Cecil/Physics.h"
 
+// [Cecil] For class IDs
+#include "EntitiesMP/Mod/BetaEnemies/Antlion.h"
+#include "EntitiesMP/Mod/BetaEnemies/AntlionGuard.h"
+#include "EntitiesMP/Mod/BetaEnemies/Headcrab.h"
+#include "EntitiesMP/Mod/BetaEnemies/Merasmus.h"
+#include "EntitiesMP/Mod/Radio.h"
+#include "EntitiesMP/Mod/RollerMine.h"
+#include "EntitiesMP/Beast.h"
+#include "EntitiesMP/CannonRotating.h"
+#include "EntitiesMP/CannonStatic.h"
+#include "EntitiesMP/ExotechLarva.h"
+#include "EntitiesMP/Gizmo.h"
+#include "EntitiesMP/MovingBrush.h"
+#include "EntitiesMP/RollingStone.h"
+#include "EntitiesMP/Scorpman.h"
+#include "EntitiesMP/Summoner.h"
+#include "EntitiesMP/Walker.h"
+#include "EntitiesMP/Werebull.h"
+
 // [Cecil] Current viewer player
 extern CEntity *_penViewPlayer;
 
@@ -1335,7 +1354,7 @@ functions:
     FOREACHINDYNAMICCONTAINER(GetWorld()->wo_cenEntities, CEntity, iten) {
       CEntity *pen = iten;
 
-      if (IsOfClass(pen, "AirElemental")) {
+      if (IsOfClassID(pen, CAirElemental_ClassID)) {
         CAirElemental *penAir = (CAirElemental*)&*pen;
 
         // check if boss is active
@@ -1402,7 +1421,7 @@ functions:
       return FALSE;
     }
 
-    BOOL bMovable = IsDerivedFromClass(pen, "MovableEntity");
+    BOOL bMovable = IsDerivedFromID(pen, CMovableEntity_ClassID);
 
     // not a moving object
     if (!bMovable) {
@@ -1411,13 +1430,13 @@ functions:
 
     // can't pick certain objects
     if (bPickup) {
-      if (IsOfClass(pen, "Walker")       || IsOfClass(pen, "Werebull")
-       || IsOfClass(pen, "Scorpman")     || IsOfClass(pen, "Beast")
-       || IsOfClass(pen, "CannonStatic") || IsOfClass(pen, "CannonRotating")
-       || IsOfClass(pen, "Elemental")    || IsOfClass(pen, "AirElemental")
-       || IsOfClass(pen, "ExotechLarva") || IsOfClass(pen, "Summoner")
-       || IsOfClass(pen, "RollingStone") || IsOfClass(pen, "Projectile")
-       || IsOfClass(pen, "AntlionGuard") || IsOfClass(pen, "Merasmus")
+      if (IsOfClassID(pen, CWalker_ClassID)       || IsOfClassID(pen, CWerebull_ClassID)
+       || IsOfClassID(pen, CScorpman_ClassID)     || IsOfClassID(pen, CBeast_ClassID)
+       || IsOfClassID(pen, CCannonStatic_ClassID) || IsOfClassID(pen, CCannonRotating_ClassID)
+       || IsOfClassID(pen, CElemental_ClassID)    || IsOfClassID(pen, CAirElemental_ClassID)
+       || IsOfClassID(pen, CExotechLarva_ClassID) || IsOfClassID(pen, CSummoner_ClassID)
+       || IsOfClassID(pen, CRollingStone_ClassID) || IsOfClassID(pen, CProjectile_ClassID)
+       || IsOfClassID(pen, CAntlionGuard_ClassID) || IsOfClassID(pen, CMerasmus_ClassID)
        || IS_PLAYER(pen)
        || (pen->GetRenderType() != RT_MODEL && pen->GetRenderType() != RT_SKAMODEL)) {
         return FALSE;
@@ -1430,18 +1449,18 @@ functions:
     }
 
     // various moving objects
-    if (IsOfClass(pen, "Moving Brush") || IsOfClass(pen, "RollingStone")
-     || IsOfClass(pen, "Projectile") || IsOfClass(pen, "RollerMine")
-     || IsOfClass(pen, "Radio")) {
+    if (IsOfClassID(pen, CMovingBrush_ClassID) || IsOfClassID(pen, CRollingStone_ClassID)
+     || IsOfClassID(pen, CProjectile_ClassID) || IsOfClassID(pen, CRollerMine_ClassID)
+     || IsOfClassID(pen, CRadio_ClassID)) {
       return TRUE;
     }
 
     // items
     if (IsDerivedFromClass(pen, "Item")) {
-      CItem &penItem = (CItem&)*pen;
+      CItem &enItem = (CItem &)*pen;
 
       // can't pick respawning items
-      if (penItem.m_bRespawn) {
+      if (enItem.m_bRespawn) {
         return FALSE;
       }
 
@@ -1453,7 +1472,7 @@ functions:
 
       // check if it's already been picked
       INDEX iPlayer = GetPlayer()->GetMyPlayerIndex();
-      BOOL bPickedAlready = (1 << iPlayer) & penItem.m_ulPickedMask;
+      BOOL bPickedAlready = (1 << iPlayer) & enItem.m_ulPickedMask;
       return !bPickedAlready;
     }
 
@@ -1508,10 +1527,12 @@ functions:
     FLOATaabbox3D boxSize;
     m_penHolding->GetBoundingBox(boxSize);
 
-    BOOL bFlyingEnemy = (IsDerivedFromClass(m_penHolding, "Enemy Fly") && ((CEnemyFly &)*m_penHolding).m_bInAir);
+    BOOL bHoldCenter = (IsDerivedFromClass(m_penHolding, "Enemy Fly") && ((CEnemyFly &)*m_penHolding).m_bInAir);
 
-    FLOAT3D vOffset = FLOAT3D(0.0f, (bFlyingEnemy ? 0.0f : boxSize.Size()(2) / 2.0f), 0.0f) * mPlayer;
-    vTargetPos -= vOffset;
+    if (!bHoldCenter) {
+      FLOAT3D vOffset = FLOAT3D(0.0f, boxSize.Size()(2) / 2.0f, 0.0f) * mPlayer;
+      vTargetPos -= vOffset;
+    }
 
     // Make an angle
     ANGLE3D aTargetDir;
@@ -1533,6 +1554,8 @@ functions:
 
     CMovableEntity *pen = (CMovableEntity *)&*m_penHolding;
     GravityGunHolding(pen, eHold);
+
+    // [Cecil] NOTE: Old code, don't use
 
     // Move
     /*CMovableEntity &pen = (CMovableEntity&)*m_penHolding;
@@ -1568,7 +1591,7 @@ functions:
       return;
     }
 
-    if (!bItem && !IsOfClass(m_penHolding, "Radio")) {
+    if (!bItem && !IsOfClassID(m_penHolding, CRadio_ClassID)) {
       return;
     }
 
@@ -2021,7 +2044,7 @@ functions:
         m_fRayHitDistance = crRay.cr_fHitDistance;
 
         // found a movable entity
-        if (IsDerivedFromClass(m_penRayHit, "MovableEntity")) {
+        if (IsDerivedFromID(m_penRayHit, CMovableEntity_ClassID)) {
           break;
         }
       }
@@ -3055,9 +3078,9 @@ functions:
 
             // [Cecil] Other entities
             } else {
-              if (IsOfClass(crRay.cr_penHit, "RollerMine") || IsOfClass(crRay.cr_penHit, "Radio")) {
+              if (IsOfClassID(crRay.cr_penHit, CRollerMine_ClassID) || IsOfClassID(crRay.cr_penHit, CRadio_ClassID)) {
                 sptReturn = SPT_ELECTRICITY_SPARKS_NO_BLOOD;
-              } else if (IsOfClass(crRay.cr_penHit, "RollingStone")) {
+              } else if (IsOfClassID(crRay.cr_penHit, CRollingStone_ClassID)) {
                 sptReturn = SPT_STONES;
               }
             }

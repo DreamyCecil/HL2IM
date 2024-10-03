@@ -41,15 +41,16 @@
 #include "EntitiesMP/CreditsHolder.h"
 #include "EntitiesMP/HudPicHolder.h"
 
-#include "EntitiesMP/Light.h"           // [Cecil] Flashlight
-#include "EntitiesMP/Cecil/Physics.h"   // [Cecil] Source Physics Simulation
-#include "EntitiesMP/Cecil/Effects.h"   // [Cecil] Effects
-#include "EntitiesMP/Cecil/Materials.h" // [Cecil] Surface Materials
-#include "EntitiesMP/Cecil/Weapons.h"   // [Cecil] Weapon Flags
-#include "EntitiesMP/Common/UI/UI.h"    // [Cecil] UI Elements
-#include "HL2Models/ItemHandler.h"      // [Cecil] Item attachments
-#include "EntitiesMP/Mod/RollerMine.h"  // [Cecil] Roller Mine spawning
-#include "EntitiesMP/Mod/Radio.h"       // [Cecil] Radio spawning
+// [Cecil] New functionality
+#include "EntitiesMP/Light.h"           // Flashlight
+#include "EntitiesMP/Cecil/Physics.h"   // Source physics simulation
+#include "EntitiesMP/Cecil/Effects.h"   // Effects
+#include "EntitiesMP/Cecil/Materials.h" // Surface materials
+#include "EntitiesMP/Cecil/Weapons.h"   // Weapon flags
+#include "EntitiesMP/Common/UI/UI.h"    // UI elements
+#include "HL2Models/ItemHandler.h"      // Item attachments
+#include "EntitiesMP/Mod/RollerMine.h"  // Roller mine spawning
+#include "EntitiesMP/Mod/Radio.h"       // Radio spawning
 
 #define FL_PLACE CPlacement3D(FLOAT3D(-32000.0f, -512.0f, -32000.0f), ANGLE3D(0.0f, 0.0f, 0.0f))
 extern BOOL _bMaterialsLoaded;
@@ -4313,7 +4314,7 @@ functions:
       }
 
       // [Cecil] Radio on/off
-      if (IsOfClass(pen, "Radio") && penWeapons->m_fRayHitDistance < 3.0f) {
+      if (IsOfClassID(pen, CRadio_ClassID) && penWeapons->m_fRayHitDistance < 3.0f) {
         pen->SendEvent(ETrigger());
         iUseSound = SOUND_APPLY;
       }

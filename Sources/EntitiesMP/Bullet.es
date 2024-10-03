@@ -6,6 +6,13 @@
 #include "EntitiesMP/EnemyBase.h"
 #include "EntitiesMP/Mod/Sound3D.h"
 #include "EntitiesMP/Cecil/Effects.h"
+
+// [Cecil] For class IDs
+#include "EntitiesMP/Mod/BetaEnemies/Antlion.h"
+#include "EntitiesMP/Mod/BetaEnemies/AntlionGuard.h"
+#include "EntitiesMP/Mod/BetaEnemies/Headcrab.h"
+#include "EntitiesMP/Beast.h"
+#include "EntitiesMP/Gizmo.h"
 %}
 
 uses "EntitiesMP/BasicEffects";
@@ -270,10 +277,10 @@ functions:
             args.bhtType = BHT_FLESH;
 
             // [Cecil] HL2 enemies
-            if (IsOfClass(penOfFlesh, "Antlion") || IsOfClass(penOfFlesh, "AntlionGuard") || IsOfClass(penOfFlesh, "Headcrab")) {
+            if (IsOfClassID(penOfFlesh, CAntlion_ClassID) || IsOfClassID(penOfFlesh, CAntlionGuard_ClassID) || IsOfClassID(penOfFlesh, CHeadcrab_ClassID)) {
               args.bhtType = BHT_GOO;
 
-            } else if (IsOfClass(penOfFlesh, "Gizmo") || IsOfClass(penOfFlesh, "Beast")) {
+            } else if (IsOfClassID(penOfFlesh, CGizmo_ClassID) || IsOfClassID(penOfFlesh, CBeast_ClassID)) {
               // spawn green blood hit spill effect
               args.bhtType = BHT_ACID;
             }
@@ -292,7 +299,7 @@ functions:
               }
 
               // not a sound
-              if (!IsOfClass(penCheck, "CecilSound")) {
+              if (!IsOfClassID(penCheck, CCecilSound3D_ClassID)) {
                 continue;
               }
 

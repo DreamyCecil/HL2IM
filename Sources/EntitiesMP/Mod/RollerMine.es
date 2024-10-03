@@ -4,6 +4,8 @@
 
 // [Cecil] Gravity Gun actions
 #include "EntitiesMP/Cecil/Physics.h"
+
+#include "EntitiesMP/EnemyBase.h"
 %}
 
 uses "EntitiesMP/BasicEffects";
@@ -192,8 +194,8 @@ functions:
       return;
     }
 
-    // don't receive damage from enemies or players
-    if (!IsDerivedFromClass(penInflictor, "Enemy Base") && !IS_PLAYER(penInflictor)) {
+    // Receive environment damage
+    if (!IsDerivedFromID(penInflictor, CEnemyBase_ClassID) && !IS_PLAYER(penInflictor)) {
       CMovableModelEntity::ReceiveDamage(penInflictor, dmtType, fDamage, vHitPoint, vDirection);
       return;
     }

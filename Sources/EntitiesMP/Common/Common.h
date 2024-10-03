@@ -329,4 +329,4 @@ FLOAT3D GetVertexPosition(CModelObject *pmo, const INDEX &iVtxIndex);
 DECL_DLL extern BOOL _bClassicsPatch;
 
 // [Cecil] Check if an entity is of a Player class
-#define IS_PLAYER(_Entity) IsOfClass(_Entity, "Player")
+#define IS_PLAYER(_Entity) IsDerivedFromID(_Entity, CPlayerEntity_ClassID)
