@@ -192,6 +192,22 @@ inline BOOL CCecilClipMove::SendPassEvent(CEntity *penTested)
   return bSent;
 }
 
+// [Cecil] Hit polygon during clipping against spheres and cylinders
+void CCecilClipMove::MovingPointHitPolygon(const FLOAT3D &vAbsCollisionPoint) {
+  FLOATplane3D plPolygon = cm_cpoHit.plPolygon;
+  UBYTE ubSurface = cm_cpoHit.ubSurface;
+  BOOL bStairs = cm_cpoHit.bStairs;
+
+  // Setup fake polygon if there's no real one
+  if (cm_cpoHit.pbpoHit == NULL) {
+    plPolygon = cm_plClippedPlane;
+    ubSurface = GetSurfaceForEntity(cm_penHit);
+    bStairs = FALSE;
+  }
+
+  cm_cpoHit.HitPolygon(vAbsCollisionPoint, plPolygon, ubSurface, bStairs);
+};
+
 /*
  * Clip a moving point to a sphere, update collision data.
  */
@@ -234,7 +250,11 @@ inline void CCecilClipMove::ClipMovingPointToSphere(
       cm_plClippedPlane = plClippedPlane*cm_mBToAbsolute+cm_vBToAbsolute;
       // remember hit entity
       cm_penHit = cm_penTested;
-      cm_cpoHit.HitBrushPolygon(cm_pbpoTested); // [Cecil]
+      cm_cpoHit = cm_cpoTested; // [Cecil]
+
+      // [Cecil] Hit previously set polygon at an absolute position where the collision occurred
+      const FLOAT3D vAbsPoint = vCollisionPoint * cm_mBToAbsolute + cm_vBToAbsolute;
+      MovingPointHitPolygon(vAbsPoint);
     }
   }
 }
@@ -300,7 +320,11 @@ inline void CCecilClipMove::ClipMovingPointToCylinder(
         cm_plClippedPlane = plClippedPlane*cm_mBToAbsolute+cm_vBToAbsolute;
         // remember hit entity
         cm_penHit = cm_penTested;
-        cm_cpoHit.HitBrushPolygon(cm_pbpoTested); // [Cecil]
+        cm_cpoHit = cm_cpoTested; // [Cecil]
+
+        // [Cecil] Hit previously set polygon at an absolute position where the collision occurred
+        const FLOAT3D vAbsPoint = vCollisionPoint * cm_mBToAbsolute + cm_vBToAbsolute;
+        MovingPointHitPolygon(vAbsPoint);
       }
     }
   }
@@ -326,7 +350,8 @@ void CCecilClipMove::ClipMovingSphereToSphere(const CMovingSphere &msMoving,
 void CCecilClipMove::ClipMovingSphereToBrushPolygon(const CMovingSphere &msMoving,
                                                CBrushPolygon *pbpoPolygon)
 {
-  cm_pbpoTested = pbpoPolygon;
+  cm_cpoTested.SetBrushPolygon(pbpoPolygon); // [Cecil]
+
   const FLOATplane3D &plPolygon = pbpoPolygon->bpo_pbplPlane->bpl_plRelative;
   // calculate point distances from polygon plane
   FLOAT fDistance0 = plPolygon.PointDistance(msMoving.ms_vRelativeCenter0)-msMoving.ms_fR;
@@ -373,7 +398,11 @@ void CCecilClipMove::ClipMovingSphereToBrushPolygon(const CMovingSphere &msMovin
           cm_plClippedPlane = plPolygon*cm_mBToAbsolute+cm_vBToAbsolute;
           // remember hit entity
           cm_penHit = cm_penTested;
-          cm_cpoHit.HitBrushPolygon(cm_pbpoTested); // [Cecil]
+          cm_cpoHit = cm_cpoTested; // [Cecil]
+
+          // [Cecil] Absolute position of where the collision occurred
+          const FLOAT3D vAbsPoint = vHitPoint * cm_mBToAbsolute + cm_vBToAbsolute;
+          cm_cpoHit.HitPolygon(vAbsPoint);
         }
       }
     }
@@ -408,7 +437,7 @@ void CCecilClipMove::ClipMovingSphereToBrushPolygon(const CMovingSphere &msMovin
 void CCecilClipMove::ClipMovingSphereToTriangle(
   const CMovingSphere &msMoving, const FLOAT3D &v0, const FLOAT3D &v1, const FLOAT3D &v2)
 {
-  cm_pbpoTested = NULL;
+  cm_cpoTested.SetFakePolygon(v0, v1, v2); // [Cecil]
 
   const FLOATplane3D plPolygon = FLOATplane3D(v0,v1,v2);
 
@@ -452,8 +481,10 @@ void CCecilClipMove::ClipMovingSphereToTriangle(
           cm_plClippedPlane = plPolygon*cm_mBToAbsolute+cm_vBToAbsolute;
           // remember hit entity
           cm_penHit = cm_penTested;
-          // [Cecil] TODO: Implement custom surfaces
-          cm_cpoHit.HitFakePolygon(v0, v1, v2, cm_plClippedPlane, 0, FALSE); // [Cecil]
+          cm_cpoHit = cm_cpoTested; // [Cecil]
+
+          const FLOAT3D vCollisionPoint = vHitPoint * cm_mBToAbsolute + cm_vBToAbsolute;
+          cm_cpoHit.HitPolygon(vCollisionPoint, cm_plClippedPlane, GetSurfaceForEntity(cm_penHit), FALSE); // [Cecil]
         }
       }
     }
@@ -898,7 +929,7 @@ void CCecilClipMove::ClipMoveToModel(CEntity *penModel)
 
   // remember tested entity
   cm_penTested = penModel;
-  cm_pbpoTested = NULL;
+  cm_cpoTested.Reset(); // [Cecil]
 
   // [Cecil] If clipping precisely
   if (cm_bPreciseCollision) {

@@ -17,30 +17,42 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "CollisionCommon.h"
 
-// Hit brush polygon
-void SCollisionPolygon::HitBrushPolygon(CBrushPolygon *pbpoSet) {
+// Set brush polygon
+void SCollisionPolygon::SetBrushPolygon(CBrushPolygon *pbpoSet) {
   if (pbpoSet == NULL) {
     Reset();
     return;
   }
 
-  bHit = TRUE;
   pbpoHit = pbpoSet;
+
+  bHit = FALSE;
   plPolygon = pbpoSet->bpo_pbplPlane->bpl_plAbsolute;
   ubSurface = pbpoSet->bpo_bppProperties.bpp_ubSurfaceType;
   bStairs = pbpoSet->bpo_ulFlags & BPOF_STAIRS;
 };
 
-// Hit fake polygon
-void SCollisionPolygon::HitFakePolygon(const FLOAT3D &v0, const FLOAT3D &v1, const FLOAT3D &v2,
-  const FLOATplane3D &plSetPlane, UBYTE ubSetSurface, BOOL bSetStairs)
+// Set fake polygon
+void SCollisionPolygon::SetFakePolygon(const FLOAT3D &v0, const FLOAT3D &v1, const FLOAT3D &v2)
 {
-  bHit = TRUE;
   pbpoHit = NULL;
   avPolygon[0] = v0;
   avPolygon[1] = v1;
   avPolygon[2] = v2;
 
+  bHit = FALSE;
+};
+
+// Hit polygon at some collision point
+void SCollisionPolygon::HitPolygon(const FLOAT3D &vCollisionPoint) {
+  bHit = TRUE;
+  vCollision = vCollisionPoint;
+};
+
+// Hit polygon at some collision point with extra setup
+void SCollisionPolygon::HitPolygon(const FLOAT3D &vCollisionPoint, const FLOATplane3D &plSetPlane, UBYTE ubSetSurface, BOOL bSetStairs) {
+  bHit = TRUE;
+  vCollision = vCollisionPoint;
   plPolygon = plSetPlane;
   ubSurface = ubSetSurface;
   bStairs = bSetStairs;
@@ -65,6 +77,22 @@ void SCollisionPolygon::AddEdges(CIntersector &is, INDEX iMajorAxis1, INDEX iMaj
   is.AddEdge(avPolygon[0](iMajorAxis1), avPolygon[0](iMajorAxis2), avPolygon[1](iMajorAxis1), avPolygon[1](iMajorAxis2));
   is.AddEdge(avPolygon[1](iMajorAxis1), avPolygon[1](iMajorAxis2), avPolygon[2](iMajorAxis1), avPolygon[2](iMajorAxis2));
   is.AddEdge(avPolygon[2](iMajorAxis1), avPolygon[2](iMajorAxis2), avPolygon[0](iMajorAxis1), avPolygon[0](iMajorAxis2));
+};
+
+// Assignment operator
+SCollisionPolygon &SCollisionPolygon::operator=(const SCollisionPolygon &cpoOther) {
+  pbpoHit = cpoOther.pbpoHit;
+  avPolygon[0] = cpoOther.avPolygon[0];
+  avPolygon[1] = cpoOther.avPolygon[1];
+  avPolygon[2] = cpoOther.avPolygon[2];
+
+  bHit = cpoOther.bHit;
+  vCollision = cpoOther.vCollision;
+  plPolygon = cpoOther.plPolygon;
+  ubSurface = cpoOther.ubSurface;
+  bStairs = cpoOther.bStairs;
+
+  return *this;
 };
 
 // Get a list of triangles from a bounding box (12 tris = 2 per 6 cube sides)

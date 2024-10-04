@@ -304,8 +304,10 @@ void CCecilCastRay::TestModelBoundingBox(CEntity *penModel) {
         cr_fHitDistance = fHitDistance;
         cr_penHit = penModel;
         cr_pbscBrushSector = NULL;
-        // [Cecil] TODO: Implement custom surfaces
-        cr_cpoPolygon.HitFakePolygon(v0, v1, v2, plPolygon, 0, FALSE); // [Cecil]
+
+        // [Cecil]
+        cr_cpoPolygon.SetFakePolygon(v0, v1, v2);
+        cr_cpoPolygon.HitPolygon(vHitPoint, plPolygon, GetSurfaceForEntity(cr_penHit), FALSE);
       }
     }
   }
@@ -642,7 +644,10 @@ void CCecilCastRay::TestBrushSector(CBrushSector *pbscSector)
             cr_fHitDistance=fHitDistance;
             cr_penHit = pbscSector->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity;
             cr_pbscBrushSector = pbscSector;
-            cr_cpoPolygon.HitBrushPolygon(&bpoPolygon); // [Cecil]
+
+            // [Cecil]
+            cr_cpoPolygon.SetBrushPolygon(&bpoPolygon);
+            cr_cpoPolygon.HitPolygon(vHitPoint);
           }
         // if the ray just plainly hit it
         } else {
@@ -650,7 +655,10 @@ void CCecilCastRay::TestBrushSector(CBrushSector *pbscSector)
           cr_fHitDistance=fHitDistance;
           cr_penHit = pbscSector->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity;
           cr_pbscBrushSector = pbscSector;
-          cr_cpoPolygon.HitBrushPolygon(&bpoPolygon); // [Cecil]
+
+          // [Cecil]
+          cr_cpoPolygon.SetBrushPolygon(&bpoPolygon);
+          cr_cpoPolygon.HitPolygon(vHitPoint);
         }
       }
     }

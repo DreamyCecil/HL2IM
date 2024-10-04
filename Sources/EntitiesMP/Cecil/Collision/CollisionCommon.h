@@ -22,20 +22,16 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 // Pseudo-polygon structure
 struct SCollisionPolygon {
+  // Polygon identity
+  CBrushPolygon *pbpoHit; // Real brush polygon (NULL if fake; use avPolygon)
+  FLOAT3D avPolygon[3]; // Fake polygon vertices
+
+  // Collision information
   BOOL bHit; // Whether some polygon has been hit at all
-
-  // Real brush polygon (NULL if fake; use avPolygon)
-  CBrushPolygon *pbpoHit;
-
-  // Fake polygon vertices
-  FLOAT3D avPolygon[3];
-
-  // Real polygon - same as pbpoHit->bpo_pbplPlane->bpl_plAbsolute
-  // Fake polygon - same as cm_plClippedPlane
-  FLOATplane3D plPolygon;
-
-  UBYTE ubSurface;
-  BOOL bStairs;
+  FLOAT3D vCollision; // Point where the collision occurred
+  FLOATplane3D plPolygon; // Real - pbpoHit->bpo_pbplPlane->bpl_plAbsolute; Fake - cm_plClippedPlane
+  UBYTE ubSurface; // Polygon material
+  BOOL bStairs; // Whether it's a stair polygon
 
   // Constructor
   SCollisionPolygon() {
@@ -44,26 +40,35 @@ struct SCollisionPolygon {
 
   // Reset collision polygon to non-hit state
   inline void Reset(void) {
-    bHit = FALSE;
     pbpoHit = NULL;
     avPolygon[0] = FLOAT3D(0, 0, 0);
     avPolygon[1] = FLOAT3D(0, 0, 0);
     avPolygon[2] = FLOAT3D(0, 0, 0);
 
+    bHit = FALSE;
+    vCollision = FLOAT3D(0, 0, 0);
     plPolygon = FLOATplane3D(FLOAT3D(0, 1, 0), 1.0f);
     ubSurface = 0;
     bStairs = FALSE;
   };
 
-  // Hit brush polygon
-  void HitBrushPolygon(CBrushPolygon *pbpoSet);
+  // Set brush polygon
+  void SetBrushPolygon(CBrushPolygon *pbpoSet);
 
-  // Hit fake polygon
-  void HitFakePolygon(const FLOAT3D &v0, const FLOAT3D &v1, const FLOAT3D &v2,
-    const FLOATplane3D &plSetPlane, UBYTE ubSetSurface, BOOL bSetStairs);
+  // Set fake polygon
+  void SetFakePolygon(const FLOAT3D &v0, const FLOAT3D &v1, const FLOAT3D &v2);
+
+  // Hit polygon at some collision point
+  void HitPolygon(const FLOAT3D &vCollisionPoint);
+
+  // Hit polygon at some collision point with extra setup
+  void HitPolygon(const FLOAT3D &vCollisionPoint, const FLOATplane3D &plSetPlane, UBYTE ubSetSurface, BOOL bSetStairs);
 
   // Add polygon edges to intersector
   void AddEdges(CIntersector &is, INDEX iMajorAxis1, INDEX iMajorAxis2) const;
+
+  // Assignment operator
+  SCollisionPolygon &operator=(const SCollisionPolygon &cpoOther);
 };
 
 // Determine vertical position difference

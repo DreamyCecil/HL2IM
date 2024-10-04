@@ -62,7 +62,7 @@ private:
 // helper variables
   FLOATaabbox3D cm_boxMovementPath; // aabbox around entire movement path
   CEntity *cm_penTested;            // entity to be remembered if hit (A or B)
-  CBrushPolygon *cm_pbpoTested;     // brush polygon to be remembered if hit
+  SCollisionPolygon cm_cpoTested;   // [Cecil] Any polygon to be remembered, if hit
   class CWorld *cm_pwoWorld;        // world that movement is taking place in
 
   // projections for converting from space of entity A to space of entity B
@@ -82,6 +82,9 @@ public:
   void ProjectASpheresToB(void);
   /* Find movement box in absolute space for A entity. */
   void FindAbsoluteMovementBoxForA(void);
+
+  // [Cecil] Hit polygon during clipping against spheres and cylinders
+  inline void MovingPointHitPolygon(const FLOAT3D &vAbsCollisionPoint);
 
   /* Clip a moving point to a sphere, update collision data. */
   inline void ClipMovingPointToSphere(const FLOAT3D &vStart, const FLOAT3D &vEnd,

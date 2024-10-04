@@ -867,7 +867,7 @@ BOOL CCecilMovableEntity::IsSomeSectorPolygonBelowPoint(CBrushSector *pbsc, cons
 
     // [Cecil] Create collision polygon
     SCollisionPolygon cpo;
-    cpo.HitBrushPolygon(pbpo);
+    cpo.SetBrushPolygon(pbpo);
 
     // if it is below
     if (IsPolygonBelowPoint(cpo, vPoint, fMaxDist)) {
@@ -897,7 +897,7 @@ BOOL CCecilMovableEntity::WouldFallInNextPosition(void)
     
   // if the stand-on polygon is near below
   } else if (en_pbpoStandOn != NULL) {
-    cpoBelow.HitBrushPolygon(en_pbpoStandOn);
+    cpoBelow.SetBrushPolygon(en_pbpoStandOn);
   }
 
   if (cpoBelow.bHit && IsPolygonBelowPoint(cpoBelow, en_vNextPosition, en_fStepDnHeight)) {
@@ -912,7 +912,7 @@ BOOL CCecilMovableEntity::WouldFallInNextPosition(void)
   // for each cached near polygon
   for(INDEX iPolygon=0; iPolygon<apbpo.Count(); iPolygon++) {
     CBrushPolygon *pbpo = apbpo[iPolygon];
-    cpoBelow.HitBrushPolygon(pbpo); // [Cecil]
+    cpoBelow.SetBrushPolygon(pbpo); // [Cecil]
 
     // if it is below
     if (IsPolygonBelowPoint(cpoBelow, en_vNextPosition, en_fStepDnHeight)) {
@@ -1803,7 +1803,7 @@ void CCecilMovableEntity::PreMoving(void)
 
     // if the stand-on polygon is near below
     } else if (en_pbpoStandOn != NULL) {
-      cpoStanding.HitBrushPolygon(en_pbpoStandOn);
+      cpoStanding.SetBrushPolygon(en_pbpoStandOn);
     }
 
     // if there is no fixed remembered stand-on polygon or the entity is not on it anymore
