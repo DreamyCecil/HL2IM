@@ -118,5 +118,20 @@ public:
   void ContinueCast(CWorld *pwoWorld);
 };
 
+// [Cecil] Return arguments for ray checking methods
+struct SRayReturnArgs {
+  FLOAT fMinLambda;
+  FLOAT fHitDistance;
+  FLOAT3D vHitPoint;
+  FLOATplane3D plHitPlane;
+};
+
+// [Cecil] Common method for calculating where a ray hits the sphere
+BOOL RayHitsSphere(const FLOAT3D &vStart, const FLOAT3D &vEnd,
+  const FLOAT3D &vSphereCenter, const FLOAT fSphereRadius, SRayReturnArgs &args);
+
+// [Cecil] Common method for calculating where a ray hits the cylinder
+BOOL RayHitsCylinder(const FLOAT3D &vStart, const FLOAT3D &vEnd,
+  const FLOAT3D &vCylinderBottomCenter, const FLOAT3D &vCylinderTopCenter, const FLOAT fCylinderRadius, SRayReturnArgs &args);
 
 #endif  /* include-once check. */

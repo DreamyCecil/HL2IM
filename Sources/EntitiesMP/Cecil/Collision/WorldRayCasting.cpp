@@ -116,38 +116,85 @@ void CCecilCastRay::ClearSectorList(void)
   _aas.PopAll();
 }
 
-/*
- * Test if a ray hits sphere.
- */
-inline static BOOL RayHitsSphere(
-  const FLOAT3D &vStart,
-  const FLOAT3D &vEnd,
-  const FLOAT3D &vSphereCenter,
-  const FLOAT fSphereRadius,
-  FLOAT &fDistance)
+// [Cecil] Common method for calculating where a ray hits the sphere
+BOOL RayHitsSphere(const FLOAT3D &vStart, const FLOAT3D &vEnd,
+  const FLOAT3D &vSphereCenter, const FLOAT fSphereRadius, SRayReturnArgs &args)
 {
   const FLOAT3D vSphereCenterToStart = vStart - vSphereCenter;
-  const FLOAT3D vStartToEnd          = vEnd - vStart;
-  // calculate discriminant for intersection parameters
-  const FLOAT fP = ((vStartToEnd%vSphereCenterToStart)/(vStartToEnd%vStartToEnd));
-  const FLOAT fQ = (((vSphereCenterToStart%vSphereCenterToStart)
-    - (fSphereRadius*fSphereRadius))/(vStartToEnd%vStartToEnd));
-  const FLOAT fD = fP*fP-fQ;
-  // if it is less than zero
-  if (fD<0) {
-    // no collision will occur
+  const FLOAT3D vStartToEnd = vEnd - vStart;
+
+  // Calculate discriminant for intersection parameters
+  const FLOAT fP = (vStartToEnd % vSphereCenterToStart) / (vStartToEnd % vStartToEnd);
+  const FLOAT fQ = ((vSphereCenterToStart % vSphereCenterToStart) - (fSphereRadius * fSphereRadius)) / (vStartToEnd % vStartToEnd);
+  const FLOAT fD = fP * fP - fQ;
+
+  // No collision will occur if it's less than zero
+  if (fD < 0.0f) return FALSE;
+
+  // Calculate intersection parameters
+  const FLOAT fSqrtD = sqrt(fD);
+  const FLOAT fLambda1 = -fP + fSqrtD;
+  const FLOAT fLambda2 = -fP - fSqrtD;
+
+  // Use lower one
+  args.fMinLambda = Min(fLambda1, fLambda2);
+  args.fHitDistance = args.fMinLambda * vStartToEnd.Length();
+
+  args.vHitPoint = vStartToEnd * args.fMinLambda + vStart;
+  FLOAT3D vCollisionNormal = args.vHitPoint - vSphereCenter;
+  args.plHitPlane = FLOATplane3D(vCollisionNormal, args.vHitPoint);
+
+  return TRUE;
+};
+
+// [Cecil] Common method for calculating where a ray hits the cylinder
+BOOL RayHitsCylinder(const FLOAT3D &vStart, const FLOAT3D &vEnd,
+  const FLOAT3D &vCylinderBottomCenter, const FLOAT3D &vCylinderTopCenter, const FLOAT fCylinderRadius, SRayReturnArgs &args)
+{
+  const FLOAT3D vCylinderBottomToStart = vStart - vCylinderBottomCenter;
+  const FLOAT3D vStartToEnd = vEnd - vStart;
+
+  const FLOAT3D vCylinderBottomToTop = vCylinderTopCenter - vCylinderBottomCenter;
+  const FLOAT fCylinderBottomToTopLength = vCylinderBottomToTop.Length();
+  const FLOAT3D vCylinderDirection = vCylinderBottomToTop / fCylinderBottomToTopLength;
+
+  const FLOAT3D vB = vStartToEnd - vCylinderDirection * (vCylinderDirection % vStartToEnd);
+  const FLOAT3D vC = vCylinderBottomToStart - vCylinderDirection * (vCylinderDirection % vCylinderBottomToStart);
+
+  const FLOAT fP = (vB % vC) / (vB % vB);
+  const FLOAT fQ = (vC % vC - fCylinderRadius * fCylinderRadius) / (vB % vB);
+
+  const FLOAT fD = fP * fP - fQ;
+
+  // No collision will occur if it's less than zero
+  if (fD < 0.0f) return FALSE;
+
+  // Clculate intersection parameters
+  const FLOAT fSqrtD = sqrt(fD);
+  const FLOAT fLambda1 = -fP + fSqrtD;
+  const FLOAT fLambda2 = -fP - fSqrtD;
+
+  // Use lower one
+  args.fMinLambda = Min(fLambda1, fLambda2);
+  args.fHitDistance = args.fMinLambda * vStartToEnd.Length();
+
+  // Calculate the collision point
+  args.vHitPoint = vStartToEnd * args.fMinLambda + vStart;
+  
+  // Find distance of the collision point from the cylinder bottom
+  FLOATplane3D plCylinderBottom(vCylinderBottomToTop, vCylinderBottomCenter);
+  FLOAT fCollisionDistance = plCylinderBottom.PointDistance(args.vHitPoint);
+
+  // Make sure the point is between bottom and top of cylinder
+  if (fCollisionDistance < 0.0f || fCollisionDistance >= fCylinderBottomToTopLength) {
     return FALSE;
   }
-  // calculate intersection parameters
-  const FLOAT fSqrtD = sqrt(fD);
-  const FLOAT fLambda1 = -fP+fSqrtD;
-  const FLOAT fLambda2 = -fP-fSqrtD;
-  // use lower one
-  const FLOAT fMinLambda = Min(fLambda1, fLambda2);
-  // calculate distance from parameter
-  fDistance = fMinLambda*vStartToEnd.Length();
+
+  FLOAT3D vCollisionNormal = plCylinderBottom.ProjectPoint(args.vHitPoint) - vCylinderBottomCenter;
+  args.plHitPlane = FLOATplane3D(vCollisionNormal, args.vHitPoint);
+
   return TRUE;
-}
+};
 
 void CCecilCastRay::TestModelSimple(CEntity *penModel, CModelObject &mo)
 {
@@ -162,12 +209,14 @@ void CCecilCastRay::TestModelSimple(CEntity *penModel, CModelObject &mo)
   vSphereCenter+=penModel->en_plPlacement.pl_PositionVector;
 
   // if the ray doesn't hit the sphere
-  FLOAT fSphereHitDistance;
+  SRayReturnArgs args;
   if (!RayHitsSphere(cr_vOrigin, cr_vTarget,
-    vSphereCenter, fSphereRadius+cr_fTestR, fSphereHitDistance) ) {
+    vSphereCenter, fSphereRadius+cr_fTestR, args) ) {
     // ignore
     return;
   }
+
+  FLOAT fSphereHitDistance = args.fHitDistance;
 
   // if the ray hits the sphere closer than closest found hit point yet
   if (fSphereHitDistance<cr_fHitDistance && fSphereHitDistance>0.0f) {
@@ -194,12 +243,14 @@ void CCecilCastRay::TestModelCollisionBox(CEntity *penModel)
   FLOAT3D vSphereCenter = boxModel.Center();
 
   // if the ray doesn't hit the sphere
-  FLOAT fSphereHitDistance;
+  SRayReturnArgs args;
   if (!RayHitsSphere(cr_vOrigin, cr_vTarget,
-    vSphereCenter, fSphereRadius+cr_fTestR, fSphereHitDistance) ) {
+    vSphereCenter, fSphereRadius+cr_fTestR, args) ) {
     // ignore
     return;
   }
+
+  FLOAT fSphereHitDistance = args.fHitDistance;
 
   // get entity collision spheres
   CStaticArray<CMovingSphere> &ams = pci->ci_absSpheres;
@@ -212,12 +263,13 @@ void CCecilCastRay::TestModelCollisionBox(CEntity *penModel)
     // project its center to absolute space
     FLOAT3D vCenter = itms->ms_vCenter*mRotation + vPosition;
     // if the ray hits the sphere closer than closest found hit point yet
-    FLOAT fOneSphereHitDistance;
+    SRayReturnArgs args;
+
     if (RayHitsSphere(cr_vOrigin, cr_vTarget,
-      vCenter, itms->ms_fR+cr_fTestR, fOneSphereHitDistance) &&
-      fOneSphereHitDistance<cr_fHitDistance && fOneSphereHitDistance>-cr_fTestR) {
+      vCenter, itms->ms_fR+cr_fTestR, args) &&
+      args.fHitDistance < cr_fHitDistance && args.fHitDistance > -cr_fTestR) {
       // set the current entity as new hit target
-      cr_fHitDistance=fOneSphereHitDistance;
+      cr_fHitDistance = args.fHitDistance;
       cr_penHit = penModel;
       cr_pbscBrushSector = NULL;
       cr_cpoPolygon.Reset(); // [Cecil]
@@ -330,12 +382,14 @@ void CCecilCastRay::TestModelFull(CEntity *penModel, CModelObject &mo)
   vSphereCenter+=penModel->en_plPlacement.pl_PositionVector;
 
   // if the ray doesn't hit the sphere
-  FLOAT fSphereHitDistance;
+  SRayReturnArgs args;
   if (!RayHitsSphere(cr_vOrigin, cr_vTarget,
-    vSphereCenter, fSphereRadius+cr_fTestR, fSphereHitDistance) ) {
+    vSphereCenter, fSphereRadius+cr_fTestR, args) ) {
     // ignore
     return;
   }
+
+  FLOAT fSphereHitDistance = args.fHitDistance;
 
   FLOAT fHitDistance;
   // if the ray hits the model closer than closest found hit point yet
@@ -455,12 +509,14 @@ void CCecilCastRay::TestSkaModelSimple(CEntity *penModel, CModelInstance &mi)
   vSphereCenter+=penModel->en_plPlacement.pl_PositionVector;
 
   // if the ray doesn't hit the sphere
-  FLOAT fSphereHitDistance;
+  SRayReturnArgs args;
   if (!RayHitsSphere(cr_vOrigin, cr_vTarget,
-    vSphereCenter, fSphereRadius+cr_fTestR, fSphereHitDistance) ) {
+    vSphereCenter, fSphereRadius+cr_fTestR, args) ) {
     // ignore
     return;
   }
+
+  FLOAT fSphereHitDistance = args.fHitDistance;
 
   // if the ray hits the sphere closer than closest found hit point yet
   if (fSphereHitDistance<cr_fHitDistance && fSphereHitDistance>0.0f) {
@@ -484,12 +540,14 @@ void CCecilCastRay::TestSkaModelFull(CEntity *penModel, CModelInstance &mi)
   vSphereCenter+=penModel->en_plPlacement.pl_PositionVector;
 
   // if the ray doesn't hit the sphere
-  FLOAT fSphereHitDistance;
+  SRayReturnArgs args;
   if (!RayHitsSphere(cr_vOrigin, cr_vTarget,
-    vSphereCenter, fSphereRadius+cr_fTestR, fSphereHitDistance) ) {
+    vSphereCenter, fSphereRadius+cr_fTestR, args) ) {
     // ignore
     return;
   }
+
+  FLOAT fSphereHitDistance = args.fHitDistance;
 
   // if the ray hits the sphere closer than closest found hit point yet
   if (fSphereHitDistance<cr_fHitDistance && fSphereHitDistance>0.0f) {

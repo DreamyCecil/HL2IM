@@ -17,6 +17,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "CollisionCommon.h"
 #include "WorldCollision.h"
+#include "WorldRayCasting.h"
 
 #include <EntitiesMP/Mod/Base/MovableEntity.h>
 #include <EntitiesMP/Mod/PhysBase.h>
@@ -220,47 +221,36 @@ inline void CCecilClipMove::ClipMovingPointToSphere(
   const FLOAT3D &vSphereCenter,
   const FLOAT fSphereRadius)
 {
-  const FLOAT3D vSphereCenterToStart = vStart - vSphereCenter;
-  const FLOAT3D vStartToEnd          = vEnd - vStart;
-  // calculate discriminant for intersection parameters
-  const FLOAT fP = ((vStartToEnd%vSphereCenterToStart)/(vStartToEnd%vStartToEnd));
-  const FLOAT fQ = (((vSphereCenterToStart%vSphereCenterToStart)
-    - (fSphereRadius*fSphereRadius))/(vStartToEnd%vStartToEnd));
-  const FLOAT fD = fP*fP-fQ;
-  // if it is less than zero
-  if (fD<0) {
-    // no collision will occur
+  SRayReturnArgs args;
+
+  if (!RayHitsSphere(vStart, vEnd, vSphereCenter, fSphereRadius, args)) {
     return;
   }
-  // calculate intersection parameters
-  const FLOAT fSqrtD = sqrt(fD);
-  const FLOAT fLambda1 = -fP+fSqrtD;
-  const FLOAT fLambda2 = -fP-fSqrtD;
-  // use lower one
-  const FLOAT fMinLambda = Min(fLambda1, fLambda2);
-  // if it is betwen zero and last collision found
-  if (0.0f<=fMinLambda && fMinLambda<cm_fMovementFraction) {
-    // if cannot pass
-    if (!SendPassEvent(cm_penTested)) {
-      // mark this as the new closest found collision point
-      cm_fMovementFraction = fMinLambda;
-      cm_vClippedLine = (vStartToEnd*(1.0f-fMinLambda))*cm_mBToAbsolute;
-      ASSERT(cm_vClippedLine.Length()<100.0f);
-      FLOAT3D vCollisionPoint = vStartToEnd*fMinLambda + vStart;
-      FLOAT3D vCollisionNormal = vCollisionPoint - vSphereCenter;
-      FLOATplane3D plClippedPlane(vCollisionNormal, vCollisionPoint);
-      // project the collision plane from space B to absolute space
-      cm_plClippedPlane = plClippedPlane*cm_mBToAbsolute+cm_vBToAbsolute;
-      // remember hit entity
-      cm_penHit = cm_penTested;
-      cm_cpoHit = cm_cpoTested; // [Cecil]
 
-      // [Cecil] Hit previously set polygon at an absolute position where the collision occurred
-      const FLOAT3D vAbsPoint = vCollisionPoint * cm_mBToAbsolute + cm_vBToAbsolute;
-      MovingPointHitPolygon(vAbsPoint);
-    }
-  }
-}
+  // if it is betwen zero and last collision found
+  if (args.fMinLambda < 0.0f || args.fMinLambda >= cm_fMovementFraction) return;
+
+  // Pass
+  if (SendPassEvent(cm_penTested)) return;
+
+  const FLOAT3D vStartToEnd = vEnd - vStart;
+
+  // Mark this as the new closest found collision point
+  cm_fMovementFraction = args.fMinLambda;
+  cm_vClippedLine = (vStartToEnd * (1.0f - args.fMinLambda)) * cm_mBToAbsolute;
+  ASSERT(cm_vClippedLine.Length()<100.0f);
+
+  // Project the collision plane from space B to absolute space
+  cm_plClippedPlane = args.plHitPlane * cm_mBToAbsolute + cm_vBToAbsolute;
+
+  // Remember hit entity
+  cm_penHit = cm_penTested;
+  cm_cpoHit = cm_cpoTested; // [Cecil]
+
+  // [Cecil] Hit previously set polygon at an absolute position where the collision occurred
+  const FLOAT3D vAbsPoint = args.vHitPoint * cm_mBToAbsolute + cm_vBToAbsolute;
+  MovingPointHitPolygon(vAbsPoint);
+};
 
 /*
  * Clip a moving point to a cylinder, update collision data.
@@ -272,66 +262,36 @@ inline void CCecilClipMove::ClipMovingPointToCylinder(
   const FLOAT3D &vCylinderTopCenter,
   const FLOAT fCylinderRadius)
 {
-  const FLOAT3D vStartToEnd                = vEnd - vStart;
-  const FLOAT3D vCylinderBottomToStart     = vStart - vCylinderBottomCenter;
+  SRayReturnArgs args;
 
-  const FLOAT3D vCylinderBottomToTop       = vCylinderTopCenter - vCylinderBottomCenter;
-  const FLOAT   fCylinderBottomToTopLength = vCylinderBottomToTop.Length();
-  const FLOAT3D vCylinderDirection         = vCylinderBottomToTop/fCylinderBottomToTopLength;
-
-  const FLOAT3D vB = vStartToEnd - vCylinderDirection*(vCylinderDirection%vStartToEnd);
-  const FLOAT3D vC = vCylinderBottomToStart - vCylinderDirection*
-    (vCylinderDirection%vCylinderBottomToStart);
-
-  const FLOAT fP = (vB%vC)/(vB%vB);
-  const FLOAT fQ = (vC%vC-fCylinderRadius*fCylinderRadius)/(vB%vB);
-
-  const FLOAT fD = fP*fP-fQ;
-  // if it is less than zero
-  if (fD<0) {
-    // no collision will occur
+  if (!RayHitsCylinder(vStart, vEnd, vCylinderBottomCenter, vCylinderTopCenter, fCylinderRadius, args)) {
     return;
   }
-  // calculate intersection parameters
-  const FLOAT fSqrtD = sqrt(fD);
-  const FLOAT fLambda1 = -fP+fSqrtD;
-  const FLOAT fLambda2 = -fP-fSqrtD;
-  // use lower one
-  const FLOAT fMinLambda = Min(fLambda1, fLambda2);
+
   // if it is betwen zero and last collision found
-  if (0.0f<=fMinLambda && fMinLambda<cm_fMovementFraction) {
-    // calculate the collision point
-    FLOAT3D vCollisionPoint = vStartToEnd*fMinLambda + vStart;
-    // create plane at cylinder bottom
-    FLOATplane3D plCylinderBottom(vCylinderBottomToTop, vCylinderBottomCenter);
-    // find distance of the collision point from the bottom plane
-    FLOAT fCollisionToBottomPlaneDistance = plCylinderBottom.PointDistance(vCollisionPoint);
-    // if the point is between bottom and top of cylinder
-    if (0<=fCollisionToBottomPlaneDistance
-      &&fCollisionToBottomPlaneDistance<fCylinderBottomToTopLength) {
+  if (args.fMinLambda < 0.0f || args.fMinLambda >= cm_fMovementFraction) return;
 
-      // if cannot pass
-      if (!SendPassEvent(cm_penTested)) {
-        // mark this as the new closest found collision point
-        cm_fMovementFraction = fMinLambda;
-        cm_vClippedLine = (vStartToEnd*(1.0f-fMinLambda))*cm_mBToAbsolute;
-        ASSERT(cm_vClippedLine.Length()<100.0f);
-        FLOAT3D vCollisionNormal = plCylinderBottom.ProjectPoint(vCollisionPoint)
-          - vCylinderBottomCenter;
-        FLOATplane3D plClippedPlane(vCollisionNormal, vCollisionPoint);
-        // project the collision plane from space B to absolute space
-        cm_plClippedPlane = plClippedPlane*cm_mBToAbsolute+cm_vBToAbsolute;
-        // remember hit entity
-        cm_penHit = cm_penTested;
-        cm_cpoHit = cm_cpoTested; // [Cecil]
+  // Pass
+  if (SendPassEvent(cm_penTested)) return;
 
-        // [Cecil] Hit previously set polygon at an absolute position where the collision occurred
-        const FLOAT3D vAbsPoint = vCollisionPoint * cm_mBToAbsolute + cm_vBToAbsolute;
-        MovingPointHitPolygon(vAbsPoint);
-      }
-    }
-  }
-}
+  const FLOAT3D vStartToEnd = vEnd - vStart;
+
+  // Mark this as the new closest found collision point
+  cm_fMovementFraction = args.fMinLambda;
+  cm_vClippedLine = (vStartToEnd * (1.0f - args.fMinLambda)) * cm_mBToAbsolute;
+  ASSERT(cm_vClippedLine.Length()<100.0f);
+
+  // Project the collision plane from space B to absolute space
+  cm_plClippedPlane = args.plHitPlane * cm_mBToAbsolute + cm_vBToAbsolute;
+
+  // Remember hit entity
+  cm_penHit = cm_penTested;
+  cm_cpoHit = cm_cpoTested; // [Cecil]
+
+  // [Cecil] Hit previously set polygon at an absolute position where the collision occurred
+  const FLOAT3D vAbsPoint = args.vHitPoint * cm_mBToAbsolute + cm_vBToAbsolute;
+  MovingPointHitPolygon(vAbsPoint);
+};
 
 /*
  * Clip a moving sphere to a standing sphere, update collision data.
@@ -594,194 +554,6 @@ void CCecilClipMove::FindAbsoluteMovementBoxForA(void)
     cm_boxMovementPathAbsoluteA|=box;
   }
 }
-
-void GetModelVertices(CModelObject *pmo, CStaticStackArray<FLOAT3D> &avVertices,
-  const FLOATmatrix3D &mRotation, const FLOAT3D &vPosition)
-{
-  FLOAT3D f3dVertex;
-  INDEX iFrame0, iFrame1;
-  FLOAT fLerpRatio;
-  CModelData *pmd = pmo->GetData();
-
-  struct ModelFrameVertex16 *pFrame16_0, *pFrame16_1;
-  struct ModelFrameVertex8  *pFrame8_0,  *pFrame8_1;
-
-  // get lerp information
-  pmo->GetFrame(iFrame0, iFrame1, fLerpRatio);
-
-  // set pFrame to point to last and next frames' vertices
-  if( pmd->md_Flags & MF_COMPRESSED_16BIT)
-  {
-    pFrame16_0 = &pmd->md_FrameVertices16[ iFrame0 * pmd->md_VerticesCt];
-    pFrame16_1 = &pmd->md_FrameVertices16[ iFrame1 * pmd->md_VerticesCt];
-  } else {
-    pFrame8_0 = &pmd->md_FrameVertices8[ iFrame0 * pmd->md_VerticesCt];
-    pFrame8_1 = &pmd->md_FrameVertices8[ iFrame1 * pmd->md_VerticesCt];
-  }
-
-  // Apply stretch factors
-  FLOAT3D &vDataStretch = pmd->md_Stretch;
-  FLOAT3D &vObjectStretch = pmo->mo_Stretch;
-  FLOAT3D vStretch, vOffset;
-  vStretch(1) = vDataStretch(1)*vObjectStretch(1);
-  vStretch(2) = vDataStretch(2)*vObjectStretch(2);
-  vStretch(3) = vDataStretch(3)*vObjectStretch(3);
-  vOffset = pmd->md_vCompressedCenter;
-
-  // get current mip model using mip factor
-  INDEX iMipLevel = 0;
-  ModelMipInfo *pmmiMip = &pmd->md_MipInfos[iMipLevel];
-
-  // allocate space for vertices
-  FLOAT3D *pvFirstVtx = avVertices.Push( pmmiMip->mmpi_ctMipVx);
-
-  // Transform a vertex in model with lerping
-  if( pmd->md_Flags & MF_COMPRESSED_16BIT) {
-    // for each vertex in mip
-    for( INDEX iMipVx=0; iMipVx<pmmiMip->mmpi_ctMipVx; iMipVx++) {
-      // get destination for unpacking
-      INDEX iMdlVx = pmmiMip->mmpi_auwMipToMdl[iMipVx];
-      ModelFrameVertex16 &mfv0 = pFrame16_0[iMdlVx];
-      ModelFrameVertex16 &mfv1 = pFrame16_1[iMdlVx];
-      FLOAT3D &v = *pvFirstVtx;
-      v(1) = (Lerp((FLOAT)mfv0.mfv_SWPoint(1), (FLOAT)mfv1.mfv_SWPoint(1), fLerpRatio)-vOffset(1))*vStretch(1);
-      v(2) = (Lerp((FLOAT)mfv0.mfv_SWPoint(2), (FLOAT)mfv1.mfv_SWPoint(2), fLerpRatio)-vOffset(2))*vStretch(2);
-      v(3) = (Lerp((FLOAT)mfv0.mfv_SWPoint(3), (FLOAT)mfv1.mfv_SWPoint(3), fLerpRatio)-vOffset(3))*vStretch(3);
-
-      v = v * mRotation + vPosition;
-      pvFirstVtx++;
-    }
-  } else {
-    // for each vertex in mip
-    for( INDEX iMipVx=0; iMipVx<pmmiMip->mmpi_ctMipVx; iMipVx++) {
-      // get destination for unpacking
-      INDEX iMdlVx = pmmiMip->mmpi_auwMipToMdl[iMipVx];
-      // get 16 bit packed vertices
-      ModelFrameVertex8 &mfv0 = pFrame8_0[iMdlVx];
-      ModelFrameVertex8 &mfv1 = pFrame8_1[iMdlVx];
-      FLOAT3D &v = *pvFirstVtx;
-      // convert them to float and lerp between them
-      v(1) = (Lerp((FLOAT)mfv0.mfv_SBPoint(1), (FLOAT)mfv1.mfv_SBPoint(1), fLerpRatio)-vOffset(1))*vStretch(1);
-      v(2) = (Lerp((FLOAT)mfv0.mfv_SBPoint(2), (FLOAT)mfv1.mfv_SBPoint(2), fLerpRatio)-vOffset(2))*vStretch(2);
-      v(3) = (Lerp((FLOAT)mfv0.mfv_SBPoint(3), (FLOAT)mfv1.mfv_SBPoint(3), fLerpRatio)-vOffset(3))*vStretch(3);
-
-      v = v * mRotation + vPosition;
-      pvFirstVtx++;
-    }
-  }
-
-  // for each attachment on this model object
-  FOREACHINLIST(CAttachmentModelObject, amo_lnInMain, pmo->mo_lhAttachments, itamo) {
-    CAttachmentModelObject *pamo = itamo;
-    CModelData *pmd=pamo->amo_moModelObject.GetData();
-    ASSERT(pmd!=NULL);
-    if(pmd==NULL || pmd->md_Flags&(MF_FACE_FORWARD|MF_HALF_FACE_FORWARD)) continue;
-    FLOATmatrix3D mNew = mRotation;
-    FLOAT3D vNew = vPosition;
-    // get new rotation and position matrices
-    pmo->GetAttachmentMatrices(pamo, mNew, vNew);
-    // recursion will concate attached model's vertices in absolute space to array
-    GetModelVertices(&pamo->amo_moModelObject, avVertices, mNew, vNew);
-  }
-};
-
-// Fill a list of vertices in groups of three for each polygon triangle for a specific frame
-void GetFrameVerticesForEachTriangle(CModelObject *pmo, INDEX iCurrentMip, INDEX iFrame, CStaticStackArray<FLOAT3D> &avVertices) {
-  CModelData *pmd = pmo->GetData();
-  FLOAT3D vVertex(0, 0, 0);
-
-  // Get stretch factors
-  FLOAT3D vOffset = pmd->md_vCompressedCenter;
-  FLOAT3D vStretch = pmd->md_Stretch;
-  vStretch(1) *= pmo->mo_Stretch(1);
-  vStretch(2) *= pmo->mo_Stretch(2);
-  vStretch(3) *= pmo->mo_Stretch(3);
-
-  ModelMipInfo *pmmiMip = &pmd->md_MipInfos[iCurrentMip];
-
-  if (pmd->md_Flags & MF_COMPRESSED_16BIT) {
-    ModelFrameVertex16 *pFrame16 = &pmd->md_FrameVertices16[iFrame * pmd->md_VerticesCt];
-
-    // for each vertex in mip
-    for (INDEX iMipVx = 0; iMipVx < pmmiMip->mmpi_ctMipVx; iMipVx++) {
-      // get destination for unpacking
-      INDEX iMdlVx = pmmiMip->mmpi_auwMipToMdl[iMipVx];
-      ModelFrameVertex16 &mfv = pFrame16[iMdlVx];
-
-      vVertex(1) = ((FLOAT)mfv.mfv_SWPoint(1) - vOffset(1)) * vStretch(1);
-      vVertex(2) = ((FLOAT)mfv.mfv_SWPoint(2) - vOffset(2)) * vStretch(2);
-      vVertex(3) = ((FLOAT)mfv.mfv_SWPoint(3) - vOffset(3)) * vStretch(3);
-
-      pmd->md_TransformedVertices[iMdlVx].tvd_TransformedPoint = vVertex;
-    }
-
-  } else {
-    ModelFrameVertex8 *pFrame8 = &pmd->md_FrameVertices8[iFrame * pmd->md_VerticesCt];
-
-    // for each vertex in mip
-    for (INDEX iMipVx = 0; iMipVx < pmmiMip->mmpi_ctMipVx; iMipVx++) {
-      // get destination for unpacking
-      INDEX iMdlVx = pmmiMip->mmpi_auwMipToMdl[iMipVx];
-      ModelFrameVertex8 &mfv = pFrame8[iMdlVx];
-
-      // convert them to float and lerp between them
-      vVertex(1) = ((FLOAT)mfv.mfv_SBPoint(1) - vOffset(1)) * vStretch(1);
-      vVertex(2) = ((FLOAT)mfv.mfv_SBPoint(2) - vOffset(2)) * vStretch(2);
-      vVertex(3) = ((FLOAT)mfv.mfv_SBPoint(3) - vOffset(3)) * vStretch(3);
-
-      pmd->md_TransformedVertices[iMdlVx].tvd_TransformedPoint = vVertex;
-    }
-  }
-
-  /*ULONG ulVtxMask = (1L << iCurrentMip);
-
-  // Set to the first vertex of the frame
-  if (pmd->md_Flags & MF_COMPRESSED_16BIT) {
-    ModelFrameVertex16 *pFrame16 = &pmd->md_FrameVertices16[iFrame * pmd->md_VerticesCt];
-
-    for (INDEX i = 0; i < pmd->md_VerticesCt; i++) {
-      if (pmd->md_VertexMipMask[i] & ulVtxMask) {
-        vVertex(1) = ((FLOAT)pFrame16[i].mfv_SWPoint(1) - vOffset(1)) * vStretch(1);
-        vVertex(2) = ((FLOAT)pFrame16[i].mfv_SWPoint(2) - vOffset(2)) * vStretch(2);
-        vVertex(3) = ((FLOAT)pFrame16[i].mfv_SWPoint(3) - vOffset(3)) * vStretch(3);
-
-        // Project the vertex and add it to the list
-        pmd->md_TransformedVertices[i].tvd_TransformedPoint = vVertex;
-      }
-    }
-
-  } else {
-    ModelFrameVertex8 *pFrame8 = &pmd->md_FrameVertices8[iFrame * pmd->md_VerticesCt];
-
-    for (INDEX i = 0; i < pmd->md_VerticesCt; i++) {
-      if (pmd->md_VertexMipMask[i] & ulVtxMask) {
-        vVertex(1) = ((FLOAT)pFrame8[i].mfv_SBPoint(1) - vOffset(1)) * vStretch(1);
-        vVertex(2) = ((FLOAT)pFrame8[i].mfv_SBPoint(2) - vOffset(2)) * vStretch(2);
-        vVertex(3) = ((FLOAT)pFrame8[i].mfv_SBPoint(3) - vOffset(3)) * vStretch(3);
-
-        // Project the vertex and add it to the list
-        pmd->md_TransformedVertices[i].tvd_TransformedPoint = vVertex;
-      }
-    }
-  }*/
-
-  // Copy vertex positions from polygons
-  const INDEX ctPolys = pmmiMip->mmpi_Polygons.Count();
-
-  for (INDEX iPoly = 0; iPoly < ctPolys; iPoly++) {
-    // Find polygon
-    ModelPolygon *pPoly = &pmmiMip->mmpi_Polygons[iPoly];
-
-    const INDEX ctVtx = pPoly->mp_PolygonVertices.Count();
-    FLOAT3D *pvVtx = avVertices.Push(ctVtx);
-
-    // Get vertex positions
-    for (INDEX iVtx = 0; iVtx < ctVtx; iVtx++) {
-      TransformedVertexData *pTransformedVertice = pPoly->mp_PolygonVertices[iVtx].mpv_ptvTransformedVertex;
-      pvVtx[iVtx] = pTransformedVertice->tvd_TransformedPoint;
-    }
-  }
-};
 
 // [Cecil] Precise model-to-model clipping
 // If returns FALSE, proceeds with regular sphere-to-sphere clipping
