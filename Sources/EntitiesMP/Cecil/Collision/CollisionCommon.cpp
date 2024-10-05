@@ -101,6 +101,59 @@ SCollisionPolygon &SCollisionPolygon::operator=(const SCollisionPolygon &cpoOthe
   return *this;
 };
 
+// Serialization
+void SCollisionPolygon::Write_t(CEntity *pen, CTStream *ostr) {
+  *ostr << (INDEX)eType;
+
+  if (eType == SCollisionPolygon::POL_BRUSH) {
+    INDEX iBPO = pen->GetWorldPolygonIndex(pbpoHit);
+    *ostr << iBPO;
+
+  } else if (eType == SCollisionPolygon::POL_FAKE) {
+    ostr->Write_t(&avPolygon, sizeof(avPolygon));
+  }
+
+  UBYTE ubByte = bHit;
+  *ostr << ubByte;
+
+  if (bHit) {
+    ostr->Write_t(&vCollision, sizeof(vCollision));
+    ostr->Write_t(&plPolygon, sizeof(plPolygon));
+    *ostr << ubSurface;
+
+    ubByte = bStairs;
+    *ostr << ubByte;
+  }
+};
+
+void SCollisionPolygon::Read_t(CEntity *pen, CTStream *istr) {
+  INDEX iReadType;
+  *istr >> iReadType;
+  eType = (EPolygonType)iReadType;
+
+  if (eType == SCollisionPolygon::POL_BRUSH) {
+    INDEX iBPO;
+    *istr >> iBPO;
+    pbpoHit = pen->GetWorldPolygonPointer(iBPO);
+
+  } else if (eType == SCollisionPolygon::POL_FAKE) {
+    istr->Read_t(&avPolygon, sizeof(avPolygon));
+  }
+
+  UBYTE ubByte;
+  *istr >> ubByte;
+  bHit = ubByte;
+
+  if (bHit) {
+    istr->Read_t(&vCollision, sizeof(vCollision));
+    istr->Read_t(&plPolygon, sizeof(plPolygon));
+    *istr >> ubSurface;
+
+    *istr >> ubByte;
+    bStairs = ubByte;
+  }
+};
+
 // Get a list of triangles from a bounding box (12 tris = 2 per 6 cube sides)
 void GetTrisFromBox(FLOATaabbox3D box, CollisionTris_t &aTris) {
   const FLOAT3D &v0 = box.Min();

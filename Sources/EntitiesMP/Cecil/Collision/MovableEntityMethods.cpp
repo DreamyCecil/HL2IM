@@ -1285,16 +1285,17 @@ BOOL CCecilMovableEntity::TryToMove(CCecilMovableEntity *penPusher, BOOL bTransl
 //        CPrintF("    newreference id%08x\n", en_penReference->en_ulID);
       en_vReferencePlane = (FLOAT3D&)cmMove.cm_plClippedPlane;
       en_pbpoStandOn = cmMove.cm_cpoHit.pbpoHit;  // is NULL if not hit a brush
+
+      // [Cecil]
+      if (IsDerivedFromID(this, CPlayer_ClassID)) {
+        CPlayer *penPlayer = (CPlayer *)this;
+        penPlayer->m_cpoStandOn = cmMove.cm_cpoHit;
+      }
+
       if (!cmMove.cm_cpoHit.bHit) {
         en_iReferenceSurface = 0;
       } else {
         en_iReferenceSurface = cmMove.cm_cpoHit.ubSurface; // [Cecil]
-
-        // [Cecil]
-        if (IsDerivedFromID(this, CPlayer_ClassID)) {
-          CPlayer *penPlayer = (CPlayer *)this;
-          penPlayer->m_cpoStandOn = cmMove.cm_cpoHit;
-        }
       }
     }
 

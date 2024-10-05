@@ -77,6 +77,10 @@ struct SCollisionPolygon {
 
   // Assignment operator
   SCollisionPolygon &operator=(const SCollisionPolygon &cpoOther);
+
+  // Serialization
+  void Write_t(CEntity *pen, CTStream *ostr);
+  void Read_t(CEntity *pen, CTStream *istr);
 };
 
 // Determine vertical position difference

@@ -1962,8 +1962,12 @@ functions:
     PlacePlayer(pl, TRUE);
   };
 
-  // [Cecil] Update crosshair position to avoid twitching
+  // [Cecil] Extra adjustments after teleporting
   void AfterTeleport(const CPlacement3D &plFrom, const CPlacement3D &plSpeed) {
+    // Reset collision polygon
+    m_cpoStandOn.Reset();
+
+    // Update crosshair position to avoid twitching
     GetPlayerWeapons()->UpdateTargetingInfo();
   };
 
@@ -2260,6 +2264,9 @@ functions:
     ostr->Write_t(&m_psLevelTotal, sizeof(m_psLevelTotal));
     ostr->Write_t(&m_psGameStats , sizeof(m_psGameStats ));
     ostr->Write_t(&m_psGameTotal , sizeof(m_psGameTotal ));
+
+    // [Cecil] Write collision polygon
+    m_cpoStandOn.Write_t(this, ostr);
   }
 
   /* Read from stream. */
@@ -2289,6 +2296,9 @@ functions:
     istr->Read_t(&m_psLevelTotal, sizeof(m_psLevelTotal));
     istr->Read_t(&m_psGameStats , sizeof(m_psGameStats ));
     istr->Read_t(&m_psGameTotal , sizeof(m_psGameTotal ));
+
+    // [Cecil] Read collision polygon
+    m_cpoStandOn.Read_t(this, istr);
 
     // set your real appearance if possible
     ValidateCharacter();
@@ -3580,6 +3590,25 @@ functions:
 
     if (iExtensiveSyncCheck > 0) {
       CRC_AddFLOAT(ulCRC, m_fManaFraction);
+
+      // [Cecil] Collision polygon
+      CRC_AddBYTE(ulCRC, m_cpoStandOn.eType);
+      CRC_AddBYTE(ulCRC, m_cpoStandOn.bHit);
+
+      if (m_cpoStandOn.eType == SCollisionPolygon::POL_BRUSH) {
+        if (m_cpoStandOn.pbpoHit != NULL) {
+          CRC_AddLONG(ulCRC, m_cpoStandOn.pbpoHit->bpo_iInWorld);
+        }
+      } else if (m_cpoStandOn.eType == SCollisionPolygon::POL_FAKE) {
+        CRC_AddBlock(ulCRC, (UBYTE *)&m_cpoStandOn.avPolygon, sizeof(m_cpoStandOn.avPolygon));
+      }
+
+      if (m_cpoStandOn.bHit) {
+        CRC_AddBlock(ulCRC, (UBYTE *)&m_cpoStandOn.vCollision, sizeof(m_cpoStandOn.vCollision));
+        CRC_AddBlock(ulCRC, (UBYTE *)&m_cpoStandOn.plPolygon, sizeof(m_cpoStandOn.plPolygon));
+        CRC_AddBYTE(ulCRC, m_cpoStandOn.ubSurface);
+        CRC_AddBYTE(ulCRC, m_cpoStandOn.bStairs);
+      }
     }
 
     CRC_AddFLOAT(ulCRC, m_fArmor);
@@ -3593,6 +3622,34 @@ functions:
     strm.FPrintF_t("m_iMana:  %d\n", m_iMana);
     strm.FPrintF_t("m_fManaFraction: %g(%08x)\n", m_fManaFraction, (ULONG&)m_fManaFraction);
     strm.FPrintF_t("m_fArmor: %g(%08x)\n", m_fArmor, (ULONG&)m_fArmor);
+
+    // [Cecil] Collision polygon
+    strm.FPrintF_t("--- Collision polygon (m_cpoStandOn) ---\n");
+    strm.FPrintF_t("Type:  %d\n", m_cpoStandOn.eType);
+    strm.FPrintF_t("Hit?:  %d\n", m_cpoStandOn.bHit);
+
+    if (m_cpoStandOn.eType == SCollisionPolygon::POL_BRUSH) {
+      if (m_cpoStandOn.pbpoHit != NULL) {
+        strm.FPrintF_t("Brush polygon:  %d\n", m_cpoStandOn.pbpoHit->bpo_iInWorld);
+      }
+    } else if (m_cpoStandOn.eType == SCollisionPolygon::POL_FAKE) {
+      strm.FPrintF_t("avPolygon[0]:  %g, %g, %g\n",
+        m_cpoStandOn.avPolygon[0](1), m_cpoStandOn.avPolygon[0](2), m_cpoStandOn.avPolygon[0](3));
+      strm.FPrintF_t("avPolygon[1]:  %g, %g, %g\n",
+        m_cpoStandOn.avPolygon[1](1), m_cpoStandOn.avPolygon[1](2), m_cpoStandOn.avPolygon[1](3));
+      strm.FPrintF_t("avPolygon[2]:  %g, %g, %g\n",
+        m_cpoStandOn.avPolygon[2](1), m_cpoStandOn.avPolygon[2](2), m_cpoStandOn.avPolygon[2](3));
+    }
+
+    if (m_cpoStandOn.bHit) {
+      strm.FPrintF_t("Collision:  %g, %g, %g\n",
+        m_cpoStandOn.vCollision(1), m_cpoStandOn.vCollision(2), m_cpoStandOn.vCollision(3));
+      strm.FPrintF_t("Polygon:  %g, %g, %g, dist: %g\n",
+        m_cpoStandOn.plPolygon(1), m_cpoStandOn.plPolygon(2), m_cpoStandOn.plPolygon(3), m_cpoStandOn.plPolygon.Distance());
+
+      strm.FPrintF_t("Surface:  %d\n", m_cpoStandOn.ubSurface);
+      strm.FPrintF_t("Stairs?:  %d\n", m_cpoStandOn.bStairs);
+    }
   };
 
 /************************************************************
