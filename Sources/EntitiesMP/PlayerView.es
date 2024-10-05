@@ -129,20 +129,20 @@ functions:
     // for each ray
     for (INDEX i=0; i<5; i++) {
       // cast a ray to find if any brush is hit
-      CCastRay crRay( m_penOwner, vBase, vDest[i]);
+      CCecilCastRay crRay( m_penOwner, vBase, vDest[i]);
       crRay.cr_bHitTranslucentPortals = FALSE;
-      crRay.cr_ttHitModels = CCastRay::TT_COLLISIONBOX;
-      GetWorld()->CastRay(crRay);
+      crRay.cr_ttHitModels = CCecilCastRay::TT_CUSTOM;
+      crRay.Cast(GetWorld());
 
       // if hit something
       if (crRay.cr_penHit!=NULL) {
         // clamp distance
         fDistance = Min(fDistance, crRay.cr_fHitDistance-0.5f);
         // if hit polygon
-        if (crRay.cr_pbpoBrushPolygon!=NULL) {
+        if (crRay.cr_cpoPolygon.bHit) {
           // back off
           FLOAT3D vDir = (vDest[i]-vBase).Normalize();
-          FLOAT fD = Abs(FLOAT3D(crRay.cr_pbpoBrushPolygon->bpo_pbplPlane->bpl_plAbsolute)%vDir)*0.25f;
+          FLOAT fD = Abs(FLOAT3D(crRay.cr_cpoPolygon.plPolygon) % vDir) * 0.25f;
           fBack = Max(fBack, fD);
         }
       }
