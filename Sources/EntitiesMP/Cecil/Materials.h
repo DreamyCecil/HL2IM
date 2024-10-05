@@ -107,8 +107,14 @@ inline void ClearToDefault(EWorldSurfaceType &e) {
   e = (EWorldSurfaceType)0;
 };
 
-// Get surface type for a non-brush entity
+// Get surface type for a non-brush entity (-1 if unknown)
 INDEX GetSurfaceForEntity(CEntity *pen);
+
+// Get valid surface type for a non-brush entity
+inline INDEX GetValidSurfaceForEntity(CEntity *pen) {
+  const INDEX iSurface = GetSurfaceForEntity(pen);
+  return (iSurface == -1 ? SURFACE_STONE : iSurface);
+};
 
 // Load and resave materials of the world
 BOOL LoadMaterials(CWorld *pwo);

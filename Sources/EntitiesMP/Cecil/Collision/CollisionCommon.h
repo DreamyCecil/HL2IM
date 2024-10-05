@@ -22,7 +22,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 // Pseudo-polygon structure
 struct SCollisionPolygon {
+  enum EPolygonType {
+    POL_INVALID = -1,
+    POL_BRUSH,
+    POL_FAKE,
+  };
+
   // Polygon identity
+  EPolygonType eType;
   CBrushPolygon *pbpoHit; // Real brush polygon (NULL if fake; use avPolygon)
   FLOAT3D avPolygon[3]; // Fake polygon vertices
 
@@ -40,6 +47,7 @@ struct SCollisionPolygon {
 
   // Reset collision polygon to non-hit state
   inline void Reset(void) {
+    eType = POL_INVALID;
     pbpoHit = NULL;
     avPolygon[0] = FLOAT3D(0, 0, 0);
     avPolygon[1] = FLOAT3D(0, 0, 0);
@@ -47,7 +55,7 @@ struct SCollisionPolygon {
 
     bHit = FALSE;
     vCollision = FLOAT3D(0, 0, 0);
-    plPolygon = FLOATplane3D(FLOAT3D(0, 1, 0), 1.0f);
+    plPolygon = FLOATplane3D(FLOAT3D(0, 1, 0), 0.0f);
     ubSurface = 0;
     bStairs = FALSE;
   };

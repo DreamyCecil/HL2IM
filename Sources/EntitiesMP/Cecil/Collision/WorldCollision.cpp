@@ -194,14 +194,17 @@ inline BOOL CCecilClipMove::SendPassEvent(CEntity *penTested)
 
 // [Cecil] Hit polygon during clipping against spheres and cylinders
 void CCecilClipMove::MovingPointHitPolygon(const FLOAT3D &vAbsCollisionPoint) {
+  // Not set
+  if (cm_cpoHit.eType == SCollisionPolygon::POL_INVALID) return;
+
   FLOATplane3D plPolygon = cm_cpoHit.plPolygon;
   UBYTE ubSurface = cm_cpoHit.ubSurface;
   BOOL bStairs = cm_cpoHit.bStairs;
 
   // Setup fake polygon if there's no real one
-  if (cm_cpoHit.pbpoHit == NULL) {
+  if (cm_cpoHit.eType != SCollisionPolygon::POL_BRUSH) {
     plPolygon = cm_plClippedPlane;
-    ubSurface = GetSurfaceForEntity(cm_penHit);
+    ubSurface = GetValidSurfaceForEntity(cm_penHit);
     bStairs = FALSE;
   }
 
@@ -483,8 +486,9 @@ void CCecilClipMove::ClipMovingSphereToTriangle(
           cm_penHit = cm_penTested;
           cm_cpoHit = cm_cpoTested; // [Cecil]
 
+          // [Cecil]
           const FLOAT3D vCollisionPoint = vHitPoint * cm_mBToAbsolute + cm_vBToAbsolute;
-          cm_cpoHit.HitPolygon(vCollisionPoint, cm_plClippedPlane, GetSurfaceForEntity(cm_penHit), FALSE); // [Cecil]
+          cm_cpoHit.HitPolygon(vCollisionPoint, cm_plClippedPlane, GetValidSurfaceForEntity(cm_penHit), FALSE);
         }
       }
     }

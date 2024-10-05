@@ -53,10 +53,10 @@ EP_ENUMBEG(EWorldSurfaceType)
   NEW_ENUM_SURFACE(GLASS),
 EP_ENUMEND(EWorldSurfaceType);
 
-// Get surface type for a non-brush entity
+// Get surface type for a non-brush entity (-1 if unknown)
 INDEX GetSurfaceForEntity(CEntity *pen) {
   // Unknown entity
-  return SURFACE_STONE;
+  return -1;
 };
 
 // Loaded materials

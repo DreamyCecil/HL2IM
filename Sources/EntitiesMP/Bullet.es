@@ -189,7 +189,7 @@ functions:
         BOOL bPassable = FALSE;
 
         // If hit an actual brush polygon
-        const BOOL bHitBrush = (crRay.cr_cpoPolygon.pbpoHit != NULL);
+        const BOOL bHitBrush = (crRay.cr_cpoPolygon.eType == SCollisionPolygon::POL_BRUSH);
 
         if (bHitBrush) {
           // Get content type

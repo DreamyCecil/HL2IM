@@ -24,6 +24,7 @@ void SCollisionPolygon::SetBrushPolygon(CBrushPolygon *pbpoSet) {
     return;
   }
 
+  eType = POL_BRUSH;
   pbpoHit = pbpoSet;
 
   bHit = FALSE;
@@ -33,8 +34,8 @@ void SCollisionPolygon::SetBrushPolygon(CBrushPolygon *pbpoSet) {
 };
 
 // Set fake polygon
-void SCollisionPolygon::SetFakePolygon(const FLOAT3D &v0, const FLOAT3D &v1, const FLOAT3D &v2)
-{
+void SCollisionPolygon::SetFakePolygon(const FLOAT3D &v0, const FLOAT3D &v1, const FLOAT3D &v2) {
+  eType = POL_FAKE;
   pbpoHit = NULL;
   avPolygon[0] = v0;
   avPolygon[1] = v1;
@@ -45,13 +46,17 @@ void SCollisionPolygon::SetFakePolygon(const FLOAT3D &v0, const FLOAT3D &v1, con
 
 // Hit polygon at some collision point
 void SCollisionPolygon::HitPolygon(const FLOAT3D &vCollisionPoint) {
-  bHit = TRUE;
+  // Can only be hit if it's set to some type
+  bHit = (eType != POL_INVALID);
+
   vCollision = vCollisionPoint;
 };
 
 // Hit polygon at some collision point with extra setup
 void SCollisionPolygon::HitPolygon(const FLOAT3D &vCollisionPoint, const FLOATplane3D &plSetPlane, UBYTE ubSetSurface, BOOL bSetStairs) {
-  bHit = TRUE;
+  // Can only be hit if it's set to some type
+  bHit = (eType != POL_INVALID);
+
   vCollision = vCollisionPoint;
   plPolygon = plSetPlane;
   ubSurface = ubSetSurface;
@@ -61,7 +66,7 @@ void SCollisionPolygon::HitPolygon(const FLOAT3D &vCollisionPoint, const FLOATpl
 // Add polygon edges to intersector
 void SCollisionPolygon::AddEdges(CIntersector &is, INDEX iMajorAxis1, INDEX iMajorAxis2) const {
   // Real polygon
-  if (pbpoHit != NULL) {
+  if (eType == SCollisionPolygon::POL_BRUSH) {
     FOREACHINSTATICARRAY(pbpoHit->bpo_abpePolygonEdges, CBrushPolygonEdge, itbpePolygonEdge) {
       // Get edge vertices (edge direction is irrelevant here)
       const FLOAT3D &v0 = itbpePolygonEdge->bpe_pbedEdge->bed_pbvxVertex0->bvx_vAbsolute;
@@ -81,6 +86,7 @@ void SCollisionPolygon::AddEdges(CIntersector &is, INDEX iMajorAxis1, INDEX iMaj
 
 // Assignment operator
 SCollisionPolygon &SCollisionPolygon::operator=(const SCollisionPolygon &cpoOther) {
+  eType = cpoOther.eType;
   pbpoHit = cpoOther.pbpoHit;
   avPolygon[0] = cpoOther.avPolygon[0];
   avPolygon[1] = cpoOther.avPolygon[1];

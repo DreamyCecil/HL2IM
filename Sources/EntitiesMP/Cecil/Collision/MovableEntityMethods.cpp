@@ -736,7 +736,7 @@ BOOL CCecilMovableEntity::IsStandingOnPolygon(const SCollisionPolygon &cpo)
   }
 
   // [Cecil] Check brush polygons
-  if (cpo.pbpoHit != NULL) {
+  if (cpo.eType == SCollisionPolygon::POL_BRUSH) {
     // if polygon is not valid for standing on any more (brush turned off collision)
     if (cpo.pbpoHit->bpo_pbscSector->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity->en_ulCollisionFlags==0) {
       // not standing on polygon
@@ -781,7 +781,7 @@ BOOL CCecilMovableEntity::IsStandingOnPolygon(const SCollisionPolygon &cpo)
 BOOL CCecilMovableEntity::IsPolygonBelowPoint(const SCollisionPolygon &cpo, const FLOAT3D &vPoint, FLOAT fMaxDist)
 {
   // [Cecil] Check brush polygons
-  if (cpo.pbpoHit != NULL) {
+  if (cpo.eType == SCollisionPolygon::POL_BRUSH) {
     // if passable or not allowed as ground
     if ((cpo.pbpoHit->bpo_ulFlags & BPOF_PASSABLE) || !AllowForGroundPolygon(cpo.pbpoHit)) {
       // it cannot be below

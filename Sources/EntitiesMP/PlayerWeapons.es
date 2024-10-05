@@ -2980,7 +2980,7 @@ functions:
     FLOAT3D vHit;
     FLOAT3D vDir;
 
-    // [Cecil] Hit type (0 - none, 1 - model, 2 - brush)
+    // [Cecil] Hit entity (0 - none, 1 - model, 2 - polygon)
     INDEX iHitReturn = 0;
 
     // for each ray
@@ -3021,7 +3021,7 @@ functions:
 
             // [Cecil] Bullet
             BOOL bPassable = FALSE;
-            const BOOL bHitBrush = (crRay.cr_cpoPolygon.pbpoHit != NULL);
+            const BOOL bHitBrush = (crRay.cr_cpoPolygon.eType == SCollisionPolygon::POL_BRUSH);
 
             if (bHitBrush) {
               bPassable = crRay.cr_cpoPolygon.pbpoHit->bpo_ulFlags & (BPOF_PASSABLE | BPOF_SHOOTTHRU);
@@ -3051,10 +3051,9 @@ functions:
             } else {
               ((CPlayer&)*m_penPlayer).AddBulletSpray(vBase+vFront, eptType, vReflected);
             }
-          }
 
           // model
-          if (crRay.cr_penHit->GetRenderType() == RT_MODEL) {
+          } else if (crRay.cr_penHit->GetRenderType() == RT_MODEL) {
             BOOL bRender = TRUE;
             FLOAT3D vSpillDir = -((CPlayer&)*m_penPlayer).en_vGravityDir * 0.5f;
             SprayParticlesType sptType = SPT_NONE;
@@ -3098,7 +3097,10 @@ functions:
             } else if (IS_PLAYER(crRay.cr_penHit)) {
               sptReturn = SPT_BLOOD;
             }
-            iHitReturn = 1;
+
+            // [Cecil] Treat model as a polygon if it has a material
+            iSurfaceReturn = GetSurfaceForEntity(crRay.cr_penHit);
+            iHitReturn = (iSurfaceReturn == -1 ? 1 : 2);
           }
         }
 
@@ -5209,17 +5211,16 @@ procedures:
 
     WeaponSound(SND_FIRE_1, SOUND_CROWBAR_SWING);
 
-    // Hit animation
     m_iCrowbarHit = CutWithKnife(0, 0, 4.0f, 1.0f, 0.1f, 50.0f, m_iCrowbarSurface, m_sptCrowbarParticles, m_bCrowbarKill);
 
-    if (m_iCrowbarHit != 0) {
-      if (m_bCrowbarKill) {
-        AttachAnim(m_moWeapon, 0, 1, -1, CROWBAR_ANIM_HITKILL, 0);
+    // Kill animation
+    if (m_bCrowbarKill) {
+      AttachAnim(m_moWeapon, 0, 1, -1, CROWBAR_ANIM_HITKILL, 0);
 
-      } else {
-        m_iAnim = CROWBAR_ANIM_HIT1 + IRnd()%3;
-        AttachAnim(m_moWeapon, 0, 1, -1, m_iAnim, 0);
-      }
+    // Hit animation
+    } else if (m_iCrowbarHit != 0) {
+      m_iAnim = CROWBAR_ANIM_HIT1 + IRnd()%3;
+      AttachAnim(m_moWeapon, 0, 1, -1, m_iAnim, 0);
     }
 
     autowait(ONE_TICK);
