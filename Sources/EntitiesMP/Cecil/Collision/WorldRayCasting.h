@@ -134,4 +134,12 @@ BOOL RayHitsSphere(const FLOAT3D &vStart, const FLOAT3D &vEnd,
 BOOL RayHitsCylinder(const FLOAT3D &vStart, const FLOAT3D &vEnd,
   const FLOAT3D &vCylinderBottomCenter, const FLOAT3D &vCylinderTopCenter, const FLOAT fCylinderRadius, SRayReturnArgs &args);
 
+// [Cecil] Common method for calculating where a ray hits the disc
+BOOL RayHitsDisc(const FLOAT3D &vStart, const FLOAT3D &vEnd,
+  const FLOAT3D &vDiscCenter, const FLOAT3D &vDiscNormal, const FLOAT fDiscRadius, SRayReturnArgs &args);
+
+// [Cecil] Common method for calculating where a ray hits the triangle
+BOOL RayHitsTriangle(const FLOAT3D &vStart, const FLOAT3D &vEnd,
+  const FLOAT3D &v0, const FLOAT3D &v1, const FLOAT3D &v2, SRayReturnArgs &args);
+
 #endif  /* include-once check. */

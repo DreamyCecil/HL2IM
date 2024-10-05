@@ -180,7 +180,7 @@ BOOL RayHitsCylinder(const FLOAT3D &vStart, const FLOAT3D &vEnd,
 
   // Calculate the collision point
   args.vHitPoint = vStartToEnd * args.fMinLambda + vStart;
-  
+
   // Find distance of the collision point from the cylinder bottom
   FLOATplane3D plCylinderBottom(vCylinderBottomToTop, vCylinderBottomCenter);
   FLOAT fCollisionDistance = plCylinderBottom.PointDistance(args.vHitPoint);
@@ -194,6 +194,66 @@ BOOL RayHitsCylinder(const FLOAT3D &vStart, const FLOAT3D &vEnd,
   args.plHitPlane = FLOATplane3D(vCollisionNormal, args.vHitPoint);
 
   return TRUE;
+};
+
+// [Cecil] Common method for calculating where a ray hits the disc
+BOOL RayHitsDisc(const FLOAT3D &vStart, const FLOAT3D &vEnd,
+  const FLOAT3D &vDiscCenter, const FLOAT3D &vDiscNormal, const FLOAT fDiscRadius, SRayReturnArgs &args)
+{
+  // Disc plane
+  args.plHitPlane = FLOATplane3D(vDiscNormal, vDiscCenter);
+
+  // Get distances of ray points from the disc plane
+  const FLOAT fDistance0 = args.plHitPlane.PointDistance(vStart);
+  const FLOAT fDistance1 = args.plHitPlane.PointDistance(vEnd);
+
+  // Make sure the ray hits the plane
+  if (fDistance0 < 0.0f || fDistance0 < fDistance1) return FALSE;
+
+  // Calculate fraction of line before intersection
+  args.fMinLambda = fDistance0 / ((fDistance0 - fDistance1) + 0.0000001f/*correction*/);
+
+  // Calculate intersection coordinate and distance
+  args.vHitPoint = vStart + (vEnd - vStart) * args.fMinLambda;
+  args.fHitDistance = (args.vHitPoint - vStart).Length();
+
+  // Make sure the intersection is inside the radius
+  FLOAT fDistFromCenter = (args.vHitPoint - vDiscCenter).Length();
+  return (fDistFromCenter <= fDiscRadius);
+};
+
+// [Cecil] Common method for calculating where a ray hits the triangle
+BOOL RayHitsTriangle(const FLOAT3D &vStart, const FLOAT3D &vEnd,
+  const FLOAT3D &v0, const FLOAT3D &v1, const FLOAT3D &v2, SRayReturnArgs &args)
+{
+  // Polygon plane
+  args.plHitPlane = FLOATplane3D(v0, v1, v2);
+
+  // Get distances of ray points from the polygon plane
+  FLOAT fDistance0 = args.plHitPlane.PointDistance(vStart);
+  FLOAT fDistance1 = args.plHitPlane.PointDistance(vEnd);
+
+  // Make sure the ray hits the plane
+  if (fDistance0 < 0.0f || fDistance0 < fDistance1) return FALSE;
+
+  // Calculate fraction of line before intersection
+  args.fMinLambda = fDistance0 / ((fDistance0 - fDistance1) + 0.0000001f/*correction*/);
+
+  // Calculate intersection coordinate and distance
+  args.vHitPoint = vStart + (vEnd - vStart) * args.fMinLambda;
+  args.fHitDistance = (args.vHitPoint - vStart).Length();
+
+  // Find major axes of the polygon plane
+  INDEX iMajorAxis1, iMajorAxis2;
+  GetMajorAxesForPlane(args.plHitPlane, iMajorAxis1, iMajorAxis2);
+
+  // Intersect the triangle
+  CIntersector isIntersector(args.vHitPoint(iMajorAxis1), args.vHitPoint(iMajorAxis2));
+  isIntersector.AddEdge(v0(iMajorAxis1), v0(iMajorAxis2), v1(iMajorAxis1), v1(iMajorAxis2));
+  isIntersector.AddEdge(v1(iMajorAxis1), v1(iMajorAxis2), v2(iMajorAxis1), v2(iMajorAxis2));
+  isIntersector.AddEdge(v2(iMajorAxis1), v2(iMajorAxis2), v0(iMajorAxis1), v0(iMajorAxis2));
+
+  return isIntersector.IsIntersecting();
 };
 
 void CCecilCastRay::TestModelSimple(CEntity *penModel, CModelObject &mo)
@@ -314,6 +374,19 @@ void CCecilCastRay::TestModelBoundingBox(CEntity *penModel) {
     ASSERTALWAYS("Unknown model type");
   }
 
+  // Temporary hit data
+  SRayReturnArgs argsHit;
+  BOOL bHit = FALSE;
+
+  // Resulting hit data
+  SRayReturnArgs argsCurrent;
+  argsCurrent.fHitDistance = cr_fHitDistance;
+
+  // Resulting polygon vertices
+  FLOAT3D vPolygon0(0, 0, 0);
+  FLOAT3D vPolygon1(0, 0, 0);
+  FLOAT3D vPolygon2(0, 0, 0);
+
   CollisionTris_t aTris;
   GetTrisFromBox(boxCollision, aTris);
 
@@ -323,45 +396,26 @@ void CCecilCastRay::TestModelBoundingBox(CEntity *penModel) {
     FLOAT3D v1 = vEntity + tri[1] * mEntity;
     FLOAT3D v2 = vEntity + tri[2] * mEntity;
 
-    const FLOATplane3D plPolygon = FLOATplane3D(v0, v1, v2);
+    if (RayHitsTriangle(cr_vOrigin, cr_vTarget, v0, v1, v2, argsHit)) {
+      if (argsHit.fHitDistance > 0.0f && argsHit.fHitDistance < argsCurrent.fHitDistance) {
+        argsCurrent = argsHit;
+        bHit = TRUE;
 
-    // Get distances of ray points from the polygon plane
-    FLOAT fDistance0 = plPolygon.PointDistance(cr_vOrigin);
-    FLOAT fDistance1 = plPolygon.PointDistance(cr_vTarget);
-
-    // If the ray hits the polygon plane
-    if (fDistance0 >= 0 && fDistance0 >= fDistance1) {
-      // Calculate fraction of line before intersection
-      FLOAT fFraction = fDistance0 / ((fDistance0 - fDistance1) + 0.0000001f/*correction*/);
-      // Calculate intersection coordinate
-      FLOAT3D vHitPoint = cr_vOrigin + (cr_vTarget - cr_vOrigin) * fFraction;
-      // Calculate intersection distance
-      FLOAT fHitDistance = (vHitPoint - cr_vOrigin).Length();
-
-      // Skip this triangle if the hit point is too far
-      if (fHitDistance > cr_fHitDistance) continue;
-
-      // Find major axes of the polygon plane
-      INDEX iMajorAxis1, iMajorAxis2;
-      GetMajorAxesForPlane(plPolygon, iMajorAxis1, iMajorAxis2);
-
-      // Intersect the triangle
-      CIntersector isIntersector(vHitPoint(iMajorAxis1), vHitPoint(iMajorAxis2));
-      isIntersector.AddEdge(v0(iMajorAxis1), v0(iMajorAxis2), v1(iMajorAxis1), v1(iMajorAxis2));
-      isIntersector.AddEdge(v1(iMajorAxis1), v1(iMajorAxis2), v2(iMajorAxis1), v2(iMajorAxis2));
-      isIntersector.AddEdge(v2(iMajorAxis1), v2(iMajorAxis2), v0(iMajorAxis1), v0(iMajorAxis2));
-
-      if (isIntersector.IsIntersecting()) {
-        // Set the current entity as new hit target
-        cr_fHitDistance = fHitDistance;
-        cr_penHit = penModel;
-        cr_pbscBrushSector = NULL;
-
-        // [Cecil]
-        cr_cpoPolygon.SetFakePolygon(v0, v1, v2);
-        cr_cpoPolygon.HitPolygon(vHitPoint, plPolygon, GetSurfaceForEntity(cr_penHit), FALSE);
+        vPolygon0 = v0;
+        vPolygon1 = v1;
+        vPolygon2 = v2;
       }
     }
+  }
+
+  // Set current entity as the new hit target, if current distance has been shortened
+  if (argsCurrent.fHitDistance < cr_fHitDistance) {
+    cr_fHitDistance = argsCurrent.fHitDistance;
+    cr_penHit = penModel;
+    cr_pbscBrushSector = NULL;
+
+    cr_cpoPolygon.SetFakePolygon(vPolygon0, vPolygon1, vPolygon2);
+    cr_cpoPolygon.HitPolygon(argsCurrent.vHitPoint, argsCurrent.plHitPlane, GetValidSurfaceForEntity(cr_penHit), FALSE);
   }
 };
 
