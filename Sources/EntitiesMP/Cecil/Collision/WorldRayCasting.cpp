@@ -345,34 +345,40 @@ void CCecilCastRay::TestModelBoundingBox(CEntity *penModel) {
     return;
   }
 
-  // [Cecil] TODO: Implement sphere and cylinder collisions
-
   // No collision box
   CCollisionInfo *pci = penModel->en_pciCollisionInfo;
   if (pci == NULL) return;
 
-  // Shoot ray through 12 triangles of a bounding box around the model instead of collision spheres
-  const FLOAT3D &vEntity = penModel->GetPlacement().pl_PositionVector;
-  const FLOATmatrix3D &mEntity = penModel->GetRotationMatrix();
-  FLOATaabbox3D boxCollision;
+  FLOATaabbox3D boxSize;
+  ECollisionShape eShape = COLSH_BOX;
 
-  if (penModel->en_RenderType == CEntity::RT_MODEL || penModel->en_RenderType == CEntity::RT_EDITORMODEL) {
-    CModelObject *pmo = penModel->GetModelObject();
+  // Try to retrieve custom collision shape
+  if (!GetCustomCollisionShape(penModel, boxSize, eShape)) {
+    // Retrieve bounding box size for regular models
+    eShape = COLSH_BOX;
 
-    //pmo->GetData()->GetAllFramesBBox(boxCollision);
-    pmo->GetCurrentFrameBBox(boxCollision);
-    boxCollision.StretchByVector(pmo->mo_Stretch);
+    const CEntity::RenderType eRender = penModel->en_RenderType;
 
-  } else if (penModel->en_RenderType == CEntity::RT_SKAMODEL || penModel->en_RenderType == CEntity::RT_SKAEDITORMODEL) {
-    CModelInstance *pmi = penModel->GetModelInstance();
+    if (eRender == CEntity::RT_MODEL || eRender == CEntity::RT_EDITORMODEL) {
+      CModelObject *pmo = penModel->GetModelObject();
 
-    //pmi->GetAllFramesBBox(boxCollision);
-    pmi->GetCurrentColisionBox(boxCollision);
-    boxCollision.StretchByVector(pmi->mi_vStretch);
+      //pmo->GetData()->GetAllFramesBBox(boxSize);
+      pmo->GetCurrentFrameBBox(boxSize);
+      boxSize.StretchByVector(pmo->mo_Stretch);
 
-  } else {
-    ASSERTALWAYS("Unknown model type");
+    } else if (eRender == CEntity::RT_SKAMODEL || eRender == CEntity::RT_SKAEDITORMODEL) {
+      CModelInstance *pmi = penModel->GetModelInstance();
+
+      //pmi->GetAllFramesBBox(boxSize);
+      pmi->GetCurrentColisionBox(boxSize);
+      boxSize.StretchByVector(pmi->mi_vStretch);
+
+    } else {
+      ASSERTALWAYS("Unknown model type");
+    }
   }
+
+  FLOAT3D vColCenter0, vColCenter1;
 
   // Temporary hit data
   SRayReturnArgs argsHit;
@@ -387,25 +393,126 @@ void CCecilCastRay::TestModelBoundingBox(CEntity *penModel) {
   FLOAT3D vPolygon1(0, 0, 0);
   FLOAT3D vPolygon2(0, 0, 0);
 
-  CollisionTris_t aTris;
-  GetTrisFromBox(boxCollision, aTris);
-
-  for (INDEX iTri = 0; iTri < 12; iTri++) {
-    const CollisionTrianglePositions_t &tri = aTris[iTri];
-    FLOAT3D v0 = vEntity + tri[0] * mEntity;
-    FLOAT3D v1 = vEntity + tri[1] * mEntity;
-    FLOAT3D v2 = vEntity + tri[2] * mEntity;
-
-    if (RayHitsTriangle(cr_vOrigin, cr_vTarget, v0, v1, v2, argsHit)) {
-      if (argsHit.fHitDistance > 0.0f && argsHit.fHitDistance < argsCurrent.fHitDistance) {
-        argsCurrent = argsHit;
-        bHit = TRUE;
-
-        vPolygon0 = v0;
-        vPolygon1 = v1;
-        vPolygon2 = v2;
-      }
+  // Remember new hit point
+  #define REMEMBER_HIT_POINT \
+    if (argsHit.fHitDistance > 0.0f && argsHit.fHitDistance < argsCurrent.fHitDistance) { \
+      argsCurrent = argsHit; \
+      bHit = TRUE; \
     }
+
+  // [Cecil] TODO: Add cr_fTestR value to the radius but also add it to the resulting hit distance
+
+  switch (eShape) {
+    case COLSH_SPHERE: {
+      // Sphere collision radius
+      const FLOAT fRadius = boxSize.Size()(1) * 0.5f;
+
+      // Sphere center position
+      vColCenter0 = boxSize.Center();
+
+      // Absolute position
+      vColCenter0 = penModel->GetPlacement().pl_PositionVector + vColCenter0 * penModel->GetRotationMatrix();
+
+      if (RayHitsSphere(cr_vOrigin, cr_vTarget, vColCenter0, fRadius, argsHit)) {
+        REMEMBER_HIT_POINT;
+      }
+    } break;
+
+    case COLSH_CYLINDER: {
+      // Cylinder collision radius
+      const FLOAT fRadius = boxSize.Size()(2) * 0.5f;
+
+      // Cylinder bottom position
+      vColCenter0 = boxSize.Center();
+      vColCenter0(3) = boxSize.Min()(3);
+
+      // Cylinder top position
+      vColCenter1 = boxSize.Center();
+      vColCenter1(3) = boxSize.Max()(3);
+
+      // Absolute position
+      vColCenter0 = penModel->GetPlacement().pl_PositionVector + vColCenter0 * penModel->GetRotationMatrix();
+      vColCenter1 = penModel->GetPlacement().pl_PositionVector + vColCenter1 * penModel->GetRotationMatrix();
+
+      // Cylinder normals
+      const FLOAT3D vNormal0 = (vColCenter0 - vColCenter1).SafeNormalize();
+      const FLOAT3D vNormal1 = (vColCenter1 - vColCenter0).SafeNormalize();
+
+      // Cylinder bottom
+      if (RayHitsDisc(cr_vOrigin, cr_vTarget, vColCenter0, vNormal0, fRadius, argsHit)) {
+        REMEMBER_HIT_POINT;
+      }
+
+      // Cylinder top
+      if (RayHitsDisc(cr_vOrigin, cr_vTarget, vColCenter1, vNormal1, fRadius, argsHit)) {
+        REMEMBER_HIT_POINT;
+      }
+
+      // Cylinder middle
+      if (RayHitsCylinder(cr_vOrigin, cr_vTarget, vColCenter0, vColCenter1, fRadius, argsHit)) {
+        REMEMBER_HIT_POINT;
+      }
+    } break;
+
+    case COLSH_CAPSULE: {
+      // Capsule collision radius
+      const FLOAT fRadius = boxSize.Size()(2) * 0.5f;
+
+      // Capsule bottom position
+      vColCenter0 = boxSize.Center();
+      vColCenter0(3) += boxSize.Min()(3) + 0.5f;
+
+      // Capsule top position
+      vColCenter1 = boxSize.Center();
+      vColCenter1(3) += boxSize.Max()(3) - 0.5f;
+
+      // Absolute position
+      vColCenter0 = penModel->GetPlacement().pl_PositionVector + vColCenter0 * penModel->GetRotationMatrix();
+      vColCenter1 = penModel->GetPlacement().pl_PositionVector + vColCenter1 * penModel->GetRotationMatrix();
+
+      // Capsule bottom
+      if (RayHitsSphere(cr_vOrigin, cr_vTarget, vColCenter0, fRadius, argsHit)) {
+        REMEMBER_HIT_POINT;
+      }
+
+      // Capsule top
+      if (RayHitsSphere(cr_vOrigin, cr_vTarget, vColCenter1, fRadius, argsHit)) {
+        REMEMBER_HIT_POINT;
+      }
+
+      // Capsule middle
+      if (RayHitsCylinder(cr_vOrigin, cr_vTarget, vColCenter0, vColCenter1, fRadius, argsHit)) {
+        REMEMBER_HIT_POINT;
+      }
+    } break;
+
+    // Collide with a box by default
+    default: {
+      // Shoot ray through 12 triangles of a bounding box around the model
+      const FLOAT3D &vEntity = penModel->GetPlacement().pl_PositionVector;
+      const FLOATmatrix3D &mEntity = penModel->GetRotationMatrix();
+
+      CollisionTris_t aTris;
+      GetTrisFromBox(boxSize, aTris);
+
+      for (INDEX iTri = 0; iTri < 12; iTri++) {
+        const CollisionTrianglePositions_t &tri = aTris[iTri];
+        FLOAT3D v0 = vEntity + tri[0] * mEntity;
+        FLOAT3D v1 = vEntity + tri[1] * mEntity;
+        FLOAT3D v2 = vEntity + tri[2] * mEntity;
+
+        if (RayHitsTriangle(cr_vOrigin, cr_vTarget, v0, v1, v2, argsHit)) {
+          if (argsHit.fHitDistance > 0.0f && argsHit.fHitDistance < argsCurrent.fHitDistance) {
+            argsCurrent = argsHit;
+            bHit = TRUE;
+
+            vPolygon0 = v0;
+            vPolygon1 = v1;
+            vPolygon2 = v2;
+          }
+        }
+      }
+    } break;
   }
 
   // Set current entity as the new hit target, if current distance has been shortened

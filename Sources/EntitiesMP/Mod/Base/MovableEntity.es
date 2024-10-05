@@ -20,6 +20,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 uses "EntitiesMP/Cecil/Collision/WorldCollision";
 
+// [Cecil] Custom collision shapes
+enum ECollisionShape {
+  0 COLSH_BOX      "Box",
+  1 COLSH_SPHERE   "Sphere",
+  2 COLSH_CYLINDER "Cylinder",
+  3 COLSH_CAPSULE  "Capsule",
+};
+
 class export CCecilMovableEntity : CRationalEntity {
 name      "MovableEntity";
 thumbnail "";

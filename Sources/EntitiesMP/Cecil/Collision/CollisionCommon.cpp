@@ -154,6 +154,12 @@ void SCollisionPolygon::Read_t(CEntity *pen, CTStream *istr) {
   }
 };
 
+// Retrieve custom collision dimensions and shape of some entity
+BOOL GetCustomCollisionShape(CEntity *pen, FLOATaabbox3D &boxSize, ECollisionShape &eShape) {
+  // No custom collision for this entity
+  return FALSE;
+};
+
 // Get a list of triangles from a bounding box (12 tris = 2 per 6 cube sides)
 void GetTrisFromBox(FLOATaabbox3D box, CollisionTris_t &aTris) {
   const FLOAT3D &v0 = box.Min();

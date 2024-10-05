@@ -94,6 +94,10 @@ public:
     const FLOAT3D &vCylinderBottomCenter, const FLOAT3D &vCylinderTopCenter,
     const FLOAT fCylinderRadius);
 
+  // [Cecil] Clip a moving point to a flat disc (top/bottom of a cylinder)
+  inline void ClipMovingPointToDisc(const FLOAT3D &vStart, const FLOAT3D &vEnd,
+    const FLOAT3D &vDiscCenter, const FLOAT3D &vDiscNormal, const FLOAT fDiscRadius);
+
   /* Clip a moving sphere to a standing sphere, update collision data. */
   void ClipMovingSphereToSphere(const CMovingSphere &msMoving,
     const CMovingSphere &msStanding);

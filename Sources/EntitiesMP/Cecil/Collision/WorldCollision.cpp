@@ -19,9 +19,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "WorldCollision.h"
 #include "WorldRayCasting.h"
 
-#include <EntitiesMP/Mod/Base/MovableEntity.h>
-#include <EntitiesMP/Mod/PhysBase.h>
-
 // these are used for making projections for converting from X space to Y space this way:
 //  MatrixMulT(mY, mX, mXToY);
 //  VectMulT(mY, vX-vY, vXToY);
@@ -291,6 +288,42 @@ inline void CCecilClipMove::ClipMovingPointToCylinder(
   // [Cecil] Hit previously set polygon at an absolute position where the collision occurred
   const FLOAT3D vAbsPoint = args.vHitPoint * cm_mBToAbsolute + cm_vBToAbsolute;
   MovingPointHitPolygon(vAbsPoint);
+};
+
+// [Cecil] Clip a moving point to a flat disc (top/bottom of a cylinder)
+void CCecilClipMove::ClipMovingPointToDisc(const FLOAT3D &vStart, const FLOAT3D &vEnd,
+  const FLOAT3D &vDiscCenter, const FLOAT3D &vDiscNormal, const FLOAT fDiscRadius)
+{
+  SRayReturnArgs args;
+
+  if (!RayHitsDisc(vStart, vEnd, vDiscCenter, vDiscNormal, fDiscRadius, args)) {
+    return;
+  }
+
+  // Make sure the fraction is less than minimum found fraction
+  if (args.fMinLambda < 0.0f || args.fMinLambda >= cm_fMovementFraction) return;
+
+  // Pass
+  if (SendPassEvent(cm_penTested)) return;
+
+  const FLOAT3D vStartToEnd = vEnd - vStart;
+
+  // Mark this as the new closest found collision point
+  cm_fMovementFraction = args.fMinLambda;
+  cm_vClippedLine = (vStartToEnd * (1.0f - args.fMinLambda)) * cm_mBToAbsolute;
+  ASSERT(cm_vClippedLine.Length() < 100.0f);
+
+  // Project the collision plane from space B to absolute space
+  // Only the normal of the plane is correct, not the distance!!!
+  cm_plClippedPlane = args.plHitPlane * cm_mBToAbsolute + cm_vBToAbsolute;
+
+  // Remember hit entity
+  cm_penHit = cm_penTested;
+  cm_cpoHit = cm_cpoTested;
+
+  // Hit the polygon
+  const FLOAT3D vCollisionPoint = args.vHitPoint * cm_mBToAbsolute + cm_vBToAbsolute;
+  cm_cpoHit.HitPolygon(vCollisionPoint, cm_plClippedPlane, GetValidSurfaceForEntity(cm_penHit), FALSE);
 };
 
 /*
@@ -568,26 +601,171 @@ BOOL CCecilClipMove::ClipModelMoveToPreciseModel(void) {
     return FALSE;
   }
 
-  // [Cecil] TODO: Implement sphere and cylinder collisions
-  FLOATaabbox3D boxCollision;
+  FLOATaabbox3D boxSize;
+  ECollisionShape eShape;
 
-  if (cm_penB->en_RenderType == CEntity::RT_MODEL || cm_penB->en_RenderType == CEntity::RT_EDITORMODEL) {
-    CModelObject *pmo = cm_penB->GetModelObject();
-    pmo->GetData()->GetAllFramesBBox(boxCollision);
-    boxCollision.StretchByVector(pmo->mo_Stretch);
+  // Try to retrieve custom collision shape
+  if (!GetCustomCollisionShape(cm_penB, boxSize, eShape)) {
+    // Retrieve bounding box size for regular models
+    eShape = COLSH_BOX;
 
-  } else {
-    CModelInstance *pmi = cm_penB->GetModelInstance();
-    pmi->GetAllFramesBBox(boxCollision);
-    boxCollision.StretchByVector(pmi->mi_vStretch);
+    const CEntity::RenderType eRender = cm_penB->en_RenderType;
+
+    if (eRender == CEntity::RT_MODEL || eRender == CEntity::RT_EDITORMODEL) {
+      CModelObject *pmo = cm_penB->GetModelObject();
+      pmo->GetData()->GetAllFramesBBox(boxSize);
+      boxSize.StretchByVector(pmo->mo_Stretch);
+
+    } else if (eRender == CEntity::RT_SKAMODEL || eRender == CEntity::RT_SKAEDITORMODEL) {
+      CModelInstance *pmi = cm_penB->GetModelInstance();
+      pmi->GetAllFramesBBox(boxSize);
+      boxSize.StretchByVector(pmi->mi_vStretch);
+
+    } else {
+      ASSERTALWAYS("Unknown model type");
+    }
   }
 
-  CollisionTris_t aTris;
-  GetTrisFromBox(boxCollision, aTris);
+  FLOAT3D vColCenter0, vColCenter1;
 
-  for (INDEX iTri = 0; iTri < 12; iTri++) {
-    const CollisionTrianglePositions_t &tri = aTris[iTri];
-    ClipMoveToTriangle(tri[0], tri[1], tri[2]);
+  switch (eShape) {
+    case COLSH_SPHERE: {
+      FOREACHINSTATICARRAY(*cm_pamsA, CMovingSphere, itmsMoving) {
+        const CMovingSphere &msMoving = *itmsMoving;
+
+        // Sphere collision radius
+        const FLOAT fRadius = boxSize.Size()(1) * 0.5f;
+
+        // Sphere center position
+        vColCenter0 = boxSize.Center();
+
+        ClipMovingPointToSphere(
+          msMoving.ms_vRelativeCenter0, // Start
+          msMoving.ms_vRelativeCenter1, // End
+          vColCenter0,                  // Sphere center
+          msMoving.ms_fR + fRadius      // Sphere radius
+        );
+      }
+    } break;
+
+    case COLSH_CYLINDER: {
+      FOREACHINSTATICARRAY(*cm_pamsA, CMovingSphere, itmsMoving) {
+        const CMovingSphere &msMoving = *itmsMoving;
+
+        // Cylinder collision radius
+        const FLOAT fRadius = boxSize.Size()(2) * 0.5f;
+
+        // Cylinder bottom position
+        vColCenter0 = boxSize.Center();
+        vColCenter0(3) = boxSize.Min()(3) - 0.5f;
+
+        // Cylinder top position
+        vColCenter1 = boxSize.Center();
+        vColCenter1(3) = boxSize.Max()(3) + 0.5f;
+
+        // Cylinder normals
+        const FLOAT3D vNormal0 = (vColCenter0 - vColCenter1).SafeNormalize();
+        const FLOAT3D vNormal1 = (vColCenter1 - vColCenter0).SafeNormalize();
+
+        // [Cecil] TODO: Add disc polygon type
+        // [Cecil] TEMP: Set fake polygon that covers the disc area
+        cm_cpoTested.SetFakePolygon(
+          vColCenter0 + FLOAT3D(0,        +fRadius, 0),
+          vColCenter0 + FLOAT3D(+fRadius, -fRadius, 0),
+          vColCenter0 + FLOAT3D(-fRadius, -fRadius, 0)
+        );
+
+        // Cylinder bottom
+        ClipMovingPointToDisc(
+          msMoving.ms_vRelativeCenter0, // Start
+          msMoving.ms_vRelativeCenter1, // End
+          vColCenter0,                  // Disc center
+          vNormal0,                     // Disc normal
+          msMoving.ms_fR + fRadius      // Disc radius
+        );
+
+        // [Cecil] TODO: Add disc polygon type
+        // [Cecil] TEMP: Set fake polygon that covers the disc area
+        cm_cpoTested.SetFakePolygon(
+          vColCenter1 + FLOAT3D(0,        +fRadius, 0),
+          vColCenter1 + FLOAT3D(-fRadius, -fRadius, 0),
+          vColCenter1 + FLOAT3D(+fRadius, -fRadius, 0)
+        );
+
+        // Cylinder top
+        ClipMovingPointToDisc(
+          msMoving.ms_vRelativeCenter0, // Start
+          msMoving.ms_vRelativeCenter1, // End
+          vColCenter1,                  // Disc center
+          vNormal1,                     // Disc normal
+          msMoving.ms_fR + fRadius      // Disc radius
+        );
+
+        cm_cpoTested.Reset();
+
+        // Cylinder middle
+        ClipMovingPointToCylinder(
+          msMoving.ms_vRelativeCenter0, // Start,
+          msMoving.ms_vRelativeCenter1, // End,
+          vColCenter0,                  // Cylinder bottom center
+          vColCenter1,                  // Cylinder top center
+          msMoving.ms_fR + fRadius      // Cylinder radius
+        );
+      }
+    } break;
+
+    case COLSH_CAPSULE: {
+      FOREACHINSTATICARRAY(*cm_pamsA, CMovingSphere, itmsMoving) {
+        const CMovingSphere &msMoving = *itmsMoving;
+
+        // Capsule collision radius
+        const FLOAT fRadius = boxSize.Size()(2) * 0.5f;
+
+        // Capsule bottom position
+        vColCenter0 = boxSize.Center();
+        vColCenter0(3) += boxSize.Min()(3) + 0.5f;
+
+        // Capsule top position
+        vColCenter1 = boxSize.Center();
+        vColCenter1(3) += boxSize.Max()(3) - 0.5f;
+
+        // Capsule bottom
+        ClipMovingPointToSphere(
+          msMoving.ms_vRelativeCenter0, // Start
+          msMoving.ms_vRelativeCenter1, // End
+          vColCenter0,                  // Sphere center
+          msMoving.ms_fR + fRadius      // Sphere radius
+        );
+
+        // Capsule top
+        ClipMovingPointToSphere(
+          msMoving.ms_vRelativeCenter0, // Start
+          msMoving.ms_vRelativeCenter1, // End
+          vColCenter1,                  // Sphere center
+          msMoving.ms_fR + fRadius      // Sphere radius
+        );
+
+        // Capsule middle
+        ClipMovingPointToCylinder(
+          msMoving.ms_vRelativeCenter0, // Start,
+          msMoving.ms_vRelativeCenter1, // End,
+          vColCenter0,                  // Cylinder bottom center
+          vColCenter1,                  // Cylinder top center
+          msMoving.ms_fR + fRadius      // Cylinder radius
+        );
+      }
+    } break;
+
+    // Collide with a box by default
+    default: {
+      CollisionTris_t aTris;
+      GetTrisFromBox(boxSize, aTris);
+
+      for (INDEX iTri = 0; iTri < 12; iTri++) {
+        const CollisionTrianglePositions_t &tri = aTris[iTri];
+        ClipMoveToTriangle(tri[0], tri[1], tri[2]);
+      }
+    } break;
   }
 
   return TRUE;

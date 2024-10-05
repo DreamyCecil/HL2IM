@@ -99,6 +99,9 @@ inline FLOAT3D HorizontalDiff(FLOAT3D vPosDiff, const FLOAT3D &vGravityDir) {
   return vPosDiff + VerticalDiff(vPosDiff, vGravityDir);
 };
 
+// Retrieve custom collision dimensions and shape of some entity
+BOOL GetCustomCollisionShape(CEntity *pen, FLOATaabbox3D &boxSize, enum ECollisionShape &eShape);
+
 // Three positions of a collision triangle (counter-clockwise)
 struct CollisionTrianglePositions_t {
   FLOAT3D v[3];
