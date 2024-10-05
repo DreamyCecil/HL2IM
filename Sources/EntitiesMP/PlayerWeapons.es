@@ -2033,7 +2033,7 @@ functions:
         crRay.cr_bHitTranslucentPortals = FALSE;
         crRay.cr_fTestR = 0.5f;
         crRay.cr_bPhysical = FALSE;
-        crRay.cr_ttHitModels = CCecilCastRay::TT_BOUNDINGBOX;
+        crRay.cr_ttHitModels = CCecilCastRay::TT_CUSTOM;
         crRay.Cast(GetWorld());
 
         vRayOrigin = crRay.cr_vOrigin;
@@ -2054,7 +2054,7 @@ functions:
       CCecilCastRay crRay(m_penPlayer, plCrosshair);
       crRay.cr_bHitTranslucentPortals = FALSE;
       crRay.cr_bPhysical = FALSE;
-      crRay.cr_ttHitModels = CCecilCastRay::TT_BOUNDINGBOX;
+      crRay.cr_ttHitModels = CCecilCastRay::TT_CUSTOM;
       crRay.Cast(GetWorld());
 
       vRayOrigin = crRay.cr_vOrigin;
@@ -2994,7 +2994,7 @@ functions:
       crRay.cr_bPhysical = TRUE;
 
       crRay.cr_fTestR = fThickness;
-      crRay.cr_ttHitModels = CCecilCastRay::TT_BOUNDINGBOX;
+      crRay.cr_ttHitModels = CCecilCastRay::TT_CUSTOM;
       crRay.Cast(GetWorld());
       
       // if hit something
@@ -3174,7 +3174,7 @@ functions:
       CCecilCastRay crRay( m_penPlayer, vBase, vDest[i]);
       crRay.cr_bHitTranslucentPortals = FALSE;
       crRay.cr_fTestR = fThickness;
-      crRay.cr_ttHitModels = CCecilCastRay::TT_BOUNDINGBOX;
+      crRay.cr_ttHitModels = CCecilCastRay::TT_CUSTOM;
       crRay.Cast(GetWorld());
 
       // if hit something

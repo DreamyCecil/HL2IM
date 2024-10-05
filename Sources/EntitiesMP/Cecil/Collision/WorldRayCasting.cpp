@@ -337,8 +337,8 @@ void CCecilCastRay::TestModelCollisionBox(CEntity *penModel)
   }
 }
 
-// [Cecil] Test the box around the model instead of collision spheres
-void CCecilCastRay::TestModelBoundingBox(CEntity *penModel) {
+// [Cecil] Test custom collision shapes instead of collision spheres
+void CCecilCastRay::TestModelCustomShape(CEntity *penModel) {
   // [Cecil] Doesn't have a custom shape, do regular collision testing
   if (!(penModel->GetPhysicsFlags() & EPF_CUSTOMCOLLISION)) {
     TestModelCollisionBox(penModel);
@@ -609,9 +609,9 @@ void CCecilCastRay::TestModel(CEntity *penModel)
   } else if (cr_ttHitModels==TT_FULL || cr_ttHitModels==TT_FULLSEETHROUGH) {
     TestModelFull(penModel, mo);
 
-  // [Cecil] Bounding box testing
-  } else if (cr_ttHitModels == TT_BOUNDINGBOX) {
-    TestModelBoundingBox(penModel);
+  // [Cecil] Custom collision testing
+  } else if (cr_ttHitModels == TT_CUSTOM) {
+    TestModelCustomShape(penModel);
 
   // must be no other testing
   } else {
@@ -648,9 +648,9 @@ void CCecilCastRay::TestSkaModel(CEntity *penModel)
   } else if (cr_ttHitModels==TT_FULL || cr_ttHitModels==TT_FULLSEETHROUGH) {
     TestSkaModelFull(penModel, mi);
 
-  // [Cecil] Bounding box testing
-  } else if (cr_ttHitModels == TT_BOUNDINGBOX) {
-    TestModelBoundingBox(penModel);
+  // [Cecil] Custom collision testing
+  } else if (cr_ttHitModels == TT_CUSTOM) {
+    TestModelCustomShape(penModel);
 
   // must be no other testing
   } else {
@@ -958,7 +958,7 @@ void CCecilCastRay::TestWholeWorld(CWorld *pwoWorld)
       && cr_ttHitModels != TT_NONE)
     //  and if cast type is TT_FULL_SEETROUGH then model is not
     //  ENF_SEETROUGH
-      && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX || cr_ttHitModels == TT_BOUNDINGBOX) &&
+      && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX || cr_ttHitModels == TT_CUSTOM) &&
            (itenInWorld->en_ulFlags&ENF_SEETHROUGH))) {
       // test it against the model entity
       TestModel(itenInWorld);
@@ -969,7 +969,7 @@ void CCecilCastRay::TestWholeWorld(CWorld *pwoWorld)
       && cr_ttHitModels != TT_NONE)
     //  and if cast type is TT_FULL_SEETROUGH then model is not
     //  ENF_SEETROUGH
-      && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX || cr_ttHitModels == TT_BOUNDINGBOX) &&
+      && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX || cr_ttHitModels == TT_CUSTOM) &&
            (itenInWorld->en_ulFlags&ENF_SEETHROUGH))) {
       TestSkaModel(itenInWorld);
     } else if (itenInWorld->en_RenderType == CEntity::RT_TERRAIN) {
@@ -1037,7 +1037,7 @@ void CCecilCastRay::TestThroughSectors(void)
         && cr_ttHitModels != TT_NONE)
       //  and if cast type is TT_FULL_SEETROUGH then model is not
       //  ENF_SEETROUGH
-        && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX || cr_ttHitModels == TT_BOUNDINGBOX) &&
+        && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX || cr_ttHitModels == TT_CUSTOM) &&
              (pen->en_ulFlags&ENF_SEETHROUGH))) {
         // test it against the model entity
         TestModel(pen);
@@ -1048,7 +1048,7 @@ void CCecilCastRay::TestThroughSectors(void)
         && cr_ttHitModels != TT_NONE)
       //  and if cast type is TT_FULL_SEETROUGH then model is not
       //  ENF_SEETROUGH
-        && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX || cr_ttHitModels == TT_BOUNDINGBOX) &&
+        && !((cr_ttHitModels == TT_FULLSEETHROUGH || cr_ttHitModels == TT_COLLISIONBOX || cr_ttHitModels == TT_CUSTOM) &&
              (pen->en_ulFlags&ENF_SEETHROUGH))) {
         // test it against the ska model entity
         TestSkaModel(pen);

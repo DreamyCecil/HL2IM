@@ -33,7 +33,7 @@ public:
     TT_COLLISIONBOX,    // do testing by collision box
     TT_FULL,            // do full testing
     TT_FULLSEETHROUGH,  // do full testing without entities marked as see through
-    TT_BOUNDINGBOX,     // [Cecil] Test through 6 sides of a box around the current animation frame
+    TT_CUSTOM,          // [Cecil] Test custom collision shapes
   };
 public:
   BOOL cr_bAllowOverHit;                // set if the ray can hit behind its target
@@ -56,8 +56,8 @@ public:
   void TestModelSimple(CEntity *penModel, CModelObject &mo);
   void TestModelCollisionBox(CEntity *penModel);
 
-  // [Cecil] Test the box around the model instead of collision spheres
-  void TestModelBoundingBox(CEntity *penModel);
+  // [Cecil] Test custom collision shapes instead of collision spheres
+  void TestModelCustomShape(CEntity *penModel);
 
   void TestModelFull(CEntity *penModel, CModelObject &mo);
   void TestSkaModelSimple(CEntity *penModel, CModelInstance &mi);
