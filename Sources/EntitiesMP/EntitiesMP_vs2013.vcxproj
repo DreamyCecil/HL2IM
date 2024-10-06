@@ -78,8 +78,8 @@
     <IntDir>$(SolutionDir)Obj\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <ExecutablePath>$(SolutionDir)Extras;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(SolutionDir);$(SolutionDir)Extras;$(ProjectDir)StdH;$(SolutionDir)Engine107;$(IncludePath)</IncludePath>
-    <LibraryPath>$(OutDir);$(SolutionDir)Engine107;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir);$(SolutionDir)Extras;$(SolutionDir)Extras\ode\include;$(ProjectDir)StdH;$(SolutionDir)Engine107;$(IncludePath)</IncludePath>
+    <LibraryPath>$(OutDir);$(SolutionDir)Extras\ode\lib\ReleaseDLL;$(SolutionDir)Engine107;$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">
@@ -87,8 +87,8 @@
     <IntDir>$(SolutionDir)Obj\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <ExecutablePath>$(SolutionDir)Extras;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(SolutionDir);$(SolutionDir)Extras;$(ProjectDir)StdH;$(SolutionDir)Engine110;$(IncludePath)</IncludePath>
-    <LibraryPath>$(OutDir);$(SolutionDir)Engine110;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir);$(SolutionDir)Extras;$(SolutionDir)Extras\ode\include;$(ProjectDir)StdH;$(SolutionDir)Engine110;$(IncludePath)</IncludePath>
+    <LibraryPath>$(OutDir);$(SolutionDir)Extras\ode\lib\ReleaseDLL;$(SolutionDir)Engine110;$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -96,8 +96,8 @@
     <IntDir>$(SolutionDir)Obj\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <ExecutablePath>$(SolutionDir)Extras;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(SolutionDir);$(SolutionDir)Extras;$(ProjectDir)StdH;$(SolutionDir)Engine107;$(IncludePath)</IncludePath>
-    <LibraryPath>$(OutDir);$(SolutionDir)Engine107;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir);$(SolutionDir)Extras;$(SolutionDir)Extras\ode\include;$(ProjectDir)StdH;$(SolutionDir)Engine107;$(IncludePath)</IncludePath>
+    <LibraryPath>$(OutDir);$(SolutionDir)Extras\ode\lib\ReleaseDLL;$(SolutionDir)Engine107;$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName)D</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">
@@ -105,8 +105,8 @@
     <IntDir>$(SolutionDir)Obj\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <ExecutablePath>$(SolutionDir)Extras;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(SolutionDir);$(SolutionDir)Extras;$(ProjectDir)StdH;$(SolutionDir)Engine110;$(IncludePath)</IncludePath>
-    <LibraryPath>$(OutDir);$(SolutionDir)Engine110;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir);$(SolutionDir)Extras;$(SolutionDir)Extras\ode\include;$(ProjectDir)StdH;$(SolutionDir)Engine110;$(IncludePath)</IncludePath>
+    <LibraryPath>$(OutDir);$(SolutionDir)Extras\ode\lib\ReleaseDLL;$(SolutionDir)Engine110;$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName)D</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -148,10 +148,12 @@
       <SubSystem>Windows</SubSystem>
       <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
       <AdditionalDependencies>user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>ode.dll</DelayLoadDLLs>
     </Link>
     <PostBuildEvent>
       <Message>Copying %(TargetName) binaries to Bin</Message>
-      <Command>copy "$(OutDir)$(TargetFileName)" "$(SolutionDir)..\Bin\" &gt;nul</Command>
+      <Command>copy "$(OutDir)$(TargetFileName)" "$(SolutionDir)..\Bin\" &gt;nul
+copy "$(SolutionDir)Extras\ode\lib\ReleaseDLL\ode.dll" "$(SolutionDir)..\Bin\" &gt;nul</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>del "$(OutDir)$(TargetFileName)" &gt;nul</Command>
@@ -196,10 +198,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>ode.dll</DelayLoadDLLs>
     </Link>
     <PostBuildEvent>
       <Message>Copying %(TargetName) binaries to Bin</Message>
-      <Command>copy "$(OutDir)$(TargetFileName)" "$(SolutionDir)..\Bin\" &gt;nul</Command>
+      <Command>copy "$(OutDir)$(TargetFileName)" "$(SolutionDir)..\Bin\" &gt;nul
+copy "$(SolutionDir)Extras\ode\lib\ReleaseDLL\ode.dll" "$(SolutionDir)..\Bin\" &gt;nul</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>del "$(OutDir)$(TargetFileName)" &gt;nul</Command>
@@ -242,10 +246,12 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
+      <DelayLoadDLLs>ode.dll</DelayLoadDLLs>
     </Link>
     <PostBuildEvent>
       <Message>Copying %(TargetName) binaries to Bin</Message>
-      <Command>copy "$(OutDir)$(TargetFileName)" "$(SolutionDir)..\Bin\Debug\" &gt;nul</Command>
+      <Command>copy "$(OutDir)$(TargetFileName)" "$(SolutionDir)..\Bin\Debug\" &gt;nul
+copy "$(SolutionDir)Extras\ode\lib\ReleaseDLL\ode.dll" "$(SolutionDir)..\Bin\" &gt;nul</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>del "$(OutDir)$(TargetFileName)" &gt;nul</Command>
@@ -287,10 +293,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>ode.dll</DelayLoadDLLs>
     </Link>
     <PostBuildEvent>
       <Message>Copying %(TargetName) binaries to Bin</Message>
-      <Command>copy "$(OutDir)$(TargetFileName)" "$(SolutionDir)..\Bin\Debug\" &gt;nul</Command>
+      <Command>copy "$(OutDir)$(TargetFileName)" "$(SolutionDir)..\Bin\Debug\" &gt;nul
+copy "$(SolutionDir)Extras\ode\lib\ReleaseDLL\ode.dll" "$(SolutionDir)..\Bin\" &gt;nul</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>del "$(OutDir)$(TargetFileName)" &gt;nul</Command>
