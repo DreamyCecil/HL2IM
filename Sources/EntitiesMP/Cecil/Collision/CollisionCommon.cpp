@@ -35,11 +35,33 @@ void SCollisionPolygon::SetBrushPolygon(CBrushPolygon *pbpoSet) {
 
 // Set fake polygon
 void SCollisionPolygon::SetFakePolygon(const FLOAT3D &v0, const FLOAT3D &v1, const FLOAT3D &v2) {
-  eType = POL_FAKE;
+  eType = POL_TRIANGLE;
   pbpoHit = NULL;
   avPolygon[0] = v0;
   avPolygon[1] = v1;
   avPolygon[2] = v2;
+
+  bHit = FALSE;
+};
+
+// Set disc polygon
+void SCollisionPolygon::SetDiscPolygon(const FLOAT3D &vCenter, FLOAT fRadius, const FLOAT3D &vNormal) {
+  eType = POL_DISC;
+  pbpoHit = NULL;
+  avPolygon[0] = vCenter;
+  avPolygon[1] = FLOAT3D(fRadius, fRadius, fRadius);
+  avPolygon[2] = vNormal;
+
+  bHit = FALSE;
+};
+
+// Set infinitely thin polygon
+void SCollisionPolygon::SetEdgePolygon(const FLOAT3D &vStart, const FLOAT3D &vEnd) {
+  eType = POL_EDGE;
+  pbpoHit = NULL;
+  avPolygon[0] = vStart;
+  avPolygon[1] = vEnd;
+  avPolygon[2] = FLOAT3D(0, 0, 0);
 
   bHit = FALSE;
 };
@@ -63,10 +85,31 @@ void SCollisionPolygon::HitPolygon(const FLOAT3D &vCollisionPoint, const FLOATpl
   bStairs = bSetStairs;
 };
 
-// Add polygon edges to intersector
-void SCollisionPolygon::AddEdges(CIntersector &is, INDEX iMajorAxis1, INDEX iMajorAxis2) const {
+// Check if a point intersects the polygon
+BOOL SCollisionPolygon::IsIntersecting(const FLOAT3D &vPoint) const {
+  // No polygon
+  if (eType == POL_INVALID) return FALSE;
+
+  // Technically impossible to intersect with an infinitely thin object
+  if (eType == POL_EDGE) return FALSE;
+
+  if (eType == POL_DISC) {
+    FLOAT3D vCenter = avPolygon[0];
+    FLOAT fRadius = avPolygon[1](1);
+
+    FLOAT fDistFromCenter = (vPoint - vCenter).Length();
+    return (fDistFromCenter <= fRadius);
+  }
+
+  // Find major axes of the polygon plane
+  INDEX iMajorAxis1, iMajorAxis2;
+  GetMajorAxesForPlane(plPolygon, iMajorAxis1, iMajorAxis2);
+
+  // Create an intersector
+  CIntersector is(vPoint(iMajorAxis1), vPoint(iMajorAxis2));
+
   // Real polygon
-  if (eType == SCollisionPolygon::POL_BRUSH) {
+  if (eType == POL_BRUSH) {
     FOREACHINSTATICARRAY(pbpoHit->bpo_abpePolygonEdges, CBrushPolygonEdge, itbpePolygonEdge) {
       // Get edge vertices (edge direction is irrelevant here)
       const FLOAT3D &v0 = itbpePolygonEdge->bpe_pbedEdge->bed_pbvxVertex0->bvx_vAbsolute;
@@ -75,13 +118,14 @@ void SCollisionPolygon::AddEdges(CIntersector &is, INDEX iMajorAxis1, INDEX iMaj
       is.AddEdge(v0(iMajorAxis1), v0(iMajorAxis2), v1(iMajorAxis1), v1(iMajorAxis2));
     }
 
-    return;
+  // Fake polygon
+  } else if (eType == POL_TRIANGLE) {
+    is.AddEdge(avPolygon[0](iMajorAxis1), avPolygon[0](iMajorAxis2), avPolygon[1](iMajorAxis1), avPolygon[1](iMajorAxis2));
+    is.AddEdge(avPolygon[1](iMajorAxis1), avPolygon[1](iMajorAxis2), avPolygon[2](iMajorAxis1), avPolygon[2](iMajorAxis2));
+    is.AddEdge(avPolygon[2](iMajorAxis1), avPolygon[2](iMajorAxis2), avPolygon[0](iMajorAxis1), avPolygon[0](iMajorAxis2));
   }
 
-  // Fake polygon
-  is.AddEdge(avPolygon[0](iMajorAxis1), avPolygon[0](iMajorAxis2), avPolygon[1](iMajorAxis1), avPolygon[1](iMajorAxis2));
-  is.AddEdge(avPolygon[1](iMajorAxis1), avPolygon[1](iMajorAxis2), avPolygon[2](iMajorAxis1), avPolygon[2](iMajorAxis2));
-  is.AddEdge(avPolygon[2](iMajorAxis1), avPolygon[2](iMajorAxis2), avPolygon[0](iMajorAxis1), avPolygon[0](iMajorAxis2));
+  return is.IsIntersecting();
 };
 
 // Assignment operator
@@ -105,11 +149,11 @@ SCollisionPolygon &SCollisionPolygon::operator=(const SCollisionPolygon &cpoOthe
 void SCollisionPolygon::Write_t(CEntity *pen, CTStream *ostr) {
   *ostr << (INDEX)eType;
 
-  if (eType == SCollisionPolygon::POL_BRUSH) {
+  if (eType == POL_BRUSH) {
     INDEX iBPO = pen->GetWorldPolygonIndex(pbpoHit);
     *ostr << iBPO;
 
-  } else if (eType == SCollisionPolygon::POL_FAKE) {
+  } else if (eType != POL_INVALID) {
     ostr->Write_t(&avPolygon, sizeof(avPolygon));
   }
 
@@ -131,12 +175,12 @@ void SCollisionPolygon::Read_t(CEntity *pen, CTStream *istr) {
   *istr >> iReadType;
   eType = (EPolygonType)iReadType;
 
-  if (eType == SCollisionPolygon::POL_BRUSH) {
+  if (eType == POL_BRUSH) {
     INDEX iBPO;
     *istr >> iBPO;
     pbpoHit = pen->GetWorldPolygonPointer(iBPO);
 
-  } else if (eType == SCollisionPolygon::POL_FAKE) {
+  } else if (eType != POL_INVALID) {
     istr->Read_t(&avPolygon, sizeof(avPolygon));
   }
 

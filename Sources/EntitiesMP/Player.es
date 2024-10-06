@@ -3599,7 +3599,7 @@ functions:
         if (m_cpoStandOn.pbpoHit != NULL) {
           CRC_AddLONG(ulCRC, m_cpoStandOn.pbpoHit->bpo_iInWorld);
         }
-      } else if (m_cpoStandOn.eType == SCollisionPolygon::POL_FAKE) {
+      } else if (m_cpoStandOn.eType != SCollisionPolygon::POL_INVALID) {
         CRC_AddBlock(ulCRC, (UBYTE *)&m_cpoStandOn.avPolygon, sizeof(m_cpoStandOn.avPolygon));
       }
 
@@ -3632,7 +3632,7 @@ functions:
       if (m_cpoStandOn.pbpoHit != NULL) {
         strm.FPrintF_t("Brush polygon:  %d\n", m_cpoStandOn.pbpoHit->bpo_iInWorld);
       }
-    } else if (m_cpoStandOn.eType == SCollisionPolygon::POL_FAKE) {
+    } else if (m_cpoStandOn.eType != SCollisionPolygon::POL_INVALID) {
       strm.FPrintF_t("avPolygon[0]:  %g, %g, %g\n",
         m_cpoStandOn.avPolygon[0](1), m_cpoStandOn.avPolygon[0](2), m_cpoStandOn.avPolygon[0](3));
       strm.FPrintF_t("avPolygon[1]:  %g, %g, %g\n",

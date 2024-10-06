@@ -321,9 +321,9 @@ void CCecilClipMove::ClipMovingPointToDisc(const FLOAT3D &vStart, const FLOAT3D 
   cm_penHit = cm_penTested;
   cm_cpoHit = cm_cpoTested;
 
-  // Hit the polygon
-  const FLOAT3D vCollisionPoint = args.vHitPoint * cm_mBToAbsolute + cm_vBToAbsolute;
-  cm_cpoHit.HitPolygon(vCollisionPoint, cm_plClippedPlane, GetValidSurfaceForEntity(cm_penHit), FALSE);
+  // Hit previously set polygon at an absolute position where the collision occurred
+  const FLOAT3D vAbsPoint = args.vHitPoint * cm_mBToAbsolute + cm_vBToAbsolute;
+  MovingPointHitPolygon(vAbsPoint);
 };
 
 /*
@@ -639,6 +639,8 @@ BOOL CCecilClipMove::ClipModelMoveToPreciseModel(void) {
         // Sphere center position
         vColCenter0 = boxSize.Center();
 
+        cm_cpoTested.SetEdgePolygon(vColCenter0, vColCenter0);
+
         ClipMovingPointToSphere(
           msMoving.ms_vRelativeCenter0, // Start
           msMoving.ms_vRelativeCenter1, // End
@@ -667,13 +669,7 @@ BOOL CCecilClipMove::ClipModelMoveToPreciseModel(void) {
         const FLOAT3D vNormal0 = (vColCenter0 - vColCenter1).SafeNormalize();
         const FLOAT3D vNormal1 = (vColCenter1 - vColCenter0).SafeNormalize();
 
-        // [Cecil] TODO: Add disc polygon type
-        // [Cecil] TEMP: Set fake polygon that covers the disc area
-        cm_cpoTested.SetFakePolygon(
-          vColCenter0 + FLOAT3D(0,        +fRadius, 0),
-          vColCenter0 + FLOAT3D(+fRadius, -fRadius, 0),
-          vColCenter0 + FLOAT3D(-fRadius, -fRadius, 0)
-        );
+        cm_cpoTested.SetDiscPolygon(vColCenter0, fRadius, vNormal0);
 
         // Cylinder bottom
         ClipMovingPointToDisc(
@@ -684,13 +680,7 @@ BOOL CCecilClipMove::ClipModelMoveToPreciseModel(void) {
           msMoving.ms_fR + fRadius      // Disc radius
         );
 
-        // [Cecil] TODO: Add disc polygon type
-        // [Cecil] TEMP: Set fake polygon that covers the disc area
-        cm_cpoTested.SetFakePolygon(
-          vColCenter1 + FLOAT3D(0,        +fRadius, 0),
-          vColCenter1 + FLOAT3D(-fRadius, -fRadius, 0),
-          vColCenter1 + FLOAT3D(+fRadius, -fRadius, 0)
-        );
+        cm_cpoTested.SetDiscPolygon(vColCenter1, fRadius, vNormal1);
 
         // Cylinder top
         ClipMovingPointToDisc(
@@ -701,7 +691,7 @@ BOOL CCecilClipMove::ClipModelMoveToPreciseModel(void) {
           msMoving.ms_fR + fRadius      // Disc radius
         );
 
-        cm_cpoTested.Reset();
+        cm_cpoTested.SetEdgePolygon(vColCenter0, vColCenter1);
 
         // Cylinder middle
         ClipMovingPointToCylinder(
@@ -729,6 +719,8 @@ BOOL CCecilClipMove::ClipModelMoveToPreciseModel(void) {
         vColCenter1 = boxSize.Center();
         vColCenter1(3) += boxSize.Max()(3) - 0.5f;
 
+        cm_cpoTested.SetEdgePolygon(vColCenter0, vColCenter0);
+
         // Capsule bottom
         ClipMovingPointToSphere(
           msMoving.ms_vRelativeCenter0, // Start
@@ -737,6 +729,8 @@ BOOL CCecilClipMove::ClipModelMoveToPreciseModel(void) {
           msMoving.ms_fR + fRadius      // Sphere radius
         );
 
+        cm_cpoTested.SetEdgePolygon(vColCenter1, vColCenter1);
+
         // Capsule top
         ClipMovingPointToSphere(
           msMoving.ms_vRelativeCenter0, // Start
@@ -744,6 +738,8 @@ BOOL CCecilClipMove::ClipModelMoveToPreciseModel(void) {
           vColCenter1,                  // Sphere center
           msMoving.ms_fR + fRadius      // Sphere radius
         );
+
+        cm_cpoTested.SetEdgePolygon(vColCenter0, vColCenter1);
 
         // Capsule middle
         ClipMovingPointToCylinder(

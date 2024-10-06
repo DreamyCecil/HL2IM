@@ -758,23 +758,8 @@ BOOL CCecilMovableEntity::IsStandingOnPolygon(const SCollisionPolygon &cpo)
     return FALSE;
   }
 
-  // find major axes of the polygon plane
-  INDEX iMajorAxis1, iMajorAxis2;
-  GetMajorAxesForPlane(plPolygon, iMajorAxis1, iMajorAxis2);
-
-  // create an intersector
-  CIntersector isIntersector(vHandle(iMajorAxis1), vHandle(iMajorAxis2));
-  cpo.AddEdges(isIntersector, iMajorAxis1, iMajorAxis2); // [Cecil]
-
-  // if the point is inside polygon
-  if (isIntersector.IsIntersecting()) {
-    // entity is standing on polygon
-    return TRUE;
-  // if the point is outside polygon
-  } else {
-    // entity is not standing on polygon
-    return FALSE;
-  }
+  // [Cecil] Check if the point is inside the polygon
+  return cpo.IsIntersecting(vHandle);
 }
 
 // check whether a polygon is below given point, but not too far away
@@ -826,23 +811,8 @@ BOOL CCecilMovableEntity::IsPolygonBelowPoint(const SCollisionPolygon &cpo, cons
   // project point to the polygon along gravity vector
   FLOAT3D vProjected = vPoint + en_vGravityDir*fDistance;
 
-  // find major axes of the polygon plane
-  INDEX iMajorAxis1, iMajorAxis2;
-  GetMajorAxesForPlane(plPolygon, iMajorAxis1, iMajorAxis2);
-
-  // create an intersector
-  CIntersector isIntersector(vProjected(iMajorAxis1), vProjected(iMajorAxis2));
-  cpo.AddEdges(isIntersector, iMajorAxis1, iMajorAxis2); // [Cecil]
-
-  // if the point is inside polygon
-  if (isIntersector.IsIntersecting()) {
-    // it is below
-    return TRUE;
-  // if the point is outside polygon
-  } else {
-    // it is not below
-    return FALSE;
-  }
+  // [Cecil] Check if the point is inside the polygon
+  return cpo.IsIntersecting(vProjected);
 }
 
 // override this to make filtering for what can entity stand on

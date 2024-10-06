@@ -24,8 +24,22 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 struct SCollisionPolygon {
   enum EPolygonType {
     POL_INVALID = -1,
+
+    // Real brush polygon with as many edges as possible
+    // pbpoHit defines the polygon
     POL_BRUSH,
-    POL_FAKE,
+
+    // Fake triangle polygon
+    // avPolygon defines polygon vertices
+    POL_TRIANGLE,
+
+    // Disc polygon with an infinite amount of edges
+    // avPolygon[0] - center, avPolygon[1] - radius (any axis), avPolygon[2] - normal
+    POL_DISC,
+
+    // Infinitely thin polygon (edge/line or corner/vertex)
+    // avPolygon[0] - line start, avPolygon[1] - line end
+    POL_EDGE,
   };
 
   // Polygon identity
@@ -66,14 +80,20 @@ struct SCollisionPolygon {
   // Set fake polygon
   void SetFakePolygon(const FLOAT3D &v0, const FLOAT3D &v1, const FLOAT3D &v2);
 
+  // Set disc polygon
+  void SetDiscPolygon(const FLOAT3D &vCenter, FLOAT fRadius, const FLOAT3D &vNormal);
+
+  // Set infinitely thin polygon
+  void SetEdgePolygon(const FLOAT3D &vStart, const FLOAT3D &vEnd);
+
   // Hit polygon at some collision point
   void HitPolygon(const FLOAT3D &vCollisionPoint);
 
   // Hit polygon at some collision point with extra setup
   void HitPolygon(const FLOAT3D &vCollisionPoint, const FLOATplane3D &plSetPlane, UBYTE ubSetSurface, BOOL bSetStairs);
 
-  // Add polygon edges to intersector
-  void AddEdges(CIntersector &is, INDEX iMajorAxis1, INDEX iMajorAxis2) const;
+  // Check if a point intersects the polygon
+  BOOL IsIntersecting(const FLOAT3D &vPoint) const;
 
   // Assignment operator
   SCollisionPolygon &operator=(const SCollisionPolygon &cpoOther);
