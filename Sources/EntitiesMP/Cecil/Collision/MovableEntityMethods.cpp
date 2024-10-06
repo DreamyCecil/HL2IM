@@ -1499,8 +1499,8 @@ void CCecilMovableEntity::ClearMovingTemp(void)
   CLEARMEM(en_mAppliedRotation);
 }
 
-// prepare parameters for moving in this tick
-void CCecilMovableEntity::PreMoving(void)
+// [Cecil] Pre-moving logic with an additional rotation direction variable (for EPF_ROTATETOPLANE)
+void CCecilMovableEntity::PreMoving(FLOAT3D &vRotationDir)
 {
   if (en_pciCollisionInfo==NULL) {
     return;
@@ -1540,7 +1540,7 @@ void CCecilMovableEntity::PreMoving(void)
     TestFields(en_iUpContent, en_iDnContent, en_fImmersionFactor);
 
     // [Cecil] Set to gravity direction by default
-    /*en_vRotateTowards = en_vGravityDir;
+    vRotationDir = en_vGravityDir;
 
     // [Cecil] Rotate the entity towards the plane below it
     if (en_ulPhysicsFlags & EPF_ROTATETOPLANE) {
@@ -1565,10 +1565,10 @@ void CCecilMovableEntity::PreMoving(void)
 
         // Set plane vector only if the difference is small enough
         if (Abs(aDest(2)) < 46.0f && Abs(aDest(3)) < 46.0f) {
-          en_vRotateTowards = vNewDir;
+          vRotationDir = vNewDir;
         }
       }
-    }*/
+    }
 
     // if entity has sticky feet
     if (en_ulPhysicsFlags & EPF_STICKYFEET) {
@@ -1578,7 +1578,7 @@ void CCecilMovableEntity::PreMoving(void)
       FLOAT fDistanceToEdge;
       if (GetNearestPolygon(vPoint, plPlane, fDistanceToEdge)) {
         en_vGravityDir = -(FLOAT3D&)plPlane;
-        //en_vRotateTowards = en_vGravityDir; // [Cecil] Rotate towards the plane
+        vRotationDir = en_vGravityDir; // [Cecil] Rotate towards the plane
       }
     }
   }
@@ -1680,7 +1680,7 @@ void CCecilMovableEntity::PreMoving(void)
     vDown(3) = -en_mRotation(3,2);
 
     // [Cecil] Select vector for rotating towards a plane
-    FLOAT3D vDirTowardsPlane = /*(en_ulPhysicsFlags & EPF_ROTATETOPLANE) ? en_vRotateTowards :*/ en_vGravityDir;
+    FLOAT3D vDirTowardsPlane = (en_ulPhysicsFlags & EPF_ROTATETOPLANE) ? vRotationDir : en_vGravityDir;
 
     // find angle entities down and gravity down
     FLOAT fCos = vDown % vDirTowardsPlane; // [Cecil]

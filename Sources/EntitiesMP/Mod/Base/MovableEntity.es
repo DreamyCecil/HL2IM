@@ -272,7 +272,16 @@ functions:
   BOOL TryToGoUpstairs(const FLOAT3D &vTranslationAbsolute, const CSurfaceType &stHit, BOOL bHitStairsOrg);
   BOOL TryToMove(CCecilMovableEntity *penPusher, BOOL bTranslate, BOOL bRotate);
   void ClearMovingTemp(void);
-  void PreMoving(void);
+
+  // [Cecil] Pre-moving logic with an additional rotation direction variable (for EPF_ROTATETOPLANE)
+  void PreMoving(FLOAT3D &vRotationDir);
+
+  // [Cecil] NOTE: This virtual function is now a wrapper for compatibility
+  void PreMoving(void) {
+    FLOAT3D vDummy;
+    PreMoving(vDummy);
+  };
+
   void DoMoving(void);
   void PostMoving(void);
   void CacheNearPolygons(void);

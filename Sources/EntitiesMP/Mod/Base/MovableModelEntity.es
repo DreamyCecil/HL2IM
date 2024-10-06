@@ -41,16 +41,21 @@ functions:
     reinterpret_cast<CMovableModelEntity *>(this)->CMovableModelEntity::DumpSync_t(strm, iExtensiveSyncCheck);
   };
 
-  // prepare parameters for moving in this tick
-  void PreMoving(void) // override from CCecilMovableEntity
-  {
+  // [Cecil] Pre-moving logic with an additional rotation direction variable (for EPF_ROTATETOPLANE)
+  void PreMoving(FLOAT3D &vRotationDir) {
     // if collision box should be changed
     if (en_iCollisionBox != en_iWantedCollisionBox) {
       // change if possible
       ChangeCollisionBoxIndexNow(en_iWantedCollisionBox);
     }
 
-    CCecilMovableEntity::PreMoving();
+    CCecilMovableEntity::PreMoving(vRotationDir);
+  };
+
+  // [Cecil] NOTE: This virtual function is now a wrapper for compatibility
+  void PreMoving(void) {
+    FLOAT3D vDummy;
+    PreMoving(vDummy);
   };
 
   void DoMoving(void) {
