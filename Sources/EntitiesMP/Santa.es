@@ -92,7 +92,7 @@ functions:
     FLOAT fDamageAmmount, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) 
   {
     // skip base enemy damage handling
-    CMovableModelEntity::ReceiveDamage(penInflictor, dmtType, fDamageAmmount, vHitPoint, vDirection);
+    CCecilMovableModelEntity::ReceiveDamage(penInflictor, dmtType, fDamageAmmount, vHitPoint, vDirection);
 
     // if not enough time passed since lst item spawning
     if (_pTimer->CurrentTick()-m_tmLastSpawnTime<m_tmMinSpawnInterval) {

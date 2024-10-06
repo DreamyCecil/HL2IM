@@ -333,7 +333,7 @@ functions:
 
   // per-frame adjustments
   BOOL AdjustShadingParameters(FLOAT3D &vLightDirection, COLOR &colLight, COLOR &colAmbient) {
-    return CMovableModelEntity::AdjustShadingParameters(vLightDirection, colLight, colAmbient);
+    return CCecilMovableModelEntity::AdjustShadingParameters(vLightDirection, colLight, colAmbient);
   };
   
 

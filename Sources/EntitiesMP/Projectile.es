@@ -26,6 +26,9 @@
 #define DEVIL_ROCKET_SPEED 60.0f
 %}
 
+// [Cecil] New base class
+uses "EntitiesMP/Mod/Base/MovableModelEntity";
+
 uses "EntitiesMP/BasicEffects";
 uses "EntitiesMP/Light";
 uses "EntitiesMP/Flame";
@@ -423,7 +426,7 @@ void CProjectile_OnPrecache(CDLLEntityClass *pdec, INDEX iUser)
 %}
 
 
-class export CProjectile : CMovableModelEntity {
+class export CProjectile : CCecilMovableModelEntity {
 name      "Projectile";
 thumbnail "";
 features "ImplementsOnInitClass", "ImplementsOnPrecache", "CanBePredictable";
@@ -666,12 +669,12 @@ functions:
         m_tmExpandBox = 0;
       }
     }
-    CMovableModelEntity::PreMoving();
+    CCecilMovableModelEntity::PreMoving();
   }
 
   // postmoving
   void PostMoving(void) {
-    CMovableModelEntity::PostMoving();
+    CCecilMovableModelEntity::PostMoving();
     // if flamer flame
     if (m_prtType==PRT_FLAME || m_prtType==PRT_SHOOTER_FLAME) {
       // if came to water
@@ -687,7 +690,7 @@ functions:
   /* Read from stream. */
   void Read_t( CTStream *istr) // throw char *
   {
-    CMovableModelEntity::Read_t(istr);
+    CCecilMovableModelEntity::Read_t(istr);
     // setup light source
     if( m_bLightSource) {
       SetupLightSource(TRUE);
@@ -697,7 +700,7 @@ functions:
   // dump sync data to text file
   export void DumpSync_t(CTStream &strm, INDEX iExtensiveSyncCheck)  // throw char *
   {
-    CMovableModelEntity ::DumpSync_t(strm, iExtensiveSyncCheck);
+    CCecilMovableModelEntity::DumpSync_t(strm, iExtensiveSyncCheck);
     strm.FPrintF_t("projectile type: %d\n", m_prtType);
     strm.FPrintF_t("launcher:");
     if (m_penLauncher!=NULL) {
@@ -724,7 +727,7 @@ functions:
 
   export void Copy(CEntity &enOther, ULONG ulFlags)
   {
-    CMovableModelEntity::Copy(enOther, ulFlags);
+    CCecilMovableModelEntity::Copy(enOther, ulFlags);
     CProjectile *penOther = (CProjectile *)(&enOther);
     if (ulFlags&COPY_PREDICTOR) {
       //m_lsLightSource;
@@ -3426,7 +3429,7 @@ void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType,
     Destroy();    
   }
 
-  CMovableModelEntity::ReceiveDamage(penInflictor, 
+  CCecilMovableModelEntity::ReceiveDamage(penInflictor, 
     dmtType, fDamageAmmount, vHitPoint, vDirection);
 };
 

@@ -6,6 +6,9 @@
 #include "EntitiesMP/DestroyableArchitecture.h"
 %}
 
+// [Cecil] New base class
+uses "EntitiesMP/Mod/Base/MovableModelEntity";
+
 uses "EntitiesMP/BasicEffects";
 uses "EntitiesMP/Light";
 uses "EntitiesMP/PlayerWeapons";
@@ -79,7 +82,7 @@ void CCannonBall_OnPrecache(CDLLEntityClass *pdec, INDEX iUser)
 %}
 
 
-class export CCannonBall : CMovableModelEntity {
+class export CCannonBall : CCecilMovableModelEntity {
 name      "Cannon ball";
 thumbnail "";
 features "ImplementsOnPrecache";
@@ -132,12 +135,12 @@ functions:
         m_tmExpandBox = 0;
       }
     }
-    CMovableModelEntity::PreMoving();
+    CCecilMovableModelEntity::PreMoving();
   }
   
   void PostMoving(void)
   {
-    CMovableModelEntity::PostMoving();
+    CCecilMovableModelEntity::PostMoving();
     if (en_vCurrentTranslationAbsolute.Length()<1.0f ||         // if very slow, allmost standing
         _pTimer->CurrentTick()>=m_tmForceExplode ||             // if forced explosion
         (GetCollisionBoxIndex()==0 &&                           // if unable to change collision box for some time
@@ -149,7 +152,7 @@ functions:
   /* Read from stream. */
   void Read_t( CTStream *istr) // throw char *
   {
-    CMovableModelEntity::Read_t(istr);
+    CCecilMovableModelEntity::Read_t(istr);
     // setup light source
 //    SetupLightSource();
   }

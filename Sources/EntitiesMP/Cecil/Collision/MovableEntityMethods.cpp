@@ -280,7 +280,7 @@ void CCecilMovableEntity::GiveImpulseTranslationAbsolute(const FLOAT3D &vImpulse
 }
 
 void CCecilMovableEntity::LaunchAsPropelledProjectile(const FLOAT3D &vImpulseSpeedRelative, 
-  CCecilMovableEntity *penLauncher)
+  CMovableEntity *penLauncher)
 {
   en_vDesiredTranslationRelative = vImpulseSpeedRelative;
   en_vCurrentTranslationAbsolute += vImpulseSpeedRelative*en_mRotation;
@@ -289,7 +289,7 @@ void CCecilMovableEntity::LaunchAsPropelledProjectile(const FLOAT3D &vImpulseSpe
 }
 
 void CCecilMovableEntity::LaunchAsFreeProjectile(const FLOAT3D &vImpulseSpeedRelative, 
-  CCecilMovableEntity *penLauncher)
+  CMovableEntity *penLauncher)
 {
   en_vCurrentTranslationAbsolute += vImpulseSpeedRelative*en_mRotation;
 //    en_vCurrentTranslationAbsolute += penLauncher->en_vCurrentTranslationAbsolute;

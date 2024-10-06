@@ -13,6 +13,9 @@ extern INDEX ent_bReportBrokenChains;
 #include "EntitiesMP/Cecil/Physics.h"
 %}
 
+// [Cecil] New base class
+uses "EntitiesMP/Mod/Base/MovableModelEntity";
+
 uses "EntitiesMP/Watcher";
 uses "EntitiesMP/BasicEffects";
 uses "EntitiesMP/Projectile";
@@ -57,7 +60,7 @@ enum DestinationType {
 #define MF_MOVEXZY  (1L<<2)
 %}
 
-class export CEnemyBase : CMovableModelEntity {
+class export CEnemyBase : CCecilMovableModelEntity {
 name      "Enemy Base";
 thumbnail "";
 features  "HasName", "IsTargetable", "CanBePredictable";
@@ -268,7 +271,7 @@ functions:
 
   // [Cecil] PreMoving() with rotate-to-plane flag
   void PreMoving(void) {
-    Cecil_PreMoving(this, m_vRotationDir);
+    CCecilMovableModelEntity::PreMoving(m_vRotationDir);
   };
 
   // [Cecil] Update enemy every step with some frequency
@@ -357,7 +360,7 @@ functions:
   }
   export void Copy(CEntity &enOther, ULONG ulFlags)
   {
-    CMovableModelEntity::Copy(enOther, ulFlags);
+    CCecilMovableModelEntity::Copy(enOther, ulFlags);
     CEnemyBase *penOther = (CEnemyBase *)(&enOther);
   }
 
@@ -512,10 +515,10 @@ functions:
     GetPositionCastRay(this, penEntity, vSource, vTarget);
 
     // cast the ray
-    CCastRay crRay(this, vSource, vTarget);
-    crRay.cr_ttHitModels = CCastRay::TT_COLLISIONBOX;   // check for model collision box
+    CCecilCastRay crRay(this, vSource, vTarget);
+    crRay.cr_ttHitModels = CCecilCastRay::TT_CUSTOM;   // check for model collision box
     crRay.cr_bHitTranslucentPortals = FALSE;
-    en_pwoWorld->CastRay(crRay);
+    crRay.Cast(en_pwoWorld);
 
     // if the ray hits wanted entity
     return crRay.cr_penHit==penEntity;
@@ -624,13 +627,13 @@ functions:
 
   // create a checksum value for sync-check
   void ChecksumForSync(ULONG &ulCRC, INDEX iExtensiveSyncCheck) {
-    CMovableModelEntity::ChecksumForSync(ulCRC, iExtensiveSyncCheck);
+    CCecilMovableModelEntity::ChecksumForSync(ulCRC, iExtensiveSyncCheck);
   };
 
   // dump sync data to text file
   void DumpSync_t(CTStream &strm, INDEX iExtensiveSyncCheck)  // throw char *
   {
-    CMovableModelEntity ::DumpSync_t(strm, iExtensiveSyncCheck);
+    CCecilMovableModelEntity::DumpSync_t(strm, iExtensiveSyncCheck);
     strm.FPrintF_t("enemy: ");
     if (m_penEnemy!=NULL) {
       strm.FPrintF_t("id: %08X\n", m_penEnemy->en_ulID);
@@ -641,7 +644,7 @@ functions:
 
   /* Read from stream. */
   void Read_t(CTStream *istr) {
-    CMovableModelEntity::Read_t(istr);
+    CCecilMovableModelEntity::Read_t(istr);
 
     // add to fuss if needed
     if (m_penMainMusicHolder != NULL) {
@@ -847,7 +850,7 @@ functions:
     }
     m_fSprayDamage+=fNewDamage;
 
-    CMovableModelEntity::ReceiveDamage(penInflictor, 
+    CCecilMovableModelEntity::ReceiveDamage(penInflictor, 
       dmtType, fNewDamage, vHitPoint, vDirection);
   };
 
@@ -913,7 +916,7 @@ functions:
       colAmbient = MulColors( colAmbient, m_colBurning);
       colLight = MulColors( colLight, m_colBurning);
     }
-    return CMovableModelEntity::AdjustShadingParameters(vLightDirection, colLight, colAmbient);
+    return CCecilMovableModelEntity::AdjustShadingParameters(vLightDirection, colLight, colAmbient);
   };
 
 
@@ -2022,7 +2025,7 @@ functions:
         }
       }
     }
-    return CMovableModelEntity::HandleEvent(ee);
+    return CCecilMovableModelEntity::HandleEvent(ee);
   }
   
   // returns length of animation
@@ -2099,7 +2102,7 @@ functions:
   SLONG GetUsedMemory(void)
   {
     // initial
-    SLONG slUsedMemory = sizeof(CEnemyBase) - sizeof(CMovableModelEntity) + CMovableModelEntity::GetUsedMemory();
+    SLONG slUsedMemory = sizeof(CEnemyBase) - sizeof(CCecilMovableModelEntity) + CCecilMovableModelEntity::GetUsedMemory();
     // add some more
     slUsedMemory += m_strDescription.Length();
     slUsedMemory += m_strName.Length();
@@ -3406,21 +3409,21 @@ procedures:
 
       // [Cecil] Gravity Gun actions
       on (EGravityGunStart eStart) : {
-        GravityGunStart(this, eStart.penTarget);
+        GravityGunStart((CMovableEntity *)this, eStart.penTarget);
         m_penPlayerHolding = eStart.penTarget;
         resume;
       }
       on (EGravityGunStop eStop) : {
-        GravityGunStop(this, eStop);
+        GravityGunStop((CMovableEntity *)this, eStop);
         m_penPlayerHolding = NULL;
         resume;
       }
       on (EGravityGunHold eHold) : {
-        GravityGunHolding(this, eHold);
+        GravityGunHolding((CMovableEntity *)this, eHold);
         resume;
       }
       on (EGravityGunPush ePush) : {
-        GravityGunPush(this, ePush.vDir);
+        GravityGunPush((CMovableEntity *)this, ePush.vDir);
         resume;
       }
 

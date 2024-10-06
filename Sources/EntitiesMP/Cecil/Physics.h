@@ -27,6 +27,3 @@ void GravityGunStop(CMovableEntity *pen, const EGravityGunStop &eStop);
 void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold);
 // Push the object with the gravity gun
 void GravityGunPush(CMovableEntity *pen, FLOAT3D vDir);
-
-// PreMoving() with rotate-to-plane flag
-void Cecil_PreMoving(CMovableEntity *pen, FLOAT3D &vRotationDir);

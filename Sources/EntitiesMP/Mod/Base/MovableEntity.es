@@ -234,8 +234,18 @@ functions:
   void GiveImpulseTranslationRelative(const FLOAT3D &vImpulseSpeedRelative);
   void GiveImpulseTranslationAbsolute(const FLOAT3D &vImpulseSpeed);
 
-  void LaunchAsPropelledProjectile(const FLOAT3D &vImpulseSpeedRelative, CCecilMovableEntity *penLauncher);
-  void LaunchAsFreeProjectile(const FLOAT3D &vImpulseSpeedRelative, CCecilMovableEntity *penLauncher);
+  void LaunchAsPropelledProjectile(const FLOAT3D &vImpulseSpeedRelative, CMovableEntity *penLauncher);
+  void LaunchAsFreeProjectile(const FLOAT3D &vImpulseSpeedRelative, CMovableEntity *penLauncher);
+
+  // [Cecil] Wrappers for compatibility
+  inline void LaunchAsPropelledProjectile(const FLOAT3D &vImpulseSpeedRelative, CCecilMovableEntity *penLauncher) {
+    LaunchAsPropelledProjectile(vImpulseSpeedRelative, penLauncher);
+  };
+
+  inline void LaunchAsFreeProjectile(const FLOAT3D &vImpulseSpeedRelative, CCecilMovableEntity *penLauncher) {
+    LaunchAsFreeProjectile(vImpulseSpeedRelative, penLauncher);
+  };
+
   void ForceStopTranslation(void);
   void ForceStopRotation(void);
   void ForceFullStop(void);

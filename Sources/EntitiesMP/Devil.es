@@ -919,7 +919,7 @@ functions:
     colAmbient = RGBToColor(32,32,32);
     colLight = RGBToColor(255,235,145);
 
-    return CMovableModelEntity::AdjustShadingParameters(vLightDirection, colLight, colAmbient);
+    return CCecilMovableModelEntity::AdjustShadingParameters(vLightDirection, colLight, colAmbient);
     //return CEnemyBase::AdjustShadingParameters(vLightDirection, colLight, colAmbient);
   };
 
