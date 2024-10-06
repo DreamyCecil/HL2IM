@@ -468,9 +468,11 @@ properties:
  51 BOOL m_bLeftFlame = FALSE,
 
 // [Cecil]
-100 FLOAT3D m_vTarget = FLOAT3D(0.0f, 0.0f, 0.0f),
+100 FLOAT3D m_vTarget = FLOAT3D(0, 0, 0),
 101 enum DamageType m_dmtExplosionDamage = DMT_EXPLOSION,
 102 enum DamageType m_dmtTouchDamage = DMT_PROJECTILE,
+103 CEntityPointer m_penHitEntity,
+104 FLOAT3D m_vHitSpeed = FLOAT3D(0, 0, 0),
 
 {
   CLightSource m_lsLightSource;
@@ -1424,27 +1426,66 @@ void CrossbowRod(void) {
 };
 
 void CrossbowRodHit(void) {
-  ESpawnEffect ese;
-  FLOAT3D vPoint;
-  FLOATplane3D vPlaneNormal;
-  FLOAT fDistanceToEdge;
+  INDEX iSurfaceType;
+  BulletHitType bhtType;
+  FLOAT3D vHitNormal;
+  FLOAT3D vHitPoint;
 
-  m_soExplosion.Set3DParameters(32.0f, 4.0f, 1.0f, 1.0f);
-  PlaySound(m_soExplosion, SOUND_ROD_HIT, SOF_3D);
+  FLOAT3D vHitDirection;
+  AnglesToDirectionVector(GetPlacement().pl_OrientationAngle, vHitDirection);
 
-  CBrushPolygon *pbpo = GetNearestPolygon(vPoint, vPlaneNormal, fDistanceToEdge);
+  CEntity *penParent = NULL;
+  BOOL bPassable = FALSE;
 
-  if (pbpo != NULL && (vPoint-GetPlacement().pl_PositionVector).Length() < 1.0f) {
-    FLOAT3D vHitNormal = FLOAT3D(pbpo->bpo_pbplPlane->bpl_plAbsolute);
-    FLOAT3D vHitDirection;
-    AnglesToDirectionVector(GetPlacement().pl_OrientationAngle, vHitDirection);
+  BOOL bHitModel = FALSE;
+
+  // Hit a model
+  if (m_penHitEntity != NULL && m_penHitEntity->GetRenderType() != RT_BRUSH) {
+    vHitPoint = GetPlacement().pl_PositionVector;
+    const FLOAT fDistMul = m_vHitSpeed.Length() * ONE_TICK;
+
+    CCecilCastRay crRay(this, vHitPoint - vHitDirection * fDistMul, vHitPoint + vHitDirection * fDistMul);
+    crRay.cr_bHitPortals = FALSE;
+    crRay.cr_bHitTranslucentPortals = FALSE;
+    crRay.cr_ttHitModels = CCecilCastRay::TT_CUSTOM;
+    crRay.cr_bPhysical = TRUE;
+    crRay.Cast(GetWorld());
+
+    if (crRay.cr_penHit != NULL && crRay.cr_cpoPolygon.bHit) {
+      iSurfaceType = crRay.cr_cpoPolygon.ubSurface;
+      bhtType = GetBulletHitTypeForSurface(iSurfaceType);
+
+      vHitNormal = FLOAT3D(crRay.cr_cpoPolygon.plPolygon);
+      vHitPoint = crRay.cr_cpoPolygon.vCollision;
+
+      penParent = crRay.cr_penHit;
+      bHitModel = TRUE;
+    }
+  }
+
+  // Hit a nearby brush
+  if (!bHitModel) {
+    ESpawnEffect ese;
+    FLOATplane3D vPlaneNormal;
+    FLOAT fDistanceToEdge;
+
+    m_soExplosion.Set3DParameters(32.0f, 4.0f, 1.0f, 1.0f);
+    PlaySound(m_soExplosion, SOUND_ROD_HIT, SOF_3D);
+
+    CBrushPolygon *pbpo = GetNearestPolygon(vHitPoint, vPlaneNormal, fDistanceToEdge);
+
+    if (pbpo == NULL || (vHitPoint - GetPlacement().pl_PositionVector).Length() >= 1.0f) {
+      return;
+    }
+
+    vHitNormal = FLOAT3D(pbpo->bpo_pbplPlane->bpl_plAbsolute);
 
     // get surface type and content type
-    INDEX iSurfaceType = pbpo->bpo_bppProperties.bpp_ubSurfaceType;
+    iSurfaceType = pbpo->bpo_bppProperties.bpp_ubSurfaceType;
     INDEX iContent = pbpo->bpo_pbscSector->GetContentType();
     CContentType &ct = GetWorld()->wo_actContentTypes[iContent];
 
-    BulletHitType bhtType = (BulletHitType)GetBulletHitTypeForSurface(iSurfaceType);
+    bhtType = GetBulletHitTypeForSurface(iSurfaceType);
 
     // if this is under water polygon
     if (ct.ct_ulFlags & CTF_BREATHABLE_GILLS) {
@@ -1460,33 +1501,38 @@ void CrossbowRodHit(void) {
       }
     }
 
-    // spawn hit effect
-    BOOL bPassable = pbpo->bpo_ulFlags & (BPOF_PASSABLE|BPOF_SHOOTTHRU);
-    if (!bPassable || iSurfaceType == SURFACE_WATER) {
-      // [Cecil]
-      SSpawnHitEffectArgs args;
-      args.pen = this;
-      args.bhtType = bhtType;
-      args.bSound = TRUE;
-      args.vHitNormal = vHitNormal;
-      args.vHitPoint = vPoint;
-      args.vHitDirection = vHitDirection;
+    bPassable = pbpo->bpo_ulFlags & (BPOF_PASSABLE | BPOF_SHOOTTHRU);
+  }
 
-      CEntity *penEffect = SpawnHitTypeEffect(args);
+  if (bPassable && iSurfaceType != SURFACE_WATER) {
+    return;
+  }
 
-      if (penEffect != NULL) {
-        ESpawnEffect eseRod;
-        eseRod.betType = BET_CROSSBOW_ROD;
-        eseRod.vNormal = vHitNormal;
-        eseRod.colMuliplier = C_WHITE|CT_OPAQUE;
+  // Spawn hit effect
+  SSpawnHitEffectArgs args;
+  args.pen = this;
+  args.bhtType = bhtType;
+  args.bSound = TRUE;
+  args.vHitNormal = vHitNormal;
+  args.vHitPoint = vHitPoint;
+  args.vHitDirection = vHitDirection;
+  args.penParent = penParent;
 
-        CPlacement3D plRod = CPlacement3D(vPoint - vHitDirection * 0.5f, GetPlacement().pl_OrientationAngle);
-        CEntityPointer penRod = CreateEntity(plRod, CLASS_BASIC_EFFECT);
-        penRod->Initialize(eseRod);
+  CEntity *penEffect = SpawnHitTypeEffect(args);
 
-        penRod->SetParent(penEffect->GetParent());
-      }
-    }
+  // Spawn rod that penetrated the surface
+  if (penEffect != NULL) {
+    ESpawnEffect eseRod;
+    eseRod.betType = BET_CROSSBOW_ROD;
+    eseRod.vNormal = vHitNormal;
+    eseRod.colMuliplier = C_WHITE|CT_OPAQUE;
+    eseRod.penParent = penParent;
+
+    CPlacement3D plRod = CPlacement3D(vHitPoint - vHitDirection * 0.5f, GetPlacement().pl_OrientationAngle);
+    CEntityPointer penRod = CreateEntity(plRod, CLASS_BASIC_EFFECT);
+    penRod->Initialize(eseRod);
+
+    penRod->SetParent(penEffect->GetParent());
   }
 };
 
@@ -3281,6 +3327,10 @@ void AfterburnerDebris(void)
 
 // projectile touch his valid target
 void ProjectileTouch(CEntityPointer penHit) {
+  // [Cecil] Set hit entity
+  m_penHitEntity = penHit;
+  m_vHitSpeed = en_vIntendedTranslation;
+
   // explode if needed
   ProjectileHit();
 
@@ -4301,6 +4351,7 @@ procedures:
     // remember lauching time
     m_fIgnoreTime = _pTimer->CurrentTick() + 1.0f;
     m_penLastDamaged = NULL;
+    m_penHitEntity = NULL; // [Cecil]
 
     switch (m_prtType) {
       case PRT_DEVIL_ROCKET:
