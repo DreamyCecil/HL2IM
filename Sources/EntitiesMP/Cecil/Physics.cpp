@@ -239,7 +239,7 @@ void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold) {
 
   if (fDiff > 0.0f) {
     // Slower speed
-    if (fDiff > 4.0f) {
+    if (fDiff > 8.0f + eHold.fDistance) {
       vMoveSpeed = vDiff * 0.5f;
     } else {
       vMoveSpeed = vDiff;
@@ -250,7 +250,7 @@ void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold) {
   pen->SetDesiredTranslation(vMoveSpeed / _pTimer->TickQuantum);
 
   // Too far
-  if (fDiff > 12.0f) {
+  if (fDiff > 12.0f + eHold.fDistance) {
     //StopHolding();
     //ProngsAnim(FALSE, FALSE);
 
@@ -262,7 +262,7 @@ void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold) {
     return;
   }
 
-  if (!bItem && !IsOfClass(pen, "Radio")) {
+  if (!bItem && !IsOfClassID(pen, CRadio_ClassID)) {
     return;
   }
 

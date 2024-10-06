@@ -60,9 +60,10 @@ event EGravityGunStop {
 };
 
 event EGravityGunHold {
-  FLOAT3D vPos, // position to move at
-  ANGLE3D aRot, // rotation
-  CEntityPointer penHolder, // holding player
+  FLOAT3D vPos, // Position to move at
+  ANGLE3D aRot, // Rotation
+  FLOAT fDistance, // Distance the object is being held at
+  CEntityPointer penHolder, // Player that's currently holding
 
   ULONG ulFlags,
   //ULONG ulCollision,

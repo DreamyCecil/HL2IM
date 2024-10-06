@@ -1500,28 +1500,23 @@ functions:
     const BOOL bItem = IsDerivedFromClass(m_penHolding, "Item");
 
     const CPlacement3D plPlayer = GetPlayer()->GetPlacement();
-    const FLOAT3D vPlayer = plPlayer.pl_PositionVector;
-    const ANGLE3D aPlayer = plPlayer.pl_OrientationAngle;
 
     // Player view
     FLOATmatrix3D mPlayer = GetPlayer()->GetRotationMatrix();
-    FLOAT3D vPlayerView = vPlayer + GetPlayer()->en_plViewpoint.pl_PositionVector * mPlayer;
-    ANGLE3D aView = GetPlayer()->en_plViewpoint.pl_OrientationAngle;
-    aView(2) = Clamp(aView(2), -70.0f, 70.0f);
+    CPlacement3D plPlayerView = GetPlayer()->en_plViewpoint;
+    plPlayerView.pl_OrientationAngle(2) = Clamp(plPlayerView.pl_OrientationAngle(2), -70.0f, 70.0f);
+
+    // Add relative rotation and absolute speed
+    plPlayerView.pl_OrientationAngle += GetPlayer()->GetDesiredRotation() * ONE_TICK;
+    plPlayerView.RelativeToAbsolute(plPlayer);
+    plPlayerView.pl_PositionVector += GetPlayer()->en_vCurrentTranslationAbsolute * ONE_TICK;
 
     FLOAT3D vTargetDir;
-    AnglesToDirectionVector(aPlayer+aView, vTargetDir);
-
-    /*CPlacement3D plView = GetPlayer()->GetViewPlacement(FLOAT3D(0.0f, 0.0f, 0.0f), FLOAT3D(-1.0f, 70.0f, -1.0f), 1.0f);
-    FLOAT3D vPlayerView = plView.pl_PositionVector;
-    ANGLE3D aView = plView.pl_OrientationAngle;
-
-    FLOAT3D vTargetDir;
-    AnglesToDirectionVector(aView, vTargetDir);*/
+    AnglesToDirectionVector(plPlayerView.pl_OrientationAngle, vTargetDir);
 
     // Holding distance
     FLOAT fHoldDistance = (bItem ? 2.0f : 3.0f);
-    FLOAT3D vTargetPos = (vPlayerView + vTargetDir * fHoldDistance);
+    FLOAT3D vTargetPos = (plPlayerView.pl_PositionVector + vTargetDir * fHoldDistance);
 
     // Object size for the offset
     FLOATaabbox3D boxSize;
@@ -1538,8 +1533,6 @@ functions:
     ANGLE3D aTargetDir;
     DirectionVectorToAngles(vTargetDir, aTargetDir);
 
-    //aTargetDir(1) = aPlayer(1) + aView(1);
-
     // Follow the holder
     CPlacement3D plObject(FLOAT3D(0.0f, 0.0f, 0.0f), m_aObjectAngle);
     plObject.RelativeToAbsolute(CPlacement3D(FLOAT3D(0.0f, 0.0f, 0.0f), aTargetDir));
@@ -1547,6 +1540,7 @@ functions:
     EGravityGunHold eHold;
     eHold.vPos = vTargetPos;
     eHold.aRot = plObject.pl_OrientationAngle;
+    eHold.fDistance = fHoldDistance;
     eHold.penHolder = this;
 
     eHold.ulFlags = m_ulObjectFlags & ~(EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY) | EPF_NOACCELERATION|EPF_ABSOLUTETRANSLATE;
