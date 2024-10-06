@@ -469,7 +469,7 @@ CEntity *SpawnHitTypeEffect(const SSpawnHitEffectArgs &args)
 
       try {
         // [Cecil] Random depth
-        FLOAT fDepth = pen->FRnd() * 0.009f + 0.001f;
+        FLOAT fDepth = pen->FRnd() * 0.005f;
 
         CPlacement3D plHit = CPlacement3D(vHitPoint-vIncommingBulletDir * fDepth, pen->GetPlacement().pl_OrientationAngle);
         penReturn = pen->GetWorld()->CreateEntity_t(plHit, CTFILENAME("Classes\\BasicEffect.ecl"));
