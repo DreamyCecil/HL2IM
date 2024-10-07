@@ -227,6 +227,13 @@ procedures:
     SetModelMainTexture(TEXTURE_FLAME);
     ModelChangeNotify();
 
+    // [Cecil] Don't use this flame without the entities, for safety
+    if (m_penOwner == NULL || m_penAttach == NULL) {
+      autowait(ONE_TICK);
+      Destroy();
+      return;
+    }
+
     // play the burning sound
     m_soEffect.Set3DParameters(10.0f, 1.0f, 1.0f, 1.0f);
     PlaySound(m_soEffect, SOUND_FLAME, SOF_3D|SOF_LOOP);
@@ -236,8 +243,8 @@ procedures:
 
     m_bBurningBrush=FALSE;
     BOOL bAllowFlame=TRUE;
-    if( !(ef.penAttach->en_RenderType==CEntity::RT_MODEL || ef.penAttach->en_RenderType==CEntity::RT_EDITORMODEL ||
-          ef.penAttach->en_RenderType==CEntity::RT_SKAMODEL || ef.penAttach->en_RenderType==CEntity::RT_SKAEDITORMODEL ))
+    if( !(m_penAttach->en_RenderType==CEntity::RT_MODEL || m_penAttach->en_RenderType==CEntity::RT_EDITORMODEL ||
+          m_penAttach->en_RenderType==CEntity::RT_SKAMODEL || m_penAttach->en_RenderType==CEntity::RT_SKAEDITORMODEL ))
     {
       m_bBurningBrush=TRUE;
       FLOAT3D vPos=GetPlacement().pl_PositionVector;
@@ -246,9 +253,9 @@ procedures:
       FindSectorsAroundEntity();
       CBrushPolygon *pbpo=NULL;
       pbpo=GetNearestPolygon(vPos, plPlane, fDistanceToEdge);
-      FLOAT3D vBrushPos = ef.penAttach->GetPlacement().pl_PositionVector;
-      FLOATmatrix3D mBrushRotInv = !ef.penAttach->GetRotationMatrix();
-      if( pbpo!=NULL && pbpo->bpo_pbscSector->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity==ef.penAttach)
+      FLOAT3D vBrushPos = m_penAttach->GetPlacement().pl_PositionVector;
+      FLOATmatrix3D mBrushRotInv = !m_penAttach->GetRotationMatrix();
+      if( pbpo!=NULL && pbpo->bpo_pbscSector->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity==m_penAttach)
       {
         plPlane = pbpo->bpo_pbplPlane->bpl_plAbsolute;
         m_vPlaneNormal=(FLOAT3D &)plPlane;

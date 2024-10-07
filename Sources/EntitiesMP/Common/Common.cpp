@@ -1,4 +1,5 @@
 #include "StdH.h"
+
 #include "EntitiesMP/Reminder.h"
 #include "EntitiesMP/Flame.h"
 #include "EntitiesMP/Debris.h"
@@ -6,10 +7,8 @@
 #include "EntitiesMP/Bullet.h"
 #include "EntitiesMP/BackgroundViewer.h"
 #include "EntitiesMP/SoundHolder.h"
-#include "GameMP/PlayerSettings.h"
-#include "ModelsMP/Player/SeriousSam/Player.h"
-#include "ModelsMP/Player/SeriousSam/Body.h"
-#include "ModelsMP/Player/SeriousSam/Head.h"
+#include "EntitiesMP/EnemyBase.h"
+
 extern INDEX ent_bReportBrokenChains;
 
 // [Cecil] Not playing with a Classics patch by default
@@ -537,6 +536,13 @@ CEntityPointer SpawnFlame(CEntity *penOwner, CEntity *penAttach, const FLOAT3D &
 {
   // owner can't flame himself
   if( penOwner==penAttach) return NULL;
+
+  // [Cecil] Don't ignite template enemies
+  if (IsDerivedFromClass(penAttach, "Enemy Base")) {
+    CEnemyBase *penEnemy = (CEnemyBase *)penAttach;
+    if (penEnemy->m_bTemplate) return NULL;
+  }
+
   FLOAT3D vPos = vSource;
   // prepare flame event
   EFlame ef;
