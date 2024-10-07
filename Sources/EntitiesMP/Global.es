@@ -68,6 +68,7 @@ event EGravityGunPush {
 // [Cecil] Grab some object with the gravity gun (received by player weapons)
 event EGravityGunGrab {
   CEntityPointer penObject,
+  ULONG ulFlags, // Physics flags to remember
 };
 
 // [Cecil] Force gravity gun to drop held object (received by player weapons)

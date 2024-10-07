@@ -1475,7 +1475,11 @@ functions:
     eHold.vPos = plObject.pl_PositionVector;
     eHold.aRot = plObject.pl_OrientationAngle;
     eHold.fDistance = fHoldDistance;
-    eHold.ulFlags = m_ulObjectFlags & ~(EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY) | EPF_NOACCELERATION|EPF_ABSOLUTETRANSLATE;
+
+    // Disable gravity and apply immediate absolute movement speed
+    eHold.ulFlags = m_ulObjectFlags;
+    eHold.ulFlags &= ~(EPF_TRANSLATEDBYGRAVITY | EPF_ORIENTEDBYGRAVITY);
+    eHold.ulFlags |= EPF_NOACCELERATION | EPF_ABSOLUTETRANSLATE;
 
     GravityGunHolding(this, (CMovableEntity *)penHolding, eHold);
   };
@@ -6648,7 +6652,7 @@ procedures:
 
         m_penHolding = penObject;
         m_syncHolding.Sync(pSync);
-        m_ulObjectFlags = penObject->GetPhysicsFlags();
+        m_ulObjectFlags = eGrab.ulFlags;
 
         CPlacement3D plView = GetPlayer()->en_plViewpoint;
         plView.RelativeToAbsolute(GetPlayer()->GetPlacement());

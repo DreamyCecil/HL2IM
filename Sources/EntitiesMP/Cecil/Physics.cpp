@@ -190,13 +190,23 @@ void GravityGunStart(CEntity *penObject, CEntity *penWeapons) {
   // Cannot be held
   if (pSync == NULL) return;
 
-  // Unhold this object from other players
-  // Keep prongs open, they'll close when the object is moved out of the way
-  GravityGunObjectDrop(*pSync, FALSE);
+  // Remember object's physics flags
+  ULONG ulPhysFlags = penObject->GetPhysicsFlags();
+
+  // Pass physics flags from the current holder
+  CPlayerWeapons *penCurrentHolder = (CPlayerWeapons *)pSync->GetSyncedEntity();
+
+  if (penCurrentHolder != NULL) {
+    ulPhysFlags = penCurrentHolder->m_ulObjectFlags;
+  }
+
+  // Unhold this object from the current holder
+  GravityGunObjectDrop(*pSync);
 
   // Notify the holder that they can hold
   EGravityGunGrab eGrab;
   eGrab.penObject = penObject;
+  eGrab.ulFlags = ulPhysFlags;
 
   ((CPlayerWeapons *)penWeapons)->SendEvent(eGrab);
 };
