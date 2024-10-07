@@ -49,29 +49,30 @@ event EKilledEnemy { // sent to player when enemy is killed
 event ESecretFound { // sent to player secret is found
 };
 
-// [Cecil] Gravity Gun holding
+// [Cecil] Start holding (received by objects)
 event EGravityGunStart {
-  CEntityPointer penTarget,
+  CEntityPointer penWeapons, // Player weapons that need to hold the object
 };
 
+// [Cecil] Stop holding (received by objects)
 event EGravityGunStop {
-  ULONG ulFlags,
-  //ULONG ulCollision,
+  ULONG ulFlags, // Physics flags to restore
 };
 
-event EGravityGunHold {
-  FLOAT3D vPos, // Position to move at
-  ANGLE3D aRot, // Rotation
-  FLOAT fDistance, // Distance the object is being held at
-  CEntityPointer penHolder, // Player that's currently holding
-
-  ULONG ulFlags,
-  //ULONG ulCollision,
-};
-
+// [Cecil] Push in some direction (received by objects)
 event EGravityGunPush {
-  FLOAT3D vDir, // push direction with speed
-  BOOL bLaunch, // launching or pulling
+  FLOAT3D vDir, // Push force (direction * speed)
+  BOOL bLaunch, // Launching or pulling
+};
+
+// [Cecil] Grab some object with the gravity gun (received by player weapons)
+event EGravityGunGrab {
+  CEntityPointer penObject,
+};
+
+// [Cecil] Force gravity gun to drop held object (received by player weapons)
+event EGravityGunDrop {
+  BOOL bCloseProngs, // Animate gravity gun prongs closing
 };
 
 enum BoolEType {

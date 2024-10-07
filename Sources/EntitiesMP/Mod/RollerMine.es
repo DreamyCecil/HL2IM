@@ -47,6 +47,12 @@ properties:
  53 FLOAT3D m_vR = FLOAT3D(0.0f, 0.0f, 1.0f),
 
  60 INDEX m_iLaunched = 0,
+ 61 BOOL m_bLogicLoop = TRUE,
+
+{
+  // For synchronizing held object for the gravity gun
+  CSyncedEntityPtr m_syncGravityGun;
+}
 
 components:
   1 class CLASS_BASIC_EFFECT "Classes\\BasicEffect.ecl",
@@ -69,6 +75,25 @@ components:
  27 sound SOUND_OPEN3  "Models\\Misc\\RollerMine\\Sounds\\Open3.wav",
 
 functions:
+  // Constructor
+  void CRollerMine(void) {
+    m_syncGravityGun.SetOwner(this);
+  };
+
+  void Write_t(CTStream *ostr) {
+    CMovableModelEntity::Write_t(ostr);
+
+    // Write sync class
+    WriteHeldObject(m_syncGravityGun, ostr);
+  };
+
+  void Read_t(CTStream *istr) {
+    CMovableModelEntity::Read_t(istr);
+
+    // Read sync class
+    ReadHeldObject(m_syncGravityGun, istr, this);
+  };
+
   void Precache(void) {
     PrecacheModel(MODEL_BASE);
     PrecacheModel(MODEL_CLOSED);
@@ -476,12 +501,14 @@ procedures:
     m_qA = FLOATquat3D(0.0f, 1.0f, 0.0f, 0.0f);
     m_qALast = FLOATquat3D(0.0f, 1.0f, 0.0f, 0.0f);
 
-    autowait(0.05f);
+    autowait(ONE_TICK);
 
     SetHealth(200.0f);
     AddToMovers();
 
-    while (TRUE) {
+    m_bLogicLoop = TRUE;
+
+    while (m_bLogicLoop) {
       if (m_bActive) {
         CEntity *penLastTarget = m_penTarget;
 
@@ -524,7 +551,7 @@ procedures:
         }
       }
 
-      wait (0.05f) {
+      wait (ONE_TICK) {
         on (EActivate) : {
           m_bActive = TRUE;
           resume;
@@ -570,21 +597,18 @@ procedures:
           InflictRangeDamage(this, DMT_EXPLOSION, 20.0f*m_fStretch, GetPlacement().pl_PositionVector, 2.0f*m_fStretch, 8.0f*m_fStretch);
 
           SendToTarget(m_penDeathTarget, EET_TRIGGER, eDeath.eLastDamage.penInflictor);
-          Destroy();
+
+          m_bLogicLoop = FALSE;
           stop;
         }
 
         // [Cecil] Gravity Gun actions
         on (EGravityGunStart eStart) : {
-          GravityGunStart(this, eStart.penTarget);
+          GravityGunStart(this, eStart.penWeapons);
           resume;
         }
         on (EGravityGunStop eStop) : {
-          GravityGunStop(this, eStop);
-          resume;
-        }
-        on (EGravityGunHold eHold) : {
-          GravityGunHolding(this, eHold);
+          GravityGunStop(this, eStop.ulFlags);
           resume;
         }
         on (EGravityGunPush ePush) : {
@@ -602,8 +626,12 @@ procedures:
       }
     }
 
-    // cease to exist
+    // Drop this object
+    GravityGunObjectDrop(m_syncGravityGun);
+
+    // Cease to exist
     Destroy();
+
     return;
   }
 };

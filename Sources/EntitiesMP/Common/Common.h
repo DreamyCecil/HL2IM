@@ -313,3 +313,8 @@ DECL_DLL extern BOOL _bClassicsPatch;
 
 // [Cecil] Check if an entity is of a Player class
 #define IS_PLAYER(_Entity) IsDerivedFromID(_Entity, CPlayerEntity_ClassID)
+
+// [Cecil] Check if playing the game
+inline BOOL IsPlayingGame(void) {
+  return !_bWorldEditorApp || GetSP()->sp_bQuickTest;
+};

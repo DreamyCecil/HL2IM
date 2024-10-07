@@ -17,7 +17,24 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "Physics.h"
 
 #include <EntitiesMP/PlayerWeapons.h>
+
+// Various classes
+#include <EntitiesMP/Mod/BetaEnemies/AntlionGuard.h>
+#include <EntitiesMP/Mod/BetaEnemies/Merasmus.h>
 #include <EntitiesMP/Mod/Radio.h>
+#include <EntitiesMP/Mod/RollerMine.h>
+#include <EntitiesMP/AirElemental.h>
+#include <EntitiesMP/Beast.h>
+#include <EntitiesMP/CannonRotating.h>
+#include <EntitiesMP/CannonStatic.h>
+#include <EntitiesMP/Elemental.h>
+#include <EntitiesMP/ExotechLarva.h>
+#include <EntitiesMP/MovingBrush.h>
+#include <EntitiesMP/RollingStone.h>
+#include <EntitiesMP/Scorpman.h>
+#include <EntitiesMP/Summoner.h>
+#include <EntitiesMP/Walker.h>
+#include <EntitiesMP/Werebull.h>
 
 static FLOAT3D _vHandle;
 static CBrushPolygon *_pbpoNear;
@@ -57,7 +74,7 @@ static void AddAllSectorsOfBrush(CBrush3D *pbr) {
   }
 };
 
-// [Cecil] GetNearestPolygon() but with portal polygons
+// GetNearestPolygon() but with portal polygons
 void SearchThroughSectors_Portal(void) {
   // for each active sector (sectors are added during iteration!)
   for (INDEX ias = 0; ias < _aas.Count(); ias++) {
@@ -166,63 +183,52 @@ CBrushPolygon *GetNearestPolygon_Portal(CEntity *pen, FLOAT3D &vPoint, FLOATplan
   return NULL;
 };
 
-// [Cecil] Start holding an entity with the gravity gun
-void GravityGunStart(CMovableEntity *pen, CEntity *penHolder) {
-  // unhold this object from other players
-  for (INDEX iPlayer = 0; iPlayer < CEntity::GetMaxPlayers(); iPlayer++) {
-    CEntity *penPlayer = CEntity::GetPlayerEntity(iPlayer);
+// Start holding an entity with the gravity gun
+void GravityGunStart(CEntity *penObject, CEntity *penWeapons) {
+  CSyncedEntityPtr *pSync = GetGravityGunSync(penObject);
 
-    if (penPlayer == NULL || penPlayer->GetFlags() & ENF_DELETED) {
-      continue;
-    }
+  // Cannot be held
+  if (pSync == NULL) return;
 
-    // skip the holder
-    if (penPlayer == penHolder) {
-      continue;
-    }
+  // Unhold this object from other players
+  // Keep prongs open, they'll close when the object is moved out of the way
+  GravityGunObjectDrop(*pSync, FALSE);
 
-    CPlayerWeapons *penWeapons = ((CPlayer*)penPlayer)->GetPlayerWeapons();
+  // Notify the holder that they can hold
+  EGravityGunGrab eGrab;
+  eGrab.penObject = penObject;
 
-    // same object
-    if (penWeapons->m_penHolding == pen) {
-      //penWeapons->StopHolding();
-
-      EGravityGunStop eStop;
-      eStop.ulFlags = 0;
-      penWeapons->SendEvent(eStop);
-    }
-  }
-
-  // notify the holder that they can hold
-  EGravityGunStart eStart;
-  eStart.penTarget = pen;
-
-  CPlayerWeapons *penWeapons = ((CPlayer*)penHolder)->GetPlayerWeapons();
-  penWeapons->SendEvent(eStart);
+  ((CPlayerWeapons *)penWeapons)->SendEvent(eGrab);
 };
 
-// [Cecil] Stop holding an entity with the gravity gun
-void GravityGunStop(CMovableEntity *pen, const EGravityGunStop &eStop) {
-  ULONG ulFlags = eStop.ulFlags;
-  //ULONG ulCollision = eStop.ulCollision;
+// Stop holding an entity with the gravity gun
+void GravityGunStop(CEntity *penObject, ULONG ulFlags) {
+  penObject->SetPhysicsFlags(ulFlags);
 
-  pen->SetPhysicsFlags(ulFlags);
-  //pen->SetCollisionFlags(ulCollision);
-
-  pen->SetDesiredTranslation(FLOAT3D(0.0f, 0.0f, 0.0f));
-  pen->SetDesiredRotation(ANGLE3D(0.0f, 0.0f, 0.0f));
+  ((CMovableEntity *)penObject)->SetDesiredTranslation(FLOAT3D(0, 0, 0));
+  ((CMovableEntity *)penObject)->SetDesiredRotation(ANGLE3D(0, 0, 0));
 };
 
-// [Cecil] Entity is being held by the gravity gun
-void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold) {
-  CPlacement3D plPos = CPlacement3D(eHold.vPos, eHold.aRot);
-  ULONG ulFlags = eHold.ulFlags;
-  //ULONG ulCollision = eHold.ulCollision;
+// Force whoever is currently holding this entity to stop holding it
+void GravityGunObjectDrop(CSyncedEntityPtr &syncGravityGun, BOOL bCloseProngs) {
+  CEntity *penWeapons = syncGravityGun.GetSyncedEntity();
 
+  // No one is holding this object
+  if (penWeapons == NULL) return;
+
+  // Force them to drop it
+  EGravityGunDrop eDrop;
+  eDrop.bCloseProngs = bCloseProngs;
+
+  ((CPlayerWeapons *)penWeapons)->SendEvent(eDrop);
+};
+
+// Entity is being held by the gravity gun
+void GravityGunHolding(CPlayerWeapons *penWeapons, CMovableEntity *pen, const EGravityGunHold &eHold) {
   const BOOL bItem = IsDerivedFromClass(pen, "Item");
 
-  pen->SetPhysicsFlags(ulFlags);
-  //pen->SetCollisionFlags(ulCollision);
+  CPlacement3D plPos = CPlacement3D(eHold.vPos, eHold.aRot);
+  pen->SetPhysicsFlags(eHold.ulFlags);
 
   FLOAT3D vDiff = (plPos.pl_PositionVector - pen->GetPlacement().pl_PositionVector);
   const FLOAT fDiff = vDiff.Length();
@@ -230,7 +236,7 @@ void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold) {
   // Collect items
   if (bItem && fDiff < 1.0f) {
     EPass ePass;
-    ePass.penOther = ((CPlayerWeapons&)*eHold.penHolder).m_penPlayer;
+    ePass.penOther = penWeapons->m_penPlayer;
     pen->SendEvent(ePass);
     pen->ForceFullStop();
   }
@@ -247,18 +253,14 @@ void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold) {
   }
 
   // Move
-  pen->SetDesiredTranslation(vMoveSpeed / _pTimer->TickQuantum);
+  pen->SetDesiredTranslation(vMoveSpeed / ONE_TICK);
 
   // Too far
   if (fDiff > 12.0f + eHold.fDistance) {
-    //StopHolding();
-    //ProngsAnim(FALSE, FALSE);
-
-    CEntity *penHolder = eHold.penHolder;
-
-    EGravityGunStop eStop;
-    eStop.ulFlags = 1;
-    penHolder->SendEvent(eStop);
+    // Close the prongs because it's out of reach
+    EGravityGunDrop eDrop;
+    eDrop.bCloseProngs = TRUE;
+    penWeapons->SendEvent(eDrop);
     return;
   }
 
@@ -278,10 +280,123 @@ void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold) {
   aAngle(3) = Clamp(NormalizeAngle(aAngle(3)), -70.0f, 70.0f);
 
   // Set rotation speed
-  pen->SetDesiredRotation(aAngle / _pTimer->TickQuantum);
+  pen->SetDesiredRotation(aAngle / ONE_TICK);
 };
 
-// [Cecil] Push the object with the gravity gun
-void GravityGunPush(CMovableEntity *pen, FLOAT3D vDir) {
-  pen->GiveImpulseTranslationAbsolute(vDir);
+// Push the object with the gravity gun
+void GravityGunPush(CEntity *penObject, FLOAT3D vDir) {
+  ((CMovableEntity *)penObject)->GiveImpulseTranslationAbsolute(vDir);
+};
+
+// Check which entities the gravity gun definitely cannot pick up
+static BOOL GravityGunCannotPickUp(CEntity *pen) {
+  // Don't pick up large enemies, rolling stones, projectiles, or players
+  if (IsOfClassID(pen, CWalker_ClassID)       || IsOfClassID(pen, CWerebull_ClassID)
+   || IsOfClassID(pen, CScorpman_ClassID)     || IsOfClassID(pen, CBeast_ClassID)
+   || IsOfClassID(pen, CCannonStatic_ClassID) || IsOfClassID(pen, CCannonRotating_ClassID)
+   || IsOfClassID(pen, CElemental_ClassID)    || IsOfClassID(pen, CAirElemental_ClassID)
+   || IsOfClassID(pen, CExotechLarva_ClassID) || IsOfClassID(pen, CSummoner_ClassID)
+   || IsOfClassID(pen, CAntlionGuard_ClassID) || IsOfClassID(pen, CMerasmus_ClassID)
+   || IsOfClassID(pen, CRollingStone_ClassID) || IsOfClassID(pen, CProjectile_ClassID)
+   || IS_PLAYER(pen)) {
+    return TRUE;
+  }
+
+  // Don't pick up non-model objects (unless they are physical)
+  if (pen->GetRenderType() != CEntity::RT_MODEL && pen->GetRenderType() != CEntity::RT_SKAMODEL) {
+    return TRUE;
+  }
+
+  // Don't pick up objects without a gravity gun sync class
+  return (GetGravityGunSync(pen) == NULL);
+};
+
+// Check if the gravity gun can interact with the entity
+BOOL GravityGunCanInteract(CCecilPlayerEntity *penPlayer, CEntity *pen, BOOL bPickup) {
+  // No object
+  if (pen == NULL || pen->GetFlags() & ENF_DELETED) return FALSE;
+
+  // Don't interact with static objects
+  if (!IsDerivedFromID(pen, CMovableEntity_ClassID)) return FALSE;
+
+  // Can't pick up certain objects
+  if (bPickup && GravityGunCannotPickUp(pen)) return FALSE;
+
+  // Always interact with alive objects
+  if (pen->GetFlags() & ENF_ALIVE) return TRUE;
+
+  // Always interact with certain moving objects
+  if (IsOfClassID(pen, CMovingBrush_ClassID) || IsOfClassID(pen, CRollingStone_ClassID)
+   || IsOfClassID(pen, CProjectile_ClassID)
+   || IsOfClassID(pen, CRadio_ClassID) || IsOfClassID(pen, CRollerMine_ClassID)) {
+    return TRUE;
+  }
+
+  // Not an item
+  if (!IsDerivedFromClass(pen, "Item")) return FALSE;
+
+  CItem &enItem = (CItem &)*pen;
+
+  // Ignore respawning items
+  if (enItem.m_bRespawn) return FALSE;
+
+  // Ignore invisible items
+  if (pen->GetRenderType() == CEntity::RT_EDITORMODEL
+   || pen->GetRenderType() == CEntity::RT_SKAEDITORMODEL) {
+    return FALSE;
+  }
+
+  // Check if it's already been picked up by the player
+  const INDEX iPlayer = penPlayer->GetMyPlayerIndex();
+  const BOOL bPickedAlready = (1 << iPlayer) & enItem.m_ulPickedMask;
+
+  return !bPickedAlready;
+};
+
+// Get sync class for holding the object using with the gravity gun
+CSyncedEntityPtr *GetGravityGunSync(CEntity *pen) {
+  if (IsOfClassID(pen, CRadio_ClassID)) {
+    return &((CRadio *)pen)->m_syncGravityGun;
+
+  } else if (IsOfClassID(pen, CRollerMine_ClassID)) {
+    return &((CRollerMine *)pen)->m_syncGravityGun;
+
+  } else if (IsDerivedFromID(pen, CEnemyBase_ClassID)) {
+    return &((CEnemyBase *)pen)->m_syncGravityGun;
+
+  } else if (IsDerivedFromClass(pen, "Item")) {
+    return &((CItem *)pen)->m_syncGravityGun;
+  }
+
+  return NULL;
+};
+
+// Gravity Gun Held Object chunk
+static CChunkID _cidHeldObject("GGHO");
+
+// Serialize sync classes for held objects
+void WriteHeldObject(CSyncedEntityPtr &sync, CTStream *ostr) {
+  // Only during the game
+  if (!IsPlayingGame()) return;
+  ostr->WriteID_t(_cidHeldObject);
+
+  CEntity *penSync = sync.GetSyncedEntity();
+
+  if (penSync != NULL) {
+    *ostr << (ULONG)penSync->en_ulID;
+  } else {
+    *ostr << (ULONG)-1;
+  }
+};
+
+void ReadHeldObject(CSyncedEntityPtr &sync, CTStream *istr, CEntity *pen) {
+  // Check if the chunk is written
+  if (istr->PeekID_t() != _cidHeldObject) return;
+  istr->ExpectID_t(_cidHeldObject);
+
+  ULONG ulID;
+  *istr >> ulID;
+
+  CEntity *penSync = pen->GetWorld()->EntityFromID(ulID);
+  sync.Sync(GetGravityGunSync(penSync));
 };

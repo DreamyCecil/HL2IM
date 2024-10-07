@@ -187,12 +187,14 @@ properties:
 
 // [Cecil]
 200 FLOAT3D m_vRotationDir = FLOAT3D(0.0f, -1.0f, 0.0f), // For rotation
-201 CEntityPointer m_penPlayerHolding, // Player that's holding the enemy with a gravity gun
 202 BOOL m_bHL2Enemy = FALSE, // Indicates a Half-Life enemy
 203 CEntityPointer m_penLastAttacker, // Who attacked the enemy last
 
 {
   TIME m_tmPredict;  // time to predict the entity to
+
+  // [Cecil] For synchronizing held object for the gravity gun
+  CSyncedEntityPtr m_syncGravityGun;
 }
 
 components:
@@ -264,7 +266,7 @@ functions:
   // [Cecil] Enemy movement
   void EnemyMove(const FLOAT3D &vSpeed) {
     // move only when not being held
-    if (m_penPlayerHolding == NULL) {
+    if (!m_syncGravityGun.IsSynced()) {
       SetDesiredTranslation(vSpeed);
     }
   };
@@ -279,6 +281,8 @@ functions:
 
   void CEnemyBase(void) {
     m_tmPredict = 0;
+
+    m_syncGravityGun.SetOwner(this); // [Cecil]
   };
 
   // called by other entities to set time prediction parameter
@@ -642,6 +646,13 @@ functions:
     }
   };
 
+  void Write_t(CTStream *ostr) {
+    CCecilMovableModelEntity::Write_t(ostr);
+
+    // [Cecil] Write sync class
+    WriteHeldObject(m_syncGravityGun, ostr);
+  };
+
   /* Read from stream. */
   void Read_t(CTStream *istr) {
     CCecilMovableModelEntity::Read_t(istr);
@@ -651,17 +662,8 @@ functions:
       ((CMusicHolder&)*m_penMainMusicHolder).m_cenFussMakers.Add(this);
     }
 
-    // [Cecil] Holding player (0.7 compatibility)
-    if (istr->PeekID_t() == CChunkID("HOLD")) {
-      istr->GetID_t();
-
-      ULONG ulHolding = 0;
-      *istr>>ulHolding;
-
-      /*if (ulHolding != 0) {
-        m_penPlayerHolding = FindEntityByID(GetWorld(), ulHolding);
-      }*/
-    }
+    // [Cecil] Read sync class
+    ReadHeldObject(m_syncGravityGun, istr, this);
   };
 
   /* Fill in entity statistics - for AI purposes only */
@@ -702,7 +704,7 @@ functions:
     }
 
     // [Cecil] Ignore impacts while being held
-    if (dmtType == DMT_IMPACT && m_penPlayerHolding != NULL) {
+    if (dmtType == DMT_IMPACT && m_syncGravityGun.IsSynced()) {
       return;
     }
 
@@ -1813,12 +1815,6 @@ functions:
   void BlowUpBase(void) {
     // call derived function
     BlowUp();
-
-    // [Cecil] Unhold itself
-    /*if (m_penPlayerHolding != NULL) {
-      ((CPlayer*)m_penPlayerHolding)->GetPlayerWeapons()->StopHolding();
-      m_penPlayerHolding = NULL;
-    }*/
   };
 
   // spawn body parts
@@ -2011,20 +2007,38 @@ functions:
   /* Handle an event, return false if the event is not handled. */
   BOOL HandleEvent(const CEntityEvent &ee)
   {
-    if (ee.ee_slEvent==EVENTCODE_ETouch)
-    {
-      if( GetCrushHealth() != 0.0f)
-      {
-        ETouch eTouch = ((ETouch &) ee);
-        if (IsOfClass(eTouch.penOther, "ModelHolder2") ||
-            IsOfClass(eTouch.penOther, "MovingBrush") ||
-            IsOfClass(eTouch.penOther, "DestroyableArchitecture") )
+    switch (ee.ee_slEvent) {
+      case EVENTCODE_ETouch: {
+        if( GetCrushHealth() != 0.0f)
         {
-          InflictDirectDamage(eTouch.penOther, this, DMT_EXPLOSION, GetCrushHealth(),
-            eTouch.penOther->GetPlacement().pl_PositionVector, -(FLOAT3D&)eTouch.plCollision);
+          ETouch eTouch = ((ETouch &) ee);
+          if (IsOfClass(eTouch.penOther, "ModelHolder2") ||
+              IsOfClass(eTouch.penOther, "MovingBrush") ||
+              IsOfClass(eTouch.penOther, "DestroyableArchitecture") )
+          {
+            InflictDirectDamage(eTouch.penOther, this, DMT_EXPLOSION, GetCrushHealth(),
+              eTouch.penOther->GetPlacement().pl_PositionVector, -(FLOAT3D&)eTouch.plCollision);
+          }
         }
-      }
+      } break;
+
+      // [Cecil] Gravity Gun actions
+      case EVENTCODE_EGravityGunStart: {
+        const EGravityGunStart &eStart = (const EGravityGunStart &)ee;
+        GravityGunStart(this, eStart.penWeapons);
+      } return TRUE;
+
+      case EVENTCODE_EGravityGunStop: {
+        const EGravityGunStop &eStop = (const EGravityGunStop &)ee;
+        GravityGunStop(this, eStop.ulFlags);
+      } return TRUE;
+
+      case EVENTCODE_EGravityGunPush: {
+        const EGravityGunPush &ePush = (const EGravityGunPush &)ee;
+        GravityGunPush(this, ePush.vDir);
+      } return TRUE;
     }
+
     return CCecilMovableModelEntity::HandleEvent(ee);
   }
   
@@ -2383,12 +2397,6 @@ procedures:
         // pass space beam hit
         on (EHitBySpaceShipBeam) : { pass;}
 
-        // [Cecil] Pass Gravity Gun events
-        on (EGravityGunStart) : { pass; }
-        on (EGravityGunStop) : { pass; }
-        on (EGravityGunHold) : { pass; }
-        on (EGravityGunPush) : { pass; }
-
         // [Cecil] Pass enemy step function
         on (EReminder eStep) : {
           if (eStep.iValue == ENEMY_STEP_VAL) {
@@ -2646,12 +2654,6 @@ procedures:
           }
         }
 
-        // [Cecil] Pass Gravity Gun events
-        on (EGravityGunStart) : { pass; }
-        on (EGravityGunStop) : { pass; }
-        on (EGravityGunHold) : { pass; }
-        on (EGravityGunPush) : { pass; }
-
         // [Cecil] Pass enemy step function
         on (EReminder eStep) : {
           if (eStep.iValue == ENEMY_STEP_VAL) {
@@ -2879,13 +2881,9 @@ procedures:
         }
       }
     }
-    
-    // [Cecil] NOTE: Crashes for some reason
-    // [Cecil] Unhold itself
-    /*if (m_penPlayerHolding != NULL) {
-      ((CPlayer*)m_penPlayerHolding)->GetPlayerWeapons()->StopHolding();
-      m_penPlayerHolding = NULL;
-    }*/
+
+    // [Cecil] Drop this object
+    GravityGunObjectDrop(m_syncGravityGun);
 
     // [Cecil] Drop enemy weapon
     if (GetSP()->sp_iHL2Flags & HL2F_ENEMYDROP) {
@@ -3183,12 +3181,6 @@ procedures:
         jump Inactive();
       }
 
-      // [Cecil] Pass Gravity Gun events
-      on (EGravityGunStart) : { pass; }
-      on (EGravityGunStop) : { pass; }
-      on (EGravityGunHold) : { pass; }
-      on (EGravityGunPush) : { pass; }
-
       // [Cecil] Pass enemy step function
       on (EReminder eStep) : {
         if (eStep.iValue == ENEMY_STEP_VAL) {
@@ -3260,12 +3252,6 @@ procedures:
         // [Cecil] 'resume' instead of 'return'
         resume;
       }
-
-      // [Cecil] Pass Gravity Gun events
-      on (EGravityGunStart) : { pass; }
-      on (EGravityGunStop) : { pass; }
-      on (EGravityGunHold) : { pass; }
-      on (EGravityGunPush) : { pass; }
 
       // [Cecil] Pass enemy step function
       on (EReminder eStep) : {
@@ -3404,26 +3390,6 @@ procedures:
         if (IsOfClass(eTouch.penOther, "Bouncer")) {
           JumpFromBouncer(this, eTouch.penOther);
         }
-        resume;
-      }
-
-      // [Cecil] Gravity Gun actions
-      on (EGravityGunStart eStart) : {
-        GravityGunStart((CMovableEntity *)this, eStart.penTarget);
-        m_penPlayerHolding = eStart.penTarget;
-        resume;
-      }
-      on (EGravityGunStop eStop) : {
-        GravityGunStop((CMovableEntity *)this, eStop);
-        m_penPlayerHolding = NULL;
-        resume;
-      }
-      on (EGravityGunHold eHold) : {
-        GravityGunHolding((CMovableEntity *)this, eHold);
-        resume;
-      }
-      on (EGravityGunPush ePush) : {
-        GravityGunPush((CMovableEntity *)this, ePush.vDir);
         resume;
       }
 

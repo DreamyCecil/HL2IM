@@ -58,23 +58,9 @@ extern INDEX hl2_bCrosshairColoring;
 #include "EntitiesMP/Cecil/Physics.h"
 
 // [Cecil] For class IDs
-#include "EntitiesMP/Mod/BetaEnemies/Antlion.h"
-#include "EntitiesMP/Mod/BetaEnemies/AntlionGuard.h"
-#include "EntitiesMP/Mod/BetaEnemies/Headcrab.h"
-#include "EntitiesMP/Mod/BetaEnemies/Merasmus.h"
 #include "EntitiesMP/Mod/Radio.h"
 #include "EntitiesMP/Mod/RollerMine.h"
-#include "EntitiesMP/Beast.h"
-#include "EntitiesMP/CannonRotating.h"
-#include "EntitiesMP/CannonStatic.h"
-#include "EntitiesMP/ExotechLarva.h"
-#include "EntitiesMP/Gizmo.h"
-#include "EntitiesMP/MovingBrush.h"
 #include "EntitiesMP/RollingStone.h"
-#include "EntitiesMP/Scorpman.h"
-#include "EntitiesMP/Summoner.h"
-#include "EntitiesMP/Walker.h"
-#include "EntitiesMP/Werebull.h"
 
 // [Cecil] Current viewer player
 extern CEntity *_penViewPlayer;
@@ -583,7 +569,7 @@ properties:
 
 320 INDEX m_iArmsRaceLevel = 0,
 
-330 CEntityPointer m_penHolding,
+330 CEntityPointer m_penHolding, // Purely for keeping a reference to held object in m_syncHolding
 331 BOOL m_bPickable = FALSE,
 332 BOOL m_bLastPick = FALSE,
 333 BOOL m_bCanPickObjects = FALSE,
@@ -640,6 +626,9 @@ properties:
   CPlacement3D plBullet;
   FLOAT3D vBulletDestination;
 
+  // [Cecil] Object held by the gravity gun
+  CSyncedEntityPtr m_syncHolding;
+
   // [Cecil] Flare tick
   FLOAT m_tmFlareTick;
 
@@ -648,7 +637,6 @@ properties:
 
   // [Cecil] Flags of an object to restore
   ULONG m_ulObjectFlags;
-  //ULONG m_ulObjectCollision;
   ANGLE3D m_aObjectAngle;
 
   // [Cecil] Play warning sound when ammo is low
@@ -908,10 +896,10 @@ components:
 functions:
   // [Cecil] Constructor
   void CPlayerWeapons(void) {
+    m_syncHolding.SetOwner(this);
     m_tmFlareTick = 0.0f;
     m_pbpoRayHit = NULL;
     m_ulObjectFlags = 0;
-    //m_ulObjectCollision = 0;
     m_aObjectAngle = ANGLE3D(0.0f, 0.0f, 0.0f);
     m_bAmmoWarning = FALSE;
     m_tmParticles = -100.0f;
@@ -1382,7 +1370,7 @@ functions:
     }
 
     // suitable objects
-    m_bPickable = SuitableObject(pen, TRUE, FALSE);
+    m_bPickable = SuitableObject(pen, 1, FALSE);
 
     // select this object
     if (m_bLastPick != m_bPickable) {
@@ -1406,89 +1394,38 @@ functions:
     PlayDefaultAnim();
   };
 
+  // [Cecil] Get held object (prediction-safe)
+  const CSyncedEntityPtr &HeldObject(void) {
+    CPlayerWeapons *pen = (CPlayerWeapons *)GetPredictionTail();
+    return pen->m_syncHolding;
+  };
+
   // [Cecil] Suitable objects for the gravity gun
   BOOL SuitableObject(CEntity *pen, INDEX iLaunch, BOOL bPickup) {
-    // check for the distance
+    // Nothing is suitable when dead
+    if (!(GetPlayer()->GetFlags() & ENF_ALIVE)) {
+      return FALSE;
+    }
+
+    // Check distance
     if (iLaunch >= 0) {
       FLOAT fDist = (iLaunch > 0 ? 12.0f : 32.0f);
+
       if (m_fRayHitDistance > fDist) {
         return FALSE;
       }
     }
 
-    // no object
-    if (pen == NULL || pen->GetFlags() & ENF_DELETED) {
-      return FALSE;
-    }
-
-    BOOL bMovable = IsDerivedFromID(pen, CMovableEntity_ClassID);
-
-    // not a moving object
-    if (!bMovable) {
-      return FALSE;
-    }
-
-    // can't pick certain objects
-    if (bPickup) {
-      if (IsOfClassID(pen, CWalker_ClassID)       || IsOfClassID(pen, CWerebull_ClassID)
-       || IsOfClassID(pen, CScorpman_ClassID)     || IsOfClassID(pen, CBeast_ClassID)
-       || IsOfClassID(pen, CCannonStatic_ClassID) || IsOfClassID(pen, CCannonRotating_ClassID)
-       || IsOfClassID(pen, CElemental_ClassID)    || IsOfClassID(pen, CAirElemental_ClassID)
-       || IsOfClassID(pen, CExotechLarva_ClassID) || IsOfClassID(pen, CSummoner_ClassID)
-       || IsOfClassID(pen, CRollingStone_ClassID) || IsOfClassID(pen, CProjectile_ClassID)
-       || IsOfClassID(pen, CAntlionGuard_ClassID) || IsOfClassID(pen, CMerasmus_ClassID)
-       || IS_PLAYER(pen)
-       || (pen->GetRenderType() != RT_MODEL && pen->GetRenderType() != RT_SKAMODEL)) {
-        return FALSE;
-      }
-    }
-
-    // alive objects
-    if (pen->GetFlags() & ENF_ALIVE && bMovable) {
-      return TRUE;
-    }
-
-    // various moving objects
-    if (IsOfClassID(pen, CMovingBrush_ClassID) || IsOfClassID(pen, CRollingStone_ClassID)
-     || IsOfClassID(pen, CProjectile_ClassID) || IsOfClassID(pen, CRollerMine_ClassID)
-     || IsOfClassID(pen, CRadio_ClassID)) {
-      return TRUE;
-    }
-
-    // items
-    if (IsDerivedFromClass(pen, "Item")) {
-      CItem &enItem = (CItem &)*pen;
-
-      // can't pick respawning items
-      if (enItem.m_bRespawn) {
-        return FALSE;
-      }
-
-      // can't pick invisible items
-      if (pen->GetRenderType() == RT_EDITORMODEL
-       || pen->GetRenderType() == RT_SKAEDITORMODEL) {
-        return FALSE;
-      }
-
-      // check if it's already been picked
-      INDEX iPlayer = GetPlayer()->GetMyPlayerIndex();
-      BOOL bPickedAlready = (1 << iPlayer) & enItem.m_ulPickedMask;
-      return !bPickedAlready;
-    }
-
-    return FALSE;
+    return GravityGunCanInteract(GetPlayer(), pen, bPickup);
   };
 
   // [Cecil] Hold picked object
   void HoldingObject(void) {
-    if (m_penHolding == NULL) {
-      return;
-    }
+    CEntity *penHolding = HeldObject().GetSyncedEntity();
 
     // Not suitable anymore
-    if (!SuitableObject(m_penHolding, -1, FALSE)) {
-      StopHolding();
-      ProngsAnim(FALSE, FALSE);
+    if (!SuitableObject(penHolding, -1, FALSE)) {
+      StopHolding(TRUE);
       return;
     }
 
@@ -1497,7 +1434,8 @@ functions:
       PlaySound(GetPlayer()->m_soWeaponReload, SOUND_GG_HOLD, SOF_3D|SOF_VOLUMETRIC|SOF_LOOP);
     }
 
-    const BOOL bItem = IsDerivedFromClass(m_penHolding, "Item");
+    const BOOL bItem = IsDerivedFromClass(penHolding, "Item");
+    const FLOAT fHoldDistance = (bItem ? 2.0f : 3.0f);
 
     const CPlacement3D plPlayer = GetPlayer()->GetPlacement();
 
@@ -1506,48 +1444,40 @@ functions:
     CPlacement3D plPlayerView = GetPlayer()->en_plViewpoint;
     plPlayerView.pl_OrientationAngle(2) = Clamp(plPlayerView.pl_OrientationAngle(2), -70.0f, 70.0f);
 
+    // Additional object offset
+    {
+      // Center the object
+      FLOATaabbox3D boxSize;
+      penHolding->GetBoundingBox(boxSize);
+
+      BOOL bHoldCenter = (IsDerivedFromClass(penHolding, "Enemy Fly") && ((CEnemyFly &)*penHolding).m_bInAir);
+
+      if (!bHoldCenter) {
+        plPlayerView.pl_PositionVector -= FLOAT3D(0.0f, boxSize.Size()(2) / 2.0f, 0.0f);
+      }
+    }
+
     // Add relative rotation and absolute speed
     plPlayerView.pl_OrientationAngle += GetPlayer()->GetDesiredRotation() * ONE_TICK;
     plPlayerView.RelativeToAbsolute(plPlayer);
     plPlayerView.pl_PositionVector += GetPlayer()->en_vCurrentTranslationAbsolute * ONE_TICK;
 
+    // Place object in front of the view
     FLOAT3D vTargetDir;
     AnglesToDirectionVector(plPlayerView.pl_OrientationAngle, vTargetDir);
-
-    // Holding distance
-    FLOAT fHoldDistance = (bItem ? 2.0f : 3.0f);
-    FLOAT3D vTargetPos = (plPlayerView.pl_PositionVector + vTargetDir * fHoldDistance);
-
-    // Object size for the offset
-    FLOATaabbox3D boxSize;
-    m_penHolding->GetBoundingBox(boxSize);
-
-    BOOL bHoldCenter = (IsDerivedFromClass(m_penHolding, "Enemy Fly") && ((CEnemyFly &)*m_penHolding).m_bInAir);
-
-    if (!bHoldCenter) {
-      FLOAT3D vOffset = FLOAT3D(0.0f, boxSize.Size()(2) / 2.0f, 0.0f) * mPlayer;
-      vTargetPos -= vOffset;
-    }
-
-    // Make an angle
-    ANGLE3D aTargetDir;
-    DirectionVectorToAngles(vTargetDir, aTargetDir);
+    plPlayerView.pl_PositionVector += vTargetDir * fHoldDistance;
 
     // Follow the holder
-    CPlacement3D plObject(FLOAT3D(0.0f, 0.0f, 0.0f), m_aObjectAngle);
-    plObject.RelativeToAbsolute(CPlacement3D(FLOAT3D(0.0f, 0.0f, 0.0f), aTargetDir));
+    CPlacement3D plObject(FLOAT3D(0, 0, 0), m_aObjectAngle);
+    plObject.RelativeToAbsolute(plPlayerView);
 
     EGravityGunHold eHold;
-    eHold.vPos = vTargetPos;
+    eHold.vPos = plObject.pl_PositionVector;
     eHold.aRot = plObject.pl_OrientationAngle;
     eHold.fDistance = fHoldDistance;
-    eHold.penHolder = this;
-
     eHold.ulFlags = m_ulObjectFlags & ~(EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY) | EPF_NOACCELERATION|EPF_ABSOLUTETRANSLATE;
-    //eHold.ulCollision = m_ulObjectCollision | ((ECBI_PLAYER)<<ECB_PASS);
 
-    CMovableEntity *pen = (CMovableEntity *)&*m_penHolding;
-    GravityGunHolding(pen, eHold);
+    GravityGunHolding(this, (CMovableEntity *)penHolding, eHold);
   };
 
   // [Cecil] Start holding the object
@@ -1557,28 +1487,34 @@ functions:
     }
 
     EGravityGunStart eStart;
-    eStart.penTarget = m_penPlayer;
+    eStart.penWeapons = this;
     penObject->SendEvent(eStart);
   };
 
   // [Cecil] Stop holding the object
-  void StopHolding(void) {
-    if (m_penHolding == NULL) {
+  void StopHolding(BOOL bCloseProngs) {
+    CEntity *penObject = m_syncHolding.GetSyncedEntity();
+
+    if (penObject == NULL) {
       return;
     }
 
     EGravityGunStop eStop;
     eStop.ulFlags = m_ulObjectFlags;
-    //eStop.ulCollision = m_ulObjectCollision;
-    m_penHolding->SendEvent(eStop);
+    penObject->SendEvent(eStop);
 
+    m_syncHolding.Unsync();
     m_penHolding = NULL;
     m_ulObjectFlags = 0;
-    //m_ulObjectCollision = 0;
     m_aObjectAngle = ANGLE3D(0.0f, 0.0f, 0.0f);
 
-    // stop holding sound
+    // Stop holding sound
     GetPlayer()->m_soWeaponReload.Stop();
+
+    // Close the prongs
+    if (bCloseProngs) {
+      ProngsAnim(FALSE, FALSE);
+    }
   };
 
   // [Cecil] Reset object picking
@@ -1593,10 +1529,9 @@ functions:
   void Write_t(CTStream *ostr) {
     CRationalEntity::Write_t(ostr);
 
-    ostr->WriteID_t("HOLD");
+    WriteHeldObject(m_syncHolding, ostr);
 
     *ostr << m_ulObjectFlags;
-    //*ostr << m_ulObjectCollision;
     *ostr << m_aObjectAngle;
   };
 
@@ -1604,10 +1539,9 @@ functions:
   void Read_t(CTStream *istr) {
     CRationalEntity::Read_t(istr);
 
-    istr->ExpectID_t("HOLD");
+    ReadHeldObject(m_syncHolding, istr, this);
 
     *istr >> m_ulObjectFlags;
-    //*istr >> m_ulObjectCollision;
     *istr >> m_aObjectAngle;
   };
 
@@ -1984,7 +1918,7 @@ functions:
     m_pbpoRayHit = crRayPolygon.cr_pbpoBrushPolygon;
 
     // [Cecil] Check if the target is pickable
-    if (m_iCurrentWeapon == WEAPON_GRAVITYGUN && m_bCanPickObjects && m_penHolding == NULL) {
+    if (m_iCurrentWeapon == WEAPON_GRAVITYGUN && m_bCanPickObjects && !HeldObject().IsSynced()) {
       if (m_moWeapon.GetAnim() != GRAVITYGUN_ANIM_FIRE && m_moWeapon.GetAnim() != GRAVITYGUN_ANIM_FIREOPEN) {
         PickableObject(m_penRayHit);
       }
@@ -2386,7 +2320,7 @@ functions:
   void ControlGGFlare(void) {
     m_vLastGGFlare = m_vGGFlare;
 
-    if (m_bPullObject || m_penHolding != NULL) {
+    if (m_bPullObject || HeldObject().IsSynced()) {
       //IncreaseGGFlare(1, 1.2f, 0.1f);
       m_vGGFlare(1) = ClampUp(m_vGGFlare(1) + 0.1f, 1.2f);
 
@@ -2414,7 +2348,7 @@ functions:
     }
 
     // hide holding effects
-    if (pen->m_penHolding == NULL) {
+    if (!pen->HeldObject().IsSynced()) {
       for (INDEX iHide = 2; iHide <= 5; iHide++) {
         CModelObject *pmoEffect = &m_moWeapon.GetAttachmentModel(iHide)->amo_moModelObject;
         pmoEffect->StretchModel(FLOAT3D(0.0f, 0.0f, 0.0f));
@@ -4437,7 +4371,7 @@ functions:
         break;
 
       case WEAPON_GRAVITYGUN:
-        if (m_penHolding != NULL) {
+        if (HeldObject().IsSynced()) {
           m_moWeapon.PlayAnim(GRAVITYGUN_ANIM_HOLD, AOF_LOOPING|AOF_NORESTART|AOF_SMOOTHCHANGE);
           PlaySound(GetPlayer()->m_soWeaponReload, SOUND_GG_HOLD, SOF_3D|SOF_VOLUMETRIC|SOF_LOOP);
         } else {
@@ -4658,7 +4592,7 @@ procedures:
 
       // [Cecil] Can't pick objects
       ResetPicking();
-      StopHolding();
+      StopHolding(TRUE);
 
       // [Cecil] Not needed for now
       //autocall PutDown() EEnd;
@@ -6097,12 +6031,14 @@ procedures:
     GetAnimator()->FireAnimation(BODY_ANIM_SHOTGUN_FIRELONG, 0);
 
     // if can launch something
-    if (m_penHolding != NULL || SuitableObject(m_penRayHit, TRUE, FALSE)) {
+    CEntity *penHolding = HeldObject().GetSyncedEntity();
+
+    if (penHolding != NULL || SuitableObject(m_penRayHit, 1, FALSE)) {
       m_moWeapon.PlayAnim(GRAVITYGUN_ANIM_FIREOPEN, 0);
       WeaponSound(SND_FIRE_1, SOUND_GG_LAUNCH1 + IRnd() % 4);
 
       // determine the target object
-      CEntity *penTarget = (m_penHolding != NULL ? m_penHolding : m_penRayHit);
+      CEntity *penTarget = (penHolding != NULL ? penHolding : m_penRayHit);
       CMovableEntity *penObject = (CMovableEntity*)penTarget;
 
       // launch object
@@ -6146,7 +6082,7 @@ procedures:
       m_vGGFlare(2) = 8.0f;
 
       // stop holding
-      StopHolding();
+      StopHolding(FALSE);
 
       autowait(ONE_TICK);
       DoRecoil(ANGLE3D(Lerp(-5.0f, 5.0f, FRnd()), 4.0f, 0.0f), 100.0f);
@@ -6166,10 +6102,10 @@ procedures:
 
   AltFireGravityGun() {
     // drop the object
-    if (m_penHolding != NULL) {
+    if (HeldObject().IsSynced()) {
       WeaponSound(SND_FIRE_1, SOUND_GG_DROP);
       m_moWeapon.PlayAnim((m_bPickable ? GRAVITYGUN_ANIM_IDLEOPEN : GRAVITYGUN_ANIM_PRONGSCLOSE), 0);
-      StopHolding();
+      StopHolding(FALSE);
 
       m_bAltFireWeapon = FALSE;
       autowait(0.2f);
@@ -6177,7 +6113,7 @@ procedures:
     }
 
     // already pickable
-    if (SuitableObject(m_penRayHit, TRUE, TRUE)) {
+    if (SuitableObject(m_penRayHit, 1, TRUE)) {
       WeaponSound(SND_FIRE_1, SOUND_GG_PICKUP);
       m_moWeapon.PlayAnim(GRAVITYGUN_ANIM_HOLD, 0);
       StartHolding(m_penRayHit);
@@ -6192,7 +6128,7 @@ procedures:
     
     while (HoldingAltFire()) {
       // pick up the object
-      if (SuitableObject(m_penRayHit, TRUE, TRUE)) {
+      if (SuitableObject(m_penRayHit, 1, TRUE)) {
         WeaponSound(SND_FIRE_1, SOUND_GG_PICKUP);
         m_moWeapon.PlayAnim(GRAVITYGUN_ANIM_PRONGSOPEN, 0);
         StartHolding(m_penRayHit);
@@ -6202,13 +6138,14 @@ procedures:
         return EEnd();
 
       // pull the object
-      } else if (SuitableObject(m_penRayHit, FALSE, TRUE)) {
+      } else if (SuitableObject(m_penRayHit, 0, TRUE)) {
         CMovableEntity *pen = (CMovableEntity*)&*m_penRayHit;
 
         // move towards the player
-        FLOAT3D vView = (GetPlayer()->GetPlacement().pl_PositionVector + GetPlayer()->en_plViewpoint.pl_PositionVector * GetPlayer()->GetRotationMatrix());
-        FLOAT3D vToPlayer = (vView - pen->GetPlacement().pl_PositionVector);
-        //pen->GiveImpulseTranslationAbsolute(vToPlayer.Normalize() * 3.0f);
+        CPlacement3D plView = GetPlayer()->en_plViewpoint;
+        plView.RelativeToAbsolute(GetPlayer()->GetPlacement());
+
+        FLOAT3D vToPlayer = (plView.pl_PositionVector - pen->GetPlacement().pl_PositionVector);
 
         EGravityGunPush ePush;
         ePush.vDir = vToPlayer.Normalize() * 3.0f;
@@ -6607,8 +6544,8 @@ procedures:
       }
 
       // [Cecil] Pass gravity gun actions
-      on (EGravityGunStart) : { pass; }
-      on (EGravityGunStop) : { pass; }
+      on (EGravityGunGrab) : { pass; }
+      on (EGravityGunDrop) : { pass; }
     }
   };
 
@@ -6698,15 +6635,18 @@ procedures:
       }
 
       // [Cecil] Start holding
-      on (EGravityGunStart eStart) : {
-        CEntity *penObject = eStart.penTarget;
+      on (EGravityGunGrab eGrab) : {
+        CEntity *penObject = eGrab.penObject;
+        CSyncedEntityPtr *pSync = GetGravityGunSync(penObject);
+
+        if (pSync == NULL) { resume; }
 
         m_penHolding = penObject;
+        m_syncHolding.Sync(pSync);
         m_ulObjectFlags = penObject->GetPhysicsFlags();
-        //m_ulObjectCollision = penObject->GetCollisionFlags();
 
         CPlacement3D plView = GetPlayer()->en_plViewpoint;
-        plView.RelativeToAbsoluteSmooth(m_penPlayer->GetPlacement());
+        plView.RelativeToAbsolute(GetPlayer()->GetPlacement());
 
         CPlacement3D plObject = penObject->GetPlacement();
         plObject.AbsoluteToRelative(plView);
@@ -6716,12 +6656,8 @@ procedures:
       }
 
       // [Cecil] Stop holding
-      on (EGravityGunStop eStop) : {
-        StopHolding();
-
-        if (eStop.ulFlags == 1) {
-          ProngsAnim(FALSE, FALSE);
-        }
+      on (EGravityGunDrop eDrop) : {
+        StopHolding(eDrop.bCloseProngs);
         resume;
       }
 

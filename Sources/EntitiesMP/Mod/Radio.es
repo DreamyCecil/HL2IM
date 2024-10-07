@@ -22,6 +22,11 @@ properties:
   5 BOOL m_bActive     "Active" = TRUE,
   6 BOOL m_bTakeDamage "Take Damage" = FALSE,
 
+{
+  // For synchronizing held object for the gravity gun
+  CSyncedEntityPtr m_syncGravityGun;
+}
+
 components:
   1 class CLASS_BASIC_EFFECT "Classes\\BasicEffect.ecl",
 
@@ -30,6 +35,25 @@ components:
  12 sound   SOUND_SONG    "Models\\Misc\\Radio\\Loop.wav",
 
 functions:
+  // Constructor
+  void CRadio(void) {
+    m_syncGravityGun.SetOwner(this);
+  };
+
+  void Write_t(CTStream *ostr) {
+    CMovableModelEntity::Write_t(ostr);
+
+    // Write sync class
+    WriteHeldObject(m_syncGravityGun, ostr);
+  };
+
+  void Read_t(CTStream *istr) {
+    CMovableModelEntity::Read_t(istr);
+
+    // Read sync class
+    ReadHeldObject(m_syncGravityGun, istr, this);
+  };
+
   void Precache(void) {
     PrecacheModel(MODEL_RADIO);
     PrecacheTexture(TEXTURE_RADIO);
@@ -182,21 +206,16 @@ procedures:
 
       on (EDeath eDeath) : {
         ExplosionEffect();
-        Destroy();
         stop;
       }
 
       // [Cecil] Gravity Gun actions
       on (EGravityGunStart eStart) : {
-        GravityGunStart(this, eStart.penTarget);
+        GravityGunStart(this, eStart.penWeapons);
         resume;
       }
       on (EGravityGunStop eStop) : {
-        GravityGunStop(this, eStop);
-        resume;
-      }
-      on (EGravityGunHold eHold) : {
-        GravityGunHolding(this, eHold);
+        GravityGunStop(this, eStop.ulFlags);
         resume;
       }
       on (EGravityGunPush ePush) : {
@@ -207,8 +226,12 @@ procedures:
       otherwise() : { resume; }
     }
 
-    // cease to exist
+    // Drop this object
+    GravityGunObjectDrop(m_syncGravityGun);
+
+    // Cease to exist
     Destroy();
+
     return;
   }
 };

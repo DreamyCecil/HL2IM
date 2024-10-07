@@ -19,11 +19,35 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 void SearchThroughSectors_Portal(void);
 CBrushPolygon *GetNearestPolygon_Portal(CEntity *pen, FLOAT3D &vPoint, FLOATplane3D &plPlane, FLOAT &fDistanceToEdge);
 
-// Start holding an entity with the gravity gun
-void GravityGunStart(CMovableEntity *pen, CEntity *penHolder);
-// Stop holding an entity with the gravity gun
-void GravityGunStop(CMovableEntity *pen, const EGravityGunStop &eStop);
+// Held object data (used to be an entity event)
+struct EGravityGunHold {
+  FLOAT3D vPos; // Position to move at
+  ANGLE3D aRot; // Rotation
+  FLOAT fDistance; // Distance the object is being held at
+  ULONG ulFlags; // Physics flags to apply
+};
+
+// Start holding an object with the gravity gun
+void GravityGunStart(CEntity *penObject, CEntity *penWeapons);
+
+// Stop holding an object with the gravity gun
+void GravityGunStop(CEntity *penObject, ULONG ulFlags);
+
+// Force whoever is currently holding this object to stop holding it
+void GravityGunObjectDrop(CSyncedEntityPtr &syncGravityGun, BOOL bCloseProngs = TRUE);
+
 // Entity is being held by the gravity gun
-void GravityGunHolding(CMovableEntity *pen, const EGravityGunHold &eHold);
+void GravityGunHolding(class CPlayerWeapons *penWeapons, CMovableEntity *pen, const EGravityGunHold &eHold);
+
 // Push the object with the gravity gun
-void GravityGunPush(CMovableEntity *pen, FLOAT3D vDir);
+void GravityGunPush(CEntity *penObject, FLOAT3D vDir);
+
+// Check if the gravity gun can interact with the entity
+BOOL GravityGunCanInteract(CCecilPlayerEntity *penPlayer, CEntity *pen, BOOL bPickup);
+
+// Get sync class for holding the object using with the gravity gun
+CSyncedEntityPtr *GetGravityGunSync(CEntity *pen);
+
+// Serialize sync classes for held objects
+void WriteHeldObject(CSyncedEntityPtr &sync, CTStream *ostr);
+void ReadHeldObject(CSyncedEntityPtr &sync, CTStream *istr, CEntity *pen);

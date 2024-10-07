@@ -1945,14 +1945,6 @@ functions:
 
   // [Cecil] Teleport player somewhere
   void PlacePlayer(const CPlacement3D &pl, BOOL bTelefrag) {
-    if (ODE_IsStarted() && PhysObj().IsCreated()) {
-      PhysObj().SetPos(pl.pl_PositionVector);
-
-      FLOATmatrix3D mRot;
-      MakeRotationMatrix(mRot, pl.pl_OrientationAngle);
-      PhysObj().SetRotMat(mRot);
-    }
-
     CPlacement3D plFrom = GetPlacement();
     Teleport(pl, bTelefrag);
     AfterTeleport(plFrom, CPlacement3D(FLOAT3D(0, 0, 0), ANGLE3D(0, 0, 0)));
@@ -2122,6 +2114,22 @@ functions:
 
     // Reset polygon
     m_cpoStandOn.Reset();
+  };
+
+  // [Cecil] Immediately react to certain events
+  BOOL HandleEvent(const CEntityEvent &ee) {
+    switch (ee.ee_slEvent) {
+      // Gravity Gun actions
+      case EVENTCODE_EGravityGunStart: return TRUE;
+      case EVENTCODE_EGravityGunStop: return TRUE;
+
+      case EVENTCODE_EGravityGunPush: {
+        const EGravityGunPush &ePush = (const EGravityGunPush &)ee;
+        GravityGunPush(this, ePush.vDir);
+      } return TRUE;
+    }
+
+    return CCecilPlayerEntity::HandleEvent(ee);
   };
 
   class CPlayerWeapons *GetPlayerWeapons(void) {
@@ -7135,7 +7143,7 @@ procedures:
 
     // [Cecil] Stop holding objects
     GetPlayerWeapons()->ResetPicking();
-    GetPlayerWeapons()->StopHolding();
+    GetPlayerWeapons()->StopHolding(TRUE);
 
     // if in deathmatch
     if (!GetSP()->sp_bCooperative) {
@@ -8254,16 +8262,6 @@ procedures:
         resume;
       }
 
-      // [Cecil] Gravity Gun actions
-      on (EGravityGunStart) : { resume; }
-      on (EGravityGunStop) : { resume; }
-      on (EGravityGunHold) : { resume; }
-
-      on (EGravityGunPush ePush) : {
-        GravityGunPush((CMovableEntity *)this, ePush.vDir);
-        resume;
-      }
-
       // EEnd should not arrive here
       on (EEnd) : {
         ASSERT(FALSE);
@@ -8315,10 +8313,8 @@ procedures:
     // spawn teleport effect
     SpawnTeleport();
 
-    // [Cecil] Stop holding if needed
-    if (GetPlayerWeapons()->m_penHolding != NULL) {
-      GetPlayerWeapons()->StopHolding();
-    }
+    // [Cecil] Stop holding objects
+    GetPlayerWeapons()->StopHolding(FALSE);
 
     // cease to exist
     m_penWeapons->Destroy();

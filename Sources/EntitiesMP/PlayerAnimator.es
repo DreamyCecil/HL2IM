@@ -1189,7 +1189,7 @@ functions:
                                    PLAYER_ATTACHMENT_TORSO, BODY_ATTACHMENT_TOMMYGUN, ITEMHANDLER_ATTACHMENT_GRAVITYGUN, 0, -1);
 
     if (pamo != NULL) {
-      if (pen->m_penHolding != NULL) {
+      if (pen->HeldObject().IsSynced()) {
         CModelObject &mo = pamo->amo_moModelObject;
         mo.StretchModel(FLOAT3D(0.5f, 0.5f, 0.5f));
       } else {

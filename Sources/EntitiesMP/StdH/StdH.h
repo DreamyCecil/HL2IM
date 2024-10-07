@@ -21,6 +21,7 @@
 // [Cecil] Extras
 #include <XGizmo/Entities/BaseClasses.h>
 #include <XGizmo/Objects/SymbolPtr.h>
+#include <XGizmo/Objects/SyncedEntityPtr.h>
 
 // [Cecil] New physics
 #include <EntitiesMP/Cecil/Collision/WorldRayCasting.h>

@@ -42,6 +42,11 @@ properties:
 // [Cecil] How long to stay dropped
  50 FLOAT m_fDropTime = 10.0f,
 
+{
+  // [Cecil] For synchronizing held object for the gravity gun
+  CSyncedEntityPtr m_syncGravityGun;
+}
+
 components:
   1 model MODEL_ITEM "Models\\Items\\ItemHolder.mdl",
 
@@ -49,6 +54,24 @@ components:
  10 class CLASS_ROLLERMINE "Classes\\RollerMine.ecl",
 
 functions:
+  void CItem(void) {
+    m_syncGravityGun.SetOwner(this); // [Cecil]
+  };
+
+  void Write_t(CTStream *ostr) {
+    CMovableModelEntity::Write_t(ostr);
+
+    // [Cecil] Write sync class
+    WriteHeldObject(m_syncGravityGun, ostr);
+  };
+
+  void Read_t(CTStream *istr) {
+    CMovableModelEntity::Read_t(istr);
+
+    // [Cecil] Read sync class
+    ReadHeldObject(m_syncGravityGun, istr, this);
+  };
+
   virtual void AdjustDifficulty(void)
   {
   }
@@ -284,15 +307,11 @@ procedures:
 
       // [Cecil] Gravity Gun actions
       on (EGravityGunStart eStart) : {
-        GravityGunStart(this, eStart.penTarget);
+        GravityGunStart(this, eStart.penWeapons);
         resume;
       }
       on (EGravityGunStop eStop) : {
-        GravityGunStop(this, eStop);
-        resume;
-      }
-      on (EGravityGunHold eHold) : {
-        GravityGunHolding(this, eHold);
+        GravityGunStop(this, eStop.ulFlags);
         resume;
       }
       on (EGravityGunPush ePush) : {
@@ -302,6 +321,10 @@ procedures:
 
       on (EEnd) : { stop; }
     }
+
+    // Drop this object
+    GravityGunObjectDrop(m_syncGravityGun);
+
     // wait for sound to end
     autowait(m_fPickSoundLen+0.5f);
     // cease to exist
