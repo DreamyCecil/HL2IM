@@ -1549,24 +1549,6 @@ class CWorldSettingsController *GetWSC(CEntity *pen)
   return pwsc;
 }
 
-// [Cecil] Find entity by its ID
-/*CEntity *FindEntityByID(CWorld *pwo, const INDEX &iEntityID) {
-  // for each entity
-  FOREACHINDYNAMICCONTAINER(pwo->wo_cenEntities, CEntity, iten) {
-    CEntity *pen = &*iten;
-    // if it exists
-    if (!(pen->GetFlags() & ENF_DELETED)) {
-      // if same ID
-      if (pen->en_ulID == iEntityID) {
-        // return it
-        return pen;
-      }
-    }
-  }
-  // otherwise, none exists
-  return NULL;
-};*/
-
 // [Cecil] Get certain vertex position
 FLOAT3D GetVertexPosition(CModelObject *pmo, const INDEX &iVtxIndex) {
   FLOAT3D f3dVertex;

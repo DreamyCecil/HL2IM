@@ -305,9 +305,6 @@ CEntity *SpawnHitTypeEffect(const SSpawnHitEffectArgs &args);
 
 #define FRndIn(a, b) (a + FRnd()*(b - a))
 
-// [Cecil] Find entity by its ID
-//DECL_DLL CEntity *FindEntityByID(CWorld *pwo, const INDEX &iEntityID);
-
 // [Cecil] Get certain vertex position
 FLOAT3D GetVertexPosition(CModelObject *pmo, const INDEX &iVtxIndex);
 

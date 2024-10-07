@@ -1548,58 +1548,6 @@ functions:
 
     CMovableEntity *pen = (CMovableEntity *)&*m_penHolding;
     GravityGunHolding(pen, eHold);
-
-    // [Cecil] NOTE: Old code, don't use
-
-    // Move
-    /*CMovableEntity &pen = (CMovableEntity&)*m_penHolding;
-    pen.SetPhysicsFlags(m_ulObjectFlags & ~(EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY) | EPF_NOACCELERATION|EPF_ABSOLUTETRANSLATE);
-    pen.SetCollisionFlags(m_ulObjectCollision | ((ECBI_PLAYER)<<ECB_PASS));
-
-    FLOAT3D vDiff = (plTarget.pl_PositionVector - pen.GetPlacement().pl_PositionVector);
-    const FLOAT fDiff = vDiff.Length();
-
-    // Collect items
-    if (bItem && fDiff < 1.0f) {
-      EPass ePass;
-      ePass.penOther = m_penPlayer;
-      pen.SendEvent(ePass);
-      pen.ForceFullStop();
-    }
-
-    if (fDiff > 0.0f) {
-      // slower speed
-      if (fDiff > 4.0f) {
-        pen.SetDesiredTranslation(vDiff / _pTimer->TickQuantum * 0.5f);
-      } else {
-        pen.SetDesiredTranslation(vDiff / _pTimer->TickQuantum);
-      }
-    } else {
-      pen.SetDesiredTranslation(FLOAT3D(0.0f, 0.0f, 0.0f));
-    }
-
-    // Too far
-    if (fDiff > 12.0f) {
-      StopHolding();
-      ProngsAnim(FALSE, FALSE);
-      return;
-    }
-
-    if (!bItem && !IsOfClassID(m_penHolding, CRadio_ClassID)) {
-      return;
-    }
-
-    // Angle difference
-    ANGLE3D aObject = pen.GetPlacement().pl_OrientationAngle;
-    ANGLE3D aAngle = ANGLE3D(plTarget.pl_OrientationAngle(1), 0.0f, 0.0f) - aObject;
-
-    // Normalize angles
-    aAngle(1) = Clamp(NormalizeAngle(aAngle(1)), -70.0f, 70.0f);
-    aAngle(2) = Clamp(NormalizeAngle(aAngle(2)), -70.0f, 70.0f);
-    aAngle(3) = Clamp(NormalizeAngle(aAngle(3)), -70.0f, 70.0f);
-
-    // Rotate
-    pen.SetDesiredRotation(aAngle / _pTimer->TickQuantum);*/
   };
 
   // [Cecil] Start holding the object
@@ -1608,35 +1556,9 @@ functions:
       return;
     }
 
-    // unhold this object from other players
-    /*for (INDEX iPlayer = 0; iPlayer < CEntity::GetMaxPlayers(); iPlayer++) {
-      CEntity *pen = CEntity::GetPlayerEntity(iPlayer);
-
-      if (pen == NULL || pen->GetFlags() & ENF_DELETED) {
-        continue;
-      }
-
-      CPlayerWeapons *penWeapons = ((CPlayer*)pen)->GetPlayerWeapons();
-
-      // same object
-      if (penWeapons->m_penHolding == penObject) {
-        penWeapons->StopHolding();
-      }
-    }*/
-
-    /*m_penHolding = penObject;
-    m_ulObjectFlags = penObject->GetPhysicsFlags();
-    //m_ulObjectCollision = penObject->GetCollisionFlags();
-    m_aObjectAngle = penObject->GetPlacement().pl_OrientationAngle - (m_penPlayer->GetPlacement().pl_OrientationAngle + GetPlayer()->en_plViewpoint.pl_OrientationAngle);*/
-
     EGravityGunStart eStart;
     eStart.penTarget = m_penPlayer;
     penObject->SendEvent(eStart);
-
-    // [Cecil] Holding an enemy
-    /*if (IsDerivedFromClass(m_penHolding, "Enemy Base")) {
-      ((CEnemyBase*)&*m_penHolding)->m_penPlayerHolding = this;
-    }*/
   };
 
   // [Cecil] Stop holding the object
@@ -1644,18 +1566,6 @@ functions:
     if (m_penHolding == NULL) {
       return;
     }
-
-    /*CMovableEntity &pen = (CMovableEntity&)*m_penHolding;
-    pen.SetPhysicsFlags(m_ulObjectFlags);
-    pen.SetCollisionFlags(m_ulObjectCollision);
-
-    pen.SetDesiredTranslation(FLOAT3D(0.0f, 0.0f, 0.0f));
-    pen.SetDesiredRotation(ANGLE3D(0.0f, 0.0f, 0.0f));
-
-    // [Cecil] Stop holding enemies
-    if (IsDerivedFromClass(m_penHolding, "Enemy Base")) {
-      ((CEnemyBase*)&*m_penHolding)->m_penPlayerHolding = NULL;
-    }*/
 
     EGravityGunStop eStop;
     eStop.ulFlags = m_ulObjectFlags;
@@ -6696,34 +6606,9 @@ procedures:
         jump Reload();
       }
 
-      // [Cecil] Start holding
-      on (EGravityGunStart eStart) : {
-        CEntity *penObject = eStart.penTarget;
-
-        m_penHolding = penObject;
-        m_ulObjectFlags = penObject->GetPhysicsFlags();
-        //m_ulObjectCollision = penObject->GetCollisionFlags();
-
-        CPlacement3D plView = GetPlayer()->en_plViewpoint;
-        plView.RelativeToAbsoluteSmooth(m_penPlayer->GetPlacement());
-
-        CPlacement3D plObject = penObject->GetPlacement();
-        plObject.AbsoluteToRelative(plView);
-
-        m_aObjectAngle = plObject.pl_OrientationAngle;
-
-        resume;
-      }
-
-      // [Cecil] Stop holding
-      on (EGravityGunStop eStop) : {
-        StopHolding();
-
-        if (eStop.ulFlags == 1) {
-          ProngsAnim(FALSE, FALSE);
-        }
-        resume;
-      }
+      // [Cecil] Pass gravity gun actions
+      on (EGravityGunStart) : { pass; }
+      on (EGravityGunStop) : { pass; }
     }
   };
 
@@ -6827,7 +6712,6 @@ procedures:
         plObject.AbsoluteToRelative(plView);
 
         m_aObjectAngle = plObject.pl_OrientationAngle;
-
         resume;
       }
 
