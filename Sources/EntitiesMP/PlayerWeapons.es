@@ -1605,6 +1605,9 @@ functions:
     if( !bRender || m_iCurrentWeapon==WEAPON_NONE
      || GetPlayer()->GetSettings()->ps_ulFlags&PSF_HIDEWEAPON) { return; }
 
+    // [Cecil] Non-predicted weapons
+    CPlayerWeapons *pen = (CPlayerWeapons *)GetPredictionTail();
+
     // nuke and iron cannons have the same view settings
     INDEX iWeaponData = m_iCurrentWeapon;
 
@@ -1617,8 +1620,8 @@ functions:
     CPlacement3D plWeapon(FLOAT3D(wpn_fX[iWeaponData], wpn_fY[iWeaponData], wpn_fZ[iWeaponData]),
                           ANGLE3D(AngleDeg(wpn_fH[iWeaponData]), AngleDeg(wpn_fP[iWeaponData]), AngleDeg(wpn_fB[iWeaponData])));
 
-    // [Cecil] Weapon shake
-    CPlayer *penPlayer = GetPlayer(); //(CPlayer *)m_penPlayer->GetPredictionTail();
+    // [Cecil] Weapon shake (keep predicted values)
+    CPlayer *penPlayer = GetPlayer();
     ANGLE aShakeH = Lerp(penPlayer->m_aLastWeaponShake(1), penPlayer->m_aWeaponShake(1), _pTimer->GetLerpFactor());
     ANGLE aShakeP = Lerp(penPlayer->m_aLastWeaponShake(2), penPlayer->m_aWeaponShake(2), _pTimer->GetLerpFactor());
     ANGLE aShakeB = Lerp(penPlayer->m_aLastWeaponShake(3), penPlayer->m_aWeaponShake(3), _pTimer->GetLerpFactor());
@@ -1727,19 +1730,21 @@ functions:
 
       // crossbow model exists
       if (m_moWeapon.GetAttachmentModel(0) != NULL) {
+        const FLOAT tmParticles = pen->m_tmParticles;
+
         // rod vertex position
         CModelObject *pmoCrossbow = &m_moWeapon.GetAttachmentModel(1)->amo_moModelObject;
         FLOAT3D vRod = GetVertexPosition(pmoCrossbow, 500);
-        
+
         // sparks size
         FLOAT3D vSize = FLOAT3D(1.0f, 1.0f, 1.0f) * 0.02f;
 
         // sparks placement
-        ANGLE3D aSparks = ANGLE3D(WrapAngle(m_tmParticles * 3.0f), WrapAngle(m_tmParticles * 5.0f), WrapAngle(m_tmParticles * 7.0f));
+        ANGLE3D aSparks = ANGLE3D(WrapAngle(tmParticles * 3.0f), WrapAngle(tmParticles * 5.0f), WrapAngle(tmParticles * 7.0f));
         CPlacement3D plSparks = CPlacement3D(vRod + FLOAT3D(0.25f, -0.9f, -1.0f), aSparks);
         plSparks.RelativeToAbsolute(plWeapon);
 
-        Particles_ExplosionSparksPlace(plSparks, m_tmParticles, vSize, 0xFFFFFFFF);
+        Particles_ExplosionSparksPlace(plSparks, tmParticles, vSize, 0xFFFFFFFF);
       }
 
       Particle_EndSystem();
