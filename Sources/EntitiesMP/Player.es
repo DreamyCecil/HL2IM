@@ -634,19 +634,18 @@ DECL_DLL void ctl_ComposeActionPacket(const CPlayerCharacter &pc, CPlayerAction 
   // [Cecil] Check if server before pressing the button
   if (_pNetwork->IsServer() || GetSP()->sp_iHL2Flags & HL2F_ADMINMENU) {
     if (pctlCurrent.bMenu) {
-      // send menu buttons instead of weapons (0.72)
+      // Check number keys directly and send them as menu buttons
       for (INDEX i = 0; i < 10; i++) {
-        INDEX iKey = 0x30 + i;
-
-        if (GetKeyState(iKey) & 0x8000) {
-          paAction.pa_ulButtons = (i << PLACT_SELECT_WEAPON_SHIFT);
+        if (_pInput->GetButtonState(KID_1 + i)) {
+          paAction.pa_ulButtons = (i + 1) << PLACT_SELECT_WEAPON_SHIFT;
           break;
         }
       }
 
       paAction.pa_ulButtons |= PLACT_MENU;
     }
-    // reset so it doesn't get stuck and reopen every time
+
+    // Reset so it doesn't get stuck and reopen every time
     //pctlCurrent.bMenu = FALSE;
   }
 
@@ -1738,8 +1737,8 @@ functions:
     if ((ulReleasedButtons & PLACT_SELECT_WEAPON_MASK) != 0) {
       INDEX iSelected = (ulReleasedButtons & PLACT_SELECT_WEAPON_MASK) >> PLACT_SELECT_WEAPON_SHIFT;
 
-      if (iSelected != -1) {
-        switch (iSelected-1) {
+      if (iSelected != 0) {
+        switch (iSelected - 1) {
           case 0: { // god mode
             CTString strOn = "on";
 
@@ -1862,7 +1861,8 @@ functions:
       }
 
       // add button number (0.72)
-      pdp->PutTextCXY(CTString(0, "%d %s", iButton+1, strButton), (vPos(1)+vSize(1)/2.0f) * fScalingX, (vPos(2)+vSize(2)/2.0f) * fScalingY, 0xFFFFFFFF);
+      INDEX iPrintNumber = (iButton + 1) % 10;
+      pdp->PutTextCXY(CTString(0, "%d %s", iPrintNumber, strButton), (vPos(1)+vSize(1)/2.0f) * fScalingX, (vPos(2)+vSize(2)/2.0f) * fScalingY, 0xFFFFFFFF);
     }
 
     FLOAT fScale = Min(FLOAT(pdp->GetWidth()), 1024.0f) / 1024.0f;
