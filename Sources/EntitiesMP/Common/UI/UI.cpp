@@ -26,8 +26,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define SHIFT_Y -3
 
 extern CDrawPort *_pdp;
-static CPlayer *_penPlayer;
-static CPlayerWeapons *_penWeapons;
+extern CPlayer *_penPlayer;
+extern CPlayerWeapons *_penWeapons;
 
 static BOOL _bGlow = FALSE;
 static UBYTE _ubAlpha = 0x8F;
@@ -214,10 +214,7 @@ INDEX WordWrap(CDrawPort *pdp, CTString &strText, FLOAT fWidth) {
   return ctLines;
 };
 
-void HL2_UIInit(CPlayer *pen, CPlayerWeapons *penWeapons) {
-  _penPlayer = pen;
-  _penWeapons = penWeapons;
-
+void HL2_UIInit(void) {
   //_toOverlay.SetData_t(CTFILENAME("Textures\\Interface\\Overlay.tex"));
   //_toWeapons.SetData_t(CTFILENAME("Textures\\Interface\\WeaponsOverlay.tex"));
   _toHealth.SetData_t(CTFILENAME("Textures\\Interface\\HL2_Health.tex"));

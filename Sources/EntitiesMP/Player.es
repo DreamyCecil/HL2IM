@@ -141,7 +141,7 @@ event EAutoAction {
 };
 
 %{
-extern void DrawHUD( const CPlayer *penPlayerCurrent, CDrawPort *pdpCurrent, BOOL bSnooping, const CPlayer *penPlayerOwner);
+extern void DrawHUD(CPlayer *penPlayerCurrent, CDrawPort *pdpCurrent, BOOL bSnooping, const CPlayer *penPlayerOwner);
 extern void InitHUD(void);
 extern void EndHUD(void);
 

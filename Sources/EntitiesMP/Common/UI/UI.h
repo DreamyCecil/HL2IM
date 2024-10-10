@@ -61,7 +61,7 @@ CTString StringWithColors(const CTString &str);
 // Word wrap for a string
 INDEX WordWrap(CDrawPort *pdp, CTString &strText, FLOAT fWidth);
 
-void HL2_UIInit(CPlayer *pen, CPlayerWeapons *penWeapons);
+void HL2_UIInit(void);
 void HL2_SetAlpha(UBYTE ub);
 void HL2_SetGlow(BOOL bGlow);
 void HL2_SetGlowAlpha(FLOAT fGlow);

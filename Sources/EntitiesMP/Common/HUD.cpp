@@ -46,14 +46,14 @@ enum BarOrientations {
 extern const INDEX _aiWeaponsRemap[19];
 
 // drawing variables
-static const CPlayer *_penPlayer;
-static CPlayerWeapons *_penWeapons;
-extern CDrawPort *_pdp = NULL; // [Cecil] Extern
+CPlayer *_penPlayer = NULL;
+CPlayerWeapons *_penWeapons = NULL;
+CDrawPort *_pdp = NULL; // [Cecil] Extern
 
 static PIX _pixDPWidth, _pixDPHeight;
 // [Cecil] Replaced _fResolutionScaling with '_fResScalingX' and '_fResScalingY'
-extern FLOAT _fResScalingX = 1.0f;
-extern FLOAT _fResScalingY = 1.0f;
+FLOAT _fResScalingX = 1.0f;
+FLOAT _fResScalingY = 1.0f;
 
 static ULONG _ulAlphaHUD;
 static COLOR _colHUD;
@@ -540,7 +540,7 @@ static void HUD_DrawEntityStack()
 
 // render interface (frontend) to drawport
 // (units are in pixels for 640x480 resolution - for other res HUD will be scalled automatically)
-extern void DrawHUD( const CPlayer *penPlayerCurrent, CDrawPort *pdpCurrent, BOOL bSnooping, const CPlayer *penPlayerOwner)
+extern void DrawHUD(CPlayer *penPlayerCurrent, CDrawPort *pdpCurrent, BOOL bSnooping, const CPlayer *penPlayerOwner)
 {
   // if no player or snooping but owner player is NULL
   if (penPlayerCurrent == NULL || (penPlayerCurrent->GetFlags() & ENF_DELETED)
@@ -564,9 +564,9 @@ extern void DrawHUD( const CPlayer *penPlayerCurrent, CDrawPort *pdpCurrent, BOO
   hud_fOpacity = Clamp(hud_fOpacity, 0.1f, 1.0f);
   hud_fScaling = Clamp(hud_fScaling, 0.5f, 1.2f);
 
-  _penPlayer  = penPlayerCurrent;
-  _penWeapons = (CPlayerWeapons*)&*_penPlayer->m_penWeapons;
-  
+  _penPlayer = penPlayerCurrent;
+  _penWeapons = _penPlayer->GetPlayerWeapons();
+
   // [Cecil] Setup global UI variables independently
   SetGlobalUI(pdpCurrent);
 
@@ -586,7 +586,7 @@ extern void DrawHUD( const CPlayer *penPlayerCurrent, CDrawPort *pdpCurrent, BOO
   INDEX iWantedWeapon  = _penWeapons->m_iWantedWeapon;
 
   // [Cecil] Prepare Half-Life 2 UI
-  HL2_UIInit((CPlayer*)(CEntity*)_penPlayer, (CPlayerWeapons*)(CEntity*)_penWeapons);
+  HL2_UIInit();
 
   // Normal numbers layer
   _pdp->SetFont(&_fdNumbers);
