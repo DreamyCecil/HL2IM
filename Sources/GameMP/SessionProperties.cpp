@@ -174,7 +174,7 @@ static void HL2_Parameters(CSessionProperties &sp) {
 // set properties for a single player session
 void CGame::SetSinglePlayerSession(CSessionProperties &sp) {
   // clear
-  memset(&sp, 0, sizeof(sp));
+  sp.Clear();
 
   SetDifficultyParameters(sp);
   SetGameModeParameters(sp);
@@ -237,7 +237,7 @@ void CGame::SetQuickStartSession(CSessionProperties &sp) {
 // set properties for a multiplayer session
 void CGame::SetMultiPlayerSession(CSessionProperties &sp) {
   // clear
-  memset(&sp, 0, sizeof(sp));
+  sp.Clear();
 
   SetDifficultyParameters(sp);
   SetGameModeParameters(sp);

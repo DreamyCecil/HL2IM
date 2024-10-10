@@ -857,7 +857,7 @@ void CGame::GameHandleTimer(void)
  */
 void CGame::InitInternal( void)
 {
-  // [Cecil] Detect Classics patch
+  // [Cecil] Detect Classics Patch
   {
     CShellSymbol *pssAPI = _pShell->GetSymbol("CoreAPI", TRUE);
 
@@ -1468,6 +1468,11 @@ void CGame::StopGame(void) {
   CAM_Stop();
   // and game
   gm_bGameOn = FALSE;
+
+  // [Cecil] Reset session properties
+  CSessionProperties *spReset = const_cast<CSessionProperties *>(GetSP());
+  spReset->Clear();
+
   // stop the game
   _pNetwork->StopGame();
   // stop the provider
