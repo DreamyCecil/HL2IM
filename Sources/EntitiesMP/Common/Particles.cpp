@@ -2587,9 +2587,8 @@ BOOL UpdateGrowthCache(CEntity *pen, CTextureData *ptdGrowthMap, FLOATaabbox3D &
     return FALSE;
   }
 
-  // don't ever render in editor
-  if (_pTimer->CurrentTick()==0.0f)
-  {
+  // [Cecil] Don't render if not playing the game or if there's no player projection
+  if (!IsPlayingGame() || (CProjection3D *)prPlayerProjection == NULL) {
     return FALSE;
   }
 
@@ -3646,7 +3645,7 @@ void Particles_BulletSpray(INDEX iRndBase, FLOAT3D vSource, FLOAT3D vGDir, enum 
       fSpeedStart = 1.25f;
     } break;
 
-    // [Cecil] NOTE: Add corresponding particles for own types
+    // [Cecil] TODO: Add custom particles for own types
     case EPT_BULLET_METAL: {
       colSmoke = 0xAA905000;
       Particle_PrepareTexture(&_toBulletStone, PBT_BLEND);
