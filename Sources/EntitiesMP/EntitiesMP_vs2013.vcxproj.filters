@@ -648,6 +648,12 @@
     <ClCompile Include="Cecil\Collision\CollisionCommon.cpp">
       <Filter>Source Files\Cecil sources\Collision sources</Filter>
     </ClCompile>
+    <ClCompile Include="Mod\Text3D.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Cecil\Text3DParticles.cpp">
+      <Filter>Source Files\Cecil sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Common.h">
@@ -1697,6 +1703,9 @@
     <ClInclude Include="Cecil\Collision\CollisionCommon.h">
       <Filter>Header Files\Cecil headers\Collision headers</Filter>
     </ClInclude>
+    <ClInclude Include="Cecil\Text3DParticles.h">
+      <Filter>Header Files\Cecil headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="NavigationMarker.es">
@@ -2172,6 +2181,9 @@
     </CustomBuild>
     <CustomBuild Include="Mod\Base\MovableModelEntity.es">
       <Filter>Class Files\Cecil\Base</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\Text3D.es">
+      <Filter>Class Files\Cecil</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>
