@@ -2125,7 +2125,7 @@ functions:
 
       case EVENTCODE_EGravityGunPush: {
         const EGravityGunPush &ePush = (const EGravityGunPush &)ee;
-        GravityGunPush(this, ePush.vDir);
+        GravityGunPush(this, ePush.vDir, ePush.vHit);
       } return TRUE;
     }
 

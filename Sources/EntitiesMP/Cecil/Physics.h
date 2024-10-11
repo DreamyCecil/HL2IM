@@ -40,7 +40,7 @@ void GravityGunObjectDrop(CSyncedEntityPtr &syncGravityGun, BOOL bCloseProngs = 
 void GravityGunHolding(class CPlayerWeapons *penWeapons, CMovableEntity *pen, const EGravityGunHold &eHold);
 
 // Push the object with the gravity gun
-void GravityGunPush(CEntity *penObject, FLOAT3D vDir);
+void GravityGunPush(CEntity *penObject, const FLOAT3D &vDir, const FLOAT3D &vHit);
 
 // Check if the gravity gun can interact with the entity
 BOOL GravityGunCanInteract(CCecilPlayerEntity *penPlayer, CEntity *pen, BOOL bPickup);

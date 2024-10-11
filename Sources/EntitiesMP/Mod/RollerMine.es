@@ -612,7 +612,7 @@ procedures:
           resume;
         }
         on (EGravityGunPush ePush) : {
-          GravityGunPush(this, ePush.vDir);
+          GravityGunPush(this, ePush.vDir, ePush.vHit);
 
           // [Cecil] Launch the mine
           if (ePush.bLaunch) {

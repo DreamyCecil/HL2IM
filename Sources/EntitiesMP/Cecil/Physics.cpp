@@ -294,7 +294,7 @@ void GravityGunHolding(CPlayerWeapons *penWeapons, CMovableEntity *pen, const EG
 };
 
 // Push the object with the gravity gun
-void GravityGunPush(CEntity *penObject, FLOAT3D vDir) {
+void GravityGunPush(CEntity *penObject, const FLOAT3D &vDir, const FLOAT3D &vHit) {
   ((CMovableEntity *)penObject)->GiveImpulseTranslationAbsolute(vDir);
 };
 
@@ -407,6 +407,10 @@ void ReadHeldObject(CSyncedEntityPtr &sync, CTStream *istr, CEntity *pen) {
   ULONG ulID;
   *istr >> ulID;
 
-  CEntity *penSync = pen->GetWorld()->EntityFromID(ulID);
-  sync.Sync(GetGravityGunSync(penSync));
+  if (ulID != -1) {
+    CEntity *penSync = pen->GetWorld()->EntityFromID(ulID);
+    sync.Sync(GetGravityGunSync(penSync));
+  } else {
+    sync.Unsync();
+  }
 };

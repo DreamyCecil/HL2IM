@@ -6051,8 +6051,10 @@ procedures:
       CMovableEntity *penObject = (CMovableEntity*)penTarget;
 
       // launch object
-      FLOAT3D vView = (GetPlayer()->GetPlacement().pl_PositionVector + GetPlayer()->en_plViewpoint.pl_PositionVector * GetPlayer()->GetRotationMatrix());
-      FLOAT3D vTarget = (m_vRayHit - vView).Normalize();
+      CPlacement3D plView = GetPlayer()->en_plViewpoint;
+      plView.RelativeToAbsolute(GetPlayer()->GetPlacement());
+
+      const FLOAT3D vTargetDir = (m_vRayHit - plView.pl_PositionVector).Normalize();
 
       // object's mass
       FLOAT fMassFactor = 1.0f;
@@ -6062,10 +6064,9 @@ procedures:
 
       // launch certain objects
       if (!IsOfClass(penTarget, "Projectile") && penTarget->GetRenderType() == RT_MODEL) {
-        //penObject->GiveImpulseTranslationAbsolute(vTarget / _pTimer->TickQuantum * fMassFactor*3.0f * GetSP()->sp_fGravityGunPower);
-
         EGravityGunPush ePush;
-        ePush.vDir = vTarget / _pTimer->TickQuantum * fMassFactor*3.0f * GetSP()->sp_fGravityGunPower;
+        ePush.vDir = vTargetDir / _pTimer->TickQuantum * fMassFactor * 3.0f * GetSP()->sp_fGravityGunPower;
+        ePush.vHit = penObject->GetPlacement().pl_PositionVector;
         ePush.bLaunch = TRUE;
         penObject->SendEvent(ePush);
       }
@@ -6074,10 +6075,10 @@ procedures:
       if (!IsOfClass(penTarget, "RollingStone")) {
         // explosive damage for brushes
         if (IsOfClass(penTarget, "Moving Brush")) {
-          InflictDirectDamage(penTarget, m_penPlayer, DMT_EXPLOSION, 20.0f, m_vRayHit, vTarget);
+          InflictDirectDamage(penTarget, m_penPlayer, DMT_EXPLOSION, 20.0f, m_vRayHit, vTargetDir);
 
         } else {
-          InflictDirectDamage(penTarget, m_penPlayer, DMT_CLOSERANGE, 50.0f, m_vRayHit, vTarget);
+          InflictDirectDamage(penTarget, m_penPlayer, DMT_CLOSERANGE, 50.0f, m_vRayHit, vTargetDir);
         }
       }
 
@@ -6154,10 +6155,11 @@ procedures:
         CPlacement3D plView = GetPlayer()->en_plViewpoint;
         plView.RelativeToAbsolute(GetPlayer()->GetPlacement());
 
-        FLOAT3D vToPlayer = (plView.pl_PositionVector - pen->GetPlacement().pl_PositionVector);
+        const FLOAT3D vToPlayer = (plView.pl_PositionVector - pen->GetPlacement().pl_PositionVector).Normalize();
 
         EGravityGunPush ePush;
-        ePush.vDir = vToPlayer.Normalize() * 3.0f;
+        ePush.vDir = vToPlayer / _pTimer->TickQuantum / 20.0f * 3.0f;
+        ePush.vHit = m_vRayHit;
         ePush.bLaunch = FALSE;
         pen->SendEvent(ePush);
       }

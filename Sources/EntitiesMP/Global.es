@@ -62,6 +62,7 @@ event EGravityGunStop {
 // [Cecil] Push in some direction (received by objects)
 event EGravityGunPush {
   FLOAT3D vDir, // Push force (direction * speed)
+  FLOAT3D vHit, // From which point to push the entity (for physical objects)
   BOOL bLaunch, // Launching or pulling
 };
 

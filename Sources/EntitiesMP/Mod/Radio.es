@@ -219,7 +219,7 @@ procedures:
         resume;
       }
       on (EGravityGunPush ePush) : {
-        GravityGunPush(this, ePush.vDir);
+        GravityGunPush(this, ePush.vDir, ePush.vHit);
         resume;
       }
       
