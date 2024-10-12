@@ -1294,7 +1294,7 @@ procedures:
     StandingAnim();
 
     // [Cecil] Mark as HL2 enemy
-    m_bHL2Enemy = TRUE;
+    m_eHLEnemy = HLENEMY_BETA;
 
     // set your appearance
     //m_fStretch = SIZE;

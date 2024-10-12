@@ -424,7 +424,7 @@ procedures:
     m_bRunSoundPlaying = FALSE;
 
     // [Cecil] Mark as HL2 enemy
-    m_bHL2Enemy = TRUE;
+    m_eHLEnemy = HLENEMY_BETA;
 
     // continue behavior in base class
     jump CEnemyBase::MainLoop();

@@ -54,6 +54,13 @@ enum DestinationType {
   3 DT_PATHPERSISTENT "",    // go to navigation marker - until you really get there
 };
 
+// [Cecil] Half-Life enemy type
+enum EHalfLifeEnemy {
+  0 HLENEMY_NONE "Serious Sam enemy",     // Regular Serious Sam enemy
+  1 HLENEMY_BETA "Beta replacement",      // Beta replacement
+  2 HLENEMY_NEW  "New Half-Life 2 enemy", // New enemy
+};
+
 %{
 #define MF_MOVEZ    (1L<<0)
 #define MF_ROTATEH  (1L<<1)
@@ -187,7 +194,8 @@ properties:
 
 // [Cecil]
 200 FLOAT3D m_vRotationDir = FLOAT3D(0.0f, -1.0f, 0.0f), // For rotation
-202 BOOL m_bHL2Enemy = FALSE, // Indicates a Half-Life enemy
+201 BOOL m_bReinitialized = FALSE, // Whether the enemy has been reinitialized
+202 enum EHalfLifeEnemy m_eHLEnemy = HLENEMY_NONE, // Indicates a Half-Life enemy
 203 CEntityPointer m_penLastAttacker, // Who attacked the enemy last
 
 {
@@ -3288,6 +3296,9 @@ procedures:
       m_fStepHeight = 2.0f;
     }
 
+    // [Cecil] This fires in the editor, indicating that it doesn't need to be replaced
+    m_bReinitialized = (m_eHLEnemy != HLENEMY_NONE);
+
     // if this is a template
     if (m_bTemplate) {
       // do nothing at all
@@ -3304,10 +3315,13 @@ procedures:
     autowait(_pTimer->TickQuantum);
 
     // spawn your watcher
-    m_penWatcher = CreateEntity(GetPlacement(), CLASS_WATCHER);
-    EWatcherInit eInitWatcher;
-    eInitWatcher.penOwner = this;
-    GetWatcher()->Initialize(eInitWatcher);
+    // [Cecil] If there isn't one already
+    if (m_penWatcher == NULL) {
+      m_penWatcher = CreateEntity(GetPlacement(), CLASS_WATCHER);
+      EWatcherInit eInitWatcher;
+      eInitWatcher.penOwner = this;
+      GetWatcher()->Initialize(eInitWatcher);
+    }
 
     // switch to next marker (enemies usually point to the marker they stand on)
     if (m_penMarker!=NULL && IsOfClass(m_penMarker, "Enemy Marker")) {
@@ -3338,6 +3352,12 @@ procedures:
     ASSERT(m_fIgnoreRange>m_fAttackDistance);
 
     SetPredictable(TRUE);
+
+    // [Cecil] Reinitialize the enemy to properly replace it
+    if (!m_bReinitialized) {
+      m_bReinitialized = TRUE;
+      Reinitialize();
+    }
 
     autocall PreMainLoop() EReturn;
 

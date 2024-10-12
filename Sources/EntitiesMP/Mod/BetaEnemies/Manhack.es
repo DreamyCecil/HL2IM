@@ -31,8 +31,7 @@ properties:
 
 // [Cecil] Force flying
  10 BOOL m_bAlwaysFly "Force Flying" = TRUE,
- 11 BOOL m_bReinitFlight = FALSE,
- 12 BOOL m_bForcedFlight = FALSE,
+ 11 BOOL m_bForcedFlight = FALSE,
 
 components:
   0 class   CLASS_BASE         "Classes\\EnemyFly.ecl",
@@ -79,12 +78,9 @@ functions:
     m_sptType = SPT_ELECTRICITY_SPARKS_NO_BLOOD;
 
     // [Cecil] Force flying
-    if (m_bAlwaysFly && !m_bReinitFlight) {
+    if (m_bAlwaysFly) {
       m_EeftType = EFT_FLY_ONLY;
-      m_bReinitFlight = TRUE;
       m_bForcedFlight = TRUE;
-
-      Reinitialize();
     }
 
     CEnemyFly::AdjustDifficulty();
@@ -398,9 +394,6 @@ procedures:
     SetCollisionFlags(ECF_MODEL);
     SetFlags(GetFlags()|ENF_ALIVE);
 
-    // [Cecil] Don't reinit in game again
-    m_bReinitFlight = TRUE;
-
     // [Cecil] Force flying
     if (m_bAlwaysFly) {
       m_EeftType = EFT_FLY_ONLY;
@@ -470,7 +463,7 @@ procedures:
     m_soMumble.Set3DParameters(25.0f, 0.0f, 1.0f, 1.0f);
 
     // [Cecil] Mark as HL2 enemy
-    m_bHL2Enemy = TRUE;
+    m_eHLEnemy = HLENEMY_BETA;
 
     // continue behavior in base class
     jump CEnemyFly::MainLoop();
