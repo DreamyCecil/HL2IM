@@ -3300,9 +3300,6 @@ procedures:
       m_fStepHeight = 2.0f;
     }
 
-    // [Cecil] This fires in the editor, indicating that it doesn't need to be replaced
-    m_bReinitialized = (m_eHLEnemy != HLENEMY_NONE);
-
     // if this is a template
     if (m_bTemplate) {
       // do nothing at all
@@ -3343,6 +3340,9 @@ procedures:
     en_fStepUpHeight = m_fStepHeight+0.01f;
     en_fStepDnHeight = m_fFallHeight+0.01f;
 
+    // [Cecil] Remember current enemy type
+    const EHalfLifeEnemy eFirstInitEnemyType = m_eHLEnemy;
+
     // let derived class(es) adjust parameters if needed
     EnemyPostInit();
 
@@ -3360,7 +3360,11 @@ procedures:
     // [Cecil] Reinitialize the enemy to properly replace it
     if (!m_bReinitialized) {
       m_bReinitialized = TRUE;
-      Reinitialize();
+
+      // Only if the type has been readjusted by the enemy class from the original enemies
+      if (eFirstInitEnemyType == HLENEMY_NONE && eFirstInitEnemyType != m_eHLEnemy) {
+        Reinitialize();
+      }
     }
 
     autocall PreMainLoop() EReturn;

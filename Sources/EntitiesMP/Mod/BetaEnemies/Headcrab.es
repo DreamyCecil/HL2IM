@@ -178,6 +178,11 @@ functions:
     m_sptType = HL2_GOO_SPRAY;
   };
 
+  // [Cecil] Mark as HL2 enemy
+  void EnemyPostInit(void) {
+    m_eHLEnemy = HLENEMY_BETA;
+  };
+
 procedures:
 /************************************************************
  *                A T T A C K   E N E M Y                   *
@@ -333,9 +338,6 @@ procedures:
     GetModelObject()->StretchModel(FLOAT3D(1.25f, 1.25f, 1.25f));
     ModelChangeNotify();
     StandingAnim();
-
-    // [Cecil] Mark as HL2 enemy
-    m_eHLEnemy = HLENEMY_BETA;
 
     // continue behavior in base class
     jump CEnemyBase::MainLoop();

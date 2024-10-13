@@ -414,6 +414,11 @@ functions:
     }
   };
 
+  // [Cecil] Mark as HL2 enemy
+  void EnemyPostInit(void) {
+    m_eHLEnemy = HLENEMY_BETA;
+  };
+
 /************************************************************
  *                 BLOW UP FUNCTIONS                        *
  ************************************************************/
@@ -765,9 +770,6 @@ procedures:
     GetModelObject()->StretchModel(FLOAT3D(1.25f, 1.25f, 1.25f));
     ModelChangeNotify();
     StandingAnim();
-
-    // [Cecil] Mark as HL2 enemy
-    m_eHLEnemy = HLENEMY_BETA;
 
     // continue behavior in base class
     jump CEnemyBase::MainLoop();

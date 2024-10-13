@@ -792,6 +792,11 @@ functions:
     m_emEmiter.RenderParticles();
   }
 
+  // [Cecil] Mark as HL2 enemy
+  void EnemyPostInit(void) {
+    m_eHLEnemy = HLENEMY_BETA;
+  };
+
 procedures:
   
   InitiateTeleport() {
@@ -1292,9 +1297,6 @@ procedures:
     
     SetPhysicsFlags(EPF_MODEL_WALKING);
     StandingAnim();
-
-    // [Cecil] Mark as HL2 enemy
-    m_eHLEnemy = HLENEMY_BETA;
 
     // set your appearance
     //m_fStretch = SIZE;

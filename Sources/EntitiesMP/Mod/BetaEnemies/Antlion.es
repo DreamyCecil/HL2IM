@@ -223,6 +223,11 @@ functions:
     m_fBlowUpAmount = 110.0f;
   };
 
+  // [Cecil] Mark as HL2 enemy
+  void EnemyPostInit(void) {
+    m_eHLEnemy = HLENEMY_BETA;
+  };
+
 /************************************************************
  *                 BLOW UP FUNCTIONS                        *
  ************************************************************/
@@ -422,9 +427,6 @@ procedures:
     CEnemyBase::SizeModel();
     m_soFeet.Set3DParameters(80.0f, 5.0f, 1.0f, 1.0f);
     m_bRunSoundPlaying = FALSE;
-
-    // [Cecil] Mark as HL2 enemy
-    m_eHLEnemy = HLENEMY_BETA;
 
     // continue behavior in base class
     jump CEnemyBase::MainLoop();
