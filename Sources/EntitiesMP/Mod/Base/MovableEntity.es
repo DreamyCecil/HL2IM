@@ -239,11 +239,11 @@ functions:
 
   // [Cecil] Wrappers for compatibility
   inline void LaunchAsPropelledProjectile(const FLOAT3D &vImpulseSpeedRelative, CCecilMovableEntity *penLauncher) {
-    LaunchAsPropelledProjectile(vImpulseSpeedRelative, penLauncher);
+    LaunchAsPropelledProjectile(vImpulseSpeedRelative, reinterpret_cast<CMovableEntity *>(penLauncher));
   };
 
   inline void LaunchAsFreeProjectile(const FLOAT3D &vImpulseSpeedRelative, CCecilMovableEntity *penLauncher) {
-    LaunchAsFreeProjectile(vImpulseSpeedRelative, penLauncher);
+    LaunchAsFreeProjectile(vImpulseSpeedRelative, reinterpret_cast<CMovableEntity *>(penLauncher));
   };
 
   void ForceStopTranslation(void);
