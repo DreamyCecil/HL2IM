@@ -95,33 +95,6 @@ functions:
     }
   };
 
-  void AdjustDifficulty(void) {
-    // [Cecil] Reload the model
-    SetModel(MODEL_GRUNT);
-
-    switch (m_gtType) {
-      case CS_OVERWATCH:
-        SetModelMainTexture(TEXTURE_SOLDIER);
-        AddAttachment(GRUNT_ATTACHMENT_GUN_SMALL, MODEL_GUN_SOLDIER, TEXTURE_GUN_SOLDIER);
-        GetModelObject()->StretchModel(FLOAT3D(STRETCH_SOLDIER, STRETCH_SOLDIER, STRETCH_SOLDIER));
-        break;
-      case CS_PRISON:
-        SetModelMainTexture(TEXTURE_COMMANDER);
-        AddAttachment(GRUNT_ATTACHMENT_GUN_COMMANDER, MODEL_GUN_COMMANDER, TEXTURE_GUN_COMMANDER);
-        GetModelObject()->StretchModel(FLOAT3D(STRETCH_COMMANDER, STRETCH_COMMANDER, STRETCH_COMMANDER));
-        break;
-    }
-    ModelChangeNotify();
-
-    // [Cecil] Increase health
-    FLOAT fHealth = GetHealth();
-
-    SetHealth(fHealth*2.0f);
-    m_fMaxHealth = fHealth*2.0f;
-
-    CEnemyBase::AdjustDifficulty();
-  };
-
   // [Cecil] Drop weapons
   void DropItems(void) {
     if (IRnd() % 2) {
@@ -378,8 +351,9 @@ procedures:
         // [Cecil] 0 -> 20
         m_fDamageWounded = 20.0f;
         m_iScore = 500;
-        SetHealth(40.0f);
-        m_fMaxHealth = 40.0f;
+        // [Cecil] Doubled health
+        SetHealth(80.0f);
+        m_fMaxHealth = 80.0f;
         // set stretch factors for height and width
         GetModelObject()->StretchModel(FLOAT3D(STRETCH_SOLDIER, STRETCH_SOLDIER, STRETCH_SOLDIER));
         break;
@@ -407,8 +381,9 @@ procedures:
         // [Cecil] 0 -> 30
         m_fDamageWounded = 30.0f;
         m_iScore = 800;
-        SetHealth(60.0f);
-        m_fMaxHealth = 60.0f;
+        // [Cecil] Doubled health
+        SetHealth(120.0f);
+        m_fMaxHealth = 120.0f;
         // set stretch factors for height and width
         GetModelObject()->StretchModel(FLOAT3D(STRETCH_COMMANDER, STRETCH_COMMANDER, STRETCH_COMMANDER));
         break;

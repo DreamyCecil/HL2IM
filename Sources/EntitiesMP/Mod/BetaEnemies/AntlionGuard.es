@@ -99,13 +99,6 @@ functions:
 
   void AdjustDifficulty(void) {
     // bull must not change its speed at different difficulties
-
-    // [Cecil] Own type
-    m_sptType = SPT_BONES;
-
-    // [Cecil] Increase health
-    SetHealth(1000.0f);
-    m_fMaxHealth = 1000.0f;
   };
 
   // death
@@ -325,8 +318,11 @@ procedures:
     SetPhysicsFlags(EPF_MODEL_WALKING);
     SetCollisionFlags(ECF_MODEL);
     SetFlags(GetFlags()|ENF_ALIVE);
-    SetHealth(250.0f);
-    m_fMaxHealth = 250.0f;
+
+    // [Cecil] Increase health
+    SetHealth(1000.0f);
+    m_fMaxHealth = 1000.0f;
+
     en_fDensity = 2000.0f;
 
     // set your appearance

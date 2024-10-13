@@ -3340,9 +3340,6 @@ procedures:
     en_fStepUpHeight = m_fStepHeight+0.01f;
     en_fStepDnHeight = m_fFallHeight+0.01f;
 
-    // [Cecil] Remember current enemy type
-    const EHalfLifeEnemy eFirstInitEnemyType = m_eHLEnemy;
-
     // let derived class(es) adjust parameters if needed
     EnemyPostInit();
 
@@ -3362,7 +3359,7 @@ procedures:
       m_bReinitialized = TRUE;
 
       // Only if the type has been readjusted by the enemy class from the original enemies
-      if (eFirstInitEnemyType == HLENEMY_NONE && eFirstInitEnemyType != m_eHLEnemy) {
+      if (m_eHLEnemy != HLENEMY_NONE) {
         Reinitialize();
       }
     }

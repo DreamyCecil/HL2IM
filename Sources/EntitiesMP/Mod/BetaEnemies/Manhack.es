@@ -31,7 +31,6 @@ properties:
 
 // [Cecil] Force flying
  10 BOOL m_bAlwaysFly "Force Flying" = TRUE,
- 11 BOOL m_bForcedFlight = FALSE,
 
 components:
   0 class   CLASS_BASE         "Classes\\EnemyFly.ecl",
@@ -70,20 +69,6 @@ functions:
     PrecacheSound(SOUND_PUNCH);
     PrecacheSound(SOUND_DEATH);
     PrecacheSound(SOUND_MUMBLE);
-  };
-
-  // [Cecil] Remove shadows and change spray particles
-  void AdjustDifficulty(void) {
-    SetFlags(GetFlags()|ENF_CLUSTERSHADOWS);
-    m_sptType = SPT_ELECTRICITY_SPARKS_NO_BLOOD;
-
-    // [Cecil] Force flying
-    if (m_bAlwaysFly) {
-      m_EeftType = EFT_FLY_ONLY;
-      m_bForcedFlight = TRUE;
-    }
-
-    CEnemyFly::AdjustDifficulty();
   };
 
   // [Cecil] Remove stains for manhacks
@@ -397,7 +382,7 @@ procedures:
     InitAsModel();
     SetPhysicsFlags(EPF_MODEL_WALKING|EPF_HASLUNGS);
     SetCollisionFlags(ECF_MODEL);
-    SetFlags(GetFlags()|ENF_ALIVE);
+    SetFlags(GetFlags()|ENF_ALIVE|ENF_CLUSTERSHADOWS);
 
     // [Cecil] Force flying
     if (m_bAlwaysFly) {
@@ -419,6 +404,9 @@ procedures:
     } else {
       en_tmMaxHoldBreath = 30.0f;
     }
+
+    // [Cecil] New spray particles
+    m_sptType = SPT_ELECTRICITY_SPARKS_NO_BLOOD;
 
     // set your appearance
     SetModel(MODEL_MANHACK);

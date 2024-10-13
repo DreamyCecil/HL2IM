@@ -97,12 +97,6 @@ functions:
   };
 
   void AdjustDifficulty(void) {
-    // [Cecil] Reload the model
-    SetModel(MODEL_FREAK);
-    SetModelMainTexture(TEXTURE_FREAK);
-    AddAttachment(FREAK_ATTACHMENT_CHAINSAW, MODEL_CHAINSAW, TEXTURE_CHAINSAW);
-    ModelChangeNotify();
-
     // Fast zombie must not change his speed at different difficulties
   };
 

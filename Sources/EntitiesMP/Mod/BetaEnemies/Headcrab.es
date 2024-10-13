@@ -170,14 +170,6 @@ functions:
     }
   };
 
-  // [Cecil] Mod adjustments
-  void AdjustDifficulty(void) {
-    CEnemyBase::AdjustDifficulty();
-
-    // [Cecil] Own type
-    m_sptType = HL2_GOO_SPRAY;
-  };
-
   // [Cecil] Mark as HL2 enemy
   void EnemyPostInit(void) {
     m_eHLEnemy = HLENEMY_BETA;

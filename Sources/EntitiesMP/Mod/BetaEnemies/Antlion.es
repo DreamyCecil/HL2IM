@@ -212,17 +212,6 @@ functions:
     m_bRunSoundPlaying = FALSE;
   };
 
-  // [Cecil] Mod adjustments
-  void AdjustDifficulty(void) {
-    CEnemyBase::AdjustDifficulty();
-
-    // [Cecil] Randomize the texture
-    SetModelMainTexture(ANTLION_TEXTURE_RND);
-
-    // [Cecil] Don't explode from the revolver/primary shotgun fire
-    m_fBlowUpAmount = 110.0f;
-  };
-
   // [Cecil] Mark as HL2 enemy
   void EnemyPostInit(void) {
     m_eHLEnemy = HLENEMY_BETA;

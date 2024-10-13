@@ -126,40 +126,6 @@ functions:
     PrecacheClass(CLASS_BASIC_EFFECT, BET_BOMB);
   };
 
-  void AdjustDifficulty(void) {
-    // [Cecil] Reload the model
-    SetModel(MODEL_COP);
-    SetModelMainTexture(TEXTURE_COP);
-
-    switch (m_hdtType) {
-      case COP_SMG:
-        AddAttachment(HEADMAN_ATTACHMENT_CHAINSAW, MODEL_CHAINSAW, TEXTURE_CHAINSAW);
-        break;
-  
-      case COP_PISTOL:
-        AddAttachment(HEADMAN_ATTACHMENT_ROCKET_LAUNCHER, MODEL_ROCKETLAUNCHER, TEXTURE_ROCKETLAUNCHER);
-        break;
-
-      case COP_GRENADES:
-        break;
-
-      case COP_KAMIKAZE:
-        AddAttachment(HEADMAN_ATTACHMENT_BOMB_RIGHT_HAND, MODEL_BOMB, TEXTURE_BOMB);
-        AddAttachment(HEADMAN_ATTACHMENT_BOMB_LEFT_HAND, MODEL_BOMB, TEXTURE_BOMB);
-        break;
-    }
-
-    GetModelObject()->StretchModel(FLOAT3D(1.25f, 1.25f, 1.25f));
-    ModelChangeNotify();
-
-    // [Cecil] Increase health
-    SetHealth(70.0f);
-    m_fMaxHealth = 70.0f;
-    m_fDamageWounded = 25.0f;
-
-    CEnemyBase::AdjustDifficulty();
-  };
-
   // [Cecil] Drop weapons
   void DropItems(void) {
     if (IRnd() % 4 == 0) {
@@ -662,8 +628,12 @@ procedures:
     SetPhysicsFlags(EPF_MODEL_WALKING|EPF_HASLUNGS);
     SetCollisionFlags(ECF_MODEL);
     SetFlags(GetFlags()|ENF_ALIVE);
-    SetHealth(19.5f);
-    m_fMaxHealth = 19.5f;
+
+    // [Cecil] Increase health
+    SetHealth(70.0f);
+    m_fMaxHealth = 70.0f;
+    m_fDamageWounded = 25.0f;
+
     en_tmMaxHoldBreath = 5.0f;
     en_fDensity = 2000.0f;
     m_fBlowUpSize = 2.0f;
@@ -692,7 +662,6 @@ procedures:
         // damage/explode properties
         m_fBlowUpAmount = 1E10f; // [Cecil] Can't blow up
         m_fBodyParts = 4;
-        m_fDamageWounded = 0.0f;
         m_iScore = 200;
         break;
   
@@ -715,7 +684,6 @@ procedures:
         // damage/explode properties
         m_fBlowUpAmount = 1E10f; // [Cecil] Can't blow up
         m_fBodyParts = 4;
-        m_fDamageWounded = 0.0f;
         m_iScore = 100;
         break;
 
@@ -737,7 +705,6 @@ procedures:
         // damage/explode properties
         m_fBlowUpAmount = 1E10f; // [Cecil] Can't blow up
         m_fBodyParts = 4;
-        m_fDamageWounded = 0.0f;
         m_iScore = 500;
         break;
 
@@ -761,7 +728,6 @@ procedures:
         // damage/explode properties
         m_fBlowUpAmount = 0.0f;
         m_fBodyParts = 4;
-        m_fDamageWounded = 0.0f;
         m_iScore = 2500;
         break;
     }

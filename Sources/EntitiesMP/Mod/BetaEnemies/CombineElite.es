@@ -179,21 +179,6 @@ functions:
     return -1.0f;
   };
 
-  // [Cecil] Reload the model
-  void AdjustDifficulty(void) {
-    SetModel(MODEL_GUFFY);
-    m_fSize = 1.5f;
-    SetModelMainTexture(TEXTURE_GUFFY);
-    AddAttachment(GUFFY_ATTACHMENT_GUNRIGHT, MODEL_GUN, TEXTURE_GUN);
-    AddAttachment(GUFFY_ATTACHMENT_GUNLEFT, MODEL_GUN, TEXTURE_GUN);
-    GetModelObject()->StretchModel(FLOAT3D(m_fSize, m_fSize, m_fSize));
-    ModelChangeNotify();
-    CModelObject *pmoRight = &GetModelObject()->GetAttachmentModel(GUFFY_ATTACHMENT_GUNRIGHT)->amo_moModelObject;
-    pmoRight->StretchModel(FLOAT3D(-1,1,1));
-
-    CEnemyBase::AdjustDifficulty();
-  };
-
   // [Cecil] Drop weapons
   void DropItems(void) {
     if (IRnd() % 2) {
