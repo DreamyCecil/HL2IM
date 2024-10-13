@@ -273,8 +273,8 @@ functions:
   };
 
   // [Cecil] Mark as HL2 enemy
-  void EnemyPostInit(void) {
-    m_eHLEnemy = HLENEMY_BETA;
+  virtual EHalfLifeEnemy GetHalfLifeEnemyType(void) const {
+    return HLENEMY_BETA;
   };
 
 /************************************************************
@@ -454,6 +454,9 @@ procedures:
     m_fFlyCloseFireTime = 0.5f;
     m_fFlyIgnoreRange = 200.0f;
     m_soMumble.Set3DParameters(25.0f, 0.0f, 1.0f, 1.0f);
+
+    // [Cecil] Mark as HL2 enemy
+    SetHalfLifeEnemyType();
 
     // continue behavior in base class
     jump CEnemyFly::MainLoop();

@@ -235,9 +235,11 @@ functions:
     m_soFeet.Set3DParameters(500.0f, 50.0f, 1.0f, 1.0f);
     m_bRunSoundPlaying = FALSE;
     m_soSound.Set3DParameters(160.0f, 50.0f, 1.0f, 1.0f);
+  };
 
-    // [Cecil] Mark as HL2 enemy
-    m_eHLEnemy = HLENEMY_BETA;
+  // [Cecil] Mark as HL2 enemy
+  virtual EHalfLifeEnemy GetHalfLifeEnemyType(void) const {
+    return HLENEMY_BETA;
   };
 
   void PreMoving() {
@@ -371,6 +373,9 @@ procedures:
     ModelChangeNotify();
 
     m_bAttacking = FALSE;
+
+    // [Cecil] Mark as HL2 enemy
+    SetHalfLifeEnemyType();
 
     // continue behavior in base class
     jump CEnemyRunInto::MainLoop();

@@ -250,9 +250,11 @@ functions:
     // set sound default parameters
     m_soFire1.Set3DParameters(160.0f, 50.0f, 1.0f, 1.0f);
     m_soFire2.Set3DParameters(160.0f, 50.0f, 1.0f, 1.0f);
+  };
 
-    // [Cecil] Mark as HL2 enemy
-    m_eHLEnemy = HLENEMY_BETA;
+  // [Cecil] Mark as HL2 enemy
+  virtual EHalfLifeEnemy GetHalfLifeEnemyType(void) const {
+    return HLENEMY_BETA;
   };
 
 procedures:
@@ -391,6 +393,9 @@ procedures:
 
     ModelChangeNotify();
     StandingAnim();
+
+    // [Cecil] Mark as HL2 enemy
+    SetHalfLifeEnemyType();
 
     // continue behavior in base class
     jump CEnemyBase::MainLoop();

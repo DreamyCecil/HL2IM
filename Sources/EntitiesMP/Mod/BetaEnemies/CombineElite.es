@@ -138,9 +138,11 @@ functions:
     m_soSound.Set3DParameters(160.0f, 50.0f, 1.0f, 1.0f);
     m_soFire1.Set3DParameters(160.0f, 50.0f, 1.0f, 1.0f);
     m_soFire2.Set3DParameters(160.0f, 50.0f, 1.0f, 1.0f);
+  };
 
-    // [Cecil] Mark as HL2 enemy
-    m_eHLEnemy = HLENEMY_BETA;
+  // [Cecil] Mark as HL2 enemy
+  virtual EHalfLifeEnemy GetHalfLifeEnemyType(void) const {
+    return HLENEMY_BETA;
   };
 
   // damage anim
@@ -282,6 +284,9 @@ procedures:
     // damage/explode properties
     m_fBodyParts = 5;
     m_fDamageWounded = 100.0f;
+
+    // [Cecil] Mark as HL2 enemy
+    SetHalfLifeEnemyType();
 
     // continue behavior in base class
     jump CEnemyBase::MainLoop();

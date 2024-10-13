@@ -793,8 +793,8 @@ functions:
   }
 
   // [Cecil] Mark as HL2 enemy
-  void EnemyPostInit(void) {
-    m_eHLEnemy = HLENEMY_BETA;
+  virtual EHalfLifeEnemy GetHalfLifeEnemyType(void) const {
+    return HLENEMY_BETA;
   };
 
 procedures:
@@ -1297,6 +1297,9 @@ procedures:
     
     SetPhysicsFlags(EPF_MODEL_WALKING);
     StandingAnim();
+
+    // [Cecil] Mark as HL2 enemy
+    SetHalfLifeEnemyType();
 
     // set your appearance
     //m_fStretch = SIZE;

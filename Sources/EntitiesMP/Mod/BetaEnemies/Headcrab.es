@@ -171,8 +171,8 @@ functions:
   };
 
   // [Cecil] Mark as HL2 enemy
-  void EnemyPostInit(void) {
-    m_eHLEnemy = HLENEMY_BETA;
+  virtual EHalfLifeEnemy GetHalfLifeEnemyType(void) const {
+    return HLENEMY_BETA;
   };
 
 procedures:
@@ -330,6 +330,9 @@ procedures:
     GetModelObject()->StretchModel(FLOAT3D(1.25f, 1.25f, 1.25f));
     ModelChangeNotify();
     StandingAnim();
+
+    // [Cecil] Mark as HL2 enemy
+    SetHalfLifeEnemyType();
 
     // continue behavior in base class
     jump CEnemyBase::MainLoop();

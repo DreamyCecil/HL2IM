@@ -213,8 +213,8 @@ functions:
   };
 
   // [Cecil] Mark as HL2 enemy
-  void EnemyPostInit(void) {
-    m_eHLEnemy = HLENEMY_BETA;
+  virtual EHalfLifeEnemy GetHalfLifeEnemyType(void) const {
+    return HLENEMY_BETA;
   };
 
 /************************************************************
@@ -416,6 +416,9 @@ procedures:
     CEnemyBase::SizeModel();
     m_soFeet.Set3DParameters(80.0f, 5.0f, 1.0f, 1.0f);
     m_bRunSoundPlaying = FALSE;
+
+    // [Cecil] Mark as HL2 enemy
+    SetHalfLifeEnemyType();
 
     // continue behavior in base class
     jump CEnemyBase::MainLoop();

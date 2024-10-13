@@ -2012,6 +2012,16 @@ functions:
   // adjust sound and watcher parameters here if needed
   virtual void EnemyPostInit(void) {};
 
+  // [Cecil] Get Half-Life enemy type
+  virtual EHalfLifeEnemy GetHalfLifeEnemyType(void) const {
+    return HLENEMY_NONE;
+  };
+
+  // [Cecil] Set Half-Life enemy type
+  void SetHalfLifeEnemyType(void) {
+    m_eHLEnemy = GetHalfLifeEnemyType();
+  };
+
   /* Handle an event, return false if the event is not handled. */
   BOOL HandleEvent(const CEntityEvent &ee)
   {
@@ -3300,6 +3310,9 @@ procedures:
       m_fStepHeight = 2.0f;
     }
 
+    // [Cecil] This fires in the editor, indicating that it doesn't need to be replaced
+    m_bReinitialized = (GetHalfLifeEnemyType() != HLENEMY_NONE);
+
     // if this is a template
     if (m_bTemplate) {
       // do nothing at all
@@ -3339,6 +3352,9 @@ procedures:
     // adjust falldown and step up values
     en_fStepUpHeight = m_fStepHeight+0.01f;
     en_fStepDnHeight = m_fFallHeight+0.01f;
+
+    // [Cecil] Mark as HL2 enemy, if it hasn't been done already
+    SetHalfLifeEnemyType();
 
     // let derived class(es) adjust parameters if needed
     EnemyPostInit();
