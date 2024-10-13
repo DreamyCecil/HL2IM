@@ -212,8 +212,10 @@ void GravityGunStart(CEntity *penObject, CEntity *penWeapons) {
 };
 
 // Stop holding an entity with the gravity gun
-void GravityGunStop(CEntity *penObject, ULONG ulFlags) {
-  penObject->SetPhysicsFlags(ulFlags);
+void GravityGunStop(CEntity *penObject, ULONG ulFlags, BOOL bRestoreFlags) {
+  if (bRestoreFlags) {
+    penObject->SetPhysicsFlags(ulFlags);
+  }
 
   ((CMovableEntity *)penObject)->SetDesiredTranslation(FLOAT3D(0, 0, 0));
   ((CMovableEntity *)penObject)->SetDesiredRotation(ANGLE3D(0, 0, 0));

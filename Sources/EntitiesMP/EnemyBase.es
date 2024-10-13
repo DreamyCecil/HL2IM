@@ -2032,13 +2032,17 @@ functions:
 
       // [Cecil] Gravity Gun actions
       case EVENTCODE_EGravityGunStart: {
-        const EGravityGunStart &eStart = (const EGravityGunStart &)ee;
-        GravityGunStart(this, eStart.penWeapons);
+        // Don't pickup dead enemies
+        if (GetFlags() & ENF_ALIVE) {
+          const EGravityGunStart &eStart = (const EGravityGunStart &)ee;
+          GravityGunStart(this, eStart.penWeapons);
+        }
       } return TRUE;
 
       case EVENTCODE_EGravityGunStop: {
+        // Don't restore flags after death because new flags are being applied
         const EGravityGunStop &eStop = (const EGravityGunStop &)ee;
-        GravityGunStop(this, eStop.ulFlags);
+        GravityGunStop(this, eStop.ulFlags, GetFlags() & ENF_ALIVE);
       } return TRUE;
 
       case EVENTCODE_EGravityGunPush: {

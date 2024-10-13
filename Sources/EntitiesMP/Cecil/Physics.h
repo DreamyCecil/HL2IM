@@ -31,7 +31,7 @@ struct EGravityGunHold {
 void GravityGunStart(CEntity *penObject, CEntity *penWeapons);
 
 // Stop holding an object with the gravity gun
-void GravityGunStop(CEntity *penObject, ULONG ulFlags);
+void GravityGunStop(CEntity *penObject, ULONG ulFlags, BOOL bRestoreFlags = TRUE);
 
 // Force whoever is currently holding this object to stop holding it
 void GravityGunObjectDrop(CSyncedEntityPtr &syncGravityGun, BOOL bCloseProngs = TRUE);
