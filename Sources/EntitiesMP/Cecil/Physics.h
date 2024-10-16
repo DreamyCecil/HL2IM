@@ -15,9 +15,36 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <EntitiesMP/Cecil/Collision/CollisionCommon.h>
 
+// Custom implementation of GetNearestPolygon() with portal polygon support
+namespace INearestPolygon {
+
+// Results after doing a search through sectors
+struct SResults {
+  CBrushPolygon *pbpoNear;
+  FLOAT fNearDistance;
+  FLOAT3D vNearPoint;
+  FLOATplane3D plPlane;
+};
+
+// Set position from where the nearest polygon should be found
+void SetReferencePoint(const FLOAT3D &vReferencePoint);
+
+// Add sectors around some entity and set the position from where the nearest polygon will be found
+void PrepareSectorsAroundEntity(CEntity *pen);
+
+// Add sectors inside some entity and set the position from where the nearest polygon will be found
+void PrepareSectorsFromEntity(CEntity *pen);
+
+// Find nearest polygon in added sectors
+BOOL SearchThroughSectors(SResults &npResults);
+
+// Clear the container of sectors to search through
+void ClearSectorsAfterSearch(void);
+
 // GetNearestPolygon() but with portal polygons
-void SearchThroughSectors_Portal(void);
-CBrushPolygon *GetNearestPolygon_Portal(CEntity *pen, FLOAT3D &vPoint, FLOATplane3D &plPlane, FLOAT &fDistanceToEdge);
+BOOL GetNearestPolygon(CEntity *pen, SResults &npResults);
+
+}; // namespace
 
 // Held object data (used to be an entity event)
 struct EGravityGunHold {

@@ -709,9 +709,14 @@ functions:
        || (m_betType >= BET_BULLET_METAL && m_betType <= BET_BULLET_GLASS_NOSOUND))
       {
         // [Cecil] Check for portal polygons too
-        pbpoNearBrush = GetNearestPolygon_Portal(this, vPoint, plPlaneNormal, fDistanceToEdge);
+        INearestPolygon::SResults np;
 
-        if (pbpoNearBrush != NULL) {
+        if (INearestPolygon::GetNearestPolygon(this, np)) {
+          pbpoNearBrush = np.pbpoNear;
+          vPoint = np.vNearPoint;
+          plPlaneNormal = np.plPlane;
+          fDistanceToEdge = np.fNearDistance;
+
           CBrushSector *pbscContent = pbpoNearBrush->bpo_pbscSector;
           INDEX iForceType = pbscContent->GetForceType();
           CEntity *penNearBrush = pbscContent->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity;

@@ -36,24 +36,17 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <EntitiesMP/Walker.h>
 #include <EntitiesMP/Werebull.h>
 
+namespace INearestPolygon {
+
 static FLOAT3D _vHandle;
-static CBrushPolygon *_pbpoNear;
-static FLOAT _fNearDistance;
-static FLOAT3D _vNearPoint;
-static FLOATplane3D _plPlane;
-
-class CActiveSector {
-public:
-  CBrushSector *as_pbsc;
-};
-
-static CStaticStackArray<CActiveSector> _aas;
+static SResults _npPolygon;
+static CDynamicContainer<CBrushSector> _cActiveSectors;
 
 static void AddSector(CBrushSector *pbsc) {
   // if not already active and in first mip of its brush
   if (pbsc->bsc_pbmBrushMip->IsFirstMip() && !(pbsc->bsc_ulFlags & BSCF_NEARTESTED)) {
     // add it to active sectors
-    _aas.Push().as_pbsc = pbsc;
+    _cActiveSectors.Add(pbsc);
     pbsc->bsc_ulFlags |= BSCF_NEARTESTED;
   }
 };
@@ -74,11 +67,43 @@ static void AddAllSectorsOfBrush(CBrush3D *pbr) {
   }
 };
 
-// GetNearestPolygon() but with portal polygons
-void SearchThroughSectors_Portal(void) {
+// Set position from where the nearest polygon should be found
+void SetReferencePoint(const FLOAT3D &vReferencePoint) {
+  _vHandle = vReferencePoint;
+};
+
+// Add sectors around some entity and set the position from where the nearest polygon will be found
+void PrepareSectorsAroundEntity(CEntity *pen) {
+  // start infinitely far away
+  _npPolygon.pbpoNear = NULL;
+  _npPolygon.fNearDistance = UpperLimit(1.0f);
+
+  // for each zoning sector that this entity is in
+  {FOREACHSRCOFDST(pen->en_rdSectors, CBrushSector, bsc_rsEntities, pbsc)
+    // add the sector
+    AddSector(pbsc);
+  ENDFOR}
+};
+
+// Add sectors inside some entity and set the position from where the nearest polygon will be found
+void PrepareSectorsFromEntity(CEntity *pen) {
+  // start infinitely far away
+  _npPolygon.pbpoNear = NULL;
+  _npPolygon.fNearDistance = UpperLimit(1.0f);
+
+  ASSERT(pen->GetRenderType() == RT_BRUSH);
+
+  // Add each sector in the brush mip
+  FOREACHINDYNAMICARRAY(pen->GetBrush()->GetFirstMip()->bm_abscSectors, CBrushSector, itbsc) {
+    AddSector(itbsc);
+  }
+};
+
+// Find nearest polygon in added sectors
+BOOL SearchThroughSectors(SResults &npResults) {
   // for each active sector (sectors are added during iteration!)
-  for (INDEX ias = 0; ias < _aas.Count(); ias++) {
-    CBrushSector *pbsc = _aas[ias].as_pbsc;
+  FOREACHINDYNAMICCONTAINER(_cActiveSectors, CBrushSector, itbsc) {
+    CBrushSector *pbsc = itbsc;
 
     // for each polygon in the sector
     {FOREACHINSTATICARRAY(pbsc->bsc_abpoPolygons, CBrushPolygon, itbpo) {
@@ -89,7 +114,7 @@ void SearchThroughSectors_Portal(void) {
       FLOAT fDistance = plPolygon.PointDistance(_vHandle);
 
       // skip if it is behind the plane or further than nearest found
-      if (fDistance < 0.0f || fDistance > _fNearDistance) {
+      if (fDistance < 0.0f || fDistance > _npPolygon.fNearDistance) {
         continue;
       }
 
@@ -131,9 +156,9 @@ void SearchThroughSectors_Portal(void) {
       }
 
       // remember the polygon
-      _pbpoNear = &bpo;
-      _fNearDistance = fDistance;
-      _vNearPoint = vOnPlane;
+      _npPolygon.pbpoNear = &bpo;
+      _npPolygon.fNearDistance = fDistance;
+      _npPolygon.vNearPoint = vOnPlane;
     }}
 
     // for each entity in the sector
@@ -147,41 +172,44 @@ void SearchThroughSectors_Portal(void) {
       }
     ENDFOR}
   }
+
+  // Get results of the nearest polygon
+  if (_npPolygon.pbpoNear != NULL) {
+    npResults.pbpoNear = _npPolygon.pbpoNear;
+    npResults.plPlane = _npPolygon.pbpoNear->bpo_pbplPlane->bpl_plAbsolute;
+    npResults.vNearPoint = _npPolygon.vNearPoint;
+    npResults.fNearDistance = _npPolygon.pbpoNear->GetDistanceFromEdges(_npPolygon.vNearPoint);
+    return TRUE;
+  }
+
+  return FALSE;
 };
 
-CBrushPolygon *GetNearestPolygon_Portal(CEntity *pen, FLOAT3D &vPoint, FLOATplane3D &plPlane, FLOAT &fDistanceToEdge) {
-  // take reference point at handle of the model entity
-  _vHandle = pen->en_plPlacement.pl_PositionVector;
-
-  // start infinitely far away
-  _pbpoNear = NULL;
-  _fNearDistance = UpperLimit(1.0f);
-
-  // for each zoning sector that this entity is in
-  {FOREACHSRCOFDST(pen->en_rdSectors, CBrushSector, bsc_rsEntities, pbsc)
-    // add the sector
-    AddSector(pbsc);
-  ENDFOR}
-
-  // start the search
-  SearchThroughSectors_Portal();
-
+// Clear the container of sectors to search through
+void ClearSectorsAfterSearch(void) {
   // mark each sector as inactive
-  for (INDEX ias = 0; ias < _aas.Count(); ias++) {
-    _aas[ias].as_pbsc->bsc_ulFlags &= ~BSCF_NEARTESTED;
+  FOREACHINDYNAMICCONTAINER(_cActiveSectors, CBrushSector, itbsc) {
+    itbsc->bsc_ulFlags &= ~BSCF_NEARTESTED;
   }
-  _aas.PopAll();
 
-  // if there is some polygon found
-  if (_pbpoNear != NULL) {
-    // return info
-    plPlane = _pbpoNear->bpo_pbplPlane->bpl_plAbsolute;
-    vPoint = _vNearPoint;
-    fDistanceToEdge = _pbpoNear->GetDistanceFromEdges(_vNearPoint);
-    return _pbpoNear;
-  }
-  return NULL;
+  _cActiveSectors.Clear();
 };
+
+// GetNearestPolygon() but with portal polygons
+BOOL GetNearestPolygon(CEntity *pen, SResults &npResults) {
+  // Take reference point at handle of the model entity
+  SetReferencePoint(pen->en_plPlacement.pl_PositionVector);
+
+  // Prepare sectors around the entity, find the nearest polygon, and then clear sectors
+  PrepareSectorsAroundEntity(pen);
+
+  BOOL bResult = SearchThroughSectors(npResults);
+  ClearSectorsAfterSearch();
+
+  return bResult;
+};
+
+}; // namespace
 
 // Start holding an entity with the gravity gun
 void GravityGunStart(CEntity *penObject, CEntity *penWeapons) {
