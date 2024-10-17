@@ -860,10 +860,8 @@ void CCecilClipMove::ClipMoveToModel(CEntity *penModel)
   // if not possibly colliding
   ASSERT(penModel->en_pciCollisionInfo!=NULL);
 
-  // [Cecil] Ignore bounding box for models
-  if (penModel->en_RenderType != CEntity::RT_MODEL && penModel->en_RenderType != CEntity::RT_EDITORMODEL
-   && penModel->en_RenderType != CEntity::RT_SKAMODEL && penModel->en_RenderType != CEntity::RT_SKAEDITORMODEL)
-  {
+  // [Cecil] TEMP: Ignore bounding box for models because it might skip entities with custom collision
+  /*{
     const FLOATaabbox3D &boxModel = penModel->en_pciCollisionInfo->ci_boxCurrent;
     if (
       (cm_boxMovementPath.Min()(1)>boxModel.Max()(1)) ||
@@ -875,7 +873,7 @@ void CCecilClipMove::ClipMoveToModel(CEntity *penModel)
       // do nothing
       return;
     }
-  }
+  }*/
 
   // remember tested entity
   cm_penTested = penModel;
@@ -1179,29 +1177,40 @@ void CCecilClipMove::ClipMoveToModels(void)
 
   // find colliding entities near the box of movement path
   static CStaticStackArray<CEntity*> apenNearEntities;
-  cm_pwoWorld->FindEntitiesNearBox(cm_boxMovementPath, apenNearEntities);
+  FLOATaabbox3D boxMovement = cm_boxMovementPath;
+
+  // [Cecil] Expand movement box for entities that collide with custom collisions
+  // in order to check for them slightly further away (e.g. if they're too big)
+  if (cm_penMoving->GetPhysicsFlags() & (EPF_COLLIDEWITHCUSTOM | EPF_CUSTOMCOLLISION)) {
+    boxMovement.ExpandByFactor(4.0f);
+  }
+
+  cm_pwoWorld->FindEntitiesNearBox(boxMovement, apenNearEntities);
 
   // for each of the found entities
-  {for(INDEX ienFound=0; ienFound<apenNearEntities.Count(); ienFound++) {
-    CEntity &enToCollide = *apenNearEntities[ienFound];
+  const INDEX ctFound = apenNearEntities.Count();
+
+  for (INDEX ienFound = 0; ienFound < ctFound; ienFound++) {
+    CEntity *penToCollide = apenNearEntities[ienFound];
 
     // if it is the one that is moving, or if it is skiped by the mask
-    if (&enToCollide == cm_penMoving || (enToCollide.en_ulFlags&ulSkipMask)) {
+    if (penToCollide == cm_penMoving || (penToCollide->en_ulFlags & ulSkipMask)) {
       // skip it
       continue;
     }
+
     // if it can collide with this entity
-    if (MustTest(&enToCollide)) {
+    if (MustTest(penToCollide)) {
       // if it is model entity
-      if (enToCollide.en_RenderType == CEntity::RT_MODEL ||
-          enToCollide.en_RenderType == CEntity::RT_EDITORMODEL ||
-          enToCollide.en_RenderType == CEntity::RT_SKAMODEL ||
-          enToCollide.en_RenderType == CEntity::RT_SKAEDITORMODEL) {
+      if (penToCollide->en_RenderType == CEntity::RT_MODEL ||
+          penToCollide->en_RenderType == CEntity::RT_EDITORMODEL ||
+          penToCollide->en_RenderType == CEntity::RT_SKAMODEL ||
+          penToCollide->en_RenderType == CEntity::RT_SKAEDITORMODEL) {
         // clip movement to the model
-        ClipMoveToModel(&enToCollide);
+        ClipMoveToModel(penToCollide);
       }
     }
-  }}
+  }
 
   apenNearEntities.PopAll();
 }
