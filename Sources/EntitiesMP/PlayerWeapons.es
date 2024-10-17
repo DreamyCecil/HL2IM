@@ -1434,9 +1434,6 @@ functions:
       PlaySound(GetPlayer()->m_soWeaponReload, SOUND_GG_HOLD, SOF_3D|SOF_VOLUMETRIC|SOF_LOOP);
     }
 
-    const BOOL bItem = IsDerivedFromClass(penHolding, "Item");
-    const FLOAT fHoldDistance = (bItem ? 2.0f : 3.0f);
-
     const CPlacement3D plPlayer = GetPlayer()->GetPlacement();
 
     // Player view
@@ -1445,15 +1442,18 @@ functions:
     plPlayerView.pl_OrientationAngle(2) = Clamp(plPlayerView.pl_OrientationAngle(2), -70.0f, 70.0f);
 
     // Additional object offset
+    FLOAT3D vObjectSize;
     {
       // Center the object
       FLOATaabbox3D boxSize;
       penHolding->GetBoundingBox(boxSize);
 
+      vObjectSize = boxSize.Size();
+
       BOOL bHoldCenter = (IsDerivedFromClass(penHolding, "Enemy Fly") && ((CEnemyFly &)*penHolding).m_bInAir);
 
       if (!bHoldCenter) {
-        plPlayerView.pl_PositionVector -= FLOAT3D(0.0f, boxSize.Size()(2) / 2.0f, 0.0f);
+        plPlayerView.pl_PositionVector -= FLOAT3D(0.0f, vObjectSize(2) * 0.5f, 0.0f);
       }
     }
 
@@ -1465,6 +1465,15 @@ functions:
     // Place object in front of the view
     FLOAT3D vTargetDir;
     AnglesToDirectionVector(plPlayerView.pl_OrientationAngle, vTargetDir);
+
+    // Adjust holding distance
+    FLOAT fHoldDistance = vObjectSize.Length() * 0.5f + 1.5f;
+
+    // [Cecil] TEMP: Take hit distance if it's closer to prevent objects from entering walls and such
+    if (m_penRayHit != penHolding && m_fRayHitDistance < fHoldDistance) {
+      fHoldDistance = m_fRayHitDistance;
+    }
+
     plPlayerView.pl_PositionVector += vTargetDir * fHoldDistance;
 
     // Follow the holder
