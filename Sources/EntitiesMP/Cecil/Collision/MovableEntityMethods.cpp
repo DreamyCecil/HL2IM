@@ -1652,12 +1652,10 @@ void CCecilMovableEntity::PreMoving(FLOAT3D &vRotationDir)
     CCecilMovableEntity *penReference = (CCecilMovableEntity *)(CEntity*)en_penReference;
     // get reference deltas for this tick
     //const FLOAT3D &vReferenceTranslation = penReference->en_vIntendedTranslation;
-    //const FLOATmatrix3D &mReferenceRotation = penReference->en_mIntendedRotation;
+    const FLOATmatrix3D &mReferenceRotation = penReference->en_mIntendedRotation;
 
-    // [Cecil] Use direct speeds instead of intended ones above
-    FLOAT3D vReferenceTranslation = penReference->en_vCurrentTranslationAbsolute * _pTimer->TickQuantum;
-    FLOATmatrix3D mReferenceRotation;
-    MakeRotationMatrix(mReferenceRotation, penReference->en_aCurrentRotationAbsolute * _pTimer->TickQuantum);
+    // [Cecil] Use direct speed instead of the intended one above
+    const FLOAT3D vReferenceTranslation = penReference->en_vCurrentTranslationAbsolute * _pTimer->TickQuantum;
 
     // calculate radius of this entity relative to reference
     FLOAT3D vRadius = en_plPlacement.pl_PositionVector
