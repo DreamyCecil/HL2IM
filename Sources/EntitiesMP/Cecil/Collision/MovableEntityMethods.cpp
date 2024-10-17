@@ -1529,9 +1529,14 @@ void CCecilMovableEntity::PreMoving(FLOAT3D &vRotationDir)
   // currently limited to a bit less than speed of sound (not that it is any specificaly
   // relevant constant, but it is just handy)
   const FLOAT fMaxSpeed = 300.0f;
-  en_vCurrentTranslationAbsolute(1)=Clamp(en_vCurrentTranslationAbsolute(1), -fMaxSpeed, +fMaxSpeed);
-  en_vCurrentTranslationAbsolute(2)=Clamp(en_vCurrentTranslationAbsolute(2), -fMaxSpeed, +fMaxSpeed);
-  en_vCurrentTranslationAbsolute(3)=Clamp(en_vCurrentTranslationAbsolute(3), -fMaxSpeed, +fMaxSpeed);
+
+  // [Cecil] Instead of limiting each axis, limit overall speed
+  const FLOAT fCurrentSpeed = en_vCurrentTranslationAbsolute.Length();
+
+  if (fCurrentSpeed > fMaxSpeed) {
+    en_vCurrentTranslationAbsolute /= fCurrentSpeed;
+    en_vCurrentTranslationAbsolute *= fMaxSpeed;
+  }
 
   // if the entity is a model
   if (en_RenderType==RT_MODEL || en_RenderType==RT_EDITORMODEL ||
