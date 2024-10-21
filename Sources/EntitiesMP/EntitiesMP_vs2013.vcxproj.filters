@@ -73,6 +73,12 @@
     <Filter Include="Class Files\Cecil\BetaEnemies">
       <UniqueIdentifier>{cd619a5a-565c-4acd-837f-1bad35e9b06c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Cecil sources\ODE sources">
+      <UniqueIdentifier>{4ced2d0c-21fa-4e58-8299-1f76f62d4fa8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Cecil headers\ODE headers">
+      <UniqueIdentifier>{76c66c6b-e471-471d-a336-adae937377c3}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\Cecil headers\Collision headers">
       <UniqueIdentifier>{9c7f5c09-d9a0-44b2-ac7d-b05907bbc66f}</UniqueIdentifier>
     </Filter>
@@ -621,6 +627,15 @@
     <ClCompile Include="Cecil\WorldPatch.cpp">
       <Filter>Source Files\Cecil sources</Filter>
     </ClCompile>
+    <ClCompile Include="Cecil\ODE\ODEBase.cpp">
+      <Filter>Source Files\Cecil sources\ODE sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Cecil\ODE\ODEObject.cpp">
+      <Filter>Source Files\Cecil sources\ODE sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Cecil\ODE\ODEState.cpp">
+      <Filter>Source Files\Cecil sources\ODE sources</Filter>
+    </ClCompile>
     <ClCompile Include="Cecil\Collision\WorldCollision.cpp">
       <Filter>Source Files\Cecil sources\Collision sources</Filter>
     </ClCompile>
@@ -653,6 +668,18 @@
     </ClCompile>
     <ClCompile Include="Cecil\Text3DParticles.cpp">
       <Filter>Source Files\Cecil sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Cecil\ODE\ODEStateJoints.cpp">
+      <Filter>Source Files\Cecil sources\ODE sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Cecil\WriteStream.cpp">
+      <Filter>Source Files\Cecil sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Cecil\ODE\ODEStateObjects.cpp">
+      <Filter>Source Files\Cecil sources\ODE sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\PhysBase.cpp">
+      <Filter>Source Files\Entity sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1694,6 +1721,15 @@
     <ClInclude Include="Cecil\WorldPatch.h">
       <Filter>Header Files\Cecil headers</Filter>
     </ClInclude>
+    <ClInclude Include="Cecil\ODE\ODEBase.h">
+      <Filter>Header Files\Cecil headers\ODE headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Cecil\ODE\ODEObject.h">
+      <Filter>Header Files\Cecil headers\ODE headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Cecil\ODE\API.h">
+      <Filter>Header Files\Cecil headers\ODE headers</Filter>
+    </ClInclude>
     <ClInclude Include="Cecil\Collision\WorldCollision.h">
       <Filter>Header Files\Cecil headers\Collision headers</Filter>
     </ClInclude>
@@ -1705,6 +1741,12 @@
     </ClInclude>
     <ClInclude Include="Cecil\Text3DParticles.h">
       <Filter>Header Files\Cecil headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Cecil\WriteStream.h">
+      <Filter>Header Files\Cecil headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Cecil\ODE\ODEState.h">
+      <Filter>Header Files\Cecil headers\ODE headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2183,6 +2225,9 @@
       <Filter>Class Files\Cecil\Base</Filter>
     </CustomBuild>
     <CustomBuild Include="Mod\Text3D.es">
+      <Filter>Class Files\Cecil</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\PhysBase.es">
       <Filter>Class Files\Cecil</Filter>
     </CustomBuild>
   </ItemGroup>

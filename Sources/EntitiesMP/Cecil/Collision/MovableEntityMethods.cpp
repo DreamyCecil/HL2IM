@@ -17,6 +17,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <EntitiesMP/Mod/Base/MovableEntity.h>
 #include <EntitiesMP/Mod/Base/MovableModelEntity.h>
+
+#include <EntitiesMP/Mod/PhysBase.h>
 #include <EntitiesMP/Player.h>
 
 #include "CollisionCommon.h"
@@ -702,9 +704,36 @@ void CCecilMovableEntity::TestSurfaceDamage(CSurfaceType &stDn)
   }
 }
 
+// [Cecil] Physical objects that have been touched or blocked during movement
+static CDynamicContainer<CPhysBase> _cenTouchedPhys;
+
 // send touch event to this entity and touched entity
 void CCecilMovableEntity::SendTouchEvent(const CCecilClipMove &cmMove)
 {
+  // [Cecil] Move physics objects on touch
+  if (!IsPredictor()) {
+    // If this entity is not physical but the touched one is
+    if (!IsDerivedFromID(this, CPhysBase_ClassID) && IsDerivedFromID(cmMove.cm_penHit, CPhysBase_ClassID)) {
+      CPhysBase &enPhys = (CPhysBase &)*cmMove.cm_penHit;
+
+      if (cmMove.cm_cpoHit.bHit) {
+        if (_cenTouchedPhys.Count() == 0) ODE_ReportCollision("---");
+
+        if (!_cenTouchedPhys.IsMember(&enPhys)) _cenTouchedPhys.Add(&enPhys);
+
+        // [Cecil] TEMP: Don't override the touch if it's already set
+        enPhys.m_iTouchType = 1;
+        enPhys.m_plTouchPlane = cmMove.cm_plClippedPlane;
+        enPhys.m_vTouchClipped = cmMove.cm_vClippedLine;
+        enPhys.m_vTouchHit = cmMove.cm_cpoHit.vCollision;
+
+        ODE_ReportCollision("ID:%u  ^c00ff00Touch^r : %s  %s", enPhys.en_ulID,
+          ODE_PrintPlaneForReport(enPhys.m_plTouchPlane), ODE_PrintVectorForReport(enPhys.m_vTouchHit));
+      }
+    }
+  }
+
+  // Vanilla events
   ETouch etouchThis;
   ETouch etouchOther;
   etouchThis.penOther = cmMove.cm_penHit;
@@ -720,6 +749,29 @@ void CCecilMovableEntity::SendTouchEvent(const CCecilClipMove &cmMove)
 // send block event to this entity
 void CCecilMovableEntity::SendBlockEvent(CCecilClipMove &cmMove)
 {
+  // [Cecil] Push physics objects on block
+  if (!IsPredictor()) {
+    // If the entity in the way is not physical but this one is
+    if (!IsDerivedFromID(cmMove.cm_penHit, CPhysBase_ClassID) && IsDerivedFromID(this, CPhysBase_ClassID)) {
+      CPhysBase &enPhys = (CPhysBase &)*this;
+
+      if (cmMove.cm_cpoHit.bHit) {
+        if (_cenTouchedPhys.Count() == 0) ODE_ReportCollision("---");
+
+        if (!_cenTouchedPhys.IsMember(&enPhys)) _cenTouchedPhys.Add(&enPhys);
+
+        enPhys.m_iTouchType = 2;
+        enPhys.m_plTouchPlane = cmMove.cm_plClippedPlane;
+        enPhys.m_vTouchClipped = cmMove.cm_vClippedLine;
+        enPhys.m_vTouchHit = cmMove.cm_cpoHit.vCollision;
+
+        ODE_ReportCollision("ID:%u  ^c00ff00Block^r : %s  %s", enPhys.en_ulID,
+          ODE_PrintPlaneForReport(enPhys.m_plTouchPlane), ODE_PrintVectorForReport(enPhys.m_vTouchHit));
+      }
+    }
+  }
+
+  // Vanilla event
   EBlock eBlock;
   eBlock.penOther = cmMove.cm_penHit;
   eBlock.plCollision = cmMove.cm_plClippedPlane;
@@ -1663,7 +1715,11 @@ void CCecilMovableEntity::PreMoving(FLOAT3D &vRotationDir)
     FLOAT3D vReferenceDelta = vReferenceTranslation + vRadius*mReferenceRotation - vRadius;
     // add the deltas to this entity
     vDesiredTranslationAbsolute += vReferenceDelta;
-    mRotationAbsolute = mReferenceRotation*mRotationAbsolute;
+
+    // [Cecil] Don't multiply the rotation matrix while standing on physics objects
+    if (!IsDerivedFromID(en_penReference, CPhysBase_ClassID)) {
+      mRotationAbsolute = mReferenceRotation*mRotationAbsolute;
+    }
 
     // remember if reference is moving in y
     bReferenceMovingInY = (vReferenceDelta%en_vGravityDir != 0.0f);
@@ -1987,8 +2043,11 @@ void CCecilMovableEntity::PreMoving(FLOAT3D &vRotationDir)
 /* Calculate physics for moving. */
 void CCecilMovableEntity::DoMoving(void)
 {
+  // [Cecil] Reset touched objects
+  _cenTouchedPhys.Clear();
+
   if (en_pciCollisionInfo == NULL || (en_ulPhysicsFlags & EPF_FORCEADDED)) {
-    return;
+    goto domoving_return; // [Cecil]
   }
 
   // if rotation and translation are synchronized
@@ -2022,7 +2081,7 @@ void CCecilMovableEntity::DoMoving(void)
       // if it passes
       if (bMoveSuccessfull) {
         // finish
-        return;
+        goto domoving_return; // [Cecil]
       }
     }
 
@@ -2041,6 +2100,17 @@ void CCecilMovableEntity::DoMoving(void)
       InitTryToMove();
       TryToMove(NULL, FALSE, TRUE);
     }
+  }
+
+  // [Cecil] Skip here instead of returning mid-function
+domoving_return:
+  // [Cecil] Make physical objects react to touching/blocking
+  if (_cenTouchedPhys.Count() != 0) {
+    ODE_ReportCollision("^cffff00ReactToTouch()");
+  }
+
+  FOREACHINDYNAMICCONTAINER(_cenTouchedPhys, CPhysBase, iten) {
+    iten->ReactToTouch();
   }
 }
 

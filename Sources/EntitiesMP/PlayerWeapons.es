@@ -58,6 +58,7 @@ extern INDEX hl2_bCrosshairColoring;
 #include "EntitiesMP/Cecil/Physics.h"
 
 // [Cecil] For class IDs
+#include "EntitiesMP/Mod/PhysBase.h"
 #include "EntitiesMP/Mod/Radio.h"
 #include "EntitiesMP/Mod/RollerMine.h"
 #include "EntitiesMP/RollingStone.h"
@@ -1446,11 +1447,17 @@ functions:
     {
       // Center the object
       FLOATaabbox3D boxSize;
-      penHolding->GetBoundingBox(boxSize);
+      ECollisionShape eDummy;
+
+      BOOL bPhysical = IsDerivedFromID(penHolding, CPhysBase_ClassID);
+
+      if (!bPhysical || !GetCustomCollisionShape(penHolding, boxSize, eDummy)) {
+        penHolding->GetBoundingBox(boxSize);
+      }
 
       vObjectSize = boxSize.Size();
 
-      BOOL bHoldCenter = (IsDerivedFromClass(penHolding, "Enemy Fly") && ((CEnemyFly &)*penHolding).m_bInAir);
+      BOOL bHoldCenter = bPhysical || (IsDerivedFromClass(penHolding, "Enemy Fly") && ((CEnemyFly &)*penHolding).m_bInAir);
 
       if (!bHoldCenter) {
         plPlayerView.pl_PositionVector -= FLOAT3D(0.0f, vObjectSize(2) * 0.5f, 0.0f);
@@ -6086,6 +6093,9 @@ procedures:
         if (IsOfClass(penTarget, "Moving Brush")) {
           InflictDirectDamage(penTarget, m_penPlayer, DMT_EXPLOSION, 20.0f, m_vRayHit, vTargetDir);
 
+        } else if (IsDerivedFromID(penTarget, CPhysBase_ClassID)) {
+          InflictDirectDamage(penTarget, m_penPlayer, DMT_IMPACT, 50.0f, m_vRayHit, vTargetDir);
+
         } else {
           InflictDirectDamage(penTarget, m_penPlayer, DMT_CLOSERANGE, 50.0f, m_vRayHit, vTargetDir);
         }
@@ -6669,6 +6679,14 @@ procedures:
         plView.RelativeToAbsolute(GetPlayer()->GetPlacement());
 
         CPlacement3D plObject = penObject->GetPlacement();
+
+        if (IsDerivedFromID(penObject, CPhysBase_ClassID)) {
+          plObject.pl_PositionVector = ((CPhysBase *)penObject)->PhysObj().GetPosition();
+
+          FLOATmatrix3D mRot = ((CPhysBase *)penObject)->PhysObj().GetMatrix();
+          DecomposeRotationMatrix(plObject.pl_OrientationAngle, mRot);
+        }
+
         plObject.AbsoluteToRelative(plView);
 
         m_aObjectAngle = plObject.pl_OrientationAngle;

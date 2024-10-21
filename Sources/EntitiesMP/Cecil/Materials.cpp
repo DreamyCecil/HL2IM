@@ -16,6 +16,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdH.h"
 #include "Materials.h"
 
+#include <EntitiesMP/Mod/PhysBase.h>
+
 #include <XGizmo/Base/IniConfig.h>
 
 // Surface types as an editable enum type
@@ -55,6 +57,10 @@ EP_ENUMEND(EWorldSurfaceType);
 
 // Get surface type for a non-brush entity (-1 if unknown)
 INDEX GetSurfaceForEntity(CEntity *pen) {
+  if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
+    return ((CPhysBase &)*pen).GetPhysMaterial();
+  }
+
   // Unknown entity
   return -1;
 };

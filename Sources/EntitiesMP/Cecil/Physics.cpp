@@ -17,6 +17,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "Physics.h"
 
 #include <EntitiesMP/PlayerWeapons.h>
+#include <EntitiesMP/Mod/PhysBase.h>
 
 // Various classes
 #include <EntitiesMP/Mod/BetaEnemies/AntlionGuard.h>
@@ -245,8 +246,16 @@ void GravityGunStop(CEntity *penObject, ULONG ulFlags, BOOL bRestoreFlags) {
     penObject->SetPhysicsFlags(ulFlags);
   }
 
-  ((CMovableEntity *)penObject)->SetDesiredTranslation(FLOAT3D(0, 0, 0));
-  ((CMovableEntity *)penObject)->SetDesiredRotation(ANGLE3D(0, 0, 0));
+  // Physical object
+  if (IsDerivedFromID(penObject, CPhysBase_ClassID)) {
+    if (((CPhysBase *)penObject)->PhysicsUsable()) {
+      ((CPhysBase *)penObject)->PhysObj().ResetSpeed();
+    }
+
+  } else {
+    ((CMovableEntity *)penObject)->SetDesiredTranslation(FLOAT3D(0, 0, 0));
+    ((CMovableEntity *)penObject)->SetDesiredRotation(ANGLE3D(0, 0, 0));
+  }
 };
 
 // Force whoever is currently holding this entity to stop holding it
@@ -265,12 +274,21 @@ void GravityGunObjectDrop(CSyncedEntityPtr &syncGravityGun, BOOL bCloseProngs) {
 
 // Entity is being held by the gravity gun
 void GravityGunHolding(CPlayerWeapons *penWeapons, CMovableEntity *pen, const EGravityGunHold &eHold) {
+  // Special objects
   const BOOL bItem = IsDerivedFromClass(pen, "Item");
+  const BOOL bPhysical = IsDerivedFromID(pen, CPhysBase_ClassID);
+  const BOOL bPhysicsUsable = bPhysical && ((CPhysBase *)pen)->PhysicsUsable();
 
   CPlacement3D plPos = CPlacement3D(eHold.vPos, eHold.aRot);
   pen->SetPhysicsFlags(eHold.ulFlags);
 
-  FLOAT3D vDiff = (plPos.pl_PositionVector - pen->GetPlacement().pl_PositionVector);
+  FLOAT3D vDiff = pen->GetPlacement().pl_PositionVector;
+
+  if (bPhysicsUsable) {
+    vDiff = ((CPhysBase *)pen)->PhysObj().GetPosition();
+  }
+
+  vDiff = (plPos.pl_PositionVector - vDiff);
   const FLOAT fDiff = vDiff.Length();
 
   // Collect items
@@ -293,7 +311,14 @@ void GravityGunHolding(CPlayerWeapons *penWeapons, CMovableEntity *pen, const EG
   }
 
   // Move
-  pen->SetDesiredTranslation(vMoveSpeed / ONE_TICK);
+  if (bPhysical) {
+    if (bPhysicsUsable) {
+      ((CPhysBase *)pen)->PhysObj().SetCurrentTranslation(vMoveSpeed / ONE_TICK);
+    }
+
+  } else {
+    pen->SetDesiredTranslation(vMoveSpeed / ONE_TICK);
+  }
 
   // Too far
   if (fDiff > 12.0f + eHold.fDistance) {
@@ -304,28 +329,52 @@ void GravityGunHolding(CPlayerWeapons *penWeapons, CMovableEntity *pen, const EG
     return;
   }
 
-  if (!bItem && !IsOfClassID(pen, CRadio_ClassID)) {
+  if (!bItem && !bPhysical && !IsOfClassID(pen, CRadio_ClassID)) {
     return;
   }
 
   // Rotate
-  CPlacement3D plNewPos = plPos;
-  plNewPos.AbsoluteToRelativeSmooth(pen->GetPlacement());
+  if (bPhysical) {
+    if (bPhysicsUsable) {
+      CPhysBase *penPhys = (CPhysBase *)pen;
 
-  ANGLE3D aAngle = plNewPos.pl_OrientationAngle;
+      // Set rotation matrix immediately instead of rotating towards the desired angle
+      penPhys->PhysObj().SetCurrentRotation(ANGLE3D(0, 0, 0));
 
-  // Normalize angles
-  aAngle(1) = Clamp(NormalizeAngle(aAngle(1)), -70.0f, 70.0f);
-  aAngle(2) = Clamp(NormalizeAngle(aAngle(2)), -70.0f, 70.0f);
-  aAngle(3) = Clamp(NormalizeAngle(aAngle(3)), -70.0f, 70.0f);
+      FLOATmatrix3D m;
+      MakeRotationMatrixFast(m, plPos.pl_OrientationAngle);
+      penPhys->PhysObj().SetMatrix(m);
+    }
 
-  // Set rotation speed
-  pen->SetDesiredRotation(aAngle / ONE_TICK);
+  } else {
+    CPlacement3D plNewPos = plPos;
+    plNewPos.AbsoluteToRelativeSmooth(pen->GetPlacement());
+
+    ANGLE3D aAngle = plNewPos.pl_OrientationAngle;
+
+    // Normalize angles
+    aAngle(1) = Clamp(NormalizeAngle(aAngle(1)), -70.0f, 70.0f);
+    aAngle(2) = Clamp(NormalizeAngle(aAngle(2)), -70.0f, 70.0f);
+    aAngle(3) = Clamp(NormalizeAngle(aAngle(3)), -70.0f, 70.0f);
+
+    // Set rotation speed
+    pen->SetDesiredRotation(aAngle / ONE_TICK);
+  }
 };
 
 // Push the object with the gravity gun
 void GravityGunPush(CEntity *penObject, const FLOAT3D &vDir, const FLOAT3D &vHit) {
-  ((CMovableEntity *)penObject)->GiveImpulseTranslationAbsolute(vDir);
+  // Physical object
+  if (IsDerivedFromID(penObject, CPhysBase_ClassID)) {
+    if (((CPhysBase *)penObject)->PhysicsUsable()) {
+      const FLOAT fForce = vDir.Length();
+      const FLOAT3D vNormal = vDir / fForce;
+      ((CPhysBase *)penObject)->PhysObj().AddForce(vNormal, fForce, vHit);
+    }
+
+  } else {
+    ((CMovableEntity *)penObject)->GiveImpulseTranslationAbsolute(vDir);
+  }
 };
 
 // Check which entities the gravity gun definitely cannot pick up
@@ -343,7 +392,8 @@ static BOOL GravityGunCannotPickUp(CEntity *pen) {
   }
 
   // Don't pick up non-model objects (unless they are physical)
-  if (pen->GetRenderType() != CEntity::RT_MODEL && pen->GetRenderType() != CEntity::RT_SKAMODEL) {
+  if (pen->GetRenderType() != CEntity::RT_MODEL && pen->GetRenderType() != CEntity::RT_SKAMODEL
+   && !IsDerivedFromID(pen, CPhysBase_ClassID)) {
     return TRUE;
   }
 
@@ -368,7 +418,8 @@ BOOL GravityGunCanInteract(CCecilPlayerEntity *penPlayer, CEntity *pen, BOOL bPi
   // Always interact with certain moving objects
   if (IsOfClassID(pen, CMovingBrush_ClassID) || IsOfClassID(pen, CRollingStone_ClassID)
    || IsOfClassID(pen, CProjectile_ClassID)
-   || IsOfClassID(pen, CRadio_ClassID) || IsOfClassID(pen, CRollerMine_ClassID)) {
+   || IsOfClassID(pen, CRadio_ClassID) || IsOfClassID(pen, CRollerMine_ClassID)
+   || IsDerivedFromID(pen, CPhysBase_ClassID)) {
     return TRUE;
   }
 
@@ -400,6 +451,9 @@ CSyncedEntityPtr *GetGravityGunSync(CEntity *pen) {
 
   } else if (IsOfClassID(pen, CRollerMine_ClassID)) {
     return &((CRollerMine *)pen)->m_syncGravityGun;
+
+  } else if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
+    return &((CPhysBase *)pen)->m_syncGravityGun;
 
   } else if (IsDerivedFromID(pen, CEnemyBase_ClassID)) {
     return &((CEnemyBase *)pen)->m_syncGravityGun;

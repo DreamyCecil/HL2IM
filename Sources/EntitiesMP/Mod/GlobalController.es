@@ -19,6 +19,10 @@ thumbnail "";
 features  "IsImportant";
 
 properties:
+{
+  // Physics objects to call step functions for
+  CEntityReferences m_cPhysStep;
+}
 
 components:
 

@@ -317,10 +317,16 @@ copy "$(SolutionDir)Extras\ode\lib\ReleaseDLL\ode.dll" "$(SolutionDir)..\Bin\" &
     <ClCompile Include="Cecil\Collision\WorldRayCasting.cpp" />
     <ClCompile Include="Cecil\Effects.cpp" />
     <ClCompile Include="Cecil\Materials.cpp" />
+    <ClCompile Include="Cecil\ODE\ODEBase.cpp" />
+    <ClCompile Include="Cecil\ODE\ODEObject.cpp" />
+    <ClCompile Include="Cecil\ODE\ODEState.cpp" />
+    <ClCompile Include="Cecil\ODE\ODEStateJoints.cpp" />
+    <ClCompile Include="Cecil\ODE\ODEStateObjects.cpp" />
     <ClCompile Include="Cecil\Physics.cpp" />
     <ClCompile Include="Cecil\Text3DParticles.cpp" />
     <ClCompile Include="Cecil\Weapons.cpp" />
     <ClCompile Include="Cecil\WorldPatch.cpp" />
+    <ClCompile Include="Cecil\WriteStream.cpp" />
     <ClCompile Include="Common\Common.cpp" />
     <ClCompile Include="Common\EmanatingParticles.cpp" />
     <ClCompile Include="Common\HUD.cpp" />
@@ -340,6 +346,7 @@ copy "$(SolutionDir)Extras\ode\lib\ReleaseDLL\ode.dll" "$(SolutionDir)..\Bin\" &
     <ClCompile Include="Mod\BetaEnemies\Manhack.cpp" />
     <ClCompile Include="Mod\BetaEnemies\Merasmus.cpp" />
     <ClCompile Include="Mod\BetaEnemies\Metrocop.cpp" />
+    <ClCompile Include="Mod\PhysBase.cpp" />
     <ClCompile Include="Mod\Text3D.cpp" />
     <ClCompile Include="StdH\StdH.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -598,10 +605,15 @@ copy "$(SolutionDir)Extras\ode\lib\ReleaseDLL\ode.dll" "$(SolutionDir)..\Bin\" &
     <ClInclude Include="Cecil\Collision\WorldRayCasting.h" />
     <ClInclude Include="Cecil\Effects.h" />
     <ClInclude Include="Cecil\Materials.h" />
+    <ClInclude Include="Cecil\ODE\API.h" />
+    <ClInclude Include="Cecil\ODE\ODEBase.h" />
+    <ClInclude Include="Cecil\ODE\ODEObject.h" />
+    <ClInclude Include="Cecil\ODE\ODEState.h" />
     <ClInclude Include="Cecil\Physics.h" />
     <ClInclude Include="Cecil\Text3DParticles.h" />
     <ClInclude Include="Cecil\Weapons.h" />
     <ClInclude Include="Cecil\WorldPatch.h" />
+    <ClInclude Include="Cecil\WriteStream.h" />
     <ClInclude Include="Common\Common.h" />
     <ClInclude Include="Common\Flags.h" />
     <ClInclude Include="Common\GameInterface.h" />
@@ -3316,6 +3328,23 @@ copy "$(SolutionDir)Extras\ode\lib\ReleaseDLL\ode.dll" "$(SolutionDir)..\Bin\" &
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Mod\Text3D.es">
+      <FileType>Document</FileType>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Mod\PhysBase.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>

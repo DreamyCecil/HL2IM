@@ -14,6 +14,7 @@
 #define ECBI_MODEL_HOLDER       (1UL<<6)
 #define ECBI_CORPSE_SOLID       (1UL<<7)
 #define ECBI_PLAYER             (1UL<<8)
+#define ECBI_PHYSOBJECT         (1UL<<9) // [Cecil] Physical objects
 
 // standard flag combinations:
 
@@ -93,6 +94,12 @@
   ((ECBI_BRUSH)<<ECB_TEST) |\
   ((ECBI_MODEL)<<ECB_IS) |\
   ((ECBI_BRUSH)<<ECB_PASS) )
+
+// [Cecil] Collision flags for physical objects
+#define ECF_PHYS_TESTALL         ((ECBI_PROJECTILE_MAGIC | ECBI_PROJECTILE_SOLID | ECBI_MODEL | ECBI_PLAYER) << ECB_TEST) // Test against all entities
+#define ECF_PHYS_TESTPROJECTILES ((ECBI_PROJECTILE_MAGIC | ECBI_PROJECTILE_SOLID) << ECB_TEST) // Only test against projectiles
+#define ECF_PHYS_ISMODEL         (((ECBI_PHYSOBJECT) << ECB_PASS) | ((ECBI_MODEL | ECBI_PHYSOBJECT) << ECB_IS)) // It's a model that passes through itself
+#define ECF_PHYS_BRUSH           (ECF_BRUSH) // Physical brush
 
 /*
  *  PHYSIC COMBINATIONS

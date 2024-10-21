@@ -17,6 +17,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "CollisionCommon.h"
 
+#include <EntitiesMP/Mod/PhysBase.h>
+
 // Set brush polygon
 void SCollisionPolygon::SetBrushPolygon(CBrushPolygon *pbpoSet) {
   if (pbpoSet == NULL) {
@@ -200,6 +202,12 @@ void SCollisionPolygon::Read_t(CEntity *pen, CTStream *istr) {
 
 // Retrieve custom collision dimensions and shape of some entity
 BOOL GetCustomCollisionShape(CEntity *pen, FLOATaabbox3D &boxSize, ECollisionShape &eShape) {
+  if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
+    CPhysBase &enPhys = (CPhysBase &)*pen;
+    eShape = enPhys.GetPhysCollision(boxSize);
+    return TRUE;
+  }
+
   // No custom collision for this entity
   return FALSE;
 };
