@@ -1,0 +1,491 @@
+/* Copyright (c) 2024 Dreamy Cecil
+This program is free software; you can redistribute it and/or modify
+it under the terms of version 2 of the GNU General Public License as published by
+the Free Software Foundation
+
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
+
+#include "StdH.h"
+
+#include <EntitiesMP/Cecil/Physics.h>
+#include <EntitiesMP/Mod/PhysBase.h>
+
+#include <EntitiesMP/WorldBase.h>
+#include <EntitiesMP/MovingBrush.h>
+#include <EntitiesMP/Bouncer.h>
+#include <EntitiesMP/Player.h>
+
+#pragma comment(lib, "ode.lib")
+
+#include <XGizmo/Interfaces/Directories.h>
+
+// [Cecil] TEMP: This feature finds the closest brush polygon to the object
+// to retrieve its surface type for proper friction during collision handling
+// but it's extremely slow with lots of objects right now
+#define FIND_CLOSEST_POLYGON_FOR_SURFACE_TYPE 0
+
+// Global physics engine
+CPhysEngine *_pODE = NULL;
+
+// [Cecil] TEMP: Console commands
+static FLOAT ode_fFriction = 1.0f; //1.8f;
+static FLOAT ode_fBounce = 0.1f;
+static FLOAT ode_fBounceVelocity = 1.0f;
+
+static BOOL ode_bReportCollisions = FALSE;
+INDEX ode_iCollisionGrid = 0; // 1 - display cells at 0.5m; 2 - display cells at player's legs
+
+// Create new physics object
+SPhysObject::SPhysObject() {
+  pObj = new odeObject;
+};
+
+// Destroy physics object
+SPhysObject::~SPhysObject() {
+  delete pObj;
+  pObj = NULL;
+};
+
+// Retrieve physics object for a specific entity
+odeObject *SPhysObject::ForEntity(CEntity *pen) {
+  if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
+    return &((CPhysBase *)pen)->PhysObj();
+
+  } else if (IsDerivedFromID(pen, CPlayer_ClassID)) {
+    return &((CPlayer *)pen)->PhysObj();
+  }
+
+  return NULL;
+};
+
+// Determine surface type between two objects
+static inline INDEX GetSurfaceTypeBetweenObjects(odeObject *objThis, odeObject *objOther) {
+  // Not a world mesh
+  if (objThis != _pODE->pObjWorld) {
+    // No entity
+    if (objThis->penPhysOwner == NULL) return -1;
+
+    // Not a brush
+    if (objThis->penPhysOwner->GetRenderType() != CEntity::RT_BRUSH) {
+      // Get surface for this object
+      return GetSurfaceForEntity(objThis->penPhysOwner);
+    }
+  }
+
+  // No owner of the other object
+  if (objOther->penPhysOwner == NULL) return -1;
+
+#if FIND_CLOSEST_POLYGON_FOR_SURFACE_TYPE
+  // Get closest polygon to the other object
+  INearestPolygon::SResults np;
+  INearestPolygon::SetReferencePoint(objOther->penPhysOwner->GetPlacement().pl_PositionVector);
+
+  if (INearestPolygon::SearchThroughSectors(np)) {
+    return np.pbpoNear->bpo_bppProperties.bpp_ubSurfaceType;
+  }
+#endif
+
+  return -1;
+};
+
+// Setup contact surface between two objects
+static inline void SetupContactSurface(dSurfaceParameters &surface, odeObject *obj1, odeObject *obj2, FLOAT fFriction, BOOL bWithPlayer) {
+  surface.mode = dContactBounce | dContactApprox1;
+
+  // Apply surface friction from 0 to 2
+  surface.mu = fFriction * 2.0f * ode_fFriction;
+
+  // BTBA collision
+  /*surface.mode = dContactBounce | dContactSlip1 | dContactSlip2 | dContactApprox1;
+  surface.mu = 1.8;
+  surface.slip1 = 0.05;
+  surface.slip2 = 0.05;*/
+
+  if (bWithPlayer) {
+    surface.mode |= dContactSlip1 | dContactSlip2;
+    surface.mu = dInfinity;
+    surface.slip1 = 0.5;
+    surface.slip2 = 0.5;
+  }
+
+  surface.bounce = ode_fBounce;
+  surface.bounce_vel = ode_fBounceVelocity;
+  //surface.soft_erp = 0.5;
+};
+
+// Collision handling callback
+static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
+  CWorld *pwo = (CWorld *)pData;
+
+  // Get the rigid bodies associated with the geometries
+  dBodyID body1 = dGeomGetBody(geom1);
+  dBodyID body2 = dGeomGetBody(geom2);
+
+  if (body1 && body2 && dAreConnectedExcluding(body1, body2, dJointTypeContact)) return;
+
+  odeObject *obj1 = (odeObject *)dGeomGetData(geom1);
+  odeObject *obj2 = (odeObject *)dGeomGetData(geom2);
+
+  // [Cecil] TEMP: Ignore geoms with no attached objects
+  if (obj1 == NULL || obj2 == NULL) return;
+
+  // Maximum number of contacts to create between bodies (see ODE documentation)
+  #define MAX_NUM_CONTACTS 8
+  dContact aContacts[MAX_NUM_CONTACTS];
+
+  // Check for player-owned objects
+  const BOOL bPlayer1 = IsDerivedFromID(obj1->penPhysOwner, CPlayer_ClassID);
+  const BOOL bPlayer2 = IsDerivedFromID(obj2->penPhysOwner, CPlayer_ClassID);
+
+  // Don't let player objects collide with the world
+  if (bPlayer1 && obj2 == _pODE->pObjWorld) return;
+  if (bPlayer2 && obj1 == _pODE->pObjWorld) return;
+  // Or each other
+  if (bPlayer1 && bPlayer2) return;
+
+  // Get surfaces for both objects
+  const INDEX iSurface1 = GetSurfaceTypeBetweenObjects(obj1, obj2);
+  const INDEX iSurface2 = GetSurfaceTypeBetweenObjects(obj2, obj1);
+  FLOAT fFriction = 1.0f;
+
+  // Calculate friction depending on either surface
+  if (iSurface1 != -1) {
+    const CSurfaceType &st = pwo->wo_astSurfaceTypes[iSurface1];
+    fFriction *= Clamp(st.st_fFriction, 0.0f, 1.0f);
+  }
+
+  if (iSurface2 != -1) {
+    const CSurfaceType &st = pwo->wo_astSurfaceTypes[iSurface2];
+    fFriction *= Clamp(st.st_fFriction, 0.0f, 1.0f);
+  }
+
+  // Setup contact surfaces for collision
+  for (int iSetup = 0; iSetup < MAX_NUM_CONTACTS; iSetup++) {
+    SetupContactSurface(aContacts[iSetup].surface, obj1, obj2, fFriction, bPlayer1 || bPlayer2);
+  }
+
+  int ct = dCollide(geom1, geom2, MAX_NUM_CONTACTS, &aContacts[0].geom, sizeof(dContact));
+
+  // Add contact joints
+  for (int iAttach = 0; iAttach < ct; iAttach++) {
+    dContact &contact = aContacts[iAttach];
+    dJointID c = dJointCreateContact(_pODE->world, _pODE->jgContacts, &contact);
+    dJointAttach(c, body1, body2);
+
+    // Emulate blocking when colliding with player objects
+    const FLOAT3D vDir(-contact.geom.normal[0], -contact.geom.normal[1], -contact.geom.normal[2]);
+    const FLOAT3D vPos(contact.geom.pos[0], contact.geom.pos[1], contact.geom.pos[2]);
+
+    odeObject *pObj = NULL;
+    odeObject *pObjOther = NULL;
+    CCecilMovableEntity *penPlayer = NULL;
+
+    if (bPlayer1) {
+      pObj = obj1;
+      pObjOther = obj2;
+      penPlayer = obj1->penPhysOwner;
+    }
+
+    if (bPlayer2) {
+      pObj = obj2;
+      pObjOther = obj1;
+      penPlayer = obj2->penPhysOwner;
+    }
+
+    if (pObjOther != NULL && pObjOther->penPhysOwner != NULL) {
+      EBlock eBlock;
+      eBlock.penOther = penPlayer;
+      eBlock.plCollision = FLOATplane3D(vDir, vPos);
+      pObjOther->penPhysOwner->SendEvent(eBlock);
+
+      ODE_ReportCollision("ID:%u  ^cff00ffPhys block^r : %s  %s", pObjOther->penPhysOwner->en_ulID,
+        ODE_PrintPlaneForReport(eBlock.plCollision), ODE_PrintVectorForReport(vPos));
+    }
+  }
+};
+
+// Error output
+static void ODE_ErrorFunction(int errnum, const char *msg, va_list ap) {
+  CTString str;
+  str.VPrintF(msg, ap);
+
+  FatalError("ODE Error [%d]\n%s", errnum, str.str_String);
+};
+
+// Debug output
+static void ODE_DebugFunction(int errnum, const char *msg, va_list ap) {
+  CTString str;
+  str.VPrintF(msg, ap);
+
+  CPrintF("ODE Debug [%d]:\n%s\n", errnum, str.str_String);
+};
+
+// Message output
+static void ODE_MessageFunction(int errnum, const char *msg, va_list ap) {
+  CTString str;
+  str.VPrintF(msg, ap);
+
+  CPrintF("ODE Message [%d]:\n%s\n", errnum, str.str_String);
+};
+
+// Constructor
+CPhysEngine::CPhysEngine(void) {
+  // Delayed loading of ODE library from the mod directory
+  LoadLibraryA(IDir::AppPath() + _fnmMod + IDir::AppModBin() + "ode.dll");
+
+  // Use 'dInitODE2' in version 0.10 or newer
+  //dInitODE();
+  dInitODE2(0);
+  dAllocateODEDataForThread(dAllocateMaskAll);
+
+  dSetErrorHandler(&ODE_ErrorFunction);
+  dSetDebugHandler(&ODE_DebugFunction);
+  dSetMessageHandler(&ODE_MessageFunction);
+
+  bStarted = FALSE;
+
+  // Prepare the world and the collision space
+  world = dWorldCreate();
+  space = dSimpleSpaceCreate(0);
+  jgContacts = dJointGroupCreate(0);
+
+  pObjWorld = NULL;
+
+  pubSaveData = NULL;
+  slSaveDataSize = 0;
+
+  // World height limits
+  // [Cecil] TEMP: Removed for now; check if they're serialized properly
+  //dCreatePlane(space, 0, +1, 0, -4096); // Bottom
+  //dCreatePlane(space, 0, -1, 0, -4096); // Top
+
+  _pShell->DeclareSymbol("user FLOAT ode_fFriction;", &ode_fFriction);
+  _pShell->DeclareSymbol("user FLOAT ode_fBounce;", &ode_fBounce);
+  _pShell->DeclareSymbol("user FLOAT ode_fBounceVelocity;", &ode_fBounceVelocity);
+
+  _pShell->DeclareSymbol("user INDEX ode_bReportCollisions;", &ode_bReportCollisions);
+  _pShell->DeclareSymbol("user INDEX ode_iCollisionGrid;", &ode_iCollisionGrid);
+};
+
+// Create new world mesh
+void CPhysEngine::CreateWorldMesh(void) {
+  // Already created
+  ASSERT(pObjWorld == NULL);
+  if (pObjWorld != NULL) return;
+
+  pObjWorld = new odeObject;
+};
+
+// Destroy world mesh
+void CPhysEngine::DestroyWorldMesh(void) {
+  // Already destroyed
+  ASSERT(pObjWorld != NULL);
+  if (pObjWorld == NULL) return;
+
+  delete pObjWorld;
+  pObjWorld = NULL;
+};
+
+void ODE_Init(void) {
+  // Already initialized
+  if (_pODE != NULL) return;
+
+  _pODE = new CPhysEngine;
+};
+
+void ODE_Start(void) {
+  if (ODE_IsStarted()) {
+    CPutString("^cffff00Restarting ODE simulation...\n");
+    ODE_End();
+  }
+
+  dRandSetSeed(0);
+
+  _pODE->bStarted = TRUE;
+  CPutString("^c00ff00ODE simulation started\n");
+
+  dWorldID world = _pODE->world;
+
+  // Gravity can be set to 0 and replaced with dBodyAddForce() calls on every single body every step
+  // like this: dBodyAddForce(body, vGravity(1) * mass, vGravity(2) * mass, vGravity(3) * mass)
+  // This helps with maintaining 6DOF gravity per object (inside specific sectors)
+  const dReal fGravity = -9.81;
+  dWorldSetGravity(world, 0.0, fGravity, 0.0);
+
+  // This is NOT an equivalent to running "dSpaceCollide(); dWorldQuickStep(); dJointGroupEmpty();" in a loop 4 times
+  //static const int ctIterations = dWorldGetQuickStepNumIterations(world);
+  //dWorldSetQuickStepNumIterations(world, ctIterations * 4);
+
+  //dWorldSetERP(world, 0.01);
+  //dWorldSetCFM(world, 1e-10);
+  dWorldSetERP(world, 0.5);
+  dWorldSetCFM(world, 1e-5);
+
+  // Configure simulation limits for various optimizations
+  dWorldSetAutoDisableFlag(world, 1);
+  dWorldSetAutoDisableAverageSamplesCount(world, 10);
+
+  dWorldSetLinearDamping(world, 0.00001);
+  dWorldSetAngularDamping(world, 0.005);
+  dWorldSetMaxAngularSpeed(world, 45);
+  dWorldSetContactSurfaceLayer(world, 0.001);
+
+  // Create world mesh
+  _pODE->CreateWorldMesh();
+  _pODE->pObjWorld->BeginShape(_odeCenter, 0.0f, FALSE);
+
+  // Iterate through all physical objects in the world
+  CWorld &wo = _pNetwork->ga_World;
+  INDEX iBrushVertexOffset = 0;
+
+  CDynamicContainer<CPhysBase> cenPhysObjects;
+
+  FOREACHINDYNAMICCONTAINER(wo.wo_cenEntities, CEntity, iten) {
+    CEntity *pen = iten;
+
+    // Create physical objects and remember them
+    if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
+      CPhysBase *penPhys = (CPhysBase *)pen;
+      cenPhysObjects.Add(penPhys);
+
+      penPhys->CreateObject();
+      continue;
+    }
+
+    // Create player objects
+    if (IsDerivedFromID(pen, CPlayer_ClassID)) {
+      CPlayer *penPlayer = (CPlayer *)pen;
+      penPlayer->CreateObject();
+      continue;
+    }
+
+    // Add static brushes to the world mesh
+    if (IsOfClass(pen, "WorldBase")) {
+      _pODE->pObjWorld->mesh.FromBrush(pen->GetBrush(), &iBrushVertexOffset);
+    }
+  }
+
+  // Finish up world mesh
+  _pODE->pObjWorld->mesh.Build();
+  _pODE->pObjWorld->AddTrimesh();
+  _pODE->pObjWorld->EndShape();
+
+  // Create joints for physical objects
+  FOREACHINDYNAMICCONTAINER(cenPhysObjects, CPhysBase, itenPhys) {
+    itenPhys->ConnectGeoms();
+  }
+};
+
+void ODE_End(void) {
+  if (!ODE_IsStarted()) {
+    CPutString("^cff0000ODE simulation is already off\n");
+    return;
+  }
+
+  _pODE->bStarted = FALSE;
+  CPutString("^c00ff00ODE simulation ended\n");
+
+  _pODE->lhObjects.RemAll();
+
+  // Destroy the world mesh
+  _pODE->DestroyWorldMesh();
+};
+
+void ODE_ReadSavedData(void) {
+  if (_pODE->pubSaveData == NULL) return;
+
+  // Read previously pre-read state now
+  CTMemoryStream strm;
+  strm.Write_t(_pODE->pubSaveData, _pODE->slSaveDataSize);
+  strm.SetPos_t(0);
+
+  _pODE->ReadState_t(&strm);
+
+  // Clear pre-read state
+  delete[] _pODE->pubSaveData;
+  _pODE->pubSaveData = NULL;
+  _pODE->slSaveDataSize = 0;
+};
+
+BOOL ODE_IsStarted(void) {
+  return _pODE->bStarted;
+};
+
+void ODE_DoSimulation(CWorld *pwo) {
+  // [Cecil] NOTE: This command can be used to restrict new clients from joining to prevent physics desynchronizations
+  static CSymbolPtr piMaxClients("net_iMaxClients");
+
+  if (!ODE_IsStarted()) {
+    //CPutString("^cff0000ODE simulation cannot be updated before starting it!\n");
+
+    // Allow clients to join
+    if (piMaxClients.Exists()) piMaxClients.GetIndex() = 0;
+    return;
+  }
+
+  // Prevent clients from joining
+  if (piMaxClients.Exists()) piMaxClients.GetIndex() = 1;
+
+  // Run physics simulation
+  const TIME tmNow = _pTimer->CurrentTick();
+  dRandSetSeed(*reinterpret_cast<const ULONG *>(&tmNow));
+
+  // Step frequency is divided by the amount of iterations per step and multiplied by the game's simulation rate
+  INDEX ctIterations = ODE_GetSimIterations();
+  const dReal fStepTime = ONE_TICK / (dReal)ctIterations * _pNetwork->GetRealTimeFactor();
+
+#if FIND_CLOSEST_POLYGON_FOR_SURFACE_TYPE
+  // [Cecil] TEMP: Add sectors from all current brushes
+  FOREACHINDYNAMICCONTAINER(pwo->wo_cenEntities, CEntity, iten) {
+    CEntity *pen = iten;
+    if (pen->GetRenderType() != CEntity::RT_BRUSH) continue;
+
+    INearestPolygon::PrepareSectorsFromEntity(pen);
+  }
+#endif
+
+  while (--ctIterations >= 0) {
+    dSpaceCollide(_pODE->space, pwo, &HandleCollisions);
+    dWorldQuickStep(_pODE->world, fStepTime);
+    dJointGroupEmpty(_pODE->jgContacts);
+  }
+
+  // [Cecil] TEMP: Clean geoms
+  //dSpaceClean(_pODE->space);
+
+#if FIND_CLOSEST_POLYGON_FOR_SURFACE_TYPE
+  INearestPolygon::ClearSectorsAfterSearch();
+#endif
+};
+
+INDEX ODE_GetSimIterations(void) {
+  // Iterations decrease by one every multiple of 5 of the simulation speed to prevent
+  // too much lag from simulating physics but that way physics precision also decreases
+  const INDEX ctIterations = 4;
+  const INDEX ctDecrease = _pNetwork->GetRealTimeFactor() / 5.0f;
+
+  return ClampDn(ctIterations - ctDecrease, (INDEX)1);
+};
+
+// [Cecil] TEMP: Report on collisions with physics objects
+void ODE_ReportCollision(const char *strFormat, ...) {
+  // Don't report if disabled or if not a server
+  if (!ode_bReportCollisions || (_pNetwork->IsNetworkEnabled() && !_pNetwork->IsServer())) return;
+
+  va_list arg;
+  va_start(arg, strFormat);
+
+  CTString str;
+  str.VPrintF(strFormat, arg);
+  CPrintF("[%.2f] %s\n", _pTimer->CurrentTick(), str.str_String);
+
+  va_end(arg);
+};
