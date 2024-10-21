@@ -1098,6 +1098,9 @@ void CGame::InitInternal( void)
 
   // [Cecil] Patch the world
   InitWorldPatches();
+
+  // [Cecil] Initialize physics
+  ODE_Init();
 }
 
 // internal cleanup
@@ -1464,6 +1467,10 @@ void CGame::StopGame(void) {
     // do nothing
     return;
   }
+
+  // [Cecil] Stop physics
+  ODE_End();
+
   // stop eventual camera
   CAM_Stop();
   // and game

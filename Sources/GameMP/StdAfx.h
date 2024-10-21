@@ -11,11 +11,13 @@
 #define DECL_DLL 
 #endif
 
+// [Cecil]
+#include <EntitiesMP/Cecil/WorldPatch.h>
+#include <EntitiesMP/Cecil/ODE/API.h>
+
 #include <EntitiesMP/Global.h>
 #include <EntitiesMP/Common/Common.h>
 #include <EntitiesMP/Common/GameInterface.h>
 #include <EntitiesMP/Player.h>
-// [Cecil] World patches
-#include "EntitiesMP/Cecil/WorldPatch.h"
 
 #undef DECL_DLL

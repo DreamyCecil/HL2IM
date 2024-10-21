@@ -3,6 +3,7 @@
 #include "StdH.h"
 
 #include "EntitiesMP/Cecil/Weapons.h"
+#include "EntitiesMP/Mod/PhysBase.h"
 
 // [Cecil] World conversion
 #include "EntitiesMP/WorldBase.h"
@@ -11,6 +12,8 @@
 CGlobalController *_penGlobalController = NULL;
 
 #define SERVER_REPORT(_Message) if (_pNetwork->IsServer()) CPrintF("[REPORT]: %s\n", _Message)
+
+extern CPhysEngine *_pODE;
 %}
 
 class export CGlobalController : CRationalEntity {
@@ -33,10 +36,39 @@ functions:
     _penGlobalController = this;
   };
 
+  // [Cecil] NOTE: Don't care about what or how things are being written or read
+  // because this entity is created right after loading the world on server start
+  void Write_t(CTStream *ostr) {
+    CRationalEntity::Write_t(ostr);
+
+    _pODE->WriteState_t(ostr, FALSE);
+
+    // Write physics objects
+    *ostr << m_cPhysStep.GetNodes().Count();
+
+    FOREACHNODEINREFS(m_cPhysStep, itn) {
+      *ostr << itn->GetOwner()->en_ulID;
+    }
+  };
+
   void Read_t(CTStream *istr) {
     CRationalEntity::Read_t(istr);
 
-    OnLevelStart();
+    OnLevelStart(FALSE);
+
+    _pODE->ReadState_t(istr);
+
+    // Read physics objects and reference them
+    INDEX ct;
+    *istr >> ct;
+
+    for (INDEX i = 0; i < ct; i++) {
+      ULONG ulID;
+      *istr >> ulID;
+
+      CPhysBase *pen = (CPhysBase *)GetWorld()->EntityFromID(ulID);
+      m_cPhysStep.Add(pen->m_nNode);
+    }
   };
 
   // Count memory used by this object
@@ -94,27 +126,46 @@ functions:
   };
 
   // Perform actions at the start of a new level
-  void OnLevelStart(void) {
+  void OnLevelStart(BOOL bFreshStart) {
     UpdateLevel();
+
+    // Start physics
+    if (bFreshStart) {
+      ODE_Start();
+    }
   };
 
 procedures:
   MainLoop() {
     while (TRUE)
     {
-      wait (_pTimer->TickQuantum) {
+      wait (ONE_TICK) {
         on (EPreLevelChange) : {
+          // Stop physics
+          ODE_End();
           resume;
         }
 
         on (EPostLevelChange) : {
-          OnLevelStart();
+          OnLevelStart(TRUE);
           resume;
         }
+
+        // Toggle physics
+        on (EStart) : { ODE_Start(); resume; }
+        on (EStop) : { ODE_End(); resume; }
 
         on (ETimer) : { stop; }
         otherwise() : { resume; }
       }
+
+      // Execute step function for physics objects
+      FOREACHNODEINREFS(m_cPhysStep, itn) {
+        CPhysBase *pen = (CPhysBase *)itn->GetOwner();
+        pen->OnPhysStep();
+      }
+
+      ODE_DoSimulation(GetWorld());
     }
 
     return;
@@ -128,9 +179,9 @@ procedures:
     // Travel between levels
     SetFlags(GetFlags() | ENF_CROSSESLEVELS | ENF_NOTIFYLEVELCHANGE);
 
-    autowait(_pTimer->TickQuantum);
+    autowait(ONE_TICK);
 
-    OnLevelStart();
+    OnLevelStart(TRUE);
     jump MainLoop();
   };
 };
