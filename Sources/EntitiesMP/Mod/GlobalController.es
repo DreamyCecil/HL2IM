@@ -8,7 +8,7 @@
 #include "EntitiesMP/WorldBase.h"
 
 // Pointer to this entity
-extern CEntity *_penGlobalController = NULL;
+CGlobalController *_penGlobalController = NULL;
 
 #define SERVER_REPORT(_Message) if (_pNetwork->IsServer()) CPrintF("[REPORT]: %s\n", _Message)
 %}

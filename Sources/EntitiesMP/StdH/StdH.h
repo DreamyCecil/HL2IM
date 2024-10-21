@@ -37,3 +37,7 @@
 #include "..\Common\Particles.h"
 #include "..\Common\EmanatingParticles.h"
 #include "..\Common\GameInterface.h"
+
+// [Cecil] Global controller
+#include <EntitiesMP/Mod/GlobalController.h>
+extern CGlobalController *_penGlobalController;
