@@ -83,6 +83,9 @@ extern CEntity *_penViewPlayer = NULL;
 extern void JumpFromBouncer(CEntity *penToBounce, CEntity *penBouncer);
 // from game
 #define GRV_SHOWEXTRAS  (1L<<0)   // add extra stuff like console, weapon, pause
+
+// [Cecil] Physics object radius
+#define PHYS_SPHERE_RADIUS 0.5f
 %}
 
 // [Cecil] New base class
@@ -1418,6 +1421,9 @@ properties:
   CStaticArray<FLOAT> m_atmCaptionsIn;
   CStaticArray<FLOAT> m_atmCaptionsOut;
 
+  // [Cecil] Physics object
+  SPhysObject m_obj;
+
   // [Cecil] Alternative to en_pbpoStandOn that can mimic brush polygons
   SCollisionPolygon m_cpoStandOn;
 }
@@ -1568,6 +1574,89 @@ components:
 226 texture TEXTURE_FLESH_ORANGE "Models\\Effects\\Debris\\Fruits\\Orange.tex",
 
 functions:
+  // [Cecil] On destruction
+  virtual void OnEnd(void) {
+    PhysObj().Clear();
+    CCecilPlayerEntity::OnEnd();
+  };
+
+  // [Cecil] Get physics object
+  odeObject &PhysObj(void) {
+    return *m_obj.pObj;
+  };
+
+  // [Cecil] Check if physics object is usable
+  BOOL PhysicsUsable(void) {
+    return ODE_IsStarted() && PhysObj().IsCreated();
+  };
+
+  // [Cecil] Create the ODE object
+  void CreateObject(void) {
+    // Delete last object
+    PhysObj().Clear();
+
+    if (!ODE_IsStarted()) {
+      return;
+    }
+
+    FLOATaabbox3D box;
+    GetBoundingBox(box);
+    FLOAT3D vSize = box.Size();
+
+    // Begin creating a new object
+    CPlacement3D plSphere(FLOAT3D(0, vSize(2), 0), ANGLE3D(0, 0, 0));
+    plSphere.RelativeToAbsoluteSmooth(GetPlacement());
+
+    PhysObj().BeginShape(plSphere, 1.0f, TRUE);
+    PhysObj().AddSphere(PHYS_SPHERE_RADIUS);
+    PhysObj().EndShape();
+
+    dBodySetGravityMode(PhysObj().body, 0);
+    dBodySetMaxAngularSpeed(PhysObj().body, 0);
+    dBodySetAutoDisableFlag(PhysObj().body, 0);
+  };
+
+  // [Cecil] Move physics object
+  void MovePhysicsObject(void) {
+    if (!PhysicsUsable()) {
+      return;
+    }
+
+    // Follow the player when alive
+    if (GetFlags() & ENF_ALIVE) {
+      FLOAT3D vSource = PhysObj().GetPosition();
+      FLOAT3D vTarget;
+
+      FLOATaabbox3D box;
+      GetBoundingBox(box);
+      FLOAT3D vSize = box.Size();
+
+      // Hide physics object in the middle if there's nothing to stand on
+      if (!m_cpoStandOn.bHit) {
+        vSize(2) *= 0.5f;
+      }
+
+      vTarget = GetPlacement().pl_PositionVector + FLOAT3D(0, vSize(2), 0) * GetRotationMatrix();
+
+      const FLOAT3D vDiff = (vTarget - vSource);
+
+      // Teleport to the position immediately, if it's too far away
+      if (vDiff.Length() > 1.5f) {
+        PhysObj().SetCurrentTranslation(FLOAT3D(0, 0, 0));
+        PhysObj().SetPosition(vTarget);
+
+      // Start moving at half the speed
+      } else {
+        PhysObj().SetCurrentTranslation(vDiff / _pTimer->TickQuantum / 2);
+      }
+
+    // Teleport it away when dead
+    } else {
+      PhysObj().SetCurrentTranslation(FLOAT3D(0, 0, 0));
+      PhysObj().SetPosition(FLOAT3D(50000, 50000 + en_ulID, 50000));
+    }
+  };
+
   // [Cecil] Swim sound
   INDEX SwimSound(void) {
     INDEX iRnd = IRnd()%7 + 1;
@@ -1945,6 +2034,14 @@ functions:
 
   // [Cecil] Teleport player somewhere
   void PlacePlayer(const CPlacement3D &pl, BOOL bTelefrag) {
+    if (PhysicsUsable()) {
+      PhysObj().SetPosition(pl.pl_PositionVector);
+
+      FLOATmatrix3D mRot;
+      MakeRotationMatrix(mRot, pl.pl_OrientationAngle);
+      PhysObj().SetMatrix(mRot);
+    }
+
     CPlacement3D plFrom = GetPlacement();
     Teleport(pl, bTelefrag);
     AfterTeleport(plFrom, CPlacement3D(FLOAT3D(0, 0, 0), ANGLE3D(0, 0, 0)));
@@ -2098,6 +2195,9 @@ functions:
       m_atmCaptionsIn[i] = -100.0f;
       m_atmCaptionsOut[i] = -100.0f;
     }
+
+    // [Cecil] Set physics object owner
+    PhysObj().penPhysOwner = this;
 
     // [Cecil] Reset polygon
     m_cpoStandOn.Reset();
@@ -4882,6 +4982,9 @@ functions:
     if (!IsPredictor()) {
       // [Cecil] Move picked objects around
       GetPlayerWeapons()->HoldingObject();
+
+      // [Cecil] Move physics object
+      MovePhysicsObject();
     }
   };
 
@@ -7351,6 +7454,9 @@ procedures:
       ((CPlayerView&)*m_penView).SendEvent(EEnd());
       m_penView = NULL;
     }
+
+    // [Cecil] Create physics object
+    CreateObject();
 
     FindMusicHolder();
 
