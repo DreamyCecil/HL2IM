@@ -6127,3 +6127,26 @@ void Particles_Fireworks01(CEmiter &em)
   // all done
   Particle_Flush();
 }
+
+// [Cecil] TEMP: Collision grid particles
+void Particles_PrepareCollisionGrid(void) {
+  Particle_PrepareTexture(&_toSand, PBT_ADDALPHA);
+  Particle_SetTexturePart(1, 1, 256, 256);
+};
+
+void Particles_EndCollisionGrid(void) {
+  Particle_Flush();
+};
+
+void Particles_GridCell(const FLOAT3D &vPos, FLOAT fGridSize, COLOR colBlend) {
+  const FLOAT fGapSize = 0.05f;
+
+  const FLOAT fMin =           + fGapSize * 0.5f;
+  const FLOAT fMax = fGridSize - fGapSize * 0.5f;
+
+  Particle_RenderQuad3D(
+    vPos + FLOAT3D(fMin, 0, fMin),
+    vPos + FLOAT3D(fMax, 0, fMin),
+    vPos + FLOAT3D(fMax, 0, fMax),
+    vPos + FLOAT3D(fMin, 0, fMax), colBlend);
+};

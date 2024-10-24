@@ -92,7 +92,7 @@ void PrepareSectorsFromEntity(CEntity *pen) {
   _npPolygon.pbpoNear = NULL;
   _npPolygon.fNearDistance = UpperLimit(1.0f);
 
-  ASSERT(pen->GetRenderType() == RT_BRUSH);
+  ASSERT(pen->GetRenderType() == CEntity::RT_BRUSH);
 
   // Add each sector in the brush mip
   FOREACHINDYNAMICARRAY(pen->GetBrush()->GetFirstMip()->bm_abscSectors, CBrushSector, itbsc) {

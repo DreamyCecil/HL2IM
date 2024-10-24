@@ -681,6 +681,9 @@
     <ClCompile Include="Mod\PhysBase.cpp">
       <Filter>Source Files\Entity sources</Filter>
     </ClCompile>
+    <ClCompile Include="Cecil\Collision\TempCollisionGrid.cpp">
+      <Filter>Source Files\Cecil sources\Collision sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Common.h">

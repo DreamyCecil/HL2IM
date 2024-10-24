@@ -86,6 +86,10 @@ extern void JumpFromBouncer(CEntity *penToBounce, CEntity *penBouncer);
 
 // [Cecil] Physics object radius
 #define PHYS_SPHERE_RADIUS 0.5f
+
+// [Cecil] TEMP
+extern INDEX ode_iCollisionGrid;
+extern void Particles_CollisionGridCells(const FLOATaabbox3D &box);
 %}
 
 // [Cecil] New base class
@@ -6886,7 +6890,20 @@ functions:
   // render particles
   void RenderParticles(void) {
     FLOAT tmNow = _pTimer->GetLerpedCurrentTick();
-    
+
+    // [Cecil] TEMP: Render collision grid cells around the player
+    if (ode_iCollisionGrid != 0 && _pNetwork->IsPlayerLocal(this)) {
+      FLOAT3D vPlayer = GetLerpedPlacement().pl_PositionVector;
+
+      if (ode_iCollisionGrid == 1) {
+        vPlayer(2) = 0.5f; // At a consistent plane half a meter above 0
+      } else {
+        vPlayer(2) += 0.25f; // At the player's legs
+      }
+
+      Particles_CollisionGridCells(FLOATaabbox3D(vPlayer - FLOAT3D(128, 0, 128), vPlayer + FLOAT3D(128, 128, 128)));
+    }
+
     // render empty shells
     Particles_EmptyShells( this, m_asldData);
 

@@ -313,6 +313,7 @@ copy "$(SolutionDir)Extras\ode\lib\ReleaseDLL\ode.dll" "$(SolutionDir)..\Bin\" &
     </ClCompile>
     <ClCompile Include="Cecil\Collision\CollisionCommon.cpp" />
     <ClCompile Include="Cecil\Collision\MovableEntityMethods.cpp" />
+    <ClCompile Include="Cecil\Collision\TempCollisionGrid.cpp" />
     <ClCompile Include="Cecil\Collision\WorldCollision.cpp" />
     <ClCompile Include="Cecil\Collision\WorldRayCasting.cpp" />
     <ClCompile Include="Cecil\Effects.cpp" />
