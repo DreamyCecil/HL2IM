@@ -1177,15 +1177,7 @@ void CCecilClipMove::ClipMoveToModels(void)
 
   // find colliding entities near the box of movement path
   static CStaticStackArray<CEntity*> apenNearEntities;
-  FLOATaabbox3D boxMovement = cm_boxMovementPath;
-
-  // [Cecil] Expand movement box for entities that collide with custom collisions
-  // in order to check for them slightly further away (e.g. if they're too big)
-  if (cm_penMoving->GetPhysicsFlags() & (EPF_COLLIDEWITHCUSTOM | EPF_CUSTOMCOLLISION)) {
-    boxMovement.ExpandByFactor(4.0f);
-  }
-
-  cm_pwoWorld->FindEntitiesNearBox(boxMovement, apenNearEntities);
+  cm_pwoWorld->FindEntitiesNearBox(cm_boxMovementPath, apenNearEntities);
 
   // for each of the found entities
   const INDEX ctFound = apenNearEntities.Count();

@@ -151,13 +151,13 @@ functions:
 
     ulFlags = PhysicsFlagsForPhysSimulation(TRUE);
 
-    if (ulFlags != 0) {
+    if (ulFlags != 0 && GetPhysicsFlags() != ulFlags) {
       SetPhysicsFlags(ulFlags);
     }
 
     ulFlags = CollisionFlagsForPhysSimulation(TRUE);
 
-    if (ulFlags != 0) {
+    if (ulFlags != 0 && GetCollisionFlags() != ulFlags) {
       SetCollisionFlags(ulFlags);
     }
 
@@ -168,10 +168,11 @@ functions:
         ForceFullStop();
       }
 
-    // Continue with proper physics
-    } else {
-      NOTHING;
+      return;
     }
+
+    // Continue with proper physics
+    NOTHING;
   };
 
 /****************************************************************/
@@ -398,14 +399,16 @@ functions:
   };
 
   virtual void GetCollisionBoxParameters(INDEX iBox, FLOATaabbox3D &box, INDEX &iEquality) {
-    if (!PhysicsUsable()) {
-      CCecilMovableModelEntity::GetCollisionBoxParameters(iBox, box, iEquality);;
+    // [Cecil] TEMP: This is not ideal because the collision can be setup before physics simulation is enabled
+    /*if (!PhysicsUsable()) {
+      CCecilMovableModelEntity::GetCollisionBoxParameters(iBox, box, iEquality);
       return;
-    }
+    }*/
 
     GetPhysCollision(box);
     const FLOAT3D vSize = box.Size();
 
+    // Determine equality by finding two longest axes
     if (vSize(2) >= vSize(3) && vSize(1) >= vSize(3)) {
       iEquality = HEIGHT_EQ_WIDTH;
 

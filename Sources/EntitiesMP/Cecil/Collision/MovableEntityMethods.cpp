@@ -721,7 +721,6 @@ void CCecilMovableEntity::SendTouchEvent(const CCecilClipMove &cmMove)
 
         if (!_cenTouchedPhys.IsMember(&enPhys)) _cenTouchedPhys.Add(&enPhys);
 
-        // [Cecil] TEMP: Don't override the touch if it's already set
         enPhys.m_iTouchType = 1;
         enPhys.m_plTouchPlane = cmMove.cm_plClippedPlane;
         enPhys.m_vTouchClipped = cmMove.cm_vClippedLine;
