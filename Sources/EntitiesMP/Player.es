@@ -52,7 +52,6 @@
 #include "EntitiesMP/Mod/Radio.h"       // Radio spawning
 
 #define FL_PLACE CPlacement3D(FLOAT3D(-32000.0f, -512.0f, -32000.0f), ANGLE3D(0.0f, 0.0f, 0.0f))
-extern BOOL _bMaterialsLoaded;
 
 // [Cecil] Weapon Zoom
 extern FLOAT _afWeaponZoom[];
@@ -2223,6 +2222,22 @@ functions:
   // [Cecil] Immediately react to certain events
   BOOL HandleEvent(const CEntityEvent &ee) {
     switch (ee.ee_slEvent) {
+      // Teleport held object with the player
+      case EVENTCODE_ETeleport: {
+        CEntity *penObject = GetPlayerWeapons()->m_syncHolding.GetSyncedEntity();
+
+        if (penObject != NULL && !IS_PLAYER(penObject)) {
+          CPlacement3D plView = en_plViewpoint;
+          plView.RelativeToAbsolute(GetPlacement());
+
+          // [Cecil] TODO: Remember proper offset during object holding, so it could be reused here
+          CPlacement3D plOffset(FLOAT3D(0, 0, -4), ANGLE3D(0, 0, 0));
+          plOffset.RelativeToAbsolute(plView);
+
+          penObject->Teleport(plOffset, FALSE);
+        }
+      } return TRUE;
+
       // Gravity Gun actions
       case EVENTCODE_EGravityGunStart: return TRUE;
       case EVENTCODE_EGravityGunStop: return TRUE;
