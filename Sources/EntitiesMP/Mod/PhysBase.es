@@ -307,6 +307,12 @@ functions:
         }
       } return TRUE;
 
+      // Teleport physics object
+      case EVENTCODE_ETeleport: {
+        PhysObj().SetPosition(GetPlacement().pl_PositionVector);
+        PhysObj().SetMatrix(GetRotationMatrix());
+      } return TRUE;
+
       // Gravity Gun actions
       case EVENTCODE_EGravityGunStart: {
         const EGravityGunStart &eStart = (const EGravityGunStart &)ee;
