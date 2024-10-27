@@ -465,11 +465,23 @@ void CCecilMovableEntity::UpdateOneSectorForce(CBrushSector &bsc, FLOAT fRatio)
   pef->ef_fRatio+=fRatio;
 }
 
-// test for field containment
-void CCecilMovableEntity::TestFields(INDEX &iUpContent, INDEX &iDnContent, FLOAT &fImmersionFactor)
+// [Cecil] TestFields() alternative that works for brushes as well
+BOOL CCecilMovableEntity::TestFields(INDEX &iUpContent, INDEX &iDnContent, FLOAT &fImmersionFactor, BOOL bBrush)
 {
-  // this works only for models
-  ASSERT(en_RenderType==RT_MODEL || en_RenderType==RT_EDITORMODEL || en_RenderType==RT_SKAMODEL || en_RenderType==RT_SKAEDITORMODEL);
+  // [Cecil] Check brushes
+  if (bBrush) {
+    if (en_RenderType != RT_BRUSH && en_RenderType != RT_FIELDBRUSH) {
+      return FALSE;
+    }
+
+  } else {
+    // this works only for models
+    if (en_RenderType != RT_MODEL    && en_RenderType != RT_EDITORMODEL
+     && en_RenderType != RT_SKAMODEL && en_RenderType != RT_SKAEDITORMODEL) {
+      return FALSE;
+    }
+  }
+
   iUpContent = 0;
   iDnContent = 0;
   FLOAT fUp = 0.0f;
@@ -477,15 +489,24 @@ void CCecilMovableEntity::TestFields(INDEX &iUpContent, INDEX &iDnContent, FLOAT
 
   FLOAT3D &vOffset = en_plPlacement.pl_PositionVector;
   FLOATmatrix3D &mRotation = en_mRotation;
-  // project height min/max in the entity to absolute space
-  FLOAT3D vMin = FLOAT3D(0, en_pciCollisionInfo->ci_fMinHeight, 0);
-  FLOAT3D vMax = FLOAT3D(0, en_pciCollisionInfo->ci_fMaxHeight, 0);
-  vMin = vMin*mRotation+vOffset;
-  vMax = vMax*mRotation+vOffset;
-  // project all spheres in the entity to absolute space (for touch field testing)
-  CStaticArray<CMovingSphere> &absSpheres = en_pciCollisionInfo->ci_absSpheres;
-  FOREACHINSTATICARRAY(absSpheres, CMovingSphere, itms) {
-    itms->ms_vRelativeCenter0 = itms->ms_vCenter*mRotation+vOffset;
+  FLOAT3D vMin, vMax;
+
+  // [Cecil] Determine min/max points for brushes
+  if (bBrush) {
+    FLOATaabbox3D box;
+    GetSize(box);
+    vMin = FLOAT3D(0, box.Min()(2), 0) * mRotation + vOffset;
+    vMax = FLOAT3D(0, box.Max()(2), 0) * mRotation + vOffset;
+
+  } else {
+    // project height min/max in the entity to absolute space
+    vMin = FLOAT3D(0, en_pciCollisionInfo->ci_fMinHeight, 0) * mRotation + vOffset;
+    vMax = FLOAT3D(0, en_pciCollisionInfo->ci_fMaxHeight, 0) * mRotation + vOffset;
+    // project all spheres in the entity to absolute space (for touch field testing)
+    CStaticArray<CMovingSphere> &absSpheres = en_pciCollisionInfo->ci_absSpheres;
+    FOREACHINSTATICARRAY(absSpheres, CMovingSphere, itms) {
+      itms->ms_vRelativeCenter0 = itms->ms_vCenter*mRotation+vOffset;
+    }
   }
 
   // clear forces
@@ -606,6 +627,8 @@ void CCecilMovableEntity::TestFields(INDEX &iUpContent, INDEX &iDnContent, FLOAT
     en_vForceDir = vForceA/en_fForceA;
   }
   _aefForces.PopAll();
+
+  return TRUE;
 }
 
 // test entity breathing
@@ -1589,12 +1612,9 @@ void CCecilMovableEntity::PreMoving(FLOAT3D &vRotationDir)
     en_vCurrentTranslationAbsolute *= fMaxSpeed;
   }
 
-  // if the entity is a model
-  if (en_RenderType==RT_MODEL || en_RenderType==RT_EDITORMODEL ||
-      en_RenderType==RT_SKAMODEL || en_RenderType==RT_SKAEDITORMODEL) {
-    // test for field containment
-    TestFields(en_iUpContent, en_iDnContent, en_fImmersionFactor);
-
+  // [Cecil] Test for field containment only for models
+  if (TestFields(en_iUpContent, en_iDnContent, en_fImmersionFactor, FALSE))
+  {
     // [Cecil] Set to gravity direction by default
     vRotationDir = en_vGravityDir;
 

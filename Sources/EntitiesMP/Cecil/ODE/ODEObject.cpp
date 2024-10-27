@@ -365,6 +365,38 @@ void odeObject::AddForce(const FLOAT3D &vDir, FLOAT fForce) {
   dBodyAddForce(body, vForce(1), vForce(2), vForce(3));
 };
 
+// Manually update gravitational force
+void odeObject::UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityDir) {
+  if (!IsCreated()) return;
+
+  // Reenable ODE gravity
+  if (!bManual) {
+    if (!dBodyGetGravityMode(body)) dBodySetGravityMode(body, 1);
+    return;
+  }
+
+  // Disable ODE gravity
+  if (dBodyGetGravityMode(body)) dBodySetGravityMode(body, 0);
+
+  // Get current world gravity
+  dVector3 vWorldGravity;
+  dWorldGetGravity(_pODE->world, vWorldGravity);
+
+  const dReal fWorldGravityLen = sqrt(
+      vWorldGravity[0] * vWorldGravity[0]
+    + vWorldGravity[1] * vWorldGravity[1]
+    + vWorldGravity[2] * vWorldGravity[2]
+  );
+
+  // Add manual gravity force
+  const dReal fGravityForceMul = fWorldGravityLen * mass.mass * ODE_GetSimIterations();
+  const odeVector vGravity = odeVector(vManualGravityDir(1), vManualGravityDir(2), vManualGravityDir(3)) * fGravityForceMul;
+
+  // [Cecil] TODO: Perhaps it would be more wise to fork ODE and implement gravity vectors per body like it's already
+  // done with a number of other variables that take their values from the world by default. Should be extremely easy.
+  dBodyAddForce(body, vGravity(1), vGravity(2), vGravity(3));
+};
+
 // Absolute movement speed
 void odeObject::SetCurrentTranslation(const FLOAT3D &vSpeed) {
   if (!IsCreated()) return;

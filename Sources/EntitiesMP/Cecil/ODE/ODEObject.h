@@ -180,7 +180,10 @@ class odeObject {
 
     // Add force in an absolute direction from the center of the object
     void AddForce(const FLOAT3D &vDir, FLOAT fForce);
-    
+
+    // Manually update gravitational force
+    void UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityDir);
+
     // Absolute movement speed
     void SetCurrentTranslation(const FLOAT3D &vSpeed);
     FLOAT3D GetCurrentTranslation(void) const;

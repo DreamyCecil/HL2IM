@@ -127,6 +127,11 @@ functions:
     return 0;
   };
 
+  // Whether or not to apply sector gravity instead of global physics gravity
+  virtual BOOL PhysicsUseSectorGravity(void) {
+    return TRUE;
+  };
+
   // Process physics object before the actual physics simulation
   virtual void OnPhysStep(void) {
     AddToMovers();
@@ -172,7 +177,10 @@ functions:
     }
 
     // Continue with proper physics
-    NOTHING;
+
+    // Apply manual sector gravity only if the gravity vector deviates from -Y too much
+    const BOOL bManualGravity = (PhysicsUseSectorGravity() && en_vGravityDir(2) >= -0.99f);
+    PhysObj().UpdateGravity(bManualGravity, en_vGravityDir);
   };
 
 /****************************************************************/

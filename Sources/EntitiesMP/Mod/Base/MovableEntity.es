@@ -260,7 +260,15 @@ functions:
 
   CEntity *MiscDamageInflictor(void);
   void UpdateOneSectorForce(CBrushSector &bsc, FLOAT fRatio);
-  void TestFields(INDEX &iUpContent, INDEX &iDnContent, FLOAT &fImmersionFactor);
+
+  // [Cecil] NOTE: This method is now a wrapper for the new one
+  void TestFields(INDEX &iUpContent, INDEX &iDnContent, FLOAT &fImmersionFactor) {
+    TestFields(iUpContent, iDnContent, fImmersionFactor, FALSE);
+  };
+
+  // [Cecil] TestFields() alternative that works for brushes as well
+  BOOL TestFields(INDEX &iUpContent, INDEX &iDnContent, FLOAT &fImmersionFactor, BOOL bBrush);
+
   void TestBreathing(CContentType &ctUp);
   void TestContentDamage(CContentType &ctDn, FLOAT fImmersion);
   void TestSurfaceDamage(CSurfaceType &stDn);
