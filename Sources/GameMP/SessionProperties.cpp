@@ -52,6 +52,7 @@ extern INDEX hl2_bAutoBunnyhop;
 extern INDEX hl2_iNewEnemies;
 extern INDEX hl2_bEnemyDrops;
 extern INDEX hl2_bUseMaterials;
+extern INDEX hl2_iPhysicsIterations;
 extern INDEX hl2_bAdminMenu;
 
 static void SetGameModeParameters(CSessionProperties &sp) {
@@ -136,11 +137,12 @@ static void HL2_Parameters(CSessionProperties &sp) {
   sp.sp_fJumpMultiplier = hl2_fJumpMultiplier;
   sp.sp_iStartWeapons = hl2_iStartWeapons;
   sp.sp_fGravityGunPower = hl2_fGravityGunPower;
+  sp.sp_iPhysicsIterations = hl2_iPhysicsIterations;
   
   const BOOL bBetaEnemies = (hl2_iNewEnemies == 1);
   const BOOL bNewEnemies = (hl2_iNewEnemies == 2);
 
-  // flags
+  // Flags
   sp.sp_iHL2Flags |= (hl2_bInfiniteAlt  ? HL2F_INFALT    : 0)
                    | (hl2_bBunnyhopping ? HL2F_BHOP      : 0)
                    | (hl2_bAutoBunnyhop ? HL2F_AUTOBHOP  : 0)
@@ -150,7 +152,7 @@ static void HL2_Parameters(CSessionProperties &sp) {
                    | (hl2_bEnemyDrops   ? HL2F_ENEMYDROP : 0)
                    | (hl2_bAdminMenu    ? HL2F_ADMINMENU : 0);
 
-  // gamemodes
+  // Gamemodes
   sp.sp_iHLGamemode = hl2_iGamemode;
 
   switch (hl2_iGamemode) {

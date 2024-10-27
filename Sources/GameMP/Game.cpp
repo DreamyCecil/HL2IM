@@ -106,23 +106,24 @@ extern INDEX gam_bGibs  = TRUE;
 extern INDEX gam_bUseExtraEnemies = TRUE;
 
 // [Cecil] New options
-extern INDEX hl2_iGamemode = HLGM_NONE;
+INDEX hl2_iGamemode = HLGM_NONE;
 
-extern FLOAT hl2_fAmmoMultiplier = 1.0f;
-extern FLOAT hl2_fMagMultiplier = 1.0f;
-extern FLOAT hl2_fGravityGunPower = 1.0f;
-extern INDEX hl2_bInfiniteAlt = FALSE;
-extern INDEX hl2_iStartWeapons = -1; // Crowbar & USP
+FLOAT hl2_fAmmoMultiplier = 1.0f;
+FLOAT hl2_fMagMultiplier = 1.0f;
+FLOAT hl2_fGravityGunPower = 1.0f;
+INDEX hl2_bInfiniteAlt = FALSE;
+INDEX hl2_iStartWeapons = -1; // Crowbar & USP
 
-extern FLOAT hl2_fSpeedMultiplier = 1.0f;
-extern FLOAT hl2_fJumpMultiplier = 1.0f;
-extern INDEX hl2_bBunnyhopping = FALSE;
-extern INDEX hl2_bAutoBunnyhop = FALSE;
+FLOAT hl2_fSpeedMultiplier = 1.0f;
+FLOAT hl2_fJumpMultiplier = 1.0f;
+INDEX hl2_bBunnyhopping = FALSE;
+INDEX hl2_bAutoBunnyhop = FALSE;
 
-extern INDEX hl2_iNewEnemies = 2; // 0 - No, 1 - Beta 0.7, 2 - Yes
-extern INDEX hl2_bEnemyDrops = FALSE;
-extern INDEX hl2_bUseMaterials = TRUE;
-extern INDEX hl2_bAdminMenu = FALSE;
+INDEX hl2_iNewEnemies = 2; // 0 - No, 1 - Beta 0.7, 2 - Yes
+INDEX hl2_bEnemyDrops = FALSE;
+INDEX hl2_bUseMaterials = TRUE;
+INDEX hl2_iPhysicsIterations = 4;
+INDEX hl2_bAdminMenu = FALSE;
 
 // [Cecil] Menu music
 static INDEX hl2_bMenuMusic = TRUE;
@@ -991,6 +992,7 @@ void CGame::InitInternal( void)
   _pShell->DeclareSymbol("persistent user INDEX hl2_iNewEnemies;", &hl2_iNewEnemies);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bEnemyDrops;", &hl2_bEnemyDrops);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bUseMaterials;", &hl2_bUseMaterials);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_iPhysicsIterations;", &hl2_iPhysicsIterations);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bAdminMenu;", &hl2_bAdminMenu);
 
   // [Cecil] Menu music

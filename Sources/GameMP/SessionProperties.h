@@ -100,6 +100,7 @@ public:
   INDEX sp_iHL2Flags;
   INDEX sp_iStartWeapons;
   FLOAT sp_fGravityGunPower;
+  INDEX sp_iPhysicsIterations;
 
   // [Cecil] Clear the properties
   void Clear(void) {

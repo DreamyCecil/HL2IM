@@ -314,9 +314,6 @@ void ODE_Start(void) {
 
   dWorldID world = _pODE->world;
 
-  // Gravity can be set to 0 and replaced with dBodyAddForce() calls on every single body every step
-  // like this: dBodyAddForce(body, vGravity(1) * mass, vGravity(2) * mass, vGravity(3) * mass)
-  // This helps with maintaining 6DOF gravity per object (inside specific sectors)
   const dReal fGravity = -9.81;
   dWorldSetGravity(world, 0.0, fGravity, 0.0);
 
@@ -469,7 +466,7 @@ void ODE_DoSimulation(CWorld *pwo) {
 INDEX ODE_GetSimIterations(void) {
   // Iterations decrease by one every multiple of 5 of the simulation speed to prevent
   // too much lag from simulating physics but that way physics precision also decreases
-  const INDEX ctIterations = 4;
+  const INDEX ctIterations = GetSP()->sp_iPhysicsIterations;
   const INDEX ctDecrease = _pNetwork->GetRealTimeFactor() / 5.0f;
 
   return ClampDn(ctIterations - ctDecrease, (INDEX)1);
