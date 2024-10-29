@@ -204,7 +204,19 @@ void SCollisionPolygon::Read_t(CEntity *pen, CTStream *istr) {
 BOOL GetCustomCollisionShape(CEntity *pen, FLOATaabbox3D &boxSize, ECollisionShape &eShape) {
   if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
     CPhysBase &enPhys = (CPhysBase &)*pen;
-    eShape = enPhys.GetPhysCollision(boxSize);
+
+    // Centered box
+    FLOAT3D vSize;
+    eShape = enPhys.GetPhysCollision(vSize);
+    boxSize = FLOATaabbox3D(vSize * -0.5f, vSize * +0.5f);
+
+    // Additional offset
+    CPlacement3D plOffset;
+
+    if (enPhys.GetPhysOffset(plOffset)) {
+      boxSize += plOffset.pl_PositionVector;
+    }
+
     return TRUE;
   }
 

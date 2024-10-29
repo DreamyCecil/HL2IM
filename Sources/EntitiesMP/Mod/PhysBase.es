@@ -111,7 +111,7 @@ functions:
   };
 
   // Entity physics flags to set whenever physics are toggled
-  virtual ULONG PhysicsFlagsForPhysSimulation(BOOL bEnabled) {
+  virtual ULONG PhysicsFlagsForPhysSimulation(BOOL bEnabled) const {
     if (bEnabled) {
       // Disable engine physics
       return GetPhysicsFlags() & ~(EPF_TRANSLATEDBYGRAVITY | EPF_ORIENTEDBYGRAVITY);
@@ -122,13 +122,13 @@ functions:
   };
 
   // Entity collision flags to set whenever physics are toggled
-  virtual ULONG CollisionFlagsForPhysSimulation(BOOL bEnabled) {
+  virtual ULONG CollisionFlagsForPhysSimulation(BOOL bEnabled) const {
     // Ignore
     return 0;
   };
 
   // Whether or not to apply sector gravity instead of global physics gravity
-  virtual BOOL PhysicsUseSectorGravity(void) {
+  virtual BOOL PhysicsUseSectorGravity(void) const {
     return TRUE;
   };
 
@@ -188,28 +188,28 @@ functions:
 /****************************************************************/
 
   // Get physics object material
-  virtual INDEX GetPhysMaterial(void) { return -1; };
+  virtual INDEX GetPhysMaterial(void) const { return -1; };
 
   // Get physical collision size and shape
-  virtual ECollisionShape GetPhysCollision(FLOATaabbox3D &boxSize) {
-    boxSize = FLOATaabbox3D(FLOAT3D(-0.5f, -0.5f, -0.5f), FLOAT3D(+0.5f, +0.5f, +0.5f));
+  virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
+    vSize = FLOAT3D(1, 1, 1);
     return COLSH_BOX;
   };
 
   // Get physics object offset from the entity
-  virtual BOOL GetPhysOffset(CPlacement3D &plOffset) { return FALSE; };
+  virtual BOOL GetPhysOffset(CPlacement3D &plOffset) const { return FALSE; };
 
   // Get physics object mass
-  virtual FLOAT GetPhysMass(void) { return 1.0f; };
+  virtual FLOAT GetPhysMass(void) const { return 1.0f; };
 
   // Check if the physics object is actually affected by physics instead of staying static
-  virtual BOOL IsPhysDynamic(void) { return TRUE; };
+  virtual BOOL IsPhysDynamic(void) const { return TRUE; };
 
   // Get physics touch damage
-  virtual FLOAT GetPhysTouchDamage(void) { return 0.0f; };
+  virtual FLOAT GetPhysTouchDamage(void) const { return 0.0f; };
 
   // Get physics block damage
-  virtual FLOAT GetPhysBlockDamage(void) { return 0.0f; };
+  virtual FLOAT GetPhysBlockDamage(void) const { return 0.0f; };
 
 /****************************************************************/
 /*                   Physics object creation                    */
@@ -238,15 +238,18 @@ functions:
       PhysObj().BeginShape(GetPlacement(), GetPhysMass(), IsPhysDynamic());
     }
 
-    AddPhysGeoms();
+    // Add geoms of a specific max size
+    FLOAT3D vMaxSize;
+    GetPhysCollision(vMaxSize);
+    AddPhysGeoms(vMaxSize);
 
     // Finish up the object
     PhysObj().EndShape();
   };
 
   // Add physics object geometry
-  virtual void AddPhysGeoms(void) {
-    PhysObj().AddBox(odeVector(1, 1, 1) * 1.01);
+  virtual void AddPhysGeoms(const FLOAT3D &vMaxSize) {
+    PhysObj().AddBox(odeVector(vMaxSize(1), vMaxSize(2), vMaxSize(3)) * 1.01);
   };
 
   // Connect with other geoms, if possible
@@ -317,8 +320,22 @@ functions:
 
       // Teleport physics object
       case EVENTCODE_ETeleport: {
-        PhysObj().SetPosition(GetPlacement().pl_PositionVector);
-        PhysObj().SetMatrix(GetRotationMatrix());
+        FLOAT3D vPos;
+        FLOATmatrix3D mRot;
+        CPlacement3D plOffset;
+
+        if (GetPhysOffset(plOffset)) {
+          plOffset.RelativeToAbsolute(GetPlacement());
+          vPos = plOffset.pl_PositionVector;
+          MakeRotationMatrix(mRot, plOffset.pl_OrientationAngle);
+
+        } else {
+          vPos = GetPlacement().pl_PositionVector;
+          mRot = GetRotationMatrix();
+        }
+
+        PhysObj().SetPosition(vPos);
+        PhysObj().SetMatrix(mRot);
       } return TRUE;
 
       // Gravity Gun actions
@@ -419,8 +436,17 @@ functions:
       return;
     }*/
 
-    GetPhysCollision(box);
-    const FLOAT3D vSize = box.Size();
+    // Centered box
+    FLOAT3D vSize;
+    GetPhysCollision(vSize);
+    box = FLOATaabbox3D(vSize * -0.5f, vSize * +0.5f);
+
+    // Additional offset
+    CPlacement3D plOffset;
+
+    if (GetPhysOffset(plOffset)) {
+      box += plOffset.pl_PositionVector;
+    }
 
     // Determine equality by finding two longest axes
     if (vSize(2) >= vSize(3) && vSize(1) >= vSize(3)) {
