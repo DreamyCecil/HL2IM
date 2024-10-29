@@ -65,6 +65,7 @@ extern CDrawPort *_pdp;
 
 // [Cecil] HAX Menu
 static CTextureObject _toHAXMenu;
+static CTextureObject _toMenuPointer;
 #define HAXF_GOD    (1<<0)
 #define HAXF_NOCLIP (1<<1)
 
@@ -550,46 +551,42 @@ DECL_DLL void ctl_ComposeActionPacket(const CPlayerCharacter &pc, CPlayerAction 
     return;
   }
 
-  // [Cecil] 2019-03-21: Special Check
-  /*BOOL bMenuActive = (!_pInput->IsInputEnabled() && penThis->m_bDisableInput);
+  // [Cecil] Move the mouse around in the menu instead of the player view
+  const BOOL bMenuActive = penThis->m_bHAXMenu;
+
+  if (bMenuActive) {
+    // Update mouse render position each render frame
+    if (bPreScan) {
+      FLOAT2D vMouseMovement(
+        +_pInput->GetAxisValue(MOUSE_X_AXIS) * 3.0f,
+        -_pInput->GetAxisValue(MOUSE_Y_AXIS) * 3.0f
+      );
+
+      // For moving a mouse using a controller or something
+      vMouseMovement(1) += paAction.pa_aViewRotation(1);
+      vMouseMovement(2) += paAction.pa_aViewRotation(2);
+
+      // Update rendering position
+      penThis->m_vMouseRender += vMouseMovement;
+
+      penThis->m_vMouseRender(1) = Clamp(penThis->m_vMouseRender(1), 0.0f, penThis->m_vViewWindow(1));
+      penThis->m_vMouseRender(2) = Clamp(penThis->m_vMouseRender(2), 0.0f, penThis->m_vViewWindow(2));
+    }
+
+    // Discard view rotation
+    paAction.pa_aRotation = paAction.pa_aViewRotation = ANGLE3D(0, 0, 0);
+  }
 
   // accumulate local rotation
-  if (!bMenuActive)*/ {
-    penThis->m_aLocalRotation     += paAction.pa_aRotation;
-    penThis->m_aLocalViewRotation += paAction.pa_aViewRotation;
-    penThis->m_vLocalTranslation  += paAction.pa_vTranslation;
-  }
+  penThis->m_aLocalRotation     += paAction.pa_aRotation;
+  penThis->m_aLocalViewRotation += paAction.pa_aViewRotation;
+  penThis->m_vLocalTranslation  += paAction.pa_vTranslation;
 
   // if prescanning
   if (bPreScan) {
     // no button checking
     return;
   }
-
-  // [Cecil] Mouse Input Extension
-  /*if (bMenuActive) {
-    paAction.pa_vTranslation  = FLOAT3D(0.0f, 0.0f, 0.0f);
-    paAction.pa_aRotation     = penThis->m_aLocalRotation; //ANGLE3D(0.0f, 0.0f, 0.0f);
-    paAction.pa_aViewRotation = ANGLE3D(0.0f, 0.0f, 0.0f);
-    paAction.pa_ulButtons = 0;
-    
-    POINT msPoint;
-    if (GetCursorPos(&msPoint)) {
-      ScreenToClient(_pGfx->gl_pvpActive->vp_hWnd, &msPoint);
-
-      FLOAT3D vWindow = penThis->m_vGameWindow;
-      FLOAT fMouseX = msPoint.x*640.0f/vWindow(1);
-      FLOAT fMouseY = msPoint.y*480.0f/vWindow(2);
-
-      paAction.pa_aViewRotation = FLOAT3D(fMouseX, fMouseY, 0.0f);
-
-      if (GetKeyState(VK_LBUTTON) & 0x8000) {
-        paAction.pa_ulButtons = (1 << PLACT_SELECT_WEAPON_SHIFT);
-      }
-    }
-
-    return;
-  }*/
 
   // add button movement/rotation/look actions to the axis actions
   if (pctlCurrent.bMoveForward  ) paAction.pa_vTranslation(3) -= plr_fMoveSpeed; //plr_fSpeedForward;
@@ -614,9 +611,22 @@ DECL_DLL void ctl_ComposeActionPacket(const CPlayerCharacter &pc, CPlayerAction 
   if (pctlCurrent.bLookBankingLeft  ) penThis->m_aLocalViewRotation(3) += ctl_fButtonRotationSpeedB*fQuantum;
   if (pctlCurrent.bLookBankingRight ) penThis->m_aLocalViewRotation(3) -= ctl_fButtonRotationSpeedB*fQuantum;
 
+  // [Cecil] Pass mouse position to set instead of the desired view rotation
+  const BOOL bMenuButton = pctlCurrent.bMenu;
+
+  if (bMenuActive && bMenuButton) {
+    paAction.pa_aRotation(1) = penThis->m_vMouseRender(1) / penThis->m_vViewWindow(1) * 640.0f;
+    paAction.pa_aRotation(2) = penThis->m_vMouseRender(2) / penThis->m_vViewWindow(2) * 480.0f;
+    paAction.pa_aRotation(3) = 0;
+
+    paAction.pa_aViewRotation = ANGLE3D(0, 0, 0);
+
   // use current accumulated rotation
-  paAction.pa_aRotation     = penThis->m_aLocalRotation;
-  paAction.pa_aViewRotation = penThis->m_aLocalViewRotation;
+  } else {
+    paAction.pa_aRotation     = penThis->m_aLocalRotation;
+    paAction.pa_aViewRotation = penThis->m_aLocalViewRotation;
+  }
+
   //paAction.pa_vTranslation  = penThis->m_vLocalTranslation;
 
   // if walking
@@ -638,21 +648,29 @@ DECL_DLL void ctl_ComposeActionPacket(const CPlayerCharacter &pc, CPlayerAction 
   }
 
   // [Cecil] Check if server before pressing the button
-  if (_pNetwork->IsServer() || GetSP()->sp_iHL2Flags & HL2F_ADMINMENU) {
-    if (pctlCurrent.bMenu) {
-      // Check number keys directly and send them as menu buttons
-      for (INDEX i = 0; i < 10; i++) {
-        if (_pInput->GetButtonState(KID_1 + i)) {
-          paAction.pa_ulButtons = (i + 1) << PLACT_SELECT_WEAPON_SHIFT;
-          break;
+  if (_pNetwork->IsServer() || GetSP()->sp_iHL2Flags & HL2F_ADMINMENU)
+  {
+    // When the menu is already active
+    if (bMenuActive) {
+      // Set the full mask for the mouse click
+      if (_pInput->GetButtonState(KID_MOUSE1)) {
+        paAction.pa_ulButtons = PLACT_SELECT_WEAPON_MASK;
+
+      // Otherwise check number keys directly and send them as menu buttons
+      } else {
+        for (INDEX i = 0; i < 10; i++) {
+          if (_pInput->GetButtonState(KID_1 + i)) {
+            paAction.pa_ulButtons = (i + 1) << PLACT_SELECT_WEAPON_SHIFT;
+            break;
+          }
         }
       }
-
-      paAction.pa_ulButtons |= PLACT_MENU;
     }
 
-    // Reset so it doesn't get stuck and reopen every time
-    //pctlCurrent.bMenu = FALSE;
+    // Request to open the menu
+    if (bMenuButton) {
+      paAction.pa_ulButtons |= PLACT_MENU;
+    }
   }
 
   // set button pressed flags
@@ -977,6 +995,18 @@ void CPlayer_OnInitClass(void)
 
   // initialize HUD
   InitHUD();
+
+  // [Cecil] Load HAX menu textures
+  try {
+    _toHAXMenu.SetData_t(CTFILENAME("Textures\\Interface\\HAXMenu.tex"));
+    _toMenuPointer.SetData_t(CTFILENAME("TexturesMP\\General\\Pointer.tex"));
+
+    ((CTextureData *)_toHAXMenu.GetData())->Force(TEX_CONSTANT);
+    ((CTextureData *)_toMenuPointer.GetData())->Force(TEX_CONSTANT);
+
+  } catch (char *strError) {
+    FatalError(strError);
+  }
 
   // precache
   CPlayer_Precache();
@@ -1379,10 +1409,9 @@ properties:
  270 INDEX m_iLastDamage = 0,
  271 INDEX m_iHAXFlags = 0,
 
- /*280 BOOL m_bDisableInput = FALSE,
- 281 FLOAT3D m_vGameWindow = FLOAT3D(640.0f, 480.0f, 0.0f),
- 282 FLOAT3D m_vMousePointer = FLOAT3D(0.0f, 0.0f, 0.0f),*/
- 280 BOOL m_bRenderHAX = FALSE,
+ 280 BOOL m_bHAXMenu = FALSE,
+ 281 FLOAT3D m_vMousePos = FLOAT3D(0, 0, 0), // Actual mouse position for interactions
+ 282 FLOAT3D m_vMousePosLast = FLOAT3D(0, 0, 0), // Last position for non-local interpolation
 
 {
   ShellLaunchData ShellLaunchData_array;  // array of data describing flying empty shells
@@ -1418,6 +1447,10 @@ properties:
   PlayerStats m_psGameTotal;
 
   CModelObject m_moRender; // model object to render - this one can be customized
+
+  // [Cecil] Mouse position for rendering and view window size
+  FLOAT2D m_vMouseRender;
+  FLOAT2D m_vViewWindow;
 
   // [Cecil] A list of captions on the screen
   CStaticArray<CTString> m_astrCaptions;
@@ -1807,116 +1840,140 @@ functions:
     m_atmCaptionsOut[CT_CAPTIONS] = Max(m_atmCaptionsOut[CT_CAPTIONS-1], _pTimer->CurrentTick() + tmLength);
   };
 
-  // [Cecil] Mouse Actions
-  void MouseActions(CPlayerAction &paAction) {
-    //((CPlayerWeapons&)*m_penWeapons).SendEvent(EReleaseWeapon());
+  // [Cecil] Menu button area
+  FLOATaabbox2D MenuButton(INDEX iButton) {
+    static const FLOAT2D vSize = FLOAT2D(192, 32);
+
+    FLOAT2D vOffset = FLOAT2D((iButton % 2) ? 32 : -(vSize(1) + 32), 40 * floorf(iButton / 2));
+    FLOAT2D vPos = FLOAT2D(320 + vOffset(1), 192 + vOffset(2));
+
+    return FLOATaabbox2D(vPos, vPos + vSize);
+  };
+
+  // [Cecil] HAX menu actions
+  void MenuActions(void) {
+    // Can't use the menu when dead
+    m_bHAXMenu = ((GetFlags() & ENF_ALIVE) && (ulButtonsNow & PLACT_MENU));
+
+    if (!m_bHAXMenu) {
+      return;
+    }
+
+    // Stop firing
+    ((CPlayerWeapons &)*m_penWeapons).SendEvent(EReleaseWeapon());
 
     // [Cecil] TEMP: 7 buttons instead of 10
-    /*INDEX iSelected = -1;
-    for (INDEX iButton = 0; iButton < 7; iButton++) {
-      FLOAT2D vSize = FLOAT2D(192, 32);
-      FLOAT2D vOffset = FLOAT2D((iButton % 2) ? 32 : -(vSize(1) + 32), 40*Floor(iButton / 2));
-      FLOAT2D vPos = FLOAT2D(320+vOffset(1), 192+vOffset(2));
+    INDEX iSelected = -1;
 
-      if (PointBox(m_vMousePointer, vPos, vSize)) {
+    for (INDEX iButton = 0; iButton < 7; iButton++) {
+      FLOATaabbox2D boxButton = MenuButton(iButton);
+      FLOAT2D vMouse(m_vMousePos(1), m_vMousePos(2));
+
+      if (boxButton >= vMouse) {
         iSelected = iButton;
       }
     }
 
-    if (ulReleasedButtons & (1 << PLACT_SELECT_WEAPON_SHIFT)) {*/
+    // Remember menu buttons
+    const ULONG ulMenuButtons = (ulReleasedButtons & PLACT_SELECT_WEAPON_MASK);
+    const BOOL bMenuClick = (ulMenuButtons == PLACT_SELECT_WEAPON_MASK);
 
-    // [Cecil] Press a button from 0 to 9 (0.72)
-    if ((ulReleasedButtons & PLACT_SELECT_WEAPON_MASK) != 0) {
-      INDEX iSelected = (ulReleasedButtons & PLACT_SELECT_WEAPON_MASK) >> PLACT_SELECT_WEAPON_SHIFT;
+    // Prevent other button actions
+    ulButtonsNow = 0;
+    ulButtonsBefore = m_ulLastButtons;
+    ulNewButtons = 0;
+    ulReleasedButtons = (~ulButtonsNow) & ulButtonsBefore;
 
-      if (iSelected != 0) {
-        switch (iSelected - 1) {
-          case 0: { // god mode
-            CTString strOn = "on";
+    // No button press detected
+    if (ulMenuButtons == 0) {
+      return;
+    }
 
-            if (m_iHAXFlags & HAXF_GOD) {
-              m_iHAXFlags &= ~HAXF_GOD;
-              strOn = "off";
-            } else {
-              m_iHAXFlags |= HAXF_GOD;
-            }
+    // Determine selected button if it wasn't a mouse click
+    if (!bMenuClick) {
+      iSelected = (ulMenuButtons >> PLACT_SELECT_WEAPON_SHIFT) - 1;
+    }
 
-            if (_pNetwork->IsPlayerLocal(this)) {
-              CPrintF("^cffffff god %s\n", strOn);
-            }
-          } break;
+    switch (iSelected) {
+      case 0: { // god mode
+        CTString strOn = "on";
 
-          case 1: { // noclip
-            CTString strOn = "on";
-
-            if (m_iHAXFlags & HAXF_NOCLIP) {
-              m_iHAXFlags &= ~HAXF_NOCLIP;
-              strOn = "off";
-            } else {
-              m_iHAXFlags |= HAXF_NOCLIP;
-            }
-
-            if (_pNetwork->IsPlayerLocal(this)) {
-              CPrintF("^cffffff noclip %s\n", strOn);
-            }
-          } break;
-
-          case 2: { // give all weapons
-            GetPlayerWeapons()->m_iAvailableWeapons = 16383;
-
-            // Fill the ammo
-            for (INDEX iAmmo = 0; iAmmo < 11; iAmmo++) {
-              (&GetPlayerWeapons()->m_iUSP)[iAmmo] = (&GetPlayerWeapons()->m_iUSP_Max)[iAmmo];
-            }
-          } break;
-
-          case 3: { // kill
-            SetHealth(0.0f);
-            SendEvent(EDeath());
-          } break;
-
-          case 4: { // roller mine
-            FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir*0.1f;
-            CEntity *pen = CreateEntity(CPlacement3D(vPos, ANGLE3D(0.0f, 0.0f, 0.0f)), CLASS_ROLLERMINE);
-            ((CRollerMine*)pen)->m_bTakeDamage = TRUE;
-            pen->Initialize();
-
-            if (_pNetwork->IsPlayerLocal(this)) {
-              CPrintF("^cffffff created roller mine on %.0f, %.0f, %.0f\n", vPos(1), vPos(2), vPos(3));
-            }
-          } break;
-
-          case 5: { // ignite entity
-            CEntity *penIgnite = GetPlayerWeapons()->m_penRayHit;
-            if (penIgnite != NULL && penIgnite->GetRenderType() == RT_MODEL) {
-              SpawnFlame(this, penIgnite, penIgnite->GetPlacement().pl_PositionVector);
-              SpawnFlame(this, penIgnite, penIgnite->GetPlacement().pl_PositionVector);
-
-              if (_pNetwork->IsPlayerLocal(this)) {
-                CPrintF("^cffffff ignited '%s'\n", penIgnite->GetName());
-              }
-            }
-          } break;
-
-          case 6: { // radio
-            FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir*0.1f;
-            ANGLE3D aAngle = GetViewPlacement(CPlacement3D(FLOAT3D(0.0f, 0.0f, 0.0f), ANGLE3D(180.0f, 0.0f, 0.0f)), FLOAT3D(-1.0f, 0.0f, 0.0f), 1.0f).pl_OrientationAngle;
-
-            CEntity *pen = CreateEntity(CPlacement3D(vPos, aAngle), CLASS_RADIO);
-            ((CRadio*)pen)->m_bTakeDamage = TRUE;
-            pen->Initialize();
-
-            if (_pNetwork->IsPlayerLocal(this)) {
-              CPrintF("^cffffff created radio on %.0f, %.0f, %.0f\n", vPos(1), vPos(2), vPos(3));
-            }
-          } break;
+        if (m_iHAXFlags & HAXF_GOD) {
+          m_iHAXFlags &= ~HAXF_GOD;
+          strOn = "off";
+        } else {
+          m_iHAXFlags |= HAXF_GOD;
         }
-      }
 
-      /*if (_pNetwork->IsPlayerLocal(this)) {
-        _pInput->EnableInput(_pGfx->gl_pvpActive);
-      }
-      m_bDisableInput = FALSE;*/
+        if (_pNetwork->IsPlayerLocal(this)) {
+          CPrintF("^cffffff god %s\n", strOn);
+        }
+      } break;
+
+      case 1: { // noclip
+        CTString strOn = "on";
+
+        if (m_iHAXFlags & HAXF_NOCLIP) {
+          m_iHAXFlags &= ~HAXF_NOCLIP;
+          strOn = "off";
+        } else {
+          m_iHAXFlags |= HAXF_NOCLIP;
+        }
+
+        if (_pNetwork->IsPlayerLocal(this)) {
+          CPrintF("^cffffff noclip %s\n", strOn);
+        }
+      } break;
+
+      case 2: { // give all weapons
+        GetPlayerWeapons()->m_iAvailableWeapons = 16383;
+
+        // Fill the ammo
+        for (INDEX iAmmo = 0; iAmmo < 11; iAmmo++) {
+          (&GetPlayerWeapons()->m_iUSP)[iAmmo] = (&GetPlayerWeapons()->m_iUSP_Max)[iAmmo];
+        }
+      } break;
+
+      case 3: { // kill
+        SetHealth(0.0f);
+        SendEvent(EDeath());
+      } break;
+
+      case 4: { // roller mine
+        FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir*0.1f;
+        CEntity *pen = CreateEntity(CPlacement3D(vPos, ANGLE3D(0.0f, 0.0f, 0.0f)), CLASS_ROLLERMINE);
+        ((CRollerMine*)pen)->m_bTakeDamage = TRUE;
+        pen->Initialize();
+
+        if (_pNetwork->IsPlayerLocal(this)) {
+          CPrintF("^cffffff created roller mine on %.0f, %.0f, %.0f\n", vPos(1), vPos(2), vPos(3));
+        }
+      } break;
+
+      case 5: { // ignite entity
+        CEntity *penIgnite = GetPlayerWeapons()->m_penRayHit;
+        if (penIgnite != NULL && penIgnite->GetRenderType() == RT_MODEL) {
+          SpawnFlame(this, penIgnite, penIgnite->GetPlacement().pl_PositionVector);
+          SpawnFlame(this, penIgnite, penIgnite->GetPlacement().pl_PositionVector);
+
+          if (_pNetwork->IsPlayerLocal(this)) {
+            CPrintF("^cffffff ignited '%s'\n", penIgnite->GetName());
+          }
+        }
+      } break;
+
+      case 6: { // radio
+        FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir*0.1f;
+        ANGLE3D aAngle = GetViewPlacement(CPlacement3D(FLOAT3D(0.0f, 0.0f, 0.0f), ANGLE3D(180.0f, 0.0f, 0.0f)), FLOAT3D(-1.0f, 0.0f, 0.0f), 1.0f).pl_OrientationAngle;
+
+        CEntity *pen = CreateEntity(CPlacement3D(vPos, aAngle), CLASS_RADIO);
+        ((CRadio*)pen)->m_bTakeDamage = TRUE;
+        pen->Initialize();
+
+        if (_pNetwork->IsPlayerLocal(this)) {
+          CPrintF("^cffffff created radio on %.0f, %.0f, %.0f\n", vPos(1), vPos(2), vPos(3));
+        }
+      } break;
     }
   };
 
@@ -1934,12 +1991,14 @@ functions:
 
     // [Cecil] TEMP: 7 buttons instead of 10
     for (INDEX iButton = 0; iButton < 7; iButton++) {
-      FLOAT2D vSize = FLOAT2D(192, 32);
-      FLOAT2D vOffset = FLOAT2D((iButton % 2) ? 32 : -(vSize(1) + 32), 40 * floorf(iButton / 2));
-      FLOAT2D vPos = FLOAT2D(320+vOffset(1), 192+vOffset(2));
+      FLOATaabbox2D boxButton = MenuButton(iButton);
+      const FLOAT2D vPos = boxButton.Min();
+      const FLOAT2D vSize = boxButton.Size();
 
-      //BOOL bMouse = PointBox(m_vMousePointer, vPos, vSize);
-      pdp->Fill(vPos(1) * fScalingX, vPos(2) * fScalingY, vSize(1) * fScalingX, vSize(2) * fScalingY, (/*bMouse ? hl2_colUIMain : */hl2_colUIBorder));
+      FLOAT2D vMouse(m_vMousePos(1), m_vMousePos(2));
+      const BOOL bMouse = (boxButton >= vMouse);
+
+      pdp->Fill(vPos(1) * fScalingX, vPos(2) * fScalingY, vSize(1) * fScalingX, vSize(2) * fScalingY, (bMouse ? hl2_colUIMain : hl2_colUIBorder));
 
       CTString strButton = "???";
       switch (iButton) {
@@ -1965,6 +2024,27 @@ functions:
 
     pdp->InitTexture(&_toHAXMenu);
     pdp->AddTexture(vHAXPos(1)-vHAXSize(1), vHAXPos(2), vHAXPos(1)+vHAXSize(1), vHAXPos(2)+vHAXSize(2), hl2_colUIMain|0xFF);
+    pdp->FlushRenderingQueue();
+
+    // Mouse pointer
+    pdp->InitTexture(&_toMenuPointer);
+    const PIX pixMouseW = _toMenuPointer.GetWidth();
+    const PIX pixMouseH = _toMenuPointer.GetHeight();
+
+    PIX pixMouseX, pixMouseY;
+
+    // Use pre-scanned render position of local players
+    if (_pNetwork->IsPlayerLocal(this)) {
+      pixMouseX = m_vMouseRender(1) - 1;
+      pixMouseY = m_vMouseRender(2) - 1;
+
+    // Use interpolated position of remote players (for demos/observing)
+    } else {
+      pixMouseX = (Lerp(m_vMousePosLast(1), m_vMousePos(1), _pTimer->GetLerpFactor()) / 640.0f * m_vViewWindow(1)) - 1;
+      pixMouseY = (Lerp(m_vMousePosLast(2), m_vMousePos(2), _pTimer->GetLerpFactor()) / 480.0f * m_vViewWindow(2)) - 1;
+    }
+
+    pdp->AddTexture(pixMouseX, pixMouseY, pixMouseX + pixMouseW, pixMouseY + pixMouseH, 0xFFFFFFFF);
     pdp->FlushRenderingQueue();
   };
 
@@ -2187,6 +2267,10 @@ functions:
     ClearGoreSprayLaunchData();
     m_tmPredict = 0;
 
+    // [Cecil] Reset menu variables
+    m_vMouseRender = FLOAT2D(0, 0);
+    m_vViewWindow = FLOAT2D(0, 0);
+
     // [Cecil] New message system
     m_astrCaptions.New(CT_CAPTIONS+1);
     m_atmCaptionsIn.New(CT_CAPTIONS+1);
@@ -2204,11 +2288,6 @@ functions:
 
     // [Cecil] Reset polygon
     m_cpoStandOn.Reset();
-
-    // [Cecil] Load HAX menu title
-    CTString fnHAX;
-    fnHAX.PrintF("Textures\\Interface\\HAXMenu.tex");
-    _toHAXMenu.SetData_t(fnHAX);
   };
 
   // [Cecil] Initialize entity
@@ -3391,8 +3470,7 @@ functions:
       }
 
       // [Cecil] Render menu
-      //if (m_bDisableInput) {
-      if (m_bRenderHAX) {
+      if (m_bHAXMenu) {
         SetGlobalUI(pdp);
         RenderMenu(pdp);
       }
@@ -3530,16 +3608,20 @@ functions:
   void RenderGameView(CDrawPort *pdp, void *pvUserData) {
     BOOL bShowExtras = (ULONG(pvUserData)&GRV_SHOWEXTRAS);
 
-    // [Cecil] Screen sizes
-    /*if (m_bDisableInput) {
-      m_vGameWindow(1) = pdp->GetWidth();
-      m_vGameWindow(2) = pdp->GetHeight();
-    }*/
+    // [Cecil] Reset mouse position if window size is reset
+    const FLOAT2D vCurrentViewWindow(pdp->GetWidth(), pdp->GetHeight());
+
+    if (m_vViewWindow != vCurrentViewWindow) {
+      m_vMouseRender = vCurrentViewWindow * 0.5f;
+    }
+
+    // [Cecil] Remember current view window size
+    m_vViewWindow = vCurrentViewWindow;
 
     pdp->Unlock();
 
     // if not yet initialized
-    if (!(m_ulFlags&PLF_INITIALIZED) || (m_ulFlags&PLF_DONTRENDER)) { 
+    if (!(m_ulFlags&PLF_INITIALIZED) || (m_ulFlags&PLF_DONTRENDER)) {
       // render dummy view on the right drawport
       CDrawPort dpView(pdp, TRUE);
       if (dpView.Lock()) {
@@ -4630,14 +4712,14 @@ functions:
     // make a copy of action for adjustments
     CPlayerAction paAction = paOriginal;
 
-    // [Cecil] Mouse Input
-    /*if (m_bDisableInput) {
-      if (_pNetwork->IsPlayerLocal(this)) {
-        _pInput->DisableInput();
-      }
-      m_vMousePointer = paAction.pa_aViewRotation;
-      paAction.pa_aViewRotation = ANGLE3D(0.0f, 0.0f, 0.0f);
-    }*/
+    // [Cecil] Update mouse position instead of the view
+    if (m_bHAXMenu) {
+      m_vMousePosLast = m_vMousePos;
+      m_vMousePos = paAction.pa_aRotation;
+
+      paAction.pa_aRotation = m_aLastRotation;
+      paAction.pa_aViewRotation = m_aLastViewRotation;
+    }
 
     // calculate delta from last received actions
     ANGLE3D aDeltaRotation     = paAction.pa_aRotation    -m_aLastRotation;
@@ -5088,12 +5170,7 @@ functions:
         m_penCamera = NULL;
       }
     } else {
-      // [Cecil] Mouse Actions
-      /*if (m_bDisableInput) {
-        MouseActions(paAction);
-      } else*/ {
-        ButtonsActions(paAction);
-      }
+      ButtonsActions(paAction);
     }
 
     // do the actions
@@ -5803,11 +5880,8 @@ functions:
     m_fRecoilPower = 0.0f;
     m_fLastRecoilPower = 0.0f;
 
-    // [Cecil] Mouse Actions
-    /*if (m_bDisableInput) {
-      MouseActions(paAction);
-      return;
-    }*/
+    // [Cecil] HAX menu actions
+    MenuActions();
 
     // if death is finished and fire just released again and this is not a predictor
     if (m_iMayRespawn==2 && (ulReleasedButtons&PLACT_FIRE) && !IsPredictor()) {
@@ -5872,14 +5946,14 @@ functions:
 
   // Buttons actions
   void ButtonsActions(CPlayerAction &paAction) {
-    // [Cecil] No weapon selection in the HAX menu
-    if (!m_bRenderHAX) {
-      // if selecting a new weapon select it
-      if ((ulNewButtons & PLACT_SELECT_WEAPON_MASK) != 0) {
-        ESelectWeapon eSelect;
-        eSelect.iWeapon = (ulNewButtons&PLACT_SELECT_WEAPON_MASK)>>PLACT_SELECT_WEAPON_SHIFT;
-        ((CPlayerWeapons&)*m_penWeapons).SendEvent(eSelect);
-      }
+    // [Cecil] HAX menu actions
+    MenuActions();
+
+    // if selecting a new weapon select it
+    if ((ulNewButtons & PLACT_SELECT_WEAPON_MASK) != 0) {
+      ESelectWeapon eSelect;
+      eSelect.iWeapon = (ulNewButtons&PLACT_SELECT_WEAPON_MASK)>>PLACT_SELECT_WEAPON_SHIFT;
+      ((CPlayerWeapons&)*m_penWeapons).SendEvent(eSelect);
     }
 
     // next weapon zooms out when in sniping mode
@@ -5949,20 +6023,6 @@ functions:
     }
     if (ulReleasedButtons & PLACT_ZOOM) {
       m_bSuitZoom = FALSE;
-    }
-
-    // [Cecil] HAX Menu
-    //if (ulNewButtons & PLACT_MENU) {
-      //m_bDisableInput = TRUE;
-    if (ulButtonsNow & PLACT_MENU) {
-
-      // [Cecil] HAX buttons (0.72)
-      m_bRenderHAX = TRUE;
-      MouseActions(paAction);
-
-    } else {
-      // [Cecil] Disable rendering (0.72)
-      m_bRenderHAX = FALSE;
     }
 
     // if use is pressed
