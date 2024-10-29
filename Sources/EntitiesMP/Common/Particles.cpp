@@ -6150,3 +6150,40 @@ void Particles_GridCell(const FLOAT3D &vPos, FLOAT fGridSize, COLOR colBlend) {
     vPos + FLOAT3D(fMax, 0, fMax),
     vPos + FLOAT3D(fMin, 0, fMax), colBlend);
 };
+
+// [Cecil] TEMP: Render a box centered around some point
+void Particles_ColoredBox(const CPlacement3D &plCenter, const FLOAT3D &vSize, COLOR col) {
+  Particle_PrepareTexture(&_toSand, PBT_ADDALPHA);
+  Particle_SetTexturePart(1, 1, 256, 256);
+
+  const FLOAT3D &v = plCenter.pl_PositionVector;
+  FLOATmatrix3D mRot;
+  MakeRotationMatrix(mRot, plCenter.pl_OrientationAngle);
+
+  const FLOAT3D vMax = vSize * 0.5f;
+  const FLOAT3D vMin = -vMax;
+
+  const FLOAT3D v000 = v + vMin * mRot;
+  const FLOAT3D v001 = v + FLOAT3D(vMin(1), vMin(2), vMax(3)) * mRot;
+  const FLOAT3D v100 = v + FLOAT3D(vMax(1), vMin(2), vMin(3)) * mRot;
+  const FLOAT3D v101 = v + FLOAT3D(vMax(1), vMin(2), vMax(3)) * mRot;
+
+  const FLOAT3D v010 = v + FLOAT3D(vMin(1), vMax(2), vMin(3)) * mRot;
+  const FLOAT3D v011 = v + FLOAT3D(vMin(1), vMax(2), vMax(3)) * mRot;
+  const FLOAT3D v110 = v + FLOAT3D(vMax(1), vMax(2), vMin(3)) * mRot;
+  const FLOAT3D v111 = v + vMax * mRot;
+
+  // Bottom/top
+  Particle_RenderQuad3D(v000, v100, v101, v001, col);
+  Particle_RenderQuad3D(v010, v110, v111, v011, col);
+
+  // Back/front
+  Particle_RenderQuad3D(v000, v100, v110, v010, col);
+  Particle_RenderQuad3D(v001, v101, v111, v011, col);
+
+  // Left/right
+  Particle_RenderQuad3D(v000, v010, v011, v001, col);
+  Particle_RenderQuad3D(v100, v110, v111, v101, col);
+
+  Particle_Flush();
+};

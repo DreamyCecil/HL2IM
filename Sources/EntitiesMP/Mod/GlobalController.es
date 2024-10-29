@@ -28,6 +28,7 @@ properties:
 }
 
 components:
+  1 model MODEL_MARKER "Models\\Editor\\Axis.mdl",
 
 functions:
   // Constructor
@@ -77,6 +78,19 @@ functions:
     return slUsedMemory;
   };
 
+  void RenderParticles(void) {
+    // [Cecil] TEMP: Render boxes around brush physics objects
+    FOREACHNODEINREFS(m_cPhysStep, itn) {
+      CPhysBase *pen = (CPhysBase *)itn->GetOwner();
+
+      if (pen->GetRenderType() != RT_BRUSH) {
+        continue;
+      }
+
+      pen->RenderParticles();
+    }
+  };
+
   // Update the level according to session options
   void UpdateLevel(void) {
     // get the first world base
@@ -89,7 +103,7 @@ functions:
         continue;
       }
 
-      penBase = (CWorldBase*)pen;
+      penBase = (CWorldBase *)pen;
       break;
     }}
 
@@ -172,7 +186,11 @@ procedures:
   };
 
   Main() {
-    InitAsVoid();
+    // [Cecil] TEMP: Initialize as a model to allow rendering of particles
+    //InitAsVoid();
+    InitAsEditorModel();
+    SetModel(MODEL_MARKER);
+
     SetPhysicsFlags(EPF_MODEL_IMMATERIAL);
     SetCollisionFlags(ECF_IMMATERIAL);
 

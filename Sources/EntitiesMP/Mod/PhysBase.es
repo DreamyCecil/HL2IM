@@ -19,6 +19,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "EntitiesMP/Cecil/Physics.h"
 #include <Engine/Math/OBBox.h>
+
+// [Cecil] TEMP
+extern INDEX ode_bRenderPosition;
+extern void Particles_ColoredBox(const CPlacement3D &plCenter, const FLOAT3D &vSize, COLOR col);
 %}
 
 // Abstract base for physical objects with a specific shape
@@ -35,7 +39,9 @@ properties:
 13 FLOAT3D m_vTouchHit = FLOAT3D(0, 0, 0), // Where the touch occurred
 
 {
-  SPhysObject m_obj;
+  SPhysObject m_obj; // Actual physics object simulated by the external physics engine
+  FLOAT3D m_vObjPos; // Physics object position before simulation update
+  FLOATmatrix3D m_mObjRot; // Physics object rotation before simulation update
 
   // For adding to global controller that will run the step function
   CEntityNode m_nNode;
@@ -50,6 +56,8 @@ functions:
   // Constructor
   void CPhysBase(void) {
     PhysObj().penPhysOwner = this;
+    m_vObjPos = FLOAT3D(0, 0, 0);
+    m_mObjRot.Diagonal(1.0f);
 
     m_nNode.SetOwner(this);
     m_syncGravityGun.SetOwner(this);
@@ -153,6 +161,10 @@ functions:
 
       return;
     }
+
+    // Remember current position
+    m_vObjPos = PhysObj().GetPosition();
+    m_mObjRot = PhysObj().GetMatrix();
 
     ulFlags = PhysicsFlagsForPhysSimulation(TRUE);
 
@@ -461,6 +473,71 @@ functions:
 
     // Multiply by about sqrt(2) to cover the size when boxes are rotated 45 degrees
     box.StretchByFactor(1.5f);
+  };
+
+  void RenderParticles(void) {
+    // [Cecil] TEMP: Render boxes around physics objects
+    if (ode_bRenderPosition && (!_pNetwork->IsNetworkEnabled() || _pNetwork->IsServer())) {
+      FLOAT3D vSize;
+      GetPhysCollision(vSize);
+      vSize += FLOAT3D(1, 1, 1) * 0.01f;
+
+      CPlacement3D plOffset, plEntity, plPhys;
+
+      if (GetPhysOffset(plOffset)) {
+        plEntity = plOffset;
+        plEntity.RelativeToAbsolute(CCecilMovableModelEntity::GetLerpedPlacement());
+
+        plPhys = plOffset;
+        plPhys.RelativeToAbsolute(GetLerpedPlacement());
+
+      } else {
+        plEntity = CCecilMovableModelEntity::GetLerpedPlacement();
+        plPhys = GetLerpedPlacement();
+      }
+
+      Particles_ColoredBox(plEntity, vSize, C_RED|0x3F); // Entity position
+      Particles_ColoredBox(plPhys, vSize, C_GREEN|0x3F); // Real physics object position
+    }
+  };
+
+  // Retrieve actual physics object placement for rendering purposes
+  virtual CPlacement3D GetLerpedPlacement(void) const {
+    // Use entity placement if physics are unavailable or while the object is being held
+    if (!PhysicsUsable() || m_syncGravityGun.IsSynced()) {
+      return CCecilMovableModelEntity::GetLerpedPlacement();
+    }
+
+    // Interpolate physics object placement between ticks using quaternions
+    FLOAT3D v0 = m_vObjPos;
+    FLOATquat3D q0;
+    q0.FromMatrix(const_cast<FLOATmatrix3D &>(m_mObjRot));
+
+    FLOAT3D v1 = PhysObj().GetPosition();
+    FLOATquat3D q1;
+    q1.FromMatrix(const_cast<FLOATmatrix3D &>(PhysObj().GetMatrix()));
+
+    FLOAT fRatio = _pTimer->GetLerpFactor();
+
+    CPlacement3D plResult;
+    plResult.pl_PositionVector = Lerp(v0, v1, fRatio);
+
+    FLOATquat3D qResult = Slerp(fRatio, q0, q1);
+    FLOATmatrix3D mResult;
+    qResult.ToMatrix(mResult);
+
+    DecomposeRotationMatrix(plResult.pl_OrientationAngle, mResult);
+
+    CPlacement3D plOffset;
+
+    if (GetPhysOffset(plOffset)) {
+      plOffset.pl_PositionVector = -plOffset.pl_PositionVector;
+      plOffset.pl_OrientationAngle = -plOffset.pl_OrientationAngle;
+      plOffset.RelativeToAbsoluteSmooth(plResult);
+      return plOffset;
+    }
+
+    return plResult;
   };
 
 procedures:
