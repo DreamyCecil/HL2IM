@@ -3764,8 +3764,16 @@ functions:
   };
 
   // add default ammount of ammunition when receiving a weapon
-  void AddDefaultAmmoForWeapon(INDEX iWeapon, FLOAT fMaxAmmoRatio) {
+  BOOL AddDefaultAmmoForWeapon(INDEX iWeapon, FLOAT fMaxAmmoRatio) {
     FLOAT fMul = GetSP()->sp_fAmmoQuantity;
+
+    // [Cecil] Remember last ammo
+    INDEX aiLastAmmo[11];
+    INDEX i;
+
+    for (i = 0; i < 11; i++) {
+      aiLastAmmo[i] = (&m_iUSP)[i];
+    }
 
     switch (iWeapon) {
       // unlimited ammo
@@ -3820,6 +3828,16 @@ functions:
 
     // make sure we don't have more ammo than maximum
     ClampAllAmmo();
+
+    // [Cecil] Check if any ammo has been added
+    for (i = 0; i < 11; i++) {
+      if ((&m_iUSP)[i] != aiLastAmmo[i]) {
+        return TRUE;
+      }
+    }
+
+    // [Cecil] No new ammo added
+    return FALSE;
   }
 
   // drop current weapon (in deathmatch)
@@ -3903,18 +3921,20 @@ functions:
       }
     }
 
+    // must be -1 for default (still have to implement dropping weapons in deathmatch !!!!)
+    ASSERT(Ewi.iAmmo == -1);
+
+    // [Cecil] Try to add ammunition and bail if nothing has been added (max ammo)
+    if (!AddDefaultAmmoForWeapon(wit, 0)) {
+      return FALSE;
+    }
+
     // add weapon
     ULONG ulOldWeapons = m_iAvailableWeapons;
     m_iAvailableWeapons |= 1 << (wit - 1);
 
     // precache eventual new weapons
     Precache();
-
-    // must be -1 for default (still have to implement dropping weapons in deathmatch !!!!)
-    ASSERT(Ewi.iAmmo == -1);
-
-    // add the ammunition
-    AddDefaultAmmoForWeapon(wit, 0);
 
     // [Cecil] Reload weapons
     switch (m_iCurrentWeapon) {
