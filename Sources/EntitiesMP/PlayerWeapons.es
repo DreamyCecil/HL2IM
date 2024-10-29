@@ -1893,10 +1893,10 @@ functions:
 
       for (INDEX i = 0; i < 5; i++) {
         CCecilCastRay crRay(m_penPlayer, plRay[i]);
-        crRay.cr_bHitTranslucentPortals = FALSE;
-        crRay.cr_fTestR = 0.5f;
-        crRay.cr_bPhysical = FALSE;
+        crRay.cr_bHitTranslucentPortals = TRUE;
+        crRay.cr_bPhysical = TRUE;
         crRay.cr_ttHitModels = CCecilCastRay::TT_CUSTOM;
+        crRay.cr_fTestR = 0.5f;
         crRay.Cast(GetWorld());
 
         vRayOrigin = crRay.cr_vOrigin;
