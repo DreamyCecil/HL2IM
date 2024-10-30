@@ -1977,7 +1977,7 @@ functions:
     }
   };
 
-  // [Cecil] Menu Render
+  // [Cecil] Render HAX menu
   void RenderMenu(CDrawPort *pdp) {
     FLOAT fScalingX = 1.0f;
     FLOAT fScalingY = 1.0f;
@@ -2032,11 +2032,12 @@ functions:
     const PIX pixMouseH = _toMenuPointer.GetHeight();
 
     PIX pixMouseX, pixMouseY;
+    CPlayer *pen = (CPlayer *)GetPredictionTail();
 
     // Use pre-scanned render position of local players
-    if (_pNetwork->IsPlayerLocal(this)) {
-      pixMouseX = m_vMouseRender(1) - 1;
-      pixMouseY = m_vMouseRender(2) - 1;
+    if (_pNetwork->IsPlayerLocal(pen)) {
+      pixMouseX = pen->m_vMouseRender(1) - 1;
+      pixMouseY = pen->m_vMouseRender(2) - 1;
 
     // Use interpolated position of remote players (for demos/observing)
     } else {
