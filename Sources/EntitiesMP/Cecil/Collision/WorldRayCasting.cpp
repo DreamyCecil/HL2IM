@@ -401,6 +401,9 @@ void CCecilCastRay::TestModelCustomShape(CEntity *penModel) {
     }
 
   // [Cecil] TODO: Add cr_fTestR value to the radius but also add it to the resulting hit distance
+  const FLOAT3D &vEntity = penModel->GetPlacement().pl_PositionVector;
+  // [Cecil] TODO: Multiply mEntity by another matrix to apply rotation offset for custom collision (e.g. tilted box)
+  const FLOATmatrix3D &mEntity = penModel->GetRotationMatrix();
 
   switch (eShape) {
     case COLSH_SPHERE: {
@@ -411,7 +414,7 @@ void CCecilCastRay::TestModelCustomShape(CEntity *penModel) {
       vColCenter0 = boxSize.Center();
 
       // Absolute position
-      vColCenter0 = penModel->GetPlacement().pl_PositionVector + vColCenter0 * penModel->GetRotationMatrix();
+      vColCenter0 = vEntity + vColCenter0 * mEntity;
 
       if (RayHitsSphere(cr_vOrigin, cr_vTarget, vColCenter0, fRadius, argsHit)) {
         REMEMBER_HIT_POINT;
@@ -431,8 +434,8 @@ void CCecilCastRay::TestModelCustomShape(CEntity *penModel) {
       vColCenter1(3) = boxSize.Max()(3);
 
       // Absolute position
-      vColCenter0 = penModel->GetPlacement().pl_PositionVector + vColCenter0 * penModel->GetRotationMatrix();
-      vColCenter1 = penModel->GetPlacement().pl_PositionVector + vColCenter1 * penModel->GetRotationMatrix();
+      vColCenter0 = vEntity + vColCenter0 * mEntity;
+      vColCenter1 = vEntity + vColCenter1 * mEntity;
 
       // Cylinder normals
       const FLOAT3D vNormal0 = (vColCenter0 - vColCenter1).SafeNormalize();
@@ -460,15 +463,15 @@ void CCecilCastRay::TestModelCustomShape(CEntity *penModel) {
 
       // Capsule bottom position
       vColCenter0 = boxSize.Center();
-      vColCenter0(3) += boxSize.Min()(3) + 0.5f;
+      vColCenter0(3) += boxSize.Min()(3) + fRadius;
 
       // Capsule top position
       vColCenter1 = boxSize.Center();
-      vColCenter1(3) += boxSize.Max()(3) - 0.5f;
+      vColCenter1(3) += boxSize.Max()(3) - fRadius;
 
       // Absolute position
-      vColCenter0 = penModel->GetPlacement().pl_PositionVector + vColCenter0 * penModel->GetRotationMatrix();
-      vColCenter1 = penModel->GetPlacement().pl_PositionVector + vColCenter1 * penModel->GetRotationMatrix();
+      vColCenter0 = vEntity + vColCenter0 * mEntity;
+      vColCenter1 = vEntity + vColCenter1 * mEntity;
 
       // Capsule bottom
       if (RayHitsSphere(cr_vOrigin, cr_vTarget, vColCenter0, fRadius, argsHit)) {
@@ -489,9 +492,6 @@ void CCecilCastRay::TestModelCustomShape(CEntity *penModel) {
     // Collide with a box by default
     default: {
       // Shoot ray through 12 triangles of a bounding box around the model
-      const FLOAT3D &vEntity = penModel->GetPlacement().pl_PositionVector;
-      const FLOATmatrix3D &mEntity = penModel->GetRotationMatrix();
-
       CollisionTris_t aTris;
       GetTrisFromBox(boxSize, aTris);
 

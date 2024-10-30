@@ -252,16 +252,23 @@ functions:
 
     // Add geoms of a specific max size
     FLOAT3D vMaxSize;
-    GetPhysCollision(vMaxSize);
-    AddPhysGeoms(vMaxSize);
+    ECollisionShape eShape = GetPhysCollision(vMaxSize);
+    AddPhysGeoms(eShape, vMaxSize);
 
     // Finish up the object
     PhysObj().EndShape();
   };
 
   // Add physics object geometry
-  virtual void AddPhysGeoms(const FLOAT3D &vMaxSize) {
-    PhysObj().AddBox(odeVector(vMaxSize(1), vMaxSize(2), vMaxSize(3)) * 1.01);
+  virtual void AddPhysGeoms(ECollisionShape eShape, const FLOAT3D &vMaxSize) {
+    // Default collision shapes around the entity
+    switch (eShape) {
+      case COLSH_BOX:      PhysObj().AddBox(odeVector(vMaxSize(1), vMaxSize(2), vMaxSize(3))); break;
+      case COLSH_SPHERE:   PhysObj().AddSphere(vMaxSize(1)); break;
+      case COLSH_CYLINDER: PhysObj().AddCylinder(vMaxSize(2), vMaxSize(3)); break;
+      case COLSH_CAPSULE:  PhysObj().AddCapsule(vMaxSize(2), vMaxSize(3) - vMaxSize(2)); break;
+      default: ASSERTALWAYS("Unknown collision shape for physics geoms!"); break;
+    }
   };
 
   // Connect with other geoms, if possible
@@ -517,7 +524,13 @@ functions:
     FLOATquat3D q1;
     q1.FromMatrix(const_cast<FLOATmatrix3D &>(PhysObj().GetMatrix()));
 
-    FLOAT fRatio = _pTimer->GetLerpFactor();
+    FLOAT fRatio;
+
+    if (IsPredictor()) {
+      fRatio = _pTimer->GetLerpFactor();
+    } else {
+      fRatio = _pTimer->GetLerpFactor2();
+    }
 
     CPlacement3D plResult;
     plResult.pl_PositionVector = Lerp(v0, v1, fRatio);

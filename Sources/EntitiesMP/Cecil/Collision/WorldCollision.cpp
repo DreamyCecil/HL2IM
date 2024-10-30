@@ -78,6 +78,8 @@ inline void CCecilClipMove::GetPositionsOfEntity(
     v1 = v0;
     m1 = m0;
   }
+
+  // [Cecil] TODO: Multiply m0 and m1 by another matrix here to apply rotation offset for custom collision (e.g. tilted box)
 }
 
 /*
