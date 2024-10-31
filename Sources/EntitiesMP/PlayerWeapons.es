@@ -3942,6 +3942,9 @@ functions:
         if (m_iGrenades > 0 && GetCurrentAnim(m_moWeapon, 0) == GRENADE_ANIM_DEFAULT) {
           AttachAnim(m_moWeapon, 0, 1, -1, GRENADE_ANIM_DRAW, 0);
         }
+
+        // Report picked grenades, just like other ammo
+        GetPlayer()->ItemPicked(TRANS("Grenades"), 1);
         break;
 
       default: {
