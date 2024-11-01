@@ -67,6 +67,29 @@ odeObject *SPhysObject::ForEntity(CEntity *pen) {
   return NULL;
 };
 
+// Check collision masks between two physical entities
+static inline BOOL SkipCollision(CEntity *pen1, CEntity *pen2) {
+  // Don't skip anything if there are no entities
+  if (pen1 == NULL || pen2 == NULL) return FALSE;
+
+  const ULONG ul1 = pen1->GetCollisionFlags();
+  const ULONG ul2 = pen2->GetCollisionFlags();
+
+  // Check if objects pass through each other (like SendPassEvent() from clipping)
+  const ULONG ulPassMask1 = ((ul1 & ECF_PASSMASK) >> ECB_PASS) << ECB_IS;
+  const ULONG ulPassMask2 = ((ul1 & ECF_ISMASK  ) >> ECB_IS  ) << ECB_PASS;
+
+  if ((ulPassMask1 & ul2) || (ulPassMask2 & ul2)) {
+    return TRUE;
+  }
+
+  // Check if objects don't test for collision with each other (like MustTest() from clipping)
+  const ULONG ulTestMask1 = ((ul1 & ECF_TESTMASK) >> ECB_TEST) << ECB_IS;
+  const ULONG ulTestMask2 = ((ul1 & ECF_ISMASK  ) >> ECB_IS  ) << ECB_TEST;
+
+  return !(ul2 & ulTestMask1) || !(ul2 & ulTestMask2);
+};
+
 // Determine surface type between two objects
 static inline INDEX GetSurfaceTypeBetweenObjects(odeObject *objThis, odeObject *objOther) {
   // Not a world mesh
@@ -138,19 +161,21 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
   // [Cecil] TEMP: Ignore geoms with no attached objects
   if (obj1 == NULL || obj2 == NULL) return;
 
-  // Maximum number of contacts to create between bodies (see ODE documentation)
-  #define MAX_NUM_CONTACTS 8
-  dContact aContacts[MAX_NUM_CONTACTS];
+  CCecilMovableEntity *pen1 = obj1->penPhysOwner;
+  CCecilMovableEntity *pen2 = obj2->penPhysOwner;
 
   // Check for player-owned objects
-  const BOOL bPlayer1 = IsDerivedFromID(obj1->penPhysOwner, CPlayer_ClassID);
-  const BOOL bPlayer2 = IsDerivedFromID(obj2->penPhysOwner, CPlayer_ClassID);
+  const BOOL bPlayer1 = IsDerivedFromID(pen1, CPlayer_ClassID);
+  const BOOL bPlayer2 = IsDerivedFromID(pen2, CPlayer_ClassID);
 
   // Don't let player objects collide with the world
   if (bPlayer1 && obj2 == _pODE->pObjWorld) return;
   if (bPlayer2 && obj1 == _pODE->pObjWorld) return;
   // Or each other
   if (bPlayer1 && bPlayer2) return;
+
+  // Skip collision with players if collision masks don't match
+  if ((bPlayer1 || bPlayer2) && SkipCollision(pen1, pen2)) return;
 
   // Get surfaces for both objects
   const INDEX iSurface1 = GetSurfaceTypeBetweenObjects(obj1, obj2);
@@ -167,6 +192,10 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
     const CSurfaceType &st = pwo->wo_astSurfaceTypes[iSurface2];
     fFriction *= Clamp(st.st_fFriction, 0.0f, 1.0f);
   }
+
+  // Maximum number of contacts to create between bodies (see ODE documentation)
+  #define MAX_NUM_CONTACTS 8
+  dContact aContacts[MAX_NUM_CONTACTS];
 
   // Setup contact surfaces for collision
   for (int iSetup = 0; iSetup < MAX_NUM_CONTACTS; iSetup++) {
@@ -192,13 +221,13 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
     if (bPlayer1) {
       pObj = obj1;
       pObjOther = obj2;
-      penPlayer = obj1->penPhysOwner;
+      penPlayer = pen1;
     }
 
     if (bPlayer2) {
       pObj = obj2;
       pObjOther = obj1;
-      penPlayer = obj2->penPhysOwner;
+      penPlayer = pen2;
     }
 
     if (pObjOther != NULL && pObjOther->penPhysOwner != NULL) {
