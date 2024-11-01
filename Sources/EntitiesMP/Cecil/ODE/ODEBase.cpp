@@ -97,8 +97,11 @@ static inline INDEX GetSurfaceTypeBetweenObjects(odeObject *objThis, odeObject *
     // No entity
     if (objThis->penPhysOwner == NULL) return -1;
 
+  #if FIND_CLOSEST_POLYGON_FOR_SURFACE_TYPE
     // Not a brush
-    if (objThis->penPhysOwner->GetRenderType() != CEntity::RT_BRUSH) {
+    if (objThis->penPhysOwner->GetRenderType() != CEntity::RT_BRUSH)
+  #endif
+    {
       // Get surface for this object
       return GetSurfaceForEntity(objThis->penPhysOwner);
     }

@@ -232,99 +232,99 @@ BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime) {
   // go through all brush polygons
   {FOREACHINSTATICARRAY(_pwoConfigWorld->wo_baBrushes.ba_apbpo, CBrushPolygon *, itbpo) {
     CBrushPolygon *pbpo = itbpo.Current();
-    // [Cecil] TEMP: Don't set the stone
-    INDEX iMaterial = -1; //(bFirstTime ? SURFACE_STONE : -1);
+    INDEX iMaterial = -1;
     INDEX iType = 0;
     BOOL bCanBeGlass = FALSE;
 
-    // skip if no textures
+    const BOOL bTransparent = (pbpo->bpo_ulFlags & (BPOF_TRANSLUCENT|BPOF_TRANSPARENT));
+    const BOOL bInvisible = (pbpo->bpo_ulFlags & BPOF_INVISIBLE);
+    const BOOL bPortal = (pbpo->bpo_ulFlags & BPOF_PORTAL);
+    const BOOL bShootThru = (pbpo->bpo_ulFlags & BPOF_SHOOTTHRU);
+    const BOOL bPassable = (pbpo->bpo_ulFlags & BPOF_PASSABLE);
+
+    // Skip if invisible
+    if (bInvisible) continue;
+    
+    // Determine glass polygons
+    if (bTransparent) {
+      if (bFirstTime) {
+        // Check if layers are opaque
+        BOOL bOpaque = FALSE;
+        for (INDEX iOpaqueLayer = 0; iOpaqueLayer < 3; iOpaqueLayer++) {
+          bOpaque |= (pbpo->bpo_abptTextures[iOpaqueLayer].s.bpt_ubBlend == 0);
+        }
+
+        // Glass should not be opaque, shoot-through or passable
+        bCanBeGlass = bTransparent && !bOpaque && !bShootThru && !bPassable;
+      }
+
+    // Skip if non-transparent portal
+    } else if (bPortal) {
+      continue;
+    }
+
+    // Skip if no textures
     BOOL bSkip = TRUE;
 
     for (INDEX iLayerCheck = 0; iLayerCheck < 3; iLayerCheck++) {
       CBrushPolygonTexture &bpt = pbpo->bpo_abptTextures[iLayerCheck];
       const CTFileName &fnCheckTex = bpt.bpt_toTexture.GetName();
 
-      // at least one texture exists
+      // At least one texture exists
       if (fnCheckTex != "") {
         bSkip = FALSE;
         break;
       }
     }
 
-    // skip if invisible
-    if (!bSkip) {
-      BOOL bTransparent = (pbpo->bpo_ulFlags & (BPOF_TRANSLUCENT|BPOF_TRANSPARENT));
-      BOOL bInvisible = (pbpo->bpo_ulFlags & BPOF_INVISIBLE);
-      BOOL bPortal = (pbpo->bpo_ulFlags & BPOF_PORTAL);
-      BOOL bShootThru = (pbpo->bpo_ulFlags & BPOF_SHOOTTHRU);
-      BOOL bPassable = (pbpo->bpo_ulFlags & BPOF_PASSABLE);
+    if (bSkip) continue;
 
-      if (bTransparent) {
-        // skip if invisible
-        bSkip = bInvisible;
+    const INDEX iSurfaceType = pbpo->bpo_bppProperties.bpp_ubSurfaceType;
 
-        // determine glass polygons
-        if (!bSkip && bFirstTime)
-        {
-          // check if layers are opaque
-          BOOL bOpaque = FALSE;
-          for (INDEX iOpaqueLayer = 0; iOpaqueLayer < 3; iOpaqueLayer++) {
-            bOpaque |= (pbpo->bpo_abptTextures[iOpaqueLayer].s.bpt_ubBlend == 0);
-          }
+    // Determine generic type from the surface
+    switch (iSurfaceType) {
+      // Leave certain surfaces as is if they've already been set
+      case SURFACE_LAVA:
+      case SURFACE_SAND:
+      case SURFACE_WATER:
+      case SURFACE_RED_SAND:
+      case SURFACE_GRASS:
+      case SURFACE_WOOD:
+      case SURFACE_SNOW:
+        continue;
 
-          // glass should not be opaque, shoot-through or passable
-          bCanBeGlass = bTransparent && !bOpaque && !bShootThru && !bPassable;
-        }
-
-      // skip if invisible in any way
-      } else {
-        bSkip = (bPortal || bInvisible);
-      }
-    }
-
-    // skip this polygon
-    if (bSkip) {
-      continue;
-    }
-
-    // get the type
-    INDEX iPolygonType = pbpo->bpo_bppProperties.bpp_ubSurfaceType;
-    switch (iPolygonType) {
-      // sliding
-      case 1: case 4: case 5: case 6: case 14: case 19:
+      // Sliding
+      case SURFACE_ICE:
+      case SURFACE_ICE_CLIMBABLESLOPE:
+      case SURFACE_ICE_SLIDINGSLOPE:
+      case SURFACE_ICE_LESSSLIDING:
+      case SURFACE_ICE_SLIDINGSLOPE_NOIMPACT:
+      case SURFACE_GRASS_SLIDING:
         iType = 1;
         break;
 
-      // no impact
-      case 11: case 15: case 16: case 20:
+      // No impact
+      case SURFACE_STONE_NOIMPACT:
+      case SURFACE_ROLLERCOASTER_NOIMPACT:
+      case SURFACE_STONE_HIGHSTAIRS_NOIMPACT:
+      case SURFACE_GRASS_NOIMPACT:
         iType = 2;
         break;
 
-      // high slopes
-      case 10:
+      // High slopes
+      case SURFACE_CLIMBABLESLOPE:
         iType = 3;
         break;
 
-      // new surfaces
+      // New surfaces
       default: {
-        if (iPolygonType >= SURFACE_LAST_VANILLA) {
+        if (iSurfaceType >= SURFACE_LAST_VANILLA) {
           // [material] - [the normal type of this material]
           // e.g. SUR_METAL_NOIMPACT - SUR_METAL_NORMAL
-          INDEX iShifted = (iPolygonType - SURFACE_LAST_VANILLA);
+          INDEX iShifted = (iSurfaceType - SURFACE_LAST_VANILLA);
           iType = (iShifted - INDEX(iShifted / ESRT_LAST) * ESRT_LAST);
         }
       }
-    }
-
-    // reset the material
-    if (bFirstTime) {
-      // [Cecil] TEMP 2: Don't reset at all
-
-      // [Cecil] TEMP: Don't reset specific surfaces
-      /*if (iPolygonType != SURFACE_WATER
-       && iPolygonType != SURFACE_WOOD) {
-        pbpo->bpo_bppProperties.bpp_ubSurfaceType = 0;
-      }*/
     }
 
     // for each texture on the polygon
@@ -343,53 +343,56 @@ BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime) {
       }
     }
 
-    // apply the material
+    // Apply the material
     if (iMaterial >= SURFACE_LAST_VANILLA) {
-      // determine the material for new surfaces
+      // Determine the material for new surfaces
       iMaterial += iType;
 
     } else {
-      // determine the material for old surfaces
+      // Determine the material for old surfaces (leaves surface as is if the special type is 0, i.e. normal)
       switch (iMaterial) {
-        case SURFACE_GRASS:
+        case SURFACE_GRASS: {
           switch (iType) {
+            // No "slope" variant
             case 1: iMaterial = SURFACE_GRASS_SLIDING; break;
             case 2: iMaterial = SURFACE_GRASS_NOIMPACT; break;
           }
-          break;
+        } break;
 
-        case SURFACE_WOOD:
+        case SURFACE_WOOD: {
           switch (iType) {
+            // No "no impact" variant
             case 1: iMaterial = SURFACE_WOOD_SLIDING; break;
             case 3: iMaterial = SURFACE_WOOD_SLOPE; break;
           }
-          break;
+        } break;
 
-        // override with ice
-        case SURFACE_SNOW:
+        // Override with ice
+        case SURFACE_SNOW: {
           switch (iType) {
-            case 1: iMaterial = 1; break;
+            // No "no impact" or "slope" variants
+            case 1: iMaterial = SURFACE_ICE; break;
           }
-          break;
+        } break;
 
         default:
-          // glass
+          // Glass
           if (bCanBeGlass) {
             iMaterial = MATERIAL_VAR(GLASS) + iType;
 
-          // just stone
+          // Just stone
           } else {
             switch (iType) {
-              case 1: iMaterial = 1; break; // ice
-              case 2: iMaterial = 11; break; // no impact
-              case 3: iMaterial = 10; break; // high slope
+              case 1: iMaterial = SURFACE_ICE; break; // Ice
+              case 2: iMaterial = SURFACE_STONE_NOIMPACT; break; // No impact
+              case 3: iMaterial = SURFACE_CLIMBABLESLOPE; break; // High slope
             }
           }
           break;
       }
     }
 
-    // if found any material
+    // Change the surface if found any material
     if (iMaterial != -1) {
       pbpo->bpo_bppProperties.bpp_ubSurfaceType = iMaterial;
     }
