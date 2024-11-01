@@ -481,8 +481,18 @@ functions:
       box += plOffset.pl_PositionVector;
     }
 
-    // Determine equality by finding two longest axes
-    if (vSize(2) >= vSize(3) && vSize(1) >= vSize(3)) {
+    // Determine equality by finding two shortest axes
+    if (vSize(2) < vSize(3) && vSize(1) < vSize(3)) {
+      iEquality = HEIGHT_EQ_WIDTH;
+
+    } else if (vSize(3) < vSize(2) && vSize(1) < vSize(2)) {
+      iEquality = LENGTH_EQ_WIDTH;
+
+    } else if (vSize(3) < vSize(1) && vSize(2) < vSize(1)) {
+      iEquality = LENGTH_EQ_HEIGHT;
+
+    // Determine equality by finding two longest axes (as backup)
+    } else if (vSize(2) >= vSize(3) && vSize(1) >= vSize(3)) {
       iEquality = HEIGHT_EQ_WIDTH;
 
     } else if (vSize(3) >= vSize(2) && vSize(1) >= vSize(2)) {
