@@ -335,7 +335,7 @@ void ODE_Init(void) {
 void ODE_Start(void) {
   if (ODE_IsStarted()) {
     CPutString("^cffff00Restarting ODE simulation...\n");
-    ODE_End();
+    ODE_End(FALSE);
   }
 
   dRandSetSeed(0);
@@ -374,16 +374,12 @@ void ODE_Start(void) {
   CWorld &wo = _pNetwork->ga_World;
   INDEX iBrushVertexOffset = 0;
 
-  CDynamicContainer<CPhysBase> cenPhysObjects;
-
   FOREACHINDYNAMICCONTAINER(wo.wo_cenEntities, CEntity, iten) {
     CEntity *pen = iten;
 
     // Create physical objects and remember them
     if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
       CPhysBase *penPhys = (CPhysBase *)pen;
-      cenPhysObjects.Add(penPhys);
-
       penPhys->CreateObject();
       continue;
     }
@@ -406,16 +402,23 @@ void ODE_Start(void) {
   _pODE->pObjWorld->AddTrimesh();
   _pODE->pObjWorld->EndShape();
 
-  // Create joints for physical objects
-  FOREACHINDYNAMICCONTAINER(cenPhysObjects, CPhysBase, itenPhys) {
-    itenPhys->ConnectGeoms();
+  // Notify physics objects about simulation starting
+  FOREACHNODEINREFS(_penGlobalController->m_cPhysEntities, itn) {
+    itn->GetOwner()->SendEvent(EPhysicsStart());
   }
 };
 
-void ODE_End(void) {
+void ODE_End(BOOL bGameEnd) {
   if (!ODE_IsStarted()) {
     CPutString("^cff0000ODE simulation is already off\n");
     return;
+  }
+
+  if (!bGameEnd) {
+    // Notify physics objects about simulation stopping
+    FOREACHNODEINREFS(_penGlobalController->m_cPhysEntities, itn) {
+      itn->GetOwner()->SendEvent(EPhysicsStop());
+    }
   }
 
   _pODE->bStarted = FALSE;

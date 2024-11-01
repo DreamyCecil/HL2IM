@@ -25,6 +25,10 @@ extern INDEX ode_bRenderPosition;
 extern void Particles_ColoredBox(const CPlacement3D &plCenter, const FLOAT3D &vSize, COLOR col);
 %}
 
+// Events sent upon toggling the physics simulation
+event EPhysicsStart {};
+event EPhysicsStop {};
+
 // Abstract base for physical objects with a specific shape
 class CPhysBase : CCecilMovableModelEntity {
 name      "PhysBase";
@@ -251,7 +255,7 @@ functions:
     }
 
     // Add this object to the controller
-    _penGlobalController->m_cPhysStep.Add(m_nNode);
+    _penGlobalController->m_cPhysEntities.Add(m_nNode);
 
     // Begin creating a new object
     CPlacement3D plOffset;
@@ -284,9 +288,6 @@ functions:
       default: ASSERTALWAYS("Unknown collision shape for physics geoms!"); break;
     }
   };
-
-  // Connect with other geoms, if possible
-  virtual void ConnectGeoms(void) {};
 
 /****************************************************************/
 /*                Common physics object movement                */

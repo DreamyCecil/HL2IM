@@ -23,8 +23,8 @@ features  "IsImportant";
 
 properties:
 {
-  // Physics objects to call step functions for
-  CEntityReferences m_cPhysStep;
+  // Physics objects that currently exist in the world
+  CEntityReferences m_cPhysEntities;
 }
 
 components:
@@ -45,9 +45,9 @@ functions:
     _pODE->WriteState_t(ostr, FALSE);
 
     // Write physics objects
-    *ostr << m_cPhysStep.GetNodes().Count();
+    *ostr << m_cPhysEntities.GetNodes().Count();
 
-    FOREACHNODEINREFS(m_cPhysStep, itn) {
+    FOREACHNODEINREFS(m_cPhysEntities, itn) {
       *ostr << itn->GetOwner()->en_ulID;
     }
   };
@@ -68,7 +68,7 @@ functions:
       *istr >> ulID;
 
       CPhysBase *pen = (CPhysBase *)GetWorld()->EntityFromID(ulID);
-      m_cPhysStep.Add(pen->m_nNode);
+      m_cPhysEntities.Add(pen->m_nNode);
     }
   };
 
@@ -80,7 +80,7 @@ functions:
 
   void RenderParticles(void) {
     // [Cecil] TEMP: Render boxes around brush physics objects
-    FOREACHNODEINREFS(m_cPhysStep, itn) {
+    FOREACHNODEINREFS(m_cPhysEntities, itn) {
       CPhysBase *pen = (CPhysBase *)itn->GetOwner();
 
       if (pen->GetRenderType() != RT_BRUSH) {
@@ -156,7 +156,7 @@ procedures:
       wait (ONE_TICK) {
         on (EPreLevelChange) : {
           // Stop physics
-          ODE_End();
+          ODE_End(TRUE);
           resume;
         }
 
@@ -167,14 +167,14 @@ procedures:
 
         // Toggle physics
         on (EStart) : { ODE_Start(); resume; }
-        on (EStop) : { ODE_End(); resume; }
+        on (EStop) : { ODE_End(FALSE); resume; }
 
         on (ETimer) : { stop; }
         otherwise() : { resume; }
       }
 
       // Execute step function for physics objects
-      FOREACHNODEINREFS(m_cPhysStep, itn) {
+      FOREACHNODEINREFS(m_cPhysEntities, itn) {
         CPhysBase *pen = (CPhysBase *)itn->GetOwner();
         pen->OnPhysStep();
       }

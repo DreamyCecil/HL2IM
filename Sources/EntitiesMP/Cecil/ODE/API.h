@@ -33,7 +33,7 @@ DECL_DLL void ODE_Init(void);
 DECL_DLL void ODE_Start(void);
 
 // Stop ODE physics for the current simulation
-DECL_DLL void ODE_End(void);
+DECL_DLL void ODE_End(BOOL bGameEnd);
 
 // Read data that was saved during loading
 DECL_DLL void ODE_ReadSavedData(void);

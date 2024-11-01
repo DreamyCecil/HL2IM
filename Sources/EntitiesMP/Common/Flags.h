@@ -98,8 +98,9 @@
 // [Cecil] Collision flags for physical objects
 #define ECF_PHYS_TESTALL         ((ECBI_PROJECTILE_MAGIC | ECBI_PROJECTILE_SOLID | ECBI_MODEL | ECBI_PLAYER) << ECB_TEST) // Test against all entities
 #define ECF_PHYS_TESTPROJECTILES ((ECBI_PROJECTILE_MAGIC | ECBI_PROJECTILE_SOLID) << ECB_TEST) // Only test against projectiles
-#define ECF_PHYS_ISMODEL         (((ECBI_PHYSOBJECT) << ECB_PASS) | ((ECBI_MODEL | ECBI_PHYSOBJECT) << ECB_IS)) // It's a model that passes through itself
-#define ECF_PHYS_BRUSH           (ECF_BRUSH) // Physical brush
+#define ECF_IS_PHYSOBJECT        ((ECBI_PHYSOBJECT) << ECB_IS) // It's a physical object
+#define ECF_PHYS_ISMODEL         (ECF_IS_PHYSOBJECT | ((ECBI_PHYSOBJECT) << ECB_PASS) | ((ECBI_MODEL) << ECB_IS)) // It's a model that passes through itself
+#define ECF_PHYS_BRUSH           (ECF_IS_PHYSOBJECT | ECF_BRUSH) // Physical brush
 
 /*
  *  PHYSIC COMBINATIONS

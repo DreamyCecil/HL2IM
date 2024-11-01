@@ -1408,6 +1408,11 @@ BOOL CGame::StartDemoRec(const CTFileName &fnDemo)
 {
   // save demo recording
   try {
+    // [Cecil] Prevent demos from being recorded while physics simulation is running
+    if (ODE_IsStarted()) {
+      ThrowF_t(TRANS("Physics simulation is currently active! It needs to be disabled before recording demos for proper physics synchronization."));
+    }
+
     _pNetwork->StartDemoRec_t( fnDemo);
     CPrintF(TRANS("Started recording demo: %s\n"), fnDemo);
     // save a thumbnail
@@ -1471,7 +1476,7 @@ void CGame::StopGame(void) {
   }
 
   // [Cecil] Stop physics
-  ODE_End();
+  ODE_End(TRUE);
 
   // stop eventual camera
   CAM_Stop();
