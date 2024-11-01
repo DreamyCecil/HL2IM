@@ -93,11 +93,25 @@ functions:
   virtual void PhysWrite_t(CTStream *ostr) {
     // Write sync class
     WriteHeldObject(m_syncGravityGun, ostr);
+
+    // Write physics extras
+    if (IsPlayingGame()) {
+      ostr->WriteID_t(CChunkID("PHYX"));
+      *ostr << m_vObjPos;
+      *ostr << m_mObjRot;
+    }
   };
 
   virtual void PhysRead_t(CTStream *istr) {
     // Read sync class
     ReadHeldObject(m_syncGravityGun, istr, this);
+
+    // Read physics extras
+    if (istr->PeekID_t() == CChunkID("PHYX")) {
+      istr->ExpectID_t(CChunkID("PHYX"));
+      *istr >> m_vObjPos;
+      *istr >> m_mObjRot;
+    }
   };
 
 /****************************************************************/
