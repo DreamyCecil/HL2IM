@@ -1392,6 +1392,7 @@ properties:
  240 BOOL m_bSuitZoom = FALSE,
  241 FLOAT m_fZoomFOV = 90.0f,
  242 FLOAT m_fLastZoomFOV = 90.0f,
+ 243 BOOL m_bHEVSuit = TRUE,
 
  250 CEntityPointer m_penFlashlight,
  251 CEntityPointer m_penFLAmbient,
@@ -4401,6 +4402,10 @@ functions:
 
         if (fValue > 150) {
           iArmorSound = SOUND_SUITMUSIC;
+
+          // Give suit
+          m_bHEVSuit = TRUE;
+
         } else if (fValue > 50) {
           iArmorSound = SOUND_SUITCHARGE;
         }
@@ -6790,6 +6795,10 @@ functions:
         SetHealth(CpmStart.m_fHealth/100.0f*TopHealth());
         m_iMana  = GetSP()->sp_iInitialMana;
         m_fArmor = CpmStart.m_fShield;
+
+        // [Cecil] Set HEV suit
+        m_bHEVSuit = CpmStart.m_bHEVSuit;
+
       } else if (bAdjustHealth) {
         FLOAT fHealth = GetHealth();
         FLOAT fTopHealth = TopHealth();

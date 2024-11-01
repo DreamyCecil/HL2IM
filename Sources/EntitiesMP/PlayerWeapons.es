@@ -2125,73 +2125,75 @@ functions:
     pdp->FlushRenderingQueue();
 
     // [Cecil] Bar contents
-    const UBYTE ubAlpha = (hl2_colUIMain & 0xFF);
+    if (GetPlayer()->m_bHEVSuit) {
+      const UBYTE ubAlpha = (hl2_colUIMain & 0xFF);
 
-    FLOAT fCurHealth = (GetPlayer()->GetHealth() / 100.0f);
-    FLOAT fCurAmmo = FLOAT(GetAmmo(m_iCurrentWeapon)) / FLOAT(GetMaxAmmo(m_iCurrentWeapon));
-    if (GetMaxMagCount(m_iCurrentWeapon) > 1) {
-      fCurAmmo = FLOAT(GetMagCount(m_iCurrentWeapon)) / FLOAT(GetMaxMagCount(m_iCurrentWeapon));
-    }
-
-    const FLOAT fHealthRatio = Clamp(fCurHealth * 0.725f + 0.15f, 0.0f, 1.0f);
-    const FLOAT fAmmoRatio   = Clamp(fCurAmmo   * 0.725f + 0.15f, 0.0f, 1.0f);
-
-    const BOOL bHealthWarning = (fCurHealth <= 0.3f);
-    const BOOL bAmmoWarning = (fCurAmmo <= 0.3f);
-
-    // [Cecil] Play warning sound
-    CPlayerWeapons *pen = (CPlayerWeapons *)GetPredictionTail();
-
-    if (pen->m_bAmmoWarning != bAmmoWarning) {
-      if (bAmmoWarning && _penViewPlayer == m_penPlayer) {
-        CPlayer &pl = (CPlayer &)*m_penPlayer;
-        pl.m_soOther.Set3DParameters(10.0f, 4.0f, 1.0f, 1.0f);
-        PlaySound(pl.m_soOther, SOUND_WARNING, SOF_3D|SOF_VOLUMETRIC);
+      FLOAT fCurHealth = (GetPlayer()->GetHealth() / 100.0f);
+      FLOAT fCurAmmo = FLOAT(GetAmmo(m_iCurrentWeapon)) / FLOAT(GetMaxAmmo(m_iCurrentWeapon));
+      if (GetMaxMagCount(m_iCurrentWeapon) > 1) {
+        fCurAmmo = FLOAT(GetMagCount(m_iCurrentWeapon)) / FLOAT(GetMaxMagCount(m_iCurrentWeapon));
       }
 
-      pen->m_bAmmoWarning = bAmmoWarning;
+      const FLOAT fHealthRatio = Clamp(fCurHealth * 0.725f + 0.15f, 0.0f, 1.0f);
+      const FLOAT fAmmoRatio   = Clamp(fCurAmmo   * 0.725f + 0.15f, 0.0f, 1.0f);
+
+      const BOOL bHealthWarning = (fCurHealth <= 0.3f);
+      const BOOL bAmmoWarning = (fCurAmmo <= 0.3f);
+
+      // [Cecil] Play warning sound
+      CPlayerWeapons *pen = (CPlayerWeapons *)GetPredictionTail();
+
+      if (pen->m_bAmmoWarning != bAmmoWarning) {
+        if (bAmmoWarning && _penViewPlayer == m_penPlayer) {
+          CPlayer &pl = (CPlayer &)*m_penPlayer;
+          pl.m_soOther.Set3DParameters(10.0f, 4.0f, 1.0f, 1.0f);
+          PlaySound(pl.m_soOther, SOUND_WARNING, SOF_3D|SOF_VOLUMETRIC);
+        }
+
+        pen->m_bAmmoWarning = bAmmoWarning;
+      }
+
+      // [Cecil] Bar positions
+      FLOAT fBarRatio = 1.0f - fHealthRatio;
+      COLOR colBar = (bHealthWarning ? UI_RED : _UI_COL) | ubAlpha;
+      FLOAT fBarX1 =  (PIX)vOnScreen(1) - 48;
+      FLOAT fBarX2 =  (PIX)vOnScreen(1) - 16;
+      FLOAT fBarY1 = -(PIX)vOnScreen(2) - 32 + pdp->GetHeight();
+      FLOAT fBarY2 = -(PIX)vOnScreen(2) - 32 + pdp->GetHeight() + 64.0f*fBarRatio;
+
+      // [Cecil] Empty bars
+      pdp->InitTexture(&_toBarEmpty);
+      pdp->AddTexture(fBarX1, fBarY1, fBarX2, fBarY2, 0.0f, 0.0f, 1.0f, fBarRatio, colBar);
+
+      fBarRatio = 1.0f - fAmmoRatio;
+      colBar = (bAmmoWarning ? UI_RED : _UI_COL) | ubAlpha;
+      fBarX1 =  (PIX)vOnScreen(1) + 48;
+      fBarX2 =  (PIX)vOnScreen(1) + 16;
+      fBarY2 = -(PIX)vOnScreen(2) - 32 + pdp->GetHeight() + 64.0f*fBarRatio;
+
+      pdp->AddTexture(fBarX1, fBarY1, fBarX2, fBarY2, 0.0f, 0.0f, 1.0f, fBarRatio, colBar);
+      pdp->FlushRenderingQueue();
+
+      // [Cecil] Full bars
+      fBarRatio = fHealthRatio;
+      colBar = (bHealthWarning ? UI_RED : _UI_COL) | ubAlpha;
+      fBarX1 =  (PIX)vOnScreen(1) - 48;
+      fBarX2 =  (PIX)vOnScreen(1) - 16;
+      fBarY1 = -(PIX)vOnScreen(2) + 32 + pdp->GetHeight() - 64.0f*fBarRatio;
+      fBarY2 = -(PIX)vOnScreen(2) + 32 + pdp->GetHeight();
+
+      pdp->InitTexture(&_toBarFull);
+      pdp->AddTexture(fBarX1, fBarY1, fBarX2, fBarY2, 0.0f, 1.0f-fBarRatio, 1.0f, 1.0f, colBar);
+
+      fBarRatio = fAmmoRatio;
+      colBar = (bAmmoWarning ? UI_RED : _UI_COL) | ubAlpha;
+      fBarX1 =  (PIX)vOnScreen(1) + 48;
+      fBarX2 =  (PIX)vOnScreen(1) + 16;
+      fBarY1 = -(PIX)vOnScreen(2) + 32 + pdp->GetHeight() - 64.0f*fBarRatio;
+
+      pdp->AddTexture(fBarX1, fBarY1, fBarX2, fBarY2, 0.0f, 1.0f-fBarRatio, 1.0f, 1.0f, colBar);
+      pdp->FlushRenderingQueue();
     }
-
-    // [Cecil] Bar positions
-    FLOAT fBarRatio = 1.0f - fHealthRatio;
-    COLOR colBar = (bHealthWarning ? UI_RED : _UI_COL) | ubAlpha;
-    FLOAT fBarX1 =  (PIX)vOnScreen(1) - 48;
-    FLOAT fBarX2 =  (PIX)vOnScreen(1) - 16;
-    FLOAT fBarY1 = -(PIX)vOnScreen(2) - 32 + pdp->GetHeight();
-    FLOAT fBarY2 = -(PIX)vOnScreen(2) - 32 + pdp->GetHeight() + 64.0f*fBarRatio;
-
-    // [Cecil] Empty bars
-    pdp->InitTexture(&_toBarEmpty);
-    pdp->AddTexture(fBarX1, fBarY1, fBarX2, fBarY2, 0.0f, 0.0f, 1.0f, fBarRatio, colBar);
-
-    fBarRatio = 1.0f - fAmmoRatio;
-    colBar = (bAmmoWarning ? UI_RED : _UI_COL) | ubAlpha;
-    fBarX1 =  (PIX)vOnScreen(1) + 48;
-    fBarX2 =  (PIX)vOnScreen(1) + 16;
-    fBarY2 = -(PIX)vOnScreen(2) - 32 + pdp->GetHeight() + 64.0f*fBarRatio;
-
-    pdp->AddTexture(fBarX1, fBarY1, fBarX2, fBarY2, 0.0f, 0.0f, 1.0f, fBarRatio, colBar);
-    pdp->FlushRenderingQueue();
-
-    // [Cecil] Full bars
-    fBarRatio = fHealthRatio;
-    colBar = (bHealthWarning ? UI_RED : _UI_COL) | ubAlpha;
-    fBarX1 =  (PIX)vOnScreen(1) - 48;
-    fBarX2 =  (PIX)vOnScreen(1) - 16;
-    fBarY1 = -(PIX)vOnScreen(2) + 32 + pdp->GetHeight() - 64.0f*fBarRatio;
-    fBarY2 = -(PIX)vOnScreen(2) + 32 + pdp->GetHeight();
-
-    pdp->InitTexture(&_toBarFull);
-    pdp->AddTexture(fBarX1, fBarY1, fBarX2, fBarY2, 0.0f, 1.0f-fBarRatio, 1.0f, 1.0f, colBar);
-
-    fBarRatio = fAmmoRatio;
-    colBar = (bAmmoWarning ? UI_RED : _UI_COL) | ubAlpha;
-    fBarX1 =  (PIX)vOnScreen(1) + 48;
-    fBarX2 =  (PIX)vOnScreen(1) + 16;
-    fBarY1 = -(PIX)vOnScreen(2) + 32 + pdp->GetHeight() - 64.0f*fBarRatio;
-
-    pdp->AddTexture(fBarX1, fBarY1, fBarX2, fBarY2, 0.0f, 1.0f-fBarRatio, 1.0f, 1.0f, colBar);
-    pdp->FlushRenderingQueue();
 
     // if there is still time
     TIME tmDelta = m_tmLastTarget - tmNow;
@@ -3924,14 +3926,19 @@ functions:
     // must be -1 for default (still have to implement dropping weapons in deathmatch !!!!)
     ASSERT(Ewi.iAmmo == -1);
 
+    ULONG ulOldWeapons = m_iAvailableWeapons;
+    const ULONG ulWeaponFlag = (1 << (wit - 1));
+
     // [Cecil] Try to add ammunition and bail if nothing has been added (max ammo)
     if (!AddDefaultAmmoForWeapon(wit, 0)) {
-      return FALSE;
+      // Don't pickup this weapon if it already exists
+      if (ulOldWeapons & ulWeaponFlag) {
+        return FALSE;
+      }
     }
 
     // add weapon
-    ULONG ulOldWeapons = m_iAvailableWeapons;
-    m_iAvailableWeapons |= 1 << (wit - 1);
+    m_iAvailableWeapons |= ulWeaponFlag;
 
     // precache eventual new weapons
     Precache();

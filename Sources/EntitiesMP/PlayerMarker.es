@@ -29,6 +29,9 @@ properties:
  11 INDEX m_iTakeAmmo        "Take Ammo"  = 0x0,
  12 BOOL m_bNoRespawnInPlace "No Respawn In Place" 'R'  = FALSE,
 
+ // [Cecil] Give HEV suit
+ 20 BOOL m_bHEVSuit "Give HEV suit" = TRUE,
+
 components:
   1 model   MODEL_MARKER     "Models\\Editor\\PlayerStart.mdl",
   2 texture TEXTURE_MARKER   "Models\\Editor\\PlayerStart.tex",

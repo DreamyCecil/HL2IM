@@ -588,42 +588,44 @@ extern void DrawHUD(CPlayer *penPlayerCurrent, CDrawPort *pdpCurrent, BOOL bSnoo
   // [Cecil] Prepare Half-Life 2 UI
   HL2_UIInit();
 
-  // Normal numbers layer
-  _pdp->SetFont(&_fdNumbers);
-  SetTextSize(_pdp, FALSE);
-  _pdp->SetTextAspect(1.0f);
+  // HEV suit display
+  if (_penPlayer->m_bHEVSuit)
+  {
+    // Normal numbers layer
+    _pdp->SetFont(&_fdNumbers);
+    SetTextSize(_pdp, FALSE);
+    _pdp->SetTextAspect(1.0f);
 
-  HL2_SetAlpha(hl2_colUIMain & 0xFF);
-  HL2_SetGlow(FALSE);
+    HL2_SetAlpha(hl2_colUIMain & 0xFF);
+    HL2_SetGlow(FALSE);
 
-  HL2_DrawHealth(penLast);
-  HL2_DrawArmor(penLast);
+    HL2_DrawHealth(penLast);
+    HL2_DrawArmor(penLast);
 
-  if (_awiWeapons[iCurrentWeapon].wi_iAmmo != -1) {
-    HL2_DrawCurrentWeapon(penLast);
+    if (_awiWeapons[iCurrentWeapon].wi_iAmmo != -1) {
+      HL2_DrawCurrentWeapon(penLast);
+    }
+
+    // Glowing numbers layer
+    _pdp->SetFont(&_fdNumbersGlow);
+    SetTextSize(_pdp, FALSE);
+    _pdp->SetTextAspect(1.0f);
+
+    HL2_SetAlpha(0);
+    HL2_SetGlow(TRUE);
+
+    HL2_DrawHealth(penLast);
+    HL2_DrawArmor(penLast);
+
+    if (_awiWeapons[iCurrentWeapon].wi_iAmmo != -1) {
+      HL2_DrawCurrentWeapon(penLast);
+    }
+
+    HL2_DrawBars();
   }
-
-  // Glowing numbers layer
-  _pdp->SetFont(&_fdNumbersGlow);
-  SetTextSize(_pdp, FALSE);
-  _pdp->SetTextAspect(1.0f);
-
-  HL2_SetAlpha(0);
-  HL2_SetGlow(TRUE);
-
-  HL2_DrawHealth(penLast);
-  HL2_DrawArmor(penLast);
-
-  if (_awiWeapons[iCurrentWeapon].wi_iAmmo != -1) {
-    HL2_DrawCurrentWeapon(penLast);
-  }
-
-  // if weapon change is in progress
-  hud_tmWeaponsOnScreen = Clamp(hud_tmWeaponsOnScreen, 0.0f, 10.0f);
-
-  HL2_DrawBars();
 
   // Weapon change scroll
+  hud_tmWeaponsOnScreen = Clamp(hud_tmWeaponsOnScreen, 0.0f, 10.0f);
   HL2_DrawWeaponScroll(penLast);
 
   // [Cecil] Print latency here
