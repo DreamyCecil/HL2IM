@@ -1863,10 +1863,9 @@ functions:
     // Stop firing
     ((CPlayerWeapons &)*m_penWeapons).SendEvent(EReleaseWeapon());
 
-    // [Cecil] TEMP: 7 buttons instead of 10
     INDEX iSelected = -1;
 
-    for (INDEX iButton = 0; iButton < 7; iButton++) {
+    for (INDEX iButton = 0; iButton < 10; iButton++) {
       FLOATaabbox2D boxButton = MenuButton(iButton);
       FLOAT2D vMouse(m_vMousePos(1), m_vMousePos(2));
 
@@ -1975,6 +1974,14 @@ functions:
           CPrintF("^cffffff created radio on %.0f, %.0f, %.0f\n", vPos(1), vPos(2), vPos(3));
         }
       } break;
+
+      case 8: {
+        _penGlobalController->SendEvent(EStart());
+      } break;
+
+      case 9: {
+        _penGlobalController->SendEvent(EStop());
+      } break;
     }
   };
 
@@ -1990,8 +1997,7 @@ functions:
     pdp->SetTextScaling(fTextScale);
     pdp->SetTextAspect(1.0f);
 
-    // [Cecil] TEMP: 7 buttons instead of 10
-    for (INDEX iButton = 0; iButton < 7; iButton++) {
+    for (INDEX iButton = 0; iButton < 10; iButton++) {
       FLOATaabbox2D boxButton = MenuButton(iButton);
       const FLOAT2D vPos = boxButton.Min();
       const FLOAT2D vSize = boxButton.Size();
@@ -2002,6 +2008,7 @@ functions:
       pdp->Fill(vPos(1) * fScalingX, vPos(2) * fScalingY, vSize(1) * fScalingX, vSize(2) * fScalingY, (bMouse ? hl2_colUIMain : hl2_colUIBorder));
 
       CTString strButton = "???";
+
       switch (iButton) {
         case 0: strButton = "god"; break;
         case 1: strButton = "noclip"; break;
@@ -2010,11 +2017,14 @@ functions:
         case 4: strButton = "npc_create rollermine"; break;
         case 5: strButton = "ent_fire !picker ignite"; break;
         case 6: strButton = "ent_create prop_physics_override"; break;
+
+        case 8: strButton = "Start ODE"; break;
+        case 9: strButton = "End ODE"; break;
       }
 
       // add button number (0.72)
       INDEX iPrintNumber = (iButton + 1) % 10;
-      pdp->PutTextCXY(CTString(0, "%d %s", iPrintNumber, strButton), (vPos(1)+vSize(1)/2.0f) * fScalingX, (vPos(2)+vSize(2)/2.0f) * fScalingY, 0xFFFFFFFF);
+      pdp->PutTextCXY(CTString(0, "[%d] %s", iPrintNumber, strButton), (vPos(1)+vSize(1)/2.0f) * fScalingX, (vPos(2)+vSize(2)/2.0f) * fScalingY, 0xFFFFFFFF);
     }
 
     FLOAT fScale = Min(FLOAT(pdp->GetWidth()), 1024.0f) / 1024.0f;
