@@ -368,6 +368,9 @@ void GravityGunPush(CEntity *penObject, const FLOAT3D &vDir, const FLOAT3D &vHit
 
 // Check which entities the gravity gun definitely cannot pick up
 static BOOL GravityGunCannotPickUp(CEntity *pen) {
+  // Don't pick up objects without a gravity gun sync class
+  if (GetGravityGunSync(pen) == NULL) return TRUE;
+
   // Don't pick up large enemies, rolling stones, projectiles, or players
   if (IsOfClassID(pen, CWalker_ClassID)       || IsOfClassID(pen, CWerebull_ClassID)
    || IsOfClassID(pen, CScorpman_ClassID)     || IsOfClassID(pen, CBeast_ClassID)
@@ -380,14 +383,13 @@ static BOOL GravityGunCannotPickUp(CEntity *pen) {
     return TRUE;
   }
 
-  // Don't pick up non-model objects (unless they are physical)
-  if (pen->GetRenderType() != CEntity::RT_MODEL && pen->GetRenderType() != CEntity::RT_SKAMODEL
-   && !IsDerivedFromID(pen, CPhysBase_ClassID)) {
-    return TRUE;
+  // Check if a physics object cannot be held
+  if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
+    return !((CPhysBase &)*pen).CanGravityGunPickUp();
   }
 
-  // Don't pick up objects without a gravity gun sync class
-  return (GetGravityGunSync(pen) == NULL);
+  // Don't pick up non-model objects
+  return (pen->GetRenderType() != CEntity::RT_MODEL && pen->GetRenderType() != CEntity::RT_SKAMODEL);
 };
 
 // Check if the gravity gun can interact with the entity
@@ -407,9 +409,13 @@ BOOL GravityGunCanInteract(CCecilPlayerEntity *penPlayer, CEntity *pen, BOOL bPi
   // Always interact with certain moving objects
   if (IsOfClassID(pen, CMovingBrush_ClassID) || IsOfClassID(pen, CRollingStone_ClassID)
    || IsOfClassID(pen, CProjectile_ClassID)
-   || IsOfClassID(pen, CRadio_ClassID) || IsOfClassID(pen, CRollerMine_ClassID)
-   || IsDerivedFromID(pen, CPhysBase_ClassID)) {
+   || IsOfClassID(pen, CRadio_ClassID) || IsOfClassID(pen, CRollerMine_ClassID)) {
     return TRUE;
+  }
+
+  // Interact with physics object
+  if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
+    return ((CPhysBase &)*pen).CanGravityGunInteract(penPlayer);
   }
 
   // Not an item

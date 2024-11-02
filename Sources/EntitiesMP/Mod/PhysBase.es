@@ -131,65 +131,33 @@ functions:
     return ODE_IsStarted() && PhysObj().IsCreated();
   };
 
-  // Entity physics flags to set whenever physics are toggled
-  virtual ULONG PhysicsFlagsForPhysSimulation(BOOL bEnabled) const {
-    if (bEnabled) {
-      // Disable engine physics
-      return GetPhysicsFlags() & ~(EPF_TRANSLATEDBYGRAVITY | EPF_ORIENTEDBYGRAVITY);
-    }
-
-    // Enable engine physics
-    return GetPhysicsFlags() | EPF_TRANSLATEDBYGRAVITY | EPF_ORIENTEDBYGRAVITY;
-  };
-
-  // Entity collision flags to set whenever physics are toggled
-  virtual ULONG CollisionFlagsForPhysSimulation(BOOL bEnabled) const {
-    // Ignore
-    return 0;
-  };
-
   // Whether or not to apply sector gravity instead of global physics gravity
   virtual BOOL PhysicsUseSectorGravity(void) const {
     return TRUE;
   };
 
+  // Whether or not a gravity gun can interact with the object
+  virtual BOOL CanGravityGunInteract(CCecilPlayerEntity *penPlayer) const {
+    return FALSE;
+  };
+
+  // Whether or not a gravity gun can pick up the object
+  virtual BOOL CanGravityGunPickUp(void) const {
+    return FALSE;
+  };
+
   // Process physics object before the actual physics simulation
   virtual void OnPhysStep(void) {
     AddToMovers();
-    ULONG ulFlags;
 
-    // Apply regular engine physics if it's unusable
+    // Using engine physics
     if (!PhysicsUsable()) {
-      ulFlags = PhysicsFlagsForPhysSimulation(FALSE);
-
-      if (ulFlags != 0) {
-        SetPhysicsFlags(ulFlags);
-      }
-
-      ulFlags = CollisionFlagsForPhysSimulation(FALSE);
-
-      if (ulFlags != 0) {
-        SetCollisionFlags(ulFlags);
-      }
-
       return;
     }
 
     // Remember current position
     m_vObjPos = PhysObj().GetPosition();
     m_mObjRot = PhysObj().GetMatrix();
-
-    ulFlags = PhysicsFlagsForPhysSimulation(TRUE);
-
-    if (ulFlags != 0 && GetPhysicsFlags() != ulFlags) {
-      SetPhysicsFlags(ulFlags);
-    }
-
-    ulFlags = CollisionFlagsForPhysSimulation(TRUE);
-
-    if (ulFlags != 0 && GetCollisionFlags() != ulFlags) {
-      SetCollisionFlags(ulFlags);
-    }
 
     // Stay still if it's frozen
     if (PhysObj().IsFrozen()) {
@@ -314,10 +282,12 @@ functions:
       case DMT_CHAINSAW:   fForce = 10.0f; break;
     }
 
-    if (PhysicsUsable() && fForce > 0.01f) {
-      PhysObj().AddForce(vDirection, fForce, vHitPoint);
-    } else {
-      GiveImpulseTranslationAbsolute(vDirection * fForce);
+    if (fForce > 0.01f) {
+      if (PhysicsUsable()) {
+        PhysObj().AddForce(vDirection, fForce, vHitPoint);
+      } else {
+        GiveImpulseTranslationAbsolute(vDirection * fForce * _pTimer->TickQuantum);
+      }
     }
 
     //CPrintF("'%s' - %.2f (force: %.2f)\n", DamageType_enum.NameForValue(dmtType), fDamage, fForce);
