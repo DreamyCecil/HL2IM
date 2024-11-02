@@ -47,9 +47,6 @@ properties:
   FLOAT3D m_vObjPos; // Physics object position before simulation update
   FLOATmatrix3D m_mObjRot; // Physics object rotation before simulation update
 
-  // For adding to global controller that will run the step function
-  CEntityNode m_nNode;
-
   // For synchronizing held object for the gravity gun
   CSyncedEntityPtr m_syncGravityGun;
 }
@@ -59,11 +56,10 @@ components:
 functions:
   // Constructor
   void CPhysBase(void) {
-    PhysObj().penPhysOwner = this;
+    PhysObj().SetOwner(this);
     m_vObjPos = FLOAT3D(0, 0, 0);
     m_mObjRot.Diagonal(1.0f);
 
-    m_nNode.SetOwner(this);
     m_syncGravityGun.SetOwner(this);
   };
 
@@ -90,8 +86,7 @@ functions:
 
   // Destructor
   virtual void PhysOnEnd(void) {
-    PhysObj().Clear();
-    m_nNode.Remove();
+    PhysObj().Clear(TRUE);
   };
 
   virtual void PhysWrite_t(CTStream *ostr) {
@@ -248,14 +243,14 @@ functions:
   // Create a new physical object
   void CreateObject(void) {
     // Delete last object
-    PhysObj().Clear();
+    PhysObj().Clear(TRUE);
 
     if (!ODE_IsStarted()) {
       return;
     }
 
     // Add this object to the controller
-    _penGlobalController->m_cPhysEntities.Add(m_nNode);
+    _penGlobalController->m_cPhysEntities.Add(PhysObj().nPhysOwner);
 
     // Begin creating a new object
     CPlacement3D plOffset;
@@ -370,6 +365,10 @@ functions:
 
         PhysObj().SetPosition(vPos);
         PhysObj().SetMatrix(mRot);
+
+        // Reset current position
+        m_vObjPos = vPos;
+        m_mObjRot = mRot;
       } return TRUE;
 
       // Gravity Gun actions

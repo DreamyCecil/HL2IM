@@ -165,7 +165,7 @@ BOOL odeObject::ReadGeom_t(CTStream *istr) {
   if (istr->PeekID_t() != _cidODE_ObjGeom) return FALSE;
   istr->ExpectID_t(_cidODE_ObjGeom);
 
-  Clear();
+  Clear(FALSE);
 
   ULONG ulType;
   *istr >> ulType;
@@ -323,8 +323,8 @@ void odeObject::WriteBody_t(CWriteStream &strm) {
 
   // [Cecil] TEMP: Print owner entity
   if (strm.bText) {
-    if (penPhysOwner != NULL) {
-      strm.pstrm->FPrintF_t("Entity: '%s' (%u)\n", penPhysOwner->GetClass()->ec_pdecDLLClass->dec_strName, penPhysOwner->en_ulID);
+    if (GetOwner() != NULL) {
+      strm.pstrm->FPrintF_t("Entity: '%s' (%u)\n", GetOwner()->GetClass()->ec_pdecDLLClass->dec_strName, GetOwner()->en_ulID);
     } else {
       strm.pstrm->FPrintF_t("Entity: <none>\n");
     }
@@ -544,8 +544,8 @@ void CPhysEngine::WriteObjects(CWriteStream &strm, CObjects &cAll, CObjects &cWi
     }
 
     // Write entity that owns this body
-    if (pObj->penPhysOwner != NULL) {
-      strm.Write("EntityID", (ULONG)pObj->penPhysOwner->en_ulID);
+    if (pObj->GetOwner() != NULL) {
+      strm.Write("EntityID", (ULONG)pObj->GetOwner()->en_ulID);
     } else {
       strm.Write("EntityID", (ULONG)-1);
 

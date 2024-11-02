@@ -138,17 +138,19 @@ void odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute)
 
 // Delete the object
 void odeObject::Delete(void) {
-  penPhysOwner = NULL;
-
-  Clear();
+  Clear(TRUE);
   mesh.Clear();
+
+  nPhysOwner.SetOwner(NULL);
 };
 
 // Clear object geometry
-void odeObject::Clear(void) {
+void odeObject::Clear(BOOL bRemoveNode) {
   if (lnInObjects.IsLinked()) {
     lnInObjects.Remove();
   }
+
+  if (bRemoveNode) nPhysOwner.Remove();
 
   // Destroy body
   if (body != NULL) dBodyDestroy(body);
@@ -164,10 +166,12 @@ void odeObject::Clear(void) {
 void odeObject::MovedCallback(dBodyID body)
 {
   odeObject &obj = *(odeObject *)dBodyGetData(body);
-  if (obj.penPhysOwner == NULL) return;
+  CEntity *pen = obj.GetOwner();
 
-  if (IsDerivedFromID(obj.penPhysOwner, CPhysBase_ClassID)) {
-    ((CPhysBase &)*obj.penPhysOwner).UpdateMovement();
+  if (pen == NULL) return;
+
+  if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
+    ((CPhysBase *)pen)->UpdateMovement();
   }
 };
 
@@ -183,7 +187,7 @@ void odeObject::BeginShape(const CPlacement3D &plSetCenter, FLOAT fSetMass, BOOL
   fSetupMass = fSetMass;
 
   // Clear old geometry and body
-  Clear();
+  Clear(FALSE);
 };
 
 // Finish setting up physics shape

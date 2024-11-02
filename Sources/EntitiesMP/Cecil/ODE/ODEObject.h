@@ -96,8 +96,9 @@ class odeObject {
     // In world bodies
     CListNode lnInObjects;
 
-    // Entity to execute the movement callback for
-    CEntity *penPhysOwner;
+    // Entity that owns this physics object
+    // Used for movement callback execution and for adding the object to the global controller
+    CEntityNode nPhysOwner;
 
     // Helper index for serialization
     ULONG ulTag;
@@ -105,7 +106,7 @@ class odeObject {
   public:
     // Constructor
     odeObject(void) : plCenter(_odeCenter), bSetupBody(FALSE), fSetupMass(0.0f),
-      body(NULL), geom(NULL), joint(NULL), penPhysOwner(NULL), ulTag(-1)
+      body(NULL), geom(NULL), joint(NULL), ulTag(-1)
     {
       dMassSetZero(&mass);
     };
@@ -113,6 +114,16 @@ class odeObject {
     // Destructor
     ~odeObject(void) {
       Delete();
+    };
+
+    // Set owner entity
+    inline void SetOwner(CEntity *pen) {
+      nPhysOwner.SetOwner(pen);
+    };
+
+    // Get owner entity
+    inline CEntity *GetOwner(void) const {
+      return nPhysOwner.GetOwner();
     };
 
     // Check if the body has been created
@@ -124,7 +135,7 @@ class odeObject {
     void Delete(void);
 
     // Clear object geometry
-    void Clear(void);
+    void Clear(BOOL bRemoveNode);
 
     // Called on object movement
     static void MovedCallback(dBodyID body);

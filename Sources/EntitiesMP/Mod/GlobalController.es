@@ -76,8 +76,10 @@ functions:
       ULONG ulID;
       *istr >> ulID;
 
-      CPhysBase *pen = (CPhysBase *)GetWorld()->EntityFromID(ulID);
-      m_cPhysEntities.Add(pen->m_nNode);
+      odeObject *pObj = SPhysObject::ForEntity(GetWorld()->EntityFromID(ulID));
+      ASSERT(pObj != NULL);
+
+      m_cPhysEntities.Add(pObj->nPhysOwner);
     }
 
     *istr >> ct;
@@ -86,11 +88,10 @@ functions:
       ULONG ulID;
       *istr >> ulID;
 
-      CEntity *pen = GetWorld()->EntityFromID(ulID);
+      odeObject *pObj = SPhysObject::ForEntity(GetWorld()->EntityFromID(ulID));
+      ASSERT(pObj != NULL);
 
-      {
-        ASSERTALWAYS("Cannot find node for some kinematic entity!");
-      }
+      m_cKinematicEntities.Add(pObj->nPhysOwner);
     }
   };
 

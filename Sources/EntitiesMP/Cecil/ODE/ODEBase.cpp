@@ -93,25 +93,25 @@ static inline INDEX GetSurfaceTypeBetweenObjects(odeObject *objThis, odeObject *
   // Not a world mesh
   if (objThis != _pODE->pObjWorld) {
     // No entity
-    if (objThis->penPhysOwner == NULL) return -1;
+    if (objThis->GetOwner() == NULL) return -1;
 
   #if FIND_CLOSEST_POLYGON_FOR_SURFACE_TYPE
     // Not a brush
-    if (objThis->penPhysOwner->GetRenderType() != CEntity::RT_BRUSH)
+    if (objThis->GetOwner()->GetRenderType() != CEntity::RT_BRUSH)
   #endif
     {
       // Get surface for this object
-      return GetSurfaceForEntity(objThis->penPhysOwner);
+      return GetSurfaceForEntity(objThis->GetOwner());
     }
   }
 
   // No owner of the other object
-  if (objOther->penPhysOwner == NULL) return -1;
+  if (objOther->GetOwner() == NULL) return -1;
 
 #if FIND_CLOSEST_POLYGON_FOR_SURFACE_TYPE
   // Get closest polygon to the other object
   INearestPolygon::SResults np;
-  INearestPolygon::SetReferencePoint(objOther->penPhysOwner->GetPlacement().pl_PositionVector);
+  INearestPolygon::SetReferencePoint(objOther->GetOwner()->GetPlacement().pl_PositionVector);
 
   if (INearestPolygon::SearchThroughSectors(np)) {
     return np.pbpoNear->bpo_bppProperties.bpp_ubSurfaceType;
@@ -162,8 +162,8 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
   // [Cecil] TEMP: Ignore geoms with no attached objects
   if (obj1 == NULL || obj2 == NULL) return;
 
-  CEntity *pen1 = obj1->penPhysOwner;
-  CEntity *pen2 = obj2->penPhysOwner;
+  CEntity *pen1 = obj1->GetOwner();
+  CEntity *pen2 = obj2->GetOwner();
 
   // Check for player-owned objects
   const BOOL bPlayer1 = IsDerivedFromID(pen1, CPlayer_ClassID);
@@ -231,13 +231,13 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
       penPlayer = pen2;
     }
 
-    if (pObjOther != NULL && pObjOther->penPhysOwner != NULL) {
+    if (pObjOther != NULL && pObjOther->GetOwner() != NULL) {
       EBlock eBlock;
       eBlock.penOther = penPlayer;
       eBlock.plCollision = FLOATplane3D(vDir, vPos);
-      pObjOther->penPhysOwner->SendEvent(eBlock);
+      pObjOther->GetOwner()->SendEvent(eBlock);
 
-      ODE_ReportCollision("ID:%u  ^cff00ffPhys block^r : %s  %s", pObjOther->penPhysOwner->en_ulID,
+      ODE_ReportCollision("ID:%u  ^cff00ffPhys block^r : %s  %s", pObjOther->GetOwner()->en_ulID,
         ODE_PrintPlaneForReport(eBlock.plCollision), ODE_PrintVectorForReport(vPos));
     }
   }

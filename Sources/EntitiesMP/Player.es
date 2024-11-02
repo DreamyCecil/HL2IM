@@ -1613,7 +1613,7 @@ components:
 functions:
   // [Cecil] On destruction
   virtual void OnEnd(void) {
-    PhysObj().Clear();
+    PhysObj().Clear(TRUE);
     CCecilPlayerEntity::OnEnd();
   };
 
@@ -1630,7 +1630,7 @@ functions:
   // [Cecil] Create the ODE object
   void CreateObject(void) {
     // Delete last object
-    PhysObj().Clear();
+    PhysObj().Clear(TRUE);
 
     if (!ODE_IsStarted()) {
       return;
@@ -2296,7 +2296,7 @@ functions:
     }
 
     // [Cecil] Set physics object owner
-    PhysObj().penPhysOwner = this;
+    PhysObj().SetOwner(this);
 
     // [Cecil] Reset polygon
     m_cpoStandOn.Reset();
