@@ -805,6 +805,7 @@ void CPlayer_Precache(void)
   pdec->PrecacheSound(SOUND_MEDKIT);
   pdec->PrecacheSound(SOUND_SUITBATTERY);
   pdec->PrecacheSound(SOUND_SUITCHARGE);
+  pdec->PrecacheSound(SOUND_SUITBELL);
   pdec->PrecacheSound(SOUND_SUITMUSIC);
 
   // [Cecil] Suit sounds
@@ -1368,7 +1369,8 @@ properties:
  205 CSoundObject m_soArmor,
  206 CSoundObject m_soHealth,
  207 CSoundObject m_soSuit,
- 208 CSoundObject m_soOther,
+ 208 CSoundObject m_soSuitMusic,
+ 209 CSoundObject m_soOther,
 
  210 INDEX m_iLastSurface = 0,
  211 INDEX m_iLastSurfaceSound = -1,
@@ -1581,7 +1583,8 @@ components:
 311 sound SOUND_MEDKIT      "Sounds\\Items\\SmallMedkit.wav",
 312 sound SOUND_SUITBATTERY "Sounds\\Items\\SuitBattery.wav",
 313 sound SOUND_SUITCHARGE  "Sounds\\Items\\SuitChargeDone.wav",
-314 sound SOUND_SUITMUSIC   "Sounds\\Items\\SuitMusic.wav",
+314 sound SOUND_SUITBELL    "Sounds\\Items\\SuitBell.wav",
+315 sound SOUND_SUITMUSIC   "Sounds\\Items\\SuitMusic.ogg",
 
 // [Cecil] Suit sounds
 350 sound SOUND_SUIT_AMMO     "Sounds\\Player\\Suit\\Ammo.wav",
@@ -2180,7 +2183,8 @@ functions:
 
   // [Cecil] Play suit sounds
   void SuitSound(ESuitSound eSound) {
-    if (m_soSuit.IsPlaying() || GetHealth() <= 0.0f) {
+    // No suit, some sound is playing, or dead
+    if (!m_bHEVSuit || m_soSuit.IsPlaying() || GetHealth() <= 0.0f) {
       return;
     }
 
@@ -4411,10 +4415,18 @@ functions:
         INDEX iArmorSound = SOUND_SUITBATTERY;
 
         if (fValue > 150) {
-          iArmorSound = SOUND_SUITMUSIC;
+          iArmorSound = SOUND_SUITBELL;
 
-          // Give suit
-          m_bHEVSuit = TRUE;
+          // Give suit and play its music
+          if (!m_bHEVSuit) {
+            m_bHEVSuit = TRUE;
+
+            static CSymbolPtr pfMusicVolume("snd_fMusicVolume");
+
+            if (pfMusicVolume.GetFloat() > 0.0f && _penViewPlayer == this) {
+              PlaySound(m_soSuitMusic, SOUND_SUITMUSIC, SOF_3D|SOF_VOLUMETRIC|SOF_MUSIC|SOF_LOCAL);
+            }
+          }
 
         } else if (fValue > 50) {
           iArmorSound = SOUND_SUITCHARGE;
@@ -6612,6 +6624,7 @@ functions:
     }
 
     m_soSuit.Stop();
+    m_soSuitMusic.Stop();
 
     // initialize animator
     ((CPlayerAnimator&)*m_penAnimator).Initialize();
@@ -8299,7 +8312,8 @@ procedures:
     m_soHealth.Set3DParameters(25.0f, 5.0f, 1.0f, 1.0f);
     m_soFlashlight.Set3DParameters(20.0f, 3.0f, 1.0f, 1.0f);
     m_soSuit.Set3DParameters(25.0f, 5.0f, 1.0f, 1.0f);
-      
+    m_soSuitMusic.Set3DParameters(25.0f, 5.0f, 1.0f, 1.0f);
+
     // setup light source
     SetupLightSource();
 
