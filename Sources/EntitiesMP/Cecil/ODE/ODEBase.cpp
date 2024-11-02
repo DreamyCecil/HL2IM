@@ -25,8 +25,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #pragma comment(lib, "ode.lib")
 
-#include <XGizmo/Interfaces/Directories.h>
-
 // [Cecil] TEMP: This feature finds the closest brush polygon to the object
 // to retrieve its surface type for proper friction during collision handling
 // but it's extremely slow with lots of objects right now
@@ -271,9 +269,6 @@ static void ODE_MessageFunction(int errnum, const char *msg, va_list ap) {
 
 // Constructor
 CPhysEngine::CPhysEngine(void) {
-  // Delayed loading of ODE library from the mod directory
-  LoadLibraryA(IDir::AppPath() + _fnmMod + IDir::AppModBin() + "ode.dll");
-
   // Use 'dInitODE2' in version 0.10 or newer
   //dInitODE();
   dInitODE2(0);
