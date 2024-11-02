@@ -323,7 +323,11 @@ void odeObject::WriteBody_t(CWriteStream &strm) {
 
   // [Cecil] TEMP: Print owner entity
   if (strm.bText) {
-    strm.pstrm->FPrintF_t("Entity: '%s' (%u)\n", penPhysOwner->GetClass()->ec_pdecDLLClass->dec_strName, penPhysOwner->en_ulID);
+    if (penPhysOwner != NULL) {
+      strm.pstrm->FPrintF_t("Entity: '%s' (%u)\n", penPhysOwner->GetClass()->ec_pdecDLLClass->dec_strName, penPhysOwner->en_ulID);
+    } else {
+      strm.pstrm->FPrintF_t("Entity: <none>\n");
+    }
   }
 
   strm.WriteVector_key(body->posr.pos);
@@ -447,7 +451,7 @@ void odeObject::Write_t(CWriteStream &strm) {
   strm.WriteID(_cidODE_ObjProps);
 
   strm.WritePlace("plCenter", plCenter);
-  strm.Write_key(bSetupDynamic);
+  strm.Write_key(bSetupBody);
   strm.Write_key(fSetupMass);
 
   // [Cecil] NOTE: This mass must be written instead of body->mass because it resets body mass in EndShape()
@@ -475,7 +479,7 @@ void odeObject::Read_t(CTStream *istr) {
   istr->ExpectID_t(_cidODE_ObjProps);
 
   *istr >> plCenter;
-  *istr >> bSetupDynamic;
+  *istr >> bSetupBody;
   *istr >> fSetupMass;
 
   // [Cecil] NOTE: This mass must be read instead of body->mass because it resets body mass in EndShape()

@@ -95,7 +95,11 @@ void odeTrimesh::Build(void) {
 };
 
 // Add vertices of some brush
-void odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset) {
+void odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute) {
+  // Use internal counter
+  INDEX iInternalVertexOffset = 0;
+  if (piVertexOffset == NULL) piVertexOffset = &iInternalVertexOffset;
+
   // Go through each sector of the most detailed mip
   FOREACHINDYNAMICARRAY(pbr->GetFirstMip()->bm_abscSectors, CBrushSector, itSec) {
     // Go through each sector polygon
@@ -106,23 +110,28 @@ void odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset) {
       if (pbpo->bpo_ulFlags & BPOF_PASSABLE) continue;
 
       const INDEX ctVtx = pbpo->bpo_apbvxTriangleVertices.Count();
-      const INDEX iOffset = (piVertexOffset != NULL ? *piVertexOffset : 0);
-        
+
       // Copy vertex positions
       FOREACHINSTATICARRAY(pbpo->bpo_apbvxTriangleVertices, CBrushVertex *, itPolVtx) {
-        const FLOAT3D &vVtx = itPolVtx.Current()->bvx_vAbsolute;
-        AddVertex(odeVector(vVtx(1), vVtx(2), vVtx(3)));
+        // Add vertex in absolute coordinates
+        if (bAbsolute) {
+          const FLOAT3D &vVtx = itPolVtx.Current()->bvx_vAbsolute;
+          AddVertex(odeVector(vVtx(1), vVtx(2), vVtx(3)));
+
+        // Add vertex in relative coordinates
+        } else {
+          const FLOAT3D &vVtx = itPolVtx.Current()->bvx_vRelative;
+          AddVertex(odeVector(vVtx(1), vVtx(2), vVtx(3)));
+        }
       }
 
       // Copy vertex indices
       FOREACHINSTATICARRAY(pbpo->bpo_aiTriangleElements, INDEX, itPolIndex) {
-        AddIndex((*itPolIndex) + iOffset);
+        AddIndex((*itPolIndex) + *piVertexOffset);
       }
 
       // Offset vertex indices by the amount of vertices
-      if (piVertexOffset != NULL) {
-        *piVertexOffset += ctVtx;
-      }
+      *piVertexOffset += ctVtx;
     }
   }
 };
@@ -168,9 +177,9 @@ void odeObject::SetupGeom(void) {
 };
 
 // Begin setting up physics shape
-void odeObject::BeginShape(const CPlacement3D &plSetCenter, FLOAT fSetMass, BOOL bSetDynamic) {
+void odeObject::BeginShape(const CPlacement3D &plSetCenter, FLOAT fSetMass, BOOL bCreateBody) {
   plCenter = plSetCenter;
-  bSetupDynamic = bSetDynamic;
+  bSetupBody = bCreateBody;
   fSetupMass = fSetMass;
 
   // Clear old geometry and body
@@ -181,7 +190,7 @@ void odeObject::BeginShape(const CPlacement3D &plSetCenter, FLOAT fSetMass, BOOL
 void odeObject::EndShape(void) {
   _pODE->lhObjects.AddTail(lnInObjects);
 
-  if (bSetupDynamic) {
+  if (bSetupBody) {
     // Create physical body
     body = dBodyCreate(_pODE->world);
     dGeomSetBody(geom, body);
@@ -209,7 +218,7 @@ void odeObject::AddSphere(FLOAT fRadius) {
   SetupGeom();
 
   // Physical body
-  if (bSetupDynamic && fSetupMass > 0.0f) {
+  if (bSetupBody && fSetupMass > 0.0f) {
     // Calculate density ('p = m/V' where 'V = (4/3) * pi * r^3')
     static const FLOAT fVolumeMul = (4.0f / 3.0f) * PI;
     const dReal fDensity = fSetupMass / (fVolumeMul * (fRadius * fRadius * fRadius));
@@ -226,7 +235,7 @@ void odeObject::AddBox(const odeVector &vSize) {
   SetupGeom();
 
   // Physical body
-  if (bSetupDynamic && fSetupMass > 0.0f) {
+  if (bSetupBody && fSetupMass > 0.0f) {
     // Calculate density ('p = m/V' where 'V = w*h*l')
     const dReal fDensity = fSetupMass / (vSize(1) * vSize(2) * vSize(3));
 
@@ -245,7 +254,7 @@ void odeObject::AddCapsule(FLOAT fRadius, FLOAT fLength) {
   SetupGeom();
 
   // Physical body
-  if (bSetupDynamic && fSetupMass > 0.0f) {
+  if (bSetupBody && fSetupMass > 0.0f) {
     // [Cecil] TEMP: Volume of a cylinder, not a capsule
     // Calculate density ('p = m/V' where 'V = pi * h * r^2')
     const dReal fDensity = fSetupMass / (PI * fLength * fRadius * fRadius);
@@ -265,7 +274,7 @@ void odeObject::AddCylinder(FLOAT fRadius, FLOAT fLength) {
   SetupGeom();
 
   // Physical body
-  if (bSetupDynamic && fSetupMass > 0.0f) {
+  if (bSetupBody && fSetupMass > 0.0f) {
     // Calculate density ('p = m/V' where 'V = pi * h * r^2')
     const dReal fDensity = fSetupMass / (PI * fLength * fRadius * fRadius);
 
@@ -281,7 +290,7 @@ void odeObject::AddTrimesh(void) {
   SetupGeom();
 
   // Physical body
-  if (bSetupDynamic && fSetupMass > 0.0f) {
+  if (bSetupBody && fSetupMass > 0.0f) {
     // [Cecil] TEMP: Volume of a box surrounding the trimesh, not the actual trimesh
     // Calculate density ('p = m/V' where 'V = w*h*l')
     const odeVector vSize = mesh.boxVolume.Size();
@@ -437,6 +446,28 @@ void odeObject::ResetSpeed(void) {
   dBodySetAngularVel(body, 0, 0, 0);
 };
 
+// Toggle between kinematic and dynamic bodies
+void odeObject::SetKinematic(BOOL bState) {
+  if (!IsCreated()) return;
+
+  if (bState) {
+    dBodySetKinematic(body);
+  } else {
+    dBodySetDynamic(body);
+  }
+};
+
+// Check if the body is kinematic
+BOOL odeObject::IsKinematic(void) const {
+  // Geoms without bodies don't move, so they can be considered kinematic
+  if (!IsCreated()) {
+    ASSERTALWAYS("Checking whether a body is kinematic without an actual body!");
+    return TRUE;
+  }
+
+  return dBodyIsKinematic(body);
+};
+
 // Disable object physics
 void odeObject::Freeze(void) {
   if (!IsCreated() || IsFrozen()) return;
@@ -452,7 +483,7 @@ void odeObject::Unfreeze(void) {
 };
 
 // Check if object physics are disabled
-BOOL odeObject::IsFrozen(void) {
+BOOL odeObject::IsFrozen(void) const {
   if (!IsCreated()) return TRUE;
 
   return !dBodyIsEnabled(body);

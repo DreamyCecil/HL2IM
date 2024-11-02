@@ -75,14 +75,14 @@ class odeTrimesh {
     };
 
     // Add vertices of some brush
-    void FromBrush(CBrush3D *pbr, INDEX *piVertexOffset);
+    void FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute);
 };
 
 // Physical object
 class odeObject {
   public:
     CPlacement3D plCenter; // Origin placement of the body
-    BOOL bSetupDynamic; // Object has a physical body
+    BOOL bSetupBody; // Object has a physical body
     FLOAT fSetupMass; // Object mass
 
     dBodyID body; // Physical body
@@ -97,14 +97,14 @@ class odeObject {
     CListNode lnInObjects;
 
     // Entity to execute the movement callback for
-    class CCecilMovableEntity *penPhysOwner;
+    CEntity *penPhysOwner;
 
     // Helper index for serialization
     ULONG ulTag;
 
   public:
     // Constructor
-    odeObject(void) : plCenter(_odeCenter), bSetupDynamic(FALSE), fSetupMass(0.0f),
+    odeObject(void) : plCenter(_odeCenter), bSetupBody(FALSE), fSetupMass(0.0f),
       body(NULL), geom(NULL), joint(NULL), penPhysOwner(NULL), ulTag(-1)
     {
       dMassSetZero(&mass);
@@ -138,7 +138,7 @@ class odeObject {
   public:
 
     // Begin setting up physics shape
-    void BeginShape(const CPlacement3D &plSetCenter, FLOAT fSetMass, BOOL bSetDynamic);
+    void BeginShape(const CPlacement3D &plSetCenter, FLOAT fSetMass, BOOL bCreateBody);
 
     // Finish setting up physics shape
     void EndShape(void);
@@ -198,6 +198,12 @@ class odeObject {
   // Object state
   public:
 
+    // Toggle between kinematic and dynamic bodies
+    void SetKinematic(BOOL bState);
+
+    // Check if the body is kinematic
+    BOOL IsKinematic(void) const;
+
     // Disable object physics
     void Freeze(void);
 
@@ -205,7 +211,7 @@ class odeObject {
     void Unfreeze(void);
 
     // Check if object physics are disabled
-    BOOL IsFrozen(void);
+    BOOL IsFrozen(void) const;
 
   // Serialization
   public:

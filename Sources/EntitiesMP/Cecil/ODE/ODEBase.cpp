@@ -162,8 +162,8 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
   // [Cecil] TEMP: Ignore geoms with no attached objects
   if (obj1 == NULL || obj2 == NULL) return;
 
-  CCecilMovableEntity *pen1 = obj1->penPhysOwner;
-  CCecilMovableEntity *pen2 = obj2->penPhysOwner;
+  CEntity *pen1 = obj1->penPhysOwner;
+  CEntity *pen2 = obj2->penPhysOwner;
 
   // Check for player-owned objects
   const BOOL bPlayer1 = IsDerivedFromID(pen1, CPlayer_ClassID);
@@ -217,7 +217,7 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
 
     odeObject *pObj = NULL;
     odeObject *pObjOther = NULL;
-    CCecilMovableEntity *penPlayer = NULL;
+    CEntity *penPlayer = NULL;
 
     if (bPlayer1) {
       pObj = obj1;
@@ -375,7 +375,7 @@ void ODE_Start(void) {
   FOREACHINDYNAMICCONTAINER(wo.wo_cenEntities, CEntity, iten) {
     CEntity *pen = iten;
 
-    // Create physical objects and remember them
+    // Create physical objects
     if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
       CPhysBase *penPhys = (CPhysBase *)pen;
       penPhys->CreateObject();
@@ -391,7 +391,7 @@ void ODE_Start(void) {
 
     // Add static brushes to the world mesh
     if (IsOfClass(pen, "WorldBase")) {
-      _pODE->pObjWorld->mesh.FromBrush(pen->GetBrush(), &iBrushVertexOffset);
+      _pODE->pObjWorld->mesh.FromBrush(pen->GetBrush(), &iBrushVertexOffset, TRUE);
     }
   }
 
@@ -401,8 +401,12 @@ void ODE_Start(void) {
   _pODE->pObjWorld->EndShape();
 
   // Notify physics objects about simulation starting
-  FOREACHNODEINREFS(_penGlobalController->m_cPhysEntities, itn) {
-    itn->GetOwner()->SendEvent(EPhysicsStart());
+  FOREACHNODEINREFS(_penGlobalController->m_cPhysEntities, itnP) {
+    itnP->GetOwner()->SendEvent(EPhysicsStart());
+  }
+
+  FOREACHNODEINREFS(_penGlobalController->m_cKinematicEntities, itnK) {
+    itnK->GetOwner()->SendEvent(EPhysicsStart());
   }
 };
 
@@ -414,8 +418,12 @@ void ODE_End(BOOL bGameEnd) {
 
   if (!bGameEnd) {
     // Notify physics objects about simulation stopping
-    FOREACHNODEINREFS(_penGlobalController->m_cPhysEntities, itn) {
-      itn->GetOwner()->SendEvent(EPhysicsStop());
+    FOREACHNODEINREFS(_penGlobalController->m_cPhysEntities, itnP) {
+      itnP->GetOwner()->SendEvent(EPhysicsStop());
+    }
+
+    FOREACHNODEINREFS(_penGlobalController->m_cKinematicEntities, itnK) {
+      itnK->GetOwner()->SendEvent(EPhysicsStop());
     }
   }
 

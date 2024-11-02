@@ -25,6 +25,9 @@ properties:
 {
   // Physics objects that currently exist in the world
   CEntityReferences m_cPhysEntities;
+
+  // Kinematic objects that currently exist in the world
+  CEntityReferences m_cKinematicEntities;
 }
 
 components:
@@ -47,8 +50,14 @@ functions:
     // Write physics objects
     *ostr << m_cPhysEntities.GetNodes().Count();
 
-    FOREACHNODEINREFS(m_cPhysEntities, itn) {
-      *ostr << itn->GetOwner()->en_ulID;
+    FOREACHNODEINREFS(m_cPhysEntities, itnP) {
+      *ostr << itnP->GetOwner()->en_ulID;
+    }
+
+    *ostr << m_cKinematicEntities.GetNodes().Count();
+
+    FOREACHNODEINREFS(m_cKinematicEntities, itnK) {
+      *ostr << itnK->GetOwner()->en_ulID;
     }
   };
 
@@ -60,15 +69,28 @@ functions:
     _pODE->ReadState_t(istr);
 
     // Read physics objects and reference them
-    INDEX ct;
+    INDEX i, ct;
     *istr >> ct;
 
-    for (INDEX i = 0; i < ct; i++) {
+    for (i = 0; i < ct; i++) {
       ULONG ulID;
       *istr >> ulID;
 
       CPhysBase *pen = (CPhysBase *)GetWorld()->EntityFromID(ulID);
       m_cPhysEntities.Add(pen->m_nNode);
+    }
+
+    *istr >> ct;
+
+    for (i = 0; i < ct; i++) {
+      ULONG ulID;
+      *istr >> ulID;
+
+      CEntity *pen = GetWorld()->EntityFromID(ulID);
+
+      {
+        ASSERTALWAYS("Cannot find node for some kinematic entity!");
+      }
     }
   };
 
@@ -174,9 +196,13 @@ procedures:
       }
 
       // Execute step function for physics objects
-      FOREACHNODEINREFS(m_cPhysEntities, itn) {
-        CPhysBase *pen = (CPhysBase *)itn->GetOwner();
+      FOREACHNODEINREFS(m_cPhysEntities, itnP) {
+        CPhysBase *pen = (CPhysBase *)itnP->GetOwner();
         pen->OnPhysStep();
+      }
+
+      FOREACHNODEINREFS(m_cKinematicEntities, itnK) {
+        CEntity *pen = itnK->GetOwner();
       }
 
       ODE_DoSimulation(GetWorld());
