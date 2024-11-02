@@ -172,6 +172,31 @@ functions:
     }
   };
 
+  // Find physics objects in some area
+  void FindPhysObjects(const FLOATaabbox3D &box, CDynamicContainer<class CPhysBase> &cOutput) {
+    CDynamicContainer<CEntity> cenInRange;
+    FindEntitiesInRange(box, cenInRange, FALSE);
+
+    FOREACHINDYNAMICCONTAINER(cenInRange, CEntity, iten) {
+      CEntity *pen = iten;
+
+      // Only add entities referenced in the list
+      if (m_cPhysEntities.IsReferenced(pen)) {
+        cOutput.Add((CPhysBase *)pen);
+      }
+    }
+  };
+
+  // Update physics objects in some area by unfreezing them
+  void UpdatePhysObjects(const FLOATaabbox3D &box) {
+    CDynamicContainer<CPhysBase> cObjects;
+    _penGlobalController->FindPhysObjects(box, cObjects);
+
+    FOREACHINDYNAMICCONTAINER(cObjects, CPhysBase, iten) {
+      iten->PhysObj().Unfreeze();
+    }
+  };
+
 procedures:
   MainLoop() {
     while (TRUE)
