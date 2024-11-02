@@ -330,6 +330,13 @@ void odeObject::WriteBody_t(CWriteStream &strm) {
     }
   }
 
+  // Body mass
+  strm.Write_key(body->mass.mass);
+  strm.WriteMatrix_key(body->mass.I);
+  strm.WriteVector_key(body->mass.c);
+  strm.WriteMatrix_key(body->invI);
+  strm.Write_key(body->invMass);
+
   strm.WriteVector_key(body->posr.pos);
   strm.WriteQuat_key(body->q);
   strm.WriteVector_key(body->lvel);
@@ -384,6 +391,13 @@ void odeObject::ReadBody_t(CTStream *istr) {
   }
 
   if (!ubExists) return;
+
+  // Body mass
+  *istr >> body->mass.mass;
+  ReadMatrix(istr, body->mass.I);
+  ReadVector(istr, body->mass.c);
+  ReadMatrix(istr, body->invI);
+  *istr >> body->invMass;
 
   ReadVector(istr, body->posr.pos);
   ReadQuat(istr, body->q);
@@ -456,13 +470,7 @@ void odeObject::Write_t(CWriteStream &strm) {
 
   // [Cecil] NOTE: This mass must be written instead of body->mass because it resets body mass in EndShape()
   strm.Write_key(mass.mass);
-
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      strm.Write_key(mass.I[i * 4 + j]);
-    }
-  }
-
+  strm.WriteMatrix_key(mass.I);
   strm.WriteVector_key(mass.c);
 
   WriteGeom_t(strm);
@@ -484,13 +492,7 @@ void odeObject::Read_t(CTStream *istr) {
 
   // [Cecil] NOTE: This mass must be read instead of body->mass because it resets body mass in EndShape()
   *istr >> mass.mass;
-
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      *istr >> mass.I[i * 4 + j];
-    }
-  }
-
+  ReadMatrix(istr, mass.I);
   ReadVector(istr, mass.c);
 
   ReadGeom_t(istr);
