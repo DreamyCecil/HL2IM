@@ -75,6 +75,9 @@ BOOL GravityGunCanInteract(CCecilPlayerEntity *penPlayer, CEntity *pen, BOOL bPi
 // Get sync class for holding the object using with the gravity gun
 CSyncedEntityPtr *GetGravityGunSync(CEntity *pen);
 
+// Check if some entity is currently physical
+BOOL IsEntityPhysical(CEntity *pen);
+
 // Serialize sync classes for held objects
 void WriteHeldObject(CSyncedEntityPtr &sync, CTStream *ostr);
 void ReadHeldObject(CSyncedEntityPtr &sync, CTStream *istr, CEntity *pen);

@@ -1449,7 +1449,7 @@ functions:
       FLOATaabbox3D boxSize;
       ECollisionShape eDummy;
 
-      BOOL bPhysical = IsDerivedFromID(penHolding, CPhysBase_ClassID);
+      const BOOL bPhysical = IsEntityPhysical(penHolding);
 
       if (!bPhysical || !GetCustomCollisionShape(penHolding, boxSize, eDummy)) {
         penHolding->GetBoundingBox(boxSize);
@@ -6710,7 +6710,7 @@ procedures:
 
         CPlacement3D plObject = penObject->GetPlacement();
 
-        if (IsDerivedFromID(penObject, CPhysBase_ClassID)) {
+        if (IsEntityPhysical(penObject)) {
           plObject.pl_PositionVector = ((CPhysBase *)penObject)->PhysObj().GetPosition();
 
           FLOATmatrix3D mRot = ((CPhysBase *)penObject)->PhysObj().GetMatrix();
