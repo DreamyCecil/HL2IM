@@ -147,11 +147,12 @@ functions:
   };
 
   // Process physics object before the actual physics simulation
-  virtual void OnPhysStep(void) {
+  void OnPhysStep(void) {
     AddToMovers();
 
     // Using engine physics
     if (!PhysicsUsable()) {
+      PhysStepEngine();
       return;
     }
 
@@ -159,21 +160,36 @@ functions:
     m_vObjPos = PhysObj().GetPosition();
     m_mObjRot = PhysObj().GetMatrix();
 
-    // Stay still if it's frozen
     if (PhysObj().IsFrozen()) {
-      if (en_vCurrentTranslationAbsolute.Length() > 0
-       || en_aCurrentRotationAbsolute.Length() > 0) {
-        ForceFullStop();
-      }
-
+      PhysStepFrozen();
       return;
     }
 
     // Continue with proper physics
+    PhysStepRealistic();
 
     // Apply manual sector gravity only if the gravity vector deviates from -Y too much
     const BOOL bManualGravity = (PhysicsUseSectorGravity() && en_vGravityDir(2) >= -0.99f);
     PhysObj().UpdateGravity(bManualGravity, en_vGravityDir);
+  };
+
+  // Called every tick while the engine physics are used
+  virtual void PhysStepEngine(void) {
+    NOTHING;
+  };
+
+  // Called every tick while the physics object is frozen
+  virtual void PhysStepFrozen(void) {
+    // Stay still
+    if (en_vCurrentTranslationAbsolute.Length() > 0
+     || en_aCurrentRotationAbsolute.Length() > 0) {
+      ForceFullStop();
+    }
+  };
+
+  // Called every tick while the realistic physics are used
+  virtual void PhysStepRealistic(void) {
+    NOTHING;
   };
 
 /****************************************************************/
@@ -213,12 +229,7 @@ functions:
     // Delete last object
     PhysObj().Clear(TRUE);
 
-    if (!ODE_IsStarted()) {
-      return;
-    }
-
-    // Add this object to the controller
-    _penGlobalController->m_cPhysEntities.Add(PhysObj().nPhysOwner);
+    if (!ODE_IsStarted()) { return; }
 
     // Begin creating a new object
     CPlacement3D plOffset;
@@ -238,6 +249,13 @@ functions:
 
     // Finish up the object
     PhysObj().EndShape();
+
+    // Remember current position
+    m_vObjPos = PhysObj().GetPosition();
+    m_mObjRot = PhysObj().GetMatrix();
+
+    // Add this object to the controller
+    _penGlobalController->m_cPhysEntities.Add(PhysObj().nPhysOwner);
   };
 
   // Add physics object geometry
@@ -286,7 +304,7 @@ functions:
       if (PhysicsUsable()) {
         PhysObj().AddForce(vDirection, fForce, vHitPoint);
       } else {
-        GiveImpulseTranslationAbsolute(vDirection * fForce * _pTimer->TickQuantum);
+        GiveImpulseTranslationAbsolute(vDirection * fForce * ONE_TICK);
       }
     }
 
@@ -376,21 +394,21 @@ functions:
     const ANGLE3D &aSource = plSource.pl_OrientationAngle;
 
     // Get position
-    FLOAT3D m_vDesiredPos = PhysObj().GetPosition();
-    ANGLE3D m_aDesiredRot;
-    DecomposeRotationMatrixNoSnap(m_aDesiredRot, PhysObj().GetMatrix());
+    FLOAT3D vTarget = PhysObj().GetPosition();
+    ANGLE3D aTarget;
+    DecomposeRotationMatrixNoSnap(aTarget, PhysObj().GetMatrix());
 
     // Set translation and rotation
-    CPlacement3D m_plMovement;
-    m_plMovement.pl_PositionVector = (m_vDesiredPos - vSource);
+    FLOAT3D vMove = (vTarget - vSource);
+    ANGLE3D aRotate(0, 0, 0);
 
     for (INDEX i = 1; i <= 3; ++i) {
-      m_plMovement.pl_OrientationAngle(i) = NormalizeAngle(m_aDesiredRot(i) - aSource(i));
+      aRotate(i) = NormalizeAngle(aTarget(i) - aSource(i));
     }
 
     // Start moving
-    SetDesiredTranslation(m_plMovement.pl_PositionVector / ONE_TICK);
-    SetDesiredRotation(m_plMovement.pl_OrientationAngle / ONE_TICK);
+    SetDesiredTranslation(vMove / ONE_TICK);
+    SetDesiredRotation(aRotate / ONE_TICK);
   };
 
   // React to being touched or blocked
