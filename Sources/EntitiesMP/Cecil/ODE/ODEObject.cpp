@@ -95,10 +95,12 @@ void odeTrimesh::Build(void) {
 };
 
 // Add vertices of some brush
-void odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute) {
+BOOL odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute) {
   // Use internal counter
   INDEX iInternalVertexOffset = 0;
   if (piVertexOffset == NULL) piVertexOffset = &iInternalVertexOffset;
+
+  BOOL bResult = FALSE;
 
   // Go through each sector of the most detailed mip
   FOREACHINDYNAMICARRAY(pbr->GetFirstMip()->bm_abscSectors, CBrushSector, itSec) {
@@ -123,6 +125,8 @@ void odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute)
           const FLOAT3D &vVtx = itPolVtx.Current()->bvx_vRelative;
           AddVertex(odeVector(vVtx(1), vVtx(2), vVtx(3)));
         }
+
+        bResult = TRUE;
       }
 
       // Copy vertex indices
@@ -134,6 +138,8 @@ void odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute)
       *piVertexOffset += ctVtx;
     }
   }
+
+  return bResult;
 };
 
 // Delete the object
@@ -198,7 +204,10 @@ void odeObject::EndShape(void) {
     // Create physical body
     body = dBodyCreate(_pODE->world);
     dGeomSetBody(geom, body);
-    dBodySetMass(body, &mass);
+
+    if (fSetupMass > 0.0f) {
+      dBodySetMass(body, &mass);
+    }
 
     dBodySetData(body, this);
     dBodySetMovedCallback(body, &odeObject::MovedCallback);

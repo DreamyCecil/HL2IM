@@ -5,7 +5,8 @@
 #include "EntitiesMP/Cecil/Weapons.h"
 #include "EntitiesMP/Mod/PhysBase.h"
 
-// [Cecil] World conversion
+#include "EntitiesMP/Bouncer.h"
+#include "EntitiesMP/MovingBrush.h"
 #include "EntitiesMP/WorldBase.h"
 
 // Pointer to this entity
@@ -229,6 +230,13 @@ procedures:
 
       FOREACHNODEINREFS(m_cKinematicEntities, itnK) {
         CEntity *pen = itnK->GetOwner();
+
+        if (IsOfClassID(pen, CMovingBrush_ClassID)) {
+          ((CMovingBrush *)pen)->OnPhysStep();
+
+        } else if (IsOfClassID(pen, CBouncer_ClassID)) {
+          ((CBouncer *)pen)->OnPhysStep();
+        }
       }
 
       ODE_DoSimulation(GetWorld());

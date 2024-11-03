@@ -1635,9 +1635,7 @@ functions:
     // Delete last object
     PhysObj().Clear(TRUE);
 
-    if (!ODE_IsStarted()) {
-      return;
-    }
+    if (!ODE_IsStarted()) { return; }
 
     FLOATaabbox3D box;
     GetBoundingBox(box);

@@ -60,6 +60,12 @@ odeObject *SPhysObject::ForEntity(CEntity *pen) {
 
   } else if (IsDerivedFromID(pen, CPlayer_ClassID)) {
     return &((CPlayer *)pen)->PhysObj();
+
+  } else if (IsOfClassID(pen, CMovingBrush_ClassID)) {
+    return &((CMovingBrush *)pen)->PhysObj();
+
+  } else if (IsOfClassID(pen, CBouncer_ClassID)) {
+    return &((CBouncer *)pen)->PhysObj();
   }
 
   return NULL;
@@ -386,6 +392,19 @@ void ODE_Start(void) {
     if (IsDerivedFromID(pen, CPlayer_ClassID)) {
       CPlayer *penPlayer = (CPlayer *)pen;
       penPlayer->CreateObject();
+      continue;
+    }
+
+    // Create kinematic objects
+    if (IsOfClassID(pen, CMovingBrush_ClassID)) {
+      CMovingBrush *penBrush = (CMovingBrush *)pen;
+      penBrush->CreateObject();
+      continue;
+    }
+
+    if (IsOfClassID(pen, CBouncer_ClassID)) {
+      CBouncer *penBrush = (CBouncer *)pen;
+      penBrush->CreateObject();
       continue;
     }
 

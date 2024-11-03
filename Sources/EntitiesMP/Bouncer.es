@@ -48,8 +48,70 @@ properties:
  12 FLOAT m_fNormalComponentMultiplier    "Normal component multiplier" 'O' = 1.0f,
  13 FLOAT m_fParallelComponentMultiplier  "Parallel component multiplier" 'P' = 0.0f,
 
+{
+  // [Cecil] Physics object
+  SPhysObject m_obj;
+}
+
 components:
+
 functions:
+  // [Cecil] Constructor
+  void CBouncer(void) {
+    PhysObj().SetOwner(this);
+  };
+
+  // [Cecil] On destruction
+  virtual void OnEnd(void) {
+    PhysObj().Clear(TRUE);
+    CRationalEntity::OnEnd();
+  };
+
+  // [Cecil] Get physics object
+  odeObject &PhysObj(void) {
+    return *m_obj.pObj;
+  };
+
+  // [Cecil] Create the ODE object
+  void CreateObject(void) {
+    // Delete last object
+    PhysObj().Clear(TRUE);
+
+    if (!ODE_IsStarted()) { return; }
+
+    // Empty brush or hidden (destroyed)
+    if (IsEmptyBrush() || (GetFlags() & ENF_HIDDEN)) { return; }
+
+    // Begin creating a new object
+    PhysObj().BeginShape(GetPlacement(), 1.0f, TRUE);
+
+    // No vertices added
+    if (!PhysObj().mesh.FromBrush(GetBrush(), NULL, FALSE)) {
+      return;
+    }
+
+    PhysObj().mesh.Build();
+    PhysObj().AddTrimesh();
+
+    PhysObj().EndShape();
+    PhysObj().SetKinematic(TRUE);
+
+    // Add this object to the controller
+    _penGlobalController->m_cKinematicEntities.Add(PhysObj().nPhysOwner);
+  };
+
+  // [Cecil] Make physics object follow the brush
+  void OnPhysStep(void) {
+    const FLOAT3D vDiff = (GetPlacement().pl_PositionVector - PhysObj().GetPosition());
+    PhysObj().SetCurrentTranslation(vDiff / ONE_TICK);
+
+    ANGLE3D aAngle;
+    DecomposeRotationMatrixNoSnap(aAngle, PhysObj().GetMatrix());
+
+    const ANGLE3D aDiff = (GetPlacement().pl_OrientationAngle - aAngle);
+    PhysObj().SetCurrentRotation(aDiff / ONE_TICK);
+  };
+
 procedures:
   Main() {
     // declare yourself as a brush
@@ -67,4 +129,3 @@ procedures:
     return;
   }
 };
-                                                  

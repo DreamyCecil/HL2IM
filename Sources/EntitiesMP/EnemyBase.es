@@ -2031,7 +2031,7 @@ functions:
         {
           ETouch eTouch = ((ETouch &) ee);
           if (IsOfClass(eTouch.penOther, "ModelHolder2") ||
-              IsOfClass(eTouch.penOther, "MovingBrush") ||
+              IsOfClass(eTouch.penOther, "Moving Brush") || // [Cecil] "MovingBrush" -> "Moving Brush"
               IsOfClass(eTouch.penOther, "DestroyableArchitecture") )
           {
             InflictDirectDamage(eTouch.penOther, this, DMT_EXPLOSION, GetCrushHealth(),

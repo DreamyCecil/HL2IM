@@ -128,6 +128,11 @@ properties:
  81 flags ClasificationBits m_cbClassificationBits "Clasification bits" 'C' = 0,
  82 flags VisibilityBits m_vbVisibilityBits "Visibility bits" 'V' = 0,
 
+{
+  // [Cecil] Physics object
+  SPhysObject m_obj;
+}
+
 components:
 
 // ************** STONE PARTS **************
@@ -138,6 +143,78 @@ components:
 
 
 functions:
+  // [Cecil] Constructor
+  void CMovingBrush(void) {
+    PhysObj().SetOwner(this);
+  };
+
+  // [Cecil] On destruction
+  virtual void OnEnd(void) {
+    PhysObj().Clear(TRUE);
+    CMovableBrushEntity::OnEnd();
+  };
+
+  // [Cecil] Get physics object
+  odeObject &PhysObj(void) {
+    return *m_obj.pObj;
+  };
+
+  // [Cecil] Create the ODE object
+  void CreateObject(void) {
+    // Delete last object
+    PhysObj().Clear(TRUE);
+
+    if (!ODE_IsStarted()) { return; }
+
+    // Empty brush or hidden (destroyed)
+    if (IsEmptyBrush() || (GetFlags() & ENF_HIDDEN)) { return; }
+
+    // Begin creating a new object
+    PhysObj().BeginShape(GetPlacement(), 1.0f, TRUE);
+
+    // No vertices added
+    if (!PhysObj().mesh.FromBrush(GetBrush(), NULL, FALSE)) {
+      return;
+    }
+
+    PhysObj().mesh.Build();
+    PhysObj().AddTrimesh();
+
+    PhysObj().EndShape();
+    PhysObj().SetKinematic(TRUE);
+
+    // Add this object to the controller
+    _penGlobalController->m_cKinematicEntities.Add(PhysObj().nPhysOwner);
+  };
+
+  // [Cecil] Make physics object follow the brush
+  void OnPhysStep(void) {
+    CPlacement3D plCurrent = GetPlacement();
+
+    // [Cecil] NOTE: This placement offsetting is needed in order to "predict" the next movement position of a brush
+    // If it's not done, any physics object that lies on top will lag behind by a tick and, for example, will appear
+    // "inside" of it or "floating" slightly above it when it's moving up and down respectively
+
+    // All of these offset pairs are equivalents to each other
+    //plCurrent.pl_PositionVector += m_vDesiredTranslation * GetRotationMatrix() * ONE_TICK;
+    //plCurrent.pl_OrientationAngle = m_aDesiredRotation * ONE_TICK;
+
+    //plCurrent.pl_PositionVector += GetDesiredTranslation() * GetRotationMatrix() * ONE_TICK;
+    //plCurrent.pl_OrientationAngle = GetDesiredRotation() * ONE_TICK;
+
+    plCurrent.pl_PositionVector += en_vCurrentTranslationAbsolute * ONE_TICK;
+    plCurrent.pl_OrientationAngle += en_aCurrentRotationAbsolute * ONE_TICK;
+
+    // Move after the brush
+    const FLOAT3D vDiff = (plCurrent.pl_PositionVector - PhysObj().GetPosition());
+    PhysObj().SetCurrentTranslation(vDiff / ONE_TICK);
+
+    ANGLE3D aAngle;
+    DecomposeRotationMatrixNoSnap(aAngle, PhysObj().GetMatrix());
+
+    const ANGLE3D aDiff = (plCurrent.pl_OrientationAngle - aAngle);
+    PhysObj().SetCurrentRotation(aDiff / ONE_TICK);
+  };
 
  // get visibility tweaking bits
   ULONG GetVisTweaks(void)
@@ -1002,6 +1079,15 @@ procedures:
         }
         // send event to blowup target
         SendToTarget(m_penBlowupEvent, m_eetBlowupEvent, eDeath.eLastDamage.penInflictor);
+
+        // [Cecil] Destory physics object and update objects around the brush
+        PhysObj().Clear(TRUE);
+
+        if (_penGlobalController != NULL) {
+          box.Expand(8.0f);
+          box += GetPlacement().pl_PositionVector;
+          _penGlobalController->UpdatePhysObjects(box);
+        }
 
         // make sure it doesn't loop with destroying itself
         m_tdeSendEventOnDamage = TDE_TOUCHONLY;
