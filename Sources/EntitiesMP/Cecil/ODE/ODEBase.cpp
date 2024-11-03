@@ -160,13 +160,25 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
   dBodyID body1 = dGeomGetBody(geom1);
   dBodyID body2 = dGeomGetBody(geom2);
 
-  if (body1 && body2 && dAreConnectedExcluding(body1, body2, dJointTypeContact)) return;
+  const BOOL bBody1 = (body1 != NULL);
+  const BOOL bBody2 = (body2 != NULL);
+  const BOOL bK1 = (bBody1 && dBodyIsKinematic(body1));
+  const BOOL bK2 = (bBody2 && dBodyIsKinematic(body2));
+
+  // Ignore collisions between kinematic bodies
+  if (bK1 && bK2) return;
+
+  if (bBody1 && bBody2 && dAreConnectedExcluding(body1, body2, dJointTypeContact)) return;
 
   odeObject *obj1 = (odeObject *)dGeomGetData(geom1);
   odeObject *obj2 = (odeObject *)dGeomGetData(geom2);
 
   // [Cecil] TEMP: Ignore geoms with no attached objects
   if (obj1 == NULL || obj2 == NULL) return;
+
+  // Ignore collisions between kinematic bodies and the world
+  if (bK1 && obj2 == _pODE->pObjWorld) return;
+  if (bK2 && obj1 == _pODE->pObjWorld) return;
 
   CEntity *pen1 = obj1->GetOwner();
   CEntity *pen2 = obj2->GetOwner();
@@ -254,6 +266,7 @@ static void ODE_ErrorFunction(int errnum, const char *msg, va_list ap) {
   CTString str;
   str.VPrintF(msg, ap);
 
+  ASSERTALWAYS(str.str_String);
   FatalError("ODE Error [%d]\n%s", errnum, str.str_String);
 };
 
@@ -262,6 +275,7 @@ static void ODE_DebugFunction(int errnum, const char *msg, va_list ap) {
   CTString str;
   str.VPrintF(msg, ap);
 
+  ASSERTALWAYS(str.str_String);
   CPrintF("ODE Debug [%d]:\n%s\n", errnum, str.str_String);
 };
 
@@ -270,6 +284,7 @@ static void ODE_MessageFunction(int errnum, const char *msg, va_list ap) {
   CTString str;
   str.VPrintF(msg, ap);
 
+  ASSERTALWAYS(str.str_String);
   CPrintF("ODE Message [%d]:\n%s\n", errnum, str.str_String);
 };
 
