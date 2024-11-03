@@ -1348,7 +1348,7 @@ functions:
     m_fWaitTime = BULLET_LIFETIME;
     m_fFadeTime = 2.0f;
     m_bLightSource = FALSE;
-    m_eptType = EPT_BULLET_METAL;
+    m_eptType = EPT_BULLET_GLASS;
     FLOAT3D vTemp = m_vStretch;
     ParentToNearestPolygonAndStretch();
     m_vStretch = vTemp;

@@ -3702,8 +3702,8 @@ void Particles_BulletSpray(INDEX iRndBase, FLOAT3D vSource, FLOAT3D vGDir, enum 
 
   Particle_Flush();
   
-  // [Cecil] Not needed for now
-  /*if ((fT<BULLET_SPARK_TOTAL_TIME) && (eptType != EPT_BULLET_WATER) && (eptType != EPT_BULLET_UNDER_WATER)) {
+  // [Cecil] Only for metal surfaces
+  if (fT < BULLET_SPARK_TOTAL_TIME && eptType == EPT_BULLET_METAL) {
     // render spark lines
     Particle_PrepareTexture(&_toBulletSpark, PBT_ADD);
     for (INDEX iSpark = 0; iSpark < 8*fDisappear; iSpark++) {
@@ -3711,8 +3711,10 @@ void Particles_BulletSpray(INDEX iRndBase, FLOAT3D vSource, FLOAT3D vGDir, enum 
         afStarsPositions[ iSpark+iRnd][0]*0.75f,
         afStarsPositions[ iSpark+iRnd][1]*0.75f,
         afStarsPositions[ iSpark+iRnd][2]*0.75f);
-      FLOAT3D vPos0 = vSource + (vDirection+vRandomAngle)*(fT+0.00f)*12.0f;
-      FLOAT3D vPos1 = vSource + (vDirection+vRandomAngle)*(fT+0.05f)*12.0f;
+
+      // [Cecil] 12.0 -> 6.0
+      FLOAT3D vPos0 = vSource + (vDirection+vRandomAngle) * (fT+0.00f) * 6.0f;
+      FLOAT3D vPos1 = vSource + (vDirection+vRandomAngle) * (fT+0.05f) * 6.0f;
       FLOAT fColorFactor = 1.0f;
 
       if (fT >= BULLET_SPARK_FADEOUT_START) {
@@ -3721,10 +3723,10 @@ void Particles_BulletSpray(INDEX iRndBase, FLOAT3D vSource, FLOAT3D vGDir, enum 
 
       UBYTE ubColor = UBYTE(CT_OPAQUE*fColorFactor);
       COLOR col = RGBToColor(ubColor,ubColor,ubColor)|CT_OPAQUE;
-      Particle_RenderLine(vPos0, vPos1, 0.05f, col);
+      Particle_RenderLine(vPos0, vPos1, 0.01f, col); // [Cecil] 0.05 -> 0.01
     }
     Particle_Flush();
-  }*/
+  }
 
   // [Cecil] Not needed for now
   /*if ((fT<BULLET_SMOKE_TOTAL_TIME) && (eptType != EPT_BULLET_WATER) && (eptType != EPT_BULLET_UNDER_WATER)) {
