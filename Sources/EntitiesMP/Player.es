@@ -1933,6 +1933,9 @@ functions:
         for (INDEX iAmmo = 0; iAmmo < 11; iAmmo++) {
           (&GetPlayerWeapons()->m_iUSP)[iAmmo] = (&GetPlayerWeapons()->m_iUSP_Max)[iAmmo];
         }
+
+        // Give HEV suit
+        m_bHEVSuit = TRUE;
       } break;
 
       case 3: { // kill
