@@ -630,6 +630,15 @@
     <ClCompile Include="Cecil\ODE\ODEObject.cpp">
       <Filter>Source Files\Cecil sources\ODE sources</Filter>
     </ClCompile>
+    <ClCompile Include="Mod\PhysObject.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\PhysBrush.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\PhysBody.cpp">
+      <Filter>Source Files\Entity sources</Filter>
+    </ClCompile>
     <ClCompile Include="Cecil\ODE\ODEState.cpp">
       <Filter>Source Files\Cecil sources\ODE sources</Filter>
     </ClCompile>
@@ -1212,6 +1221,15 @@
     </CustomBuild>
     <CustomBuild Include="Mod\BetaEnemies\Metrocop.es">
       <Filter>Class Files\Cecil\BetaEnemies</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\PhysBody.es">
+      <Filter>Class Files\Cecil</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\PhysBrush.es">
+      <Filter>Class Files\Cecil</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\PhysObject.es">
+      <Filter>Class Files\Cecil</Filter>
     </CustomBuild>
     <CustomBuild Include="Mod\Base\PlayerEntity.es">
       <Filter>Class Files\Cecil\Base</Filter>

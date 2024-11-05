@@ -113,6 +113,16 @@ functions:
     }
   };
 
+  void PreMoving(void) {
+    FLOAT3D vLastGravity = en_vGravityDir;
+    CCecilMovableModelEntity::PreMoving();
+
+    // Unfreeze objects if the gravity has changed
+    if (PhysicsUseSectorGravity() && en_vGravityDir != vLastGravity) {
+      PhysObj().Unfreeze();
+    }
+  };
+
 /****************************************************************/
 /*                        Physics object                        */
 /****************************************************************/
