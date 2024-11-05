@@ -9,15 +9,19 @@
 #include "EntitiesMP/Mod/RollerMine.h"
 
 // [Cecil] Static items on the ground
-#define EPF_GROUND_ITEM (EPF_ONBLOCK_STOPEXACT|EPF_PUSHABLE|EPF_MOVABLE|EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY)
+#define EPF_GROUND_ITEM (EPF_COLLIDEWITHCUSTOM | EPF_COLLIDEWITHCUSTOM_EXCL | \
+  EPF_ONBLOCK_STOPEXACT|EPF_PUSHABLE|EPF_MOVABLE|EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY)
 %}
+
+// [Cecil] New base class
+uses "EntitiesMP/Mod/PhysBase";
 
 %{
 // used to render certain entities only for certain players (like picked items, etc.)
 extern ULONG _ulPlayerRenderingMask;
 %}
 
-class export CItem : CMovableModelEntity {
+class export CItem : CPhysBase {
 name      "Item";
 thumbnail "";
 features  "HasName", "HasDescription", "IsTargetable", "CanBePredictable";
@@ -42,11 +46,6 @@ properties:
 // [Cecil] How long to stay dropped
  50 FLOAT m_fDropTime = 10.0f,
 
-{
-  // [Cecil] For synchronizing held object for the gravity gun
-  CSyncedEntityPtr m_syncGravityGun;
-}
-
 components:
   1 model MODEL_ITEM "Models\\Items\\ItemHolder.mdl",
 
@@ -54,22 +53,41 @@ components:
  10 class CLASS_ROLLERMINE "Classes\\RollerMine.ecl",
 
 functions:
-  void CItem(void) {
-    m_syncGravityGun.SetOwner(this); // [Cecil]
+  // [Cecil] Physics overrides
+  virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
+    vSize = FLOAT3D(1, 1, 1);
+    return COLSH_BOX;
   };
 
-  void Write_t(CTStream *ostr) {
-    CMovableModelEntity::Write_t(ostr);
-
-    // [Cecil] Write sync class
-    WriteHeldObject(m_syncGravityGun, ostr);
+  virtual BOOL GetPhysOffset(CPlacement3D &plOffset) const {
+    plOffset = CPlacement3D(FLOAT3D(0, 0.5f, 0), ANGLE3D(0, 0, 0));
+    return TRUE;
   };
 
-  void Read_t(CTStream *istr) {
-    CMovableModelEntity::Read_t(istr);
+  virtual BOOL CanGravityGunInteract(CCecilPlayerEntity *penPlayer) const {
+    // Ignore respawning and invisible items
+    if (m_bRespawn || en_RenderType == RT_EDITORMODEL || en_RenderType == RT_SKAEDITORMODEL) {
+      return FALSE;
+    }
 
-    // [Cecil] Read sync class
-    ReadHeldObject(m_syncGravityGun, istr, this);
+    // Check if it's already been picked up by the player
+    const INDEX iPlayer = penPlayer->GetMyPlayerIndex();
+    const BOOL bAlreadyPicked = (1 << iPlayer) & m_ulPickedMask;
+
+    return !bAlreadyPicked;
+  };
+
+  virtual BOOL CanGravityGunPickUp(void) const {
+    // Only if it doesn't respawn
+    return !m_bRespawn;
+  };
+
+  void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType, FLOAT fDamage, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) {
+    if (PhysicsUsable()) {
+      CPhysBase::ReceiveDamage(penInflictor, dmtType, fDamage, vHitPoint, vDirection);
+    } else {
+      CCecilMovableModelEntity::ReceiveDamage(penInflictor, dmtType, fDamage, vHitPoint, vDirection);
+    }
   };
 
   virtual void AdjustDifficulty(void)
@@ -184,18 +202,14 @@ functions:
   void Initialize(void) {
     InitAsModel();
 
-    // [Cecil] Only set see through flag if respawning
+    // [Cecil] Only set see-through flag if respawning
     if (m_bRespawn) {
       SetFlags(GetFlags() | ENF_SEETHROUGH);
-    }
-
-    if (m_bFloating) {
-      SetPhysicsFlags(EPF_MODEL_FLYING);
     } else {
-      SetPhysicsFlags(EPF_MODEL_SLIDING);
+      SetFlags(GetFlags() & ~ENF_SEETHROUGH);
     }
 
-    SetCollisionFlags(ECF_ITEM);
+    SetItemFlags(FALSE);
 
     // make items not slide that much
     en_fDeceleration = 60.0f;
@@ -203,6 +217,29 @@ functions:
     // set appearance
     SetModel(MODEL_ITEM);
     SetDesiredTranslation(FLOAT3D(0,0,0));  // just to add to movers
+  };
+
+  // [Cecil] Set appropriate flags for the item
+  void SetItemFlags(BOOL bRealisticPhysics) {
+    // [Cecil] Set flags for realistic physics
+    if (bRealisticPhysics) {
+      SetPhysicsFlags(EPF_BRUSH_MOVING | EPF_CUSTOMCOLLISION);
+      SetCollisionFlags(ECF_PHYS_TESTALL | ECF_PHYS_ISMODEL | ((ECBI_MODEL | ECBI_PLAYER) << ECB_PASS));
+
+    } else {
+      if (m_bFloating) {
+        SetPhysicsFlags(EPF_MODEL_FLYING);
+
+      // [Cecil] Items that respawn shouldn't slide around
+      } else if (m_bRespawn) {
+        SetPhysicsFlags(EPF_GROUND_ITEM);
+
+      } else {
+        SetPhysicsFlags(EPF_MODEL_SLIDING);
+      }
+
+      SetCollisionFlags(ECF_ITEM);
+    }
   };
 
 /************************************************************
@@ -247,7 +284,7 @@ functions:
   SLONG GetUsedMemory(void)
   {
     // initial
-    SLONG slUsedMemory = sizeof(CItem) - sizeof(CMovableModelEntity) + CMovableModelEntity::GetUsedMemory();
+    SLONG slUsedMemory = sizeof(CItem) - sizeof(CPhysBase) + CPhysBase::GetUsedMemory();
     // add some more
     slUsedMemory += m_strDescription.Length();
     slUsedMemory += m_strName.Length();
@@ -287,10 +324,8 @@ procedures:
     SetPredictable(TRUE);
     AdjustDifficulty();
 
-    // [Cecil] Items that respawn shouldn't slide around
-    if (m_bRespawn) {
-      SetPhysicsFlags(EPF_GROUND_ITEM);
-    }
+    // [Cecil] Readjust the flags
+    SetItemFlags(ODE_IsStarted());
 
     wait() {
       on (EBegin) : { resume; }
@@ -305,25 +340,37 @@ procedures:
         call ItemCollected(epass); 
       }
 
-      // [Cecil] Gravity Gun actions
-      on (EGravityGunStart eStart) : {
-        GravityGunStart(this, eStart.penWeapons);
+      // [Cecil] Physics simulation
+      on (EPhysicsStart) : {
+        SetItemFlags(TRUE);
         resume;
       }
-      on (EGravityGunStop eStop) : {
-        GravityGunStop(this, eStop.ulFlags);
-        resume;
-      }
-      on (EGravityGunPush ePush) : {
-        GravityGunPush(this, ePush.vDir, ePush.vHit);
+
+      on (EPhysicsStop) : {
+        SetItemFlags(FALSE);
+
+        // Adjust item placement to prevent it from falling through the floor
+        ANGLE3D aGravity;
+        UpVectorToAngles(-en_vGravityDir, aGravity);
+        aGravity(1) = GetPlacement().pl_OrientationAngle(1);
+
+        Teleport(CPlacement3D(PhysObj().GetPosition(), aGravity), FALSE);
+        ForceFullStop();
         resume;
       }
 
       on (EEnd) : { stop; }
     }
 
-    // Drop this object
+    // [Cecil] Drop this object
     GravityGunObjectDrop(m_syncGravityGun);
+
+    // [Cecil] Destory physics object and update objects around the item
+    PhysObj().Clear(TRUE);
+
+    if (_penGlobalController != NULL) {
+      _penGlobalController->UpdatePhysObjects(FLOATaabbox3D(GetPlacement().pl_PositionVector, 8.0f));
+    }
 
     // wait for sound to end
     autowait(m_fPickSoundLen+0.5f);

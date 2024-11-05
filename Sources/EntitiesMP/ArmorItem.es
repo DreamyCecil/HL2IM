@@ -71,6 +71,33 @@ functions:
     CArmorItem_Precache();
   };
 
+  // [Cecil] Physics overrides
+  virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
+    switch (m_EaitType) {
+      case ARIT_SHARD:
+      case ARIT_SMALL:
+      case ARIT_MEDIUM:
+      case ARIT_HELM:   vSize = FLOAT3D(0.2f, 0.3f, 0.5f); return COLSH_BOX;
+      case ARIT_STRONG: vSize = FLOAT3D(0.8f, 1.0f, 0.6f); return COLSH_BOX;
+      case ARIT_SUPER:  vSize = FLOAT3D(0.75f, 1.9f, 0.4f); return COLSH_BOX;
+    }
+
+    return CItem::GetPhysCollision(vSize);
+  };
+
+  virtual BOOL GetPhysOffset(CPlacement3D &plOffset) const {
+    switch (m_EaitType) {
+      case ARIT_SHARD:
+      case ARIT_SMALL:
+      case ARIT_MEDIUM:
+      case ARIT_HELM:   plOffset = CPlacement3D(FLOAT3D(0, 0.15f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case ARIT_STRONG: plOffset = CPlacement3D(FLOAT3D(0, 0.5f, 0.05f), ANGLE3D(0, 0, 0)); return TRUE;
+      case ARIT_SUPER:  plOffset = CPlacement3D(FLOAT3D(0, 0.95f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+    }
+
+    return CItem::GetPhysOffset(plOffset);
+  };
+
   /* Fill in entity statistics - for AI purposes only */
   BOOL FillEntityStatistics(EntityStats *pes) {
     pes->es_strName = "Armor"; 

@@ -273,7 +273,6 @@ void GravityGunObjectDrop(CSyncedEntityPtr &syncGravityGun, BOOL bCloseProngs) {
 // Entity is being held by the gravity gun
 void GravityGunHolding(CPlayerWeapons *penWeapons, CMovableEntity *pen, const EGravityGunHold &eHold) {
   // Special objects
-  const BOOL bItem = IsDerivedFromClass(pen, "Item");
   const BOOL bPhysical = IsEntityPhysical(pen);
 
   CPlacement3D plPos = CPlacement3D(eHold.vPos, eHold.aRot);
@@ -289,7 +288,7 @@ void GravityGunHolding(CPlayerWeapons *penWeapons, CMovableEntity *pen, const EG
   const FLOAT fDiff = vDiff.Length();
 
   // Collect items
-  if (bItem && fDiff < 1.0f) {
+  if (IsDerivedFromID(pen, CItem_ClassID) && fDiff < 1.0f) {
     EPass ePass;
     ePass.penOther = penWeapons->m_penPlayer;
     pen->SendEvent(ePass);
@@ -324,7 +323,7 @@ void GravityGunHolding(CPlayerWeapons *penWeapons, CMovableEntity *pen, const EG
   }
 
   // Only rotate certain class types
-  if (!bItem && !IsDerivedFromID(pen, CPhysBase_ClassID) && !IsOfClassID(pen, CRadio_ClassID)) return;
+  if (!IsDerivedFromID(pen, CPhysBase_ClassID) && !IsOfClassID(pen, CRadio_ClassID)) return;
 
   // Rotate
   if (bPhysical) {
@@ -341,7 +340,7 @@ void GravityGunHolding(CPlayerWeapons *penWeapons, CMovableEntity *pen, const EG
     CPlacement3D plNewPos = plPos;
     plNewPos.AbsoluteToRelativeSmooth(pen->GetPlacement());
 
-    ANGLE3D aAngle = plNewPos.pl_OrientationAngle;
+    ANGLE3D &aAngle = plNewPos.pl_OrientationAngle;
 
     // Normalize angles
     aAngle(1) = Clamp(NormalizeAngle(aAngle(1)), -70.0f, 70.0f);
@@ -418,25 +417,7 @@ BOOL GravityGunCanInteract(CCecilPlayerEntity *penPlayer, CEntity *pen, BOOL bPi
     return ((CPhysBase &)*pen).CanGravityGunInteract(penPlayer);
   }
 
-  // Not an item
-  if (!IsDerivedFromClass(pen, "Item")) return FALSE;
-
-  CItem &enItem = (CItem &)*pen;
-
-  // Ignore respawning items
-  if (enItem.m_bRespawn) return FALSE;
-
-  // Ignore invisible items
-  if (pen->GetRenderType() == CEntity::RT_EDITORMODEL
-   || pen->GetRenderType() == CEntity::RT_SKAEDITORMODEL) {
-    return FALSE;
-  }
-
-  // Check if it's already been picked up by the player
-  const INDEX iPlayer = penPlayer->GetMyPlayerIndex();
-  const BOOL bPickedAlready = (1 << iPlayer) & enItem.m_ulPickedMask;
-
-  return !bPickedAlready;
+  return FALSE;
 };
 
 // Get sync class for holding the object using with the gravity gun
@@ -452,9 +433,6 @@ CSyncedEntityPtr *GetGravityGunSync(CEntity *pen) {
 
   } else if (IsDerivedFromID(pen, CEnemyBase_ClassID)) {
     return &((CEnemyBase *)pen)->m_syncGravityGun;
-
-  } else if (IsDerivedFromClass(pen, "Item")) {
-    return &((CItem *)pen)->m_syncGravityGun;
   }
 
   return NULL;

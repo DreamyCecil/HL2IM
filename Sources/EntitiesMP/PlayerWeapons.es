@@ -1451,13 +1451,13 @@ functions:
 
       const BOOL bPhysical = IsEntityPhysical(penHolding);
 
-      if (!bPhysical || !GetCustomCollisionShape(penHolding, boxSize, eDummy)) {
+      if (!GetCustomCollisionShape(penHolding, boxSize, eDummy)) {
         penHolding->GetBoundingBox(boxSize);
       }
 
       vObjectSize = boxSize.Size();
 
-      BOOL bHoldCenter = bPhysical || (IsDerivedFromClass(penHolding, "Enemy Fly") && ((CEnemyFly &)*penHolding).m_bInAir);
+      const BOOL bHoldCenter = bPhysical || (IsDerivedFromClass(penHolding, "Enemy Fly") && ((CEnemyFly &)*penHolding).m_bInAir);
 
       if (!bHoldCenter) {
         plPlayerView.pl_PositionVector -= FLOAT3D(0.0f, vObjectSize(2) * 0.5f, 0.0f);
@@ -6714,7 +6714,7 @@ procedures:
           plObject.pl_PositionVector = ((CPhysBase *)penObject)->PhysObj().GetPosition();
 
           FLOATmatrix3D mRot = ((CPhysBase *)penObject)->PhysObj().GetMatrix();
-          DecomposeRotationMatrix(plObject.pl_OrientationAngle, mRot);
+          DecomposeRotationMatrixNoSnap(plObject.pl_OrientationAngle, mRot);
         }
 
         plObject.AbsoluteToRelative(plView);

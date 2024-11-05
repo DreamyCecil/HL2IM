@@ -133,6 +133,41 @@ functions:
     CWeaponItem_Precache();
   };
 
+  // [Cecil] Physics overrides
+  virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
+    switch (m_EwitType) {
+      case WIT_CROWBAR:    vSize = FLOAT3D(0.3f, 0.05f, 1.7f); return COLSH_BOX;
+      case WIT_USP:        vSize = FLOAT3D(0.3f, 0.075f, 0.5f); return COLSH_BOX;
+      case WIT_SPAS:       vSize = FLOAT3D(0.4f, 0.075f, 1.5f); return COLSH_BOX;
+      case WIT_SMG1:       vSize = FLOAT3D(0.45f, 0.075f, 0.9f); return COLSH_BOX;
+      case WIT_GRENADE:    vSize = FLOAT3D(0.35f, 0.35f, 0.75f); return COLSH_CAPSULE;
+      case WIT_CROSSBOW:   vSize = FLOAT3D(2.0f, 0.4f, 2.4f); return COLSH_BOX;
+      case WIT_357:        vSize = FLOAT3D(0.35f, 0.08f, 0.7f); return COLSH_BOX;
+      case WIT_GRAVITYGUN: vSize = FLOAT3D(0.6f, 0.4f, 1.5f); return COLSH_BOX;
+      case WIT_AR2:        vSize = FLOAT3D(0.6f, 0.1f, 1.7f); return COLSH_BOX;
+      case WIT_RPG:        vSize = FLOAT3D(0.6f, 0.25f, 2.2f); return COLSH_BOX;
+    }
+
+    return CItem::GetPhysCollision(vSize);
+  };
+
+  virtual BOOL GetPhysOffset(CPlacement3D &plOffset) const {
+    switch (m_EwitType) {
+      case WIT_CROWBAR:    plOffset = CPlacement3D(FLOAT3D(-0.125f, 0.025f, -0.03125f), ANGLE3D(0, 0, 0)); return TRUE;
+      case WIT_USP:        plOffset = CPlacement3D(FLOAT3D(0, 0.0375f, -0.03125f), ANGLE3D(0, 0, 0)); return TRUE;
+      case WIT_SPAS:       plOffset = CPlacement3D(FLOAT3D(-0.03125f, 0.0375f, -0.09375f), ANGLE3D(0, 0, 0)); return TRUE;
+      case WIT_SMG1:       plOffset = CPlacement3D(FLOAT3D(-0.03125f, 0.0375f, -0.09375f), ANGLE3D(0, 0, 0)); return TRUE;
+      case WIT_GRENADE:    plOffset = CPlacement3D(FLOAT3D(0, 0.175f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case WIT_CROSSBOW:   plOffset = CPlacement3D(FLOAT3D(0, 0.2f, -0.03125f), ANGLE3D(0, 0, 0)); return TRUE;
+      case WIT_357:        plOffset = CPlacement3D(FLOAT3D(-0.03125f, 0.04f, -0.0625f), ANGLE3D(0, 0, 0)); return TRUE;
+      case WIT_GRAVITYGUN: plOffset = CPlacement3D(FLOAT3D(0, 0.2f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case WIT_AR2:        plOffset = CPlacement3D(FLOAT3D(0.03125f, 0.05f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case WIT_RPG:        plOffset = CPlacement3D(FLOAT3D(0.03125f, 0.125f, 0.05f), ANGLE3D(0, 0, 0)); return TRUE;
+    }
+
+    return CItem::GetPhysOffset(plOffset);
+  };
+
   /* Fill in entity statistics - for AI purposes only */
   BOOL FillEntityStatistics(EntityStats *pes) {
     pes->es_strName = m_strDescription; 

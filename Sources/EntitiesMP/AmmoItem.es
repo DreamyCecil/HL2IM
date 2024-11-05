@@ -129,6 +129,41 @@ functions:
     CAmmoItem_Precache();
   };
 
+  // [Cecil] Physics overrides
+  virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
+    switch (m_EaitType) {
+      case AIT_SPAS:        vSize = FLOAT3D(0.44f, 0.29f, 0.35f); return COLSH_BOX;
+      case AIT_SMG1:        vSize = FLOAT3D(0.95f, 0.7f, 0.6f); return COLSH_BOX;
+      case AIT_RPG:         vSize = FLOAT3D(0.2f, 0.2f, 1.5f); return COLSH_CAPSULE;
+      case AIT_GRENADES:    vSize = FLOAT3D(0.35f, 0.35f, 0.75f); return COLSH_CAPSULE;
+      case AIT_ROCKETS:
+      case AIT_AR2:         vSize = FLOAT3D(0.55f, 0.12f, 0.5f); return COLSH_BOX;
+      case AIT_357:         vSize = FLOAT3D(0.45f, 0.225f, 0.3f); return COLSH_BOX;
+      case AIT_BOLTS:       vSize = FLOAT3D(0.125f, 0.125f, 1.1f); return COLSH_CAPSULE;
+      case AIT_BACKPACK:    vSize = FLOAT3D(2.1f, 1.2f, 1.2f); return COLSH_BOX;
+      case AIT_SERIOUSPACK: vSize = FLOAT3D(2.1f, 1.2f, 1.2f); return COLSH_BOX;
+    }
+
+    return CItem::GetPhysCollision(vSize);
+  };
+
+  virtual BOOL GetPhysOffset(CPlacement3D &plOffset) const {
+    switch (m_EaitType) {
+      case AIT_SPAS:        plOffset = CPlacement3D(FLOAT3D(-0.02f, 0.145f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case AIT_SMG1:        plOffset = CPlacement3D(FLOAT3D(0, 0.35f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case AIT_RPG:         plOffset = CPlacement3D(FLOAT3D(0, 0.1f, -0.1f), ANGLE3D(0, 0, 0)); return TRUE;
+      case AIT_GRENADES:    plOffset = CPlacement3D(FLOAT3D(0, 0.175f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case AIT_ROCKETS:
+      case AIT_AR2:         plOffset = CPlacement3D(FLOAT3D(0, 0.06f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case AIT_357:         plOffset = CPlacement3D(FLOAT3D(0, 0.1125f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case AIT_BOLTS:       plOffset = CPlacement3D(FLOAT3D(0, 0.0625f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case AIT_BACKPACK:    plOffset = CPlacement3D(FLOAT3D(0, 0.6f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case AIT_SERIOUSPACK: plOffset = CPlacement3D(FLOAT3D(0, 0.6f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+    }
+
+    return CItem::GetPhysOffset(plOffset);
+  };
+
   /* Fill in entity statistics - for AI purposes only */
   BOOL FillEntityStatistics(EntityStats *pes)
   {

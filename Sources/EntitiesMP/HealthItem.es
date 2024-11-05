@@ -75,6 +75,31 @@ functions:
     CHealthItem_Precache();
   };
 
+  // [Cecil] Physics overrides
+  virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
+    switch (m_EhitType) {
+      case HIT_PILL:
+      case HIT_SMALL: vSize = FLOAT3D(0.2f, 0.2f, 0.5f); return COLSH_CAPSULE;
+      case HIT_MEDIUM:
+      case HIT_LARGE: vSize = FLOAT3D(0.7f, 0.3f, 0.8f); return COLSH_BOX;
+      case HIT_SUPER: vSize = FLOAT3D(1, 1, 1); return COLSH_BOX;
+    }
+
+    return CItem::GetPhysCollision(vSize);
+  };
+
+  virtual BOOL GetPhysOffset(CPlacement3D &plOffset) const {
+    switch (m_EhitType) {
+      case HIT_PILL:
+      case HIT_SMALL: plOffset = CPlacement3D(FLOAT3D(0, 0.1f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case HIT_MEDIUM:
+      case HIT_LARGE: plOffset = CPlacement3D(FLOAT3D(0, 0.15f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case HIT_SUPER: plOffset = CPlacement3D(FLOAT3D(0, 0.5f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+    }
+
+    return CItem::GetPhysOffset(plOffset);
+  };
+
   /* Fill in entity statistics - for AI purposes only */
   BOOL FillEntityStatistics(EntityStats *pes) {
     pes->es_strName = "Health"; 

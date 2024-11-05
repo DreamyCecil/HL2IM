@@ -76,6 +76,31 @@ functions:
     CPowerUpItem_Precache();
   };
 
+  // [Cecil] Physics overrides
+  virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
+    switch (m_puitType) {
+      case PUIT_INVISIB:
+      case PUIT_SPEED: vSize = FLOAT3D(0.2f, 0.2f, 0.85f); return COLSH_CAPSULE;
+      case PUIT_INVULNER:
+      case PUIT_DAMAGE:
+      case PUIT_BOMB:  vSize = FLOAT3D(0.35f, 0.35f, 0.55f); return COLSH_CAPSULE;
+    }
+
+    return CItem::GetPhysCollision(vSize);
+  };
+
+  virtual BOOL GetPhysOffset(CPlacement3D &plOffset) const {
+    switch (m_puitType) {
+      case PUIT_INVISIB:
+      case PUIT_SPEED: plOffset = CPlacement3D(FLOAT3D(0, 0.1f, -0.025f), ANGLE3D(0, 0, 0)); return TRUE;
+      case PUIT_INVULNER:
+      case PUIT_DAMAGE:
+      case PUIT_BOMB:  plOffset = CPlacement3D(FLOAT3D(0, 0.175f, -0.03125f), ANGLE3D(0, 0, 0)); return TRUE;
+    }
+
+    return CItem::GetPhysOffset(plOffset);
+  };
+
   /* Fill in entity statistics - for AI purposes only */
   BOOL FillEntityStatistics(EntityStats *pes) {
     pes->es_strName = "PowerUp"; 

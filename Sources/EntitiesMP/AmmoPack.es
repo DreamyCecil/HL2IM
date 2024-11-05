@@ -77,6 +77,25 @@ functions:
     CAmmoPack_Precache();
   };
 
+  // [Cecil] Physics overrides
+  virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
+    switch (m_aptPackType) {
+      case APT_CUSTOM:
+      case APT_SERIOUS: vSize = FLOAT3D(2.1f, 1.2f, 1.2f); return COLSH_BOX;
+    }
+
+    return CItem::GetPhysCollision(vSize);
+  };
+
+  virtual BOOL GetPhysOffset(CPlacement3D &plOffset) const {
+    switch (m_aptPackType) {
+      case APT_CUSTOM:
+      case APT_SERIOUS: plOffset = CPlacement3D(FLOAT3D(0, 0.6f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+    }
+
+    return CItem::GetPhysOffset(plOffset);
+  };
+
   // [Cecil] Read special flag (0.7 compatibility)
   void Read_t(CTStream *istr) {
     CItem::Read_t(istr);
