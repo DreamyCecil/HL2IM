@@ -15,6 +15,10 @@ CGlobalController *_penGlobalController = NULL;
 #define SERVER_REPORT(_Message) if (_pNetwork->IsServer()) CPrintF("[REPORT]: %s\n", _Message)
 
 extern CPhysEngine *_pODE;
+
+// [Cecil] TEMP
+extern INDEX ode_bRenderPosition;
+extern void Particles_ColoredBox(const CPlacement3D &plCenter, const FLOAT3D &vSize, COLOR col);
 %}
 
 class export CGlobalController : CRationalEntity {
@@ -104,14 +108,34 @@ functions:
 
   void RenderParticles(void) {
     // [Cecil] TEMP: Render boxes around brush physics objects
-    FOREACHNODEINREFS(m_cPhysEntities, itn) {
-      CPhysBase *pen = (CPhysBase *)itn->GetOwner();
+    FOREACHNODEINREFS(m_cPhysEntities, itnP) {
+      CPhysBase *pen = (CPhysBase *)itnP->GetOwner();
 
       if (pen->GetRenderType() != RT_BRUSH) {
         continue;
       }
 
       pen->RenderParticles();
+    }
+
+    // [Cecil] TEMP: Render boxes around kinematic objects
+    if (ode_bRenderPosition && (!_pNetwork->IsNetworkEnabled() || _pNetwork->IsServer())) {
+      FOREACHNODEINREFS(m_cKinematicEntities, itnK) {
+        CEntity *pen = itnK->GetOwner();
+        odeObject *pObj = SPhysObject::ForEntity(pen);
+
+        if (pObj == NULL) {
+          continue;
+        }
+
+        FLOATaabbox3D box = DOUBLEtoFLOAT(pObj->mesh.boxVolume);
+        FLOAT3D vSize = box.Size() + FLOAT3D(0.01f, 0.01f, 0.01f);
+
+        CPlacement3D plPhys(pObj->GetPosition() + box.Center() * pObj->GetMatrix(), ANGLE3D(0, 0, 0));
+        DecomposeRotationMatrixNoSnap(plPhys.pl_OrientationAngle, pObj->GetMatrix());
+
+        Particles_ColoredBox(plPhys, vSize, C_GREEN|0x3F); // Real physics object position
+      }
     }
   };
 
