@@ -461,8 +461,9 @@ void odeObject::SetCurrentRotation(const ANGLE3D &aRotation) {
 ANGLE3D odeObject::GetCurrentRotation(void) const {
   if (!IsCreated()) return ANGLE3D(0, 0, 0);
 
+  // Heading - Y; pitch - X; banking - Z
   const dReal *vRotation = dBodyGetAngularVel(body);
-  return ANGLE3D(vRotation[0], vRotation[1], vRotation[2]);
+  return ANGLE3D(AngleRad(vRotation[1]), AngleRad(vRotation[0]), AngleRad(vRotation[2]));
 };
 
 // Stop moving
