@@ -3943,15 +3943,17 @@ functions:
     // precache eventual new weapons
     Precache();
 
+    // [Cecil] Report picked grenades, just like other ammo
+    if (wit == WEAPON_GRENADE) {
+      GetPlayer()->ItemPicked(TRANS("Grenades"), 1);
+    }
+
     // [Cecil] Reload weapons
     switch (m_iCurrentWeapon) {
       case WEAPON_GRENADE:
         if (m_iGrenades > 0 && GetCurrentAnim(m_moWeapon, 0) == GRENADE_ANIM_DEFAULT) {
           AttachAnim(m_moWeapon, 0, 1, -1, GRENADE_ANIM_DRAW, 0);
         }
-
-        // Report picked grenades, just like other ammo
-        GetPlayer()->ItemPicked(TRANS("Grenades"), 1);
         break;
 
       default: {
