@@ -175,14 +175,17 @@ procedures:
     // [Cecil] No Serious Bombs
     // don't pick up more bombs then you can carry
     /*if (m_puitType == PUIT_BOMB) {
-      if (IsOfClass(epass.penOther)) {
+      if (IsOfClass(epass.penOther, "Player")) {
         if (((CPlayer &)*epass.penOther).m_iSeriousBombCount>=3) {
           return;
         }
       }
     }*/
 
-    if (!(m_bPickupOnce||m_bRespawn)) {
+    // [Cecil] Only use pickup masks in multiplayer
+    const BOOL bStays = !GetSP()->sp_bSinglePlayer;
+
+    if (bStays && !(m_bPickupOnce||m_bRespawn)) {
       // if already picked by this player
       BOOL bWasPicked = MarkPickedBy(epass.penOther);
       if( bWasPicked) {
@@ -209,7 +212,7 @@ procedures:
           PlaySound(m_soPick, SOUND_PICKUP, SOF_3D);
           m_fPickSoundLen = GetSoundLength(SOUND_PICKUP);
 
-          if (m_bPickupOnce || m_bRespawn) {
+          if (!bStays || m_bPickupOnce || m_bRespawn) {
             jump CItem::ItemReceived();
           }
         }
@@ -238,7 +241,7 @@ procedures:
 
         // if ammo is received
         if (epass.penOther->ReceiveItem(eAmmo)) {
-          if (m_bPickupOnce || m_bRespawn) {
+          if (!bStays || m_bPickupOnce || m_bRespawn) {
             jump CItem::ItemReceived();
           }
         }
