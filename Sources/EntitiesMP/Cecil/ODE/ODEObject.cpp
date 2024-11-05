@@ -95,7 +95,7 @@ void odeTrimesh::Build(void) {
 };
 
 // Add vertices of some brush
-BOOL odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute) {
+BOOL odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute, BOOL bOffsetOutwards) {
   // Use internal counter
   INDEX iInternalVertexOffset = 0;
   if (piVertexOffset == NULL) piVertexOffset = &iInternalVertexOffset;
@@ -117,12 +117,24 @@ BOOL odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute)
       FOREACHINSTATICARRAY(pbpo->bpo_apbvxTriangleVertices, CBrushVertex *, itPolVtx) {
         // Add vertex in absolute coordinates
         if (bAbsolute) {
-          const FLOAT3D &vVtx = itPolVtx.Current()->bvx_vAbsolute;
+          FLOAT3D vVtx = itPolVtx.Current()->bvx_vAbsolute;
+
+          if (bOffsetOutwards) {
+            FLOAT3D vNormal = (FLOAT3D &)pbpo->bpo_pbplPlane->bpl_plAbsolute;
+            vVtx += vNormal.SafeNormalize() * 0.01f;
+          }
+
           AddVertex(odeVector(vVtx(1), vVtx(2), vVtx(3)));
 
         // Add vertex in relative coordinates
         } else {
-          const FLOAT3D &vVtx = itPolVtx.Current()->bvx_vRelative;
+          FLOAT3D vVtx = itPolVtx.Current()->bvx_vRelative;
+
+          if (bOffsetOutwards) {
+            FLOAT3D vNormal = (FLOAT3D &)pbpo->bpo_pbplPlane->bpl_plRelative;
+            vVtx += vNormal.SafeNormalize() * 0.01f;
+          }
+
           AddVertex(odeVector(vVtx(1), vVtx(2), vVtx(3)));
         }
 

@@ -76,7 +76,7 @@ class odeTrimesh {
 
     // Add vertices of some brush
     // Returns TRUE if added any vertices
-    BOOL FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute);
+    BOOL FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute, BOOL bOffsetOutwards = FALSE);
 };
 
 // Physical object
