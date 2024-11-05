@@ -215,10 +215,10 @@ functions:
   virtual BOOL IsPhysDynamic(void) const { return TRUE; };
 
   // Get physics touch damage
-  virtual FLOAT GetPhysTouchDamage(void) const { return 0.0f; };
+  virtual FLOAT GetPhysTouchDamage(const ETouch &eTouch) const { return 0.0f; };
 
   // Get physics block damage
-  virtual FLOAT GetPhysBlockDamage(void) const { return 0.0f; };
+  virtual FLOAT GetPhysBlockDamage(const EBlock &eBlock) const { return 0.0f; };
 
 /****************************************************************/
 /*                   Physics object creation                    */
@@ -316,7 +316,7 @@ functions:
       // Damage on touch
       case EVENTCODE_ETouch: {
         const ETouch &eTouch = (const ETouch &)ee;
-        const FLOAT fDamage = GetPhysTouchDamage();
+        const FLOAT fDamage = GetPhysTouchDamage(eTouch);
 
         if (fDamage > 0.0f) {
           FLOAT3D vHit = eTouch.penOther->GetPlacement().pl_PositionVector;
@@ -327,7 +327,7 @@ functions:
       // Damage on block
       case EVENTCODE_EBlock: {
         const EBlock &eBlock = (const EBlock &)ee;
-        const FLOAT fDamage = GetPhysBlockDamage();
+        const FLOAT fDamage = GetPhysBlockDamage(eBlock);
 
         if (fDamage > 0.0f) {
           FLOAT3D vHit = eBlock.penOther->GetPlacement().pl_PositionVector;
@@ -551,7 +551,7 @@ functions:
     FLOATmatrix3D mResult;
     qResult.ToMatrix(mResult);
 
-    DecomposeRotationMatrix(plResult.pl_OrientationAngle, mResult);
+    DecomposeRotationMatrixNoSnap(plResult.pl_OrientationAngle, mResult);
 
     CPlacement3D plOffset;
 
