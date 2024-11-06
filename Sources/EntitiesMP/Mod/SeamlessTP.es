@@ -98,9 +98,9 @@ functions:
     }
 
     if (pen->GetPhysicsFlags()&EPF_MOVABLE) {
-      // [Cecil] Seamless Teleportation
-      plSpeed = CPlacement3D(penTeleport->en_vCurrentTranslationAbsolute * _pTimer->TickQuantum,
-                             penTeleport->en_aCurrentRotationAbsolute    * _pTimer->TickQuantum);
+      // [Cecil] Seamless teleportation
+      plSpeed = CPlacement3D(penTeleport->en_vCurrentTranslationAbsolute * ONE_TICK,
+                             penTeleport->GetDesiredRotation() * ONE_TICK);
 
       penTeleport->en_plLastPlacement.pl_PositionVector   -= plSpeed.pl_PositionVector;
       penTeleport->en_plLastPlacement.pl_OrientationAngle += plSpeed.pl_OrientationAngle;

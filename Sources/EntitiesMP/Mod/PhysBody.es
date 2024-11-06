@@ -164,7 +164,7 @@ functions:
   virtual void PhysStepEngine(void) {
     // Stay still
     if (en_vCurrentTranslationAbsolute.Length() > 0
-     || en_aCurrentRotationAbsolute.Length() > 0) {
+     || GetDesiredRotation().Length() > 0) {
       ForceFullStop();
     }
   };
