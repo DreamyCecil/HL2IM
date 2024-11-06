@@ -43,8 +43,10 @@ properties:
  15 INDEX m_ulPickedMask = 0,   // mask for which players picked this item
  16 BOOL m_bFloating "Floating" 'F' = FALSE,
 
-// [Cecil] How long to stay dropped
+ // [Cecil] How long to stay dropped
  50 FLOAT m_fDropTime = 10.0f,
+
+ 51 BOOL m_bGravityGunInteract "Gravity gun can interact" = TRUE,
 
 components:
   1 model MODEL_ITEM "Models\\Items\\ItemHolder.mdl",
@@ -66,7 +68,7 @@ functions:
 
   virtual BOOL CanGravityGunInteract(CCecilPlayerEntity *penPlayer) const {
     // Ignore respawning and invisible items
-    if (m_bRespawn || en_RenderType == RT_EDITORMODEL || en_RenderType == RT_SKAEDITORMODEL) {
+    if (!m_bGravityGunInteract || m_bRespawn || en_RenderType == RT_EDITORMODEL || en_RenderType == RT_SKAEDITORMODEL) {
       return FALSE;
     }
 
@@ -325,7 +327,7 @@ procedures:
     AdjustDifficulty();
 
     // [Cecil] Readjust the flags
-    SetItemFlags(ODE_IsStarted());
+    SetItemFlags(PhysicsUsable());
 
     wait() {
       on (EBegin) : { resume; }

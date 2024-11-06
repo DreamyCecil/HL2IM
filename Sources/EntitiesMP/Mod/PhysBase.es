@@ -36,6 +36,9 @@ thumbnail "";
 features  "AbstractBaseClass";
 
 properties:
+ 1 BOOL m_bPhysEnabled "Physics enabled" = TRUE, // Use realistic physics
+ 2 BOOL m_bPhysDynamic "Physics dynamic body" = TRUE, // Create a dynamic body instead of a static geom
+
 // Touching/blocking data
 10 INDEX m_iTouchType = 0, // 1 - touched, 2 - blocked
 11 FLOATplane3D m_plTouchPlane = FLOATplane3D(FLOAT3D(0, 1, 0), 0.0f), // Touched plane
@@ -148,12 +151,12 @@ functions:
 
   // Whether or not a gravity gun can interact with the object
   virtual BOOL CanGravityGunInteract(CCecilPlayerEntity *penPlayer) const {
-    return FALSE;
+    return m_bPhysDynamic;
   };
 
   // Whether or not a gravity gun can pick up the object
   virtual BOOL CanGravityGunPickUp(void) const {
-    return FALSE;
+    return m_bPhysDynamic;
   };
 
   // Process physics object before the actual physics simulation
@@ -221,9 +224,6 @@ functions:
   // Get physics object mass
   virtual FLOAT GetPhysMass(void) const { return 1.0f; };
 
-  // Check if the physics object is actually affected by physics instead of staying static
-  virtual BOOL IsPhysDynamic(void) const { return TRUE; };
-
   // Get physics touch damage
   virtual FLOAT GetPhysTouchDamage(const ETouch &eTouch) const { return 0.0f; };
 
@@ -239,17 +239,17 @@ functions:
     // Delete last object
     PhysObj().Clear(TRUE);
 
-    if (!ODE_IsStarted()) { return; }
+    if (!ODE_IsStarted() || !m_bPhysEnabled) { return; }
 
     // Begin creating a new object
     CPlacement3D plOffset;
 
     if (GetPhysOffset(plOffset)) {
       plOffset.RelativeToAbsolute(GetPlacement());
-      PhysObj().BeginShape(plOffset, GetPhysMass(), IsPhysDynamic());
+      PhysObj().BeginShape(plOffset, GetPhysMass(), m_bPhysDynamic);
 
     } else {
-      PhysObj().BeginShape(GetPlacement(), GetPhysMass(), IsPhysDynamic());
+      PhysObj().BeginShape(GetPlacement(), GetPhysMass(), m_bPhysDynamic);
     }
 
     // Add geoms of a specific max size

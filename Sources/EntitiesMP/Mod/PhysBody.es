@@ -42,7 +42,7 @@ properties:
 12 FLOAT m_fSize3 "Size Z/L" = 1.0f,
 
 20 FLOAT m_fMass "Mass" = 0.5f,
-21 BOOL m_bDynamic "Dynamic" = TRUE,
+21 BOOL m_bGravityGunPickUp "Gravity gun can pick up" = TRUE,
 22 FLOAT m_fTouchDamage "Touch damage" = 0.0f,
 23 FLOAT m_fBlockDamage "Block damage" = 0.0f,
 24 BOOL m_bSectorGravity "Affected by sector gravity" = TRUE,
@@ -120,9 +120,6 @@ functions:
   // Get physics object mass
   virtual FLOAT GetPhysMass(void) const { return m_fMass; };
 
-  // Check if the physics object is actually affected by physics instead of staying static
-  virtual BOOL IsPhysDynamic(void) const { return m_bDynamic; };
-
   // Get physics touch damage
   virtual FLOAT GetPhysTouchDamage(const ETouch &eTouch) const { return m_fTouchDamage; };
 
@@ -148,16 +145,10 @@ functions:
     return m_bSectorGravity;
   };
 
-  // Whether or not a gravity gun can interact with the object
-  virtual BOOL CanGravityGunInteract(CCecilPlayerEntity *penPlayer) const {
-    // Only if it's dynamic
-    return m_bDynamic;
-  };
-
   // Whether or not a gravity gun can pick up the object
   virtual BOOL CanGravityGunPickUp(void) const {
-    // Only if it's dynamic
-    return m_bDynamic;
+    // Only if it's dynamic and allowed
+    return m_bPhysDynamic && m_bGravityGunPickUp;
   };
 
   // Called every tick while the engine physics are used
