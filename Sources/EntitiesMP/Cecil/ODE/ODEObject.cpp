@@ -400,7 +400,7 @@ void odeObject::AddForce(const FLOAT3D &vDir, FLOAT fForce) {
 };
 
 // Manually update gravitational force
-void odeObject::UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityDir) {
+void odeObject::UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityDir, FLOAT fGravityAccelerationMul) {
   if (!IsCreated()) return;
 
   // Reenable ODE gravity
@@ -423,7 +423,7 @@ void odeObject::UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityDir) {
   );
 
   // Add manual gravity force
-  const dReal fGravityForceMul = fWorldGravityLen * mass.mass * ODE_GetSimIterations();
+  const dReal fGravityForceMul = fWorldGravityLen * fGravityAccelerationMul * mass.mass * ODE_GetSimIterations();
   const odeVector vGravity = odeVector(vManualGravityDir(1), vManualGravityDir(2), vManualGravityDir(3)) * fGravityForceMul;
 
   // [Cecil] TODO: Perhaps it would be more wise to fork ODE and implement gravity vectors per body like it's already

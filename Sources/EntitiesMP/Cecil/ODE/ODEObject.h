@@ -194,7 +194,7 @@ class odeObject {
     void AddForce(const FLOAT3D &vDir, FLOAT fForce);
 
     // Manually update gravitational force
-    void UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityDir);
+    void UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityDir, FLOAT fGravityAccelerationMul);
 
     // Absolute movement speed
     void SetCurrentTranslation(const FLOAT3D &vSpeed);

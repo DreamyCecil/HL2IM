@@ -181,9 +181,11 @@ functions:
     // Continue with proper physics
     PhysStepRealistic();
 
-    // Apply manual sector gravity only if the gravity vector deviates from -Y too much
-    const BOOL bManualGravity = (PhysicsUseSectorGravity() && en_vGravityDir(2) >= -0.99f);
-    PhysObj().UpdateGravity(bManualGravity, en_vGravityDir);
+    // Apply manual sector gravity only if the gravity vector deviates from -Y or the acceleration is multiplied too much
+    const FLOAT fAccMul = en_fGravityA / 30.0f; // 30 seems to be regular gravity acceleration in sectors
+    const BOOL bManualGravity = PhysicsUseSectorGravity() && (en_vGravityDir(2) >= -0.99f || Abs(fAccMul - 1) > 0.02f);
+
+    PhysObj().UpdateGravity(bManualGravity, en_vGravityDir, fAccMul);
   };
 
   // Called every tick while the engine physics are used
