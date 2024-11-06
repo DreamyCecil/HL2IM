@@ -96,19 +96,22 @@ functions:
     PhysObj().EndShape();
     PhysObj().SetKinematic(TRUE);
 
+    dBodySetMaxAngularSpeed(PhysObj().body, dInfinity);
+
     // Add this object to the controller
     _penGlobalController->m_cKinematicEntities.Add(PhysObj().nPhysOwner);
   };
 
   // [Cecil] Make physics object follow the brush
   void OnPhysStep(void) {
+    // Move after the brush's position
     const FLOAT3D vDiff = (GetPlacement().pl_PositionVector - PhysObj().GetPosition());
     PhysObj().SetCurrentTranslation(vDiff / ONE_TICK);
 
-    ANGLE3D aAngle;
-    DecomposeRotationMatrixNoSnap(aAngle, PhysObj().GetMatrix());
+    // Set rotation from the matrix difference in absolute coordinates
+    ANGLE3D aDiff;
+    DecomposeRotationMatrixNoSnap(aDiff, GetRotationMatrix() * !PhysObj().GetMatrix());
 
-    const ANGLE3D aDiff = (GetPlacement().pl_OrientationAngle - aAngle);
     PhysObj().SetCurrentRotation(aDiff / ONE_TICK);
   };
 
