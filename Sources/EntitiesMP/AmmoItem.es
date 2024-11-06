@@ -430,7 +430,54 @@ procedures:
     // send ammo to entity
     EAmmoItem eAmmo;
     eAmmo.EaitType = m_EaitType;
-    eAmmo.iQuantity = (INDEX)m_fValue;
+
+    // [Cecil] Give different amount of ammo depending on the difficulty
+    INDEX iDifficulty = 1; // 0 - Easy; 1 - Normal; 2 - Hard
+
+    if (GetSP()->sp_gdGameDifficulty < CSessionProperties::GD_NORMAL) {
+      iDifficulty = 0;
+    } else if (GetSP()->sp_gdGameDifficulty > CSessionProperties::GD_NORMAL) {
+      iDifficulty = 2;
+    }
+
+    switch (m_EaitType) {
+      case AIT_BULLETS:
+      case AIT_SMG1: {
+        switch (iDifficulty) {
+          case 0: eAmmo.iQuantity = 54; break;
+          case 1: eAmmo.iQuantity = 45; break;
+          case 2: eAmmo.iQuantity = 27; break;
+        }
+      } break;
+
+      case AIT_SPAS:
+      case AIT_USP:
+      case AIT_ROCKETS:
+      case AIT_AR2: {
+        switch (iDifficulty) {
+          case 0: eAmmo.iQuantity = 24; break;
+          case 1: eAmmo.iQuantity = 20; break;
+          case 2: eAmmo.iQuantity = 12; break;
+        }
+      } break;
+
+      case AIT_RPG:
+      case AIT_GRENADES: {
+        eAmmo.iQuantity = 1;
+      } break;
+
+      case AIT_357:
+      case AIT_BOLTS: {
+        switch (iDifficulty) {
+          case 0: eAmmo.iQuantity = 7; break;
+          case 1: eAmmo.iQuantity = 6; break;
+          case 2: eAmmo.iQuantity = 3; break;
+        }
+      } break;
+
+      // Edge case
+      default: eAmmo.iQuantity = (INDEX)m_fValue;
+    }
 
     // if health is received
     if (epass.penOther->ReceiveItem(eAmmo)) {
