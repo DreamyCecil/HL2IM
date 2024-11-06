@@ -200,25 +200,24 @@ functions:
     // [Cecil] NOTE: This placement offsetting is needed in order to "predict" the next movement position of a brush
     // If it's not done, any physics object that lies on top will lag behind by a tick and, for example, will appear
     // "inside" of it or "floating" slightly above it when it's moving up and down respectively
-
-    // All of these offset pairs are equivalents to each other
-    //plCurrent.pl_PositionVector += m_vDesiredTranslation * GetRotationMatrix() * ONE_TICK;
-    //plCurrent.pl_OrientationAngle = m_aDesiredRotation * ONE_TICK;
-
-    //plCurrent.pl_PositionVector += GetDesiredTranslation() * GetRotationMatrix() * ONE_TICK;
-    //plCurrent.pl_OrientationAngle = GetDesiredRotation() * ONE_TICK;
-
     plCurrent.pl_PositionVector += en_vCurrentTranslationAbsolute * ONE_TICK;
-    plCurrent.pl_OrientationAngle += en_aCurrentRotationAbsolute * ONE_TICK;
 
     // Move after the brush
     const FLOAT3D vDiff = (plCurrent.pl_PositionVector - PhysObj().GetPosition());
     PhysObj().SetCurrentTranslation(vDiff / ONE_TICK);
 
-    ANGLE3D aAngle;
-    DecomposeRotationMatrixNoSnap(aAngle, PhysObj().GetMatrix());
+    // [Cecil] FIXME: When certain brushes rotate at weird angles (especially when using banking rotation in any way),
+    // the physics object goes crazy due to the fact that its rotation is set in absolute euler angles instead of relative
+    // to the physics body (like it's done with entities), so it's very hard to calculate an appropriate rotation angle
 
-    const ANGLE3D aDiff = (plCurrent.pl_OrientationAngle - aAngle);
+    // Rotate using an absolute difference in rotation matrices
+    FLOATmatrix3D mDiff = GetRotationMatrix();
+    mDiff *= !PhysObj().GetMatrix();
+
+    // DecomposeRotationMatrixNoSnap() seems to be very unstable here, don't use it
+    ANGLE3D aDiff;
+    DecomposeRotationMatrix(aDiff, mDiff);
+
     PhysObj().SetCurrentRotation(aDiff / ONE_TICK);
   };
 
