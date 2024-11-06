@@ -372,7 +372,7 @@ components:
 // ********** TELEPORT **********
  75 model   MODEL_TELEPORT_EFFECT        "Models\\Effects\\Teleport01\\Teleport.mdl",
  76 texture TEXTURE_TELEPORT_EFFECT      "Textures\\Effects\\Effect01\\Effect.tex",
- 77 sound   SOUND_TELEPORT               "Sounds\\Misc\\Teleport.wav",
+ 77 sound   SOUND_TELEPORT               "Sounds\\Misc\\SourceTeleport.wav", // [Cecil] New sound path
 
 // ********** GIZMO SPLASH FX **********
  78 sound   SOUND_GIZMO_SPLASH           "Models\\Enemies\\Gizmo\\Sounds\\Death.wav",
