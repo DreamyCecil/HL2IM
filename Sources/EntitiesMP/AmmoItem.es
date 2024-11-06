@@ -383,6 +383,9 @@ functions:
     SetModel(MODEL_ITEM);
     SetProperties();
 
+    // [Cecil] Recreate the physics object
+    CreateObject();
+
     m_fValue = ceil(m_fValue * GetSP()->sp_fAmmoQuantity);
   };
 
