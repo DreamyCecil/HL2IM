@@ -4002,7 +4002,23 @@ functions:
 
     // add ammo
     switch (Eai.EaitType) {
-      case AIT_SMG1:
+      // [Cecil] Give two kinds of bullets for compatibility
+      case AIT_BULLETS: {
+        EAmmoItem eaiBullets;
+        eaiBullets.EaitType = AIT_SMG1;
+        eaiBullets.iQuantity = Eai.iQuantity;
+        const BOOL bSMG1 = ReceiveAmmo(eaiBullets);
+
+        eaiBullets.EaitType = AIT_USP;
+        eaiBullets.iQuantity = ceil((FLOAT)Eai.iQuantity / 2.5f); // 45 / 18 = 2.5
+        const BOOL bUSP = ReceiveAmmo(eaiBullets);
+
+        if (!bSMG1 && !bUSP) {
+          return FALSE;
+        }
+      } break;
+
+      case AIT_SMG1: {
         // [Cecil] Give alt ammo while fighting an air elemental
         if (BossActive()) {
           EAmmoItem eaiAlt;
@@ -4011,29 +4027,32 @@ functions:
           ReceiveAmmo(eaiAlt);
         }
 
-        if (m_iSMG1 >= m_iSMG1_Max && m_iUSP >= m_iUSP_Max) {
+        if (m_iSMG1 >= m_iSMG1_Max) {
           return FALSE;
         }
-
-        if (m_iSMG1 < m_iSMG1_Max) {
-          m_iSMG1 += Eai.iQuantity;
-        }
-
-        if (m_iUSP < m_iUSP_Max) {
-          m_iUSP += ceil(Eai.iQuantity / 2.5f); // 45 / 18 = 2.5
-        }
+        m_iSMG1 += Eai.iQuantity;
 
         pl.ItemPicked(TRANS("Bullets"), Eai.iQuantity);
-        break;
+      } break;
 
-      case AIT_SPAS:
+      // [Cecil] USP bullets
+      case AIT_USP: {
+        if (m_iUSP >= m_iUSP_Max) {
+          return FALSE;
+        }
+        m_iUSP += Eai.iQuantity;
+
+        pl.ItemPicked(TRANS("USP Bullets"), Eai.iQuantity);
+      } break;
+
+      case AIT_SPAS: {
         if (m_iSPAS >= m_iSPAS_Max) {
           return FALSE;
         }
         m_iSPAS += Eai.iQuantity;
 
         pl.ItemPicked(TRANS("Shells"), Eai.iQuantity);
-        break;
+      } break;
 
       case AIT_GRENADES: { // Grenades
         // [Cecil] Give the weapon instead
@@ -4049,7 +4068,7 @@ functions:
         pl.ItemPicked(TRANS("Grenades"), Eai.iQuantity);*/
       } break;
 
-      case AIT_AR2:
+      case AIT_AR2: {
         // [Cecil] Give alt ammo while fighting an air elemental
         if (BossActive()) {
           EAmmoItem eaiAlt;
@@ -4064,16 +4083,16 @@ functions:
         m_iAR2 += Eai.iQuantity;
 
         pl.ItemPicked(TRANS("Cores"), Eai.iQuantity);
-        break;
+      } break;
 
-      case AIT_357:
+      case AIT_357: {
         if (m_i357 >= m_i357_Max) {
           return FALSE;
         }
         m_i357 += Eai.iQuantity;
 
         pl.ItemPicked(TRANS("Rounds"), Eai.iQuantity);
-        break;
+      } break;
 
       case AIT_BOLTS: {
         // [Cecil] TEMP
@@ -4091,16 +4110,17 @@ functions:
         pl.ItemPicked(TRANS("Crossbow Rods"), Eai.iQuantity);
       } break;
 
-      case AIT_RPG:
+      case AIT_RPG: {
         if (m_iRPG >= m_iRPG_Max) {
           return FALSE;
         }
         m_iRPG += Eai.iQuantity;
 
         pl.ItemPicked(TRANS("Rockets"), Eai.iQuantity);
-        break;
+      } break;
 
-      case AIT_MP7GRENADES: // [Cecil] MP7 Grenades
+      // [Cecil] MP7 grenades
+      case AIT_MP7GRENADES: {
         if (m_iSMG1_Grenades >= m_iSMG1_Grenades_Max) {
           return FALSE;
         }
@@ -4110,9 +4130,10 @@ functions:
         }
 
         pl.ItemPicked(TRANS("MP7 Grenades"), Eai.iQuantity);
-        break;
+      } break;
 
-      case AIT_ENERGYBALLS: // [Cecil] Energy Balls
+      // [Cecil] Energy balls
+      case AIT_ENERGYBALLS: {
         if (m_iAR2_EnergyBalls >= m_iAR2_EnergyBalls_Max) {
           return FALSE;
         }
@@ -4122,7 +4143,7 @@ functions:
         }
 
         pl.ItemPicked(TRANS("Energy Balls"), Eai.iQuantity);
-        break;
+      } break;
 
       case AIT_BACKPACK:
       case AIT_SERIOUSPACK:

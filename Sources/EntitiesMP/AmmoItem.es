@@ -25,21 +25,25 @@ uses "EntitiesMP/Item";
 
 // ammo type 
 enum AmmoItemType {
-  1 AIT_SMG1        "Bullets",
-  2 AIT_SPAS        "Shells",
-  3 AIT_ROCKETS     "obsolete",
-  4 AIT_GRENADES    "Grenades",
-  5 AIT_AR2         "Cores",
-  6 AIT_NUKEBALL    "obsolete",
-  7 AIT_RPG         "Rockets",
-  8 AIT_SERIOUSPACK "SeriousPack",
-  9 AIT_BACKPACK    "BackPack",
-  10 AIT_357        "Rounds",
-  11 AIT_BOLTS      "Bolts",
+ 1 AIT_BULLETS     "Bullets + Pistol",
+ 2 AIT_SPAS        "Shells",
+ 3 AIT_ROCKETS     "obsolete",
+ 4 AIT_GRENADES    "Grenades",
+ 5 AIT_AR2         "Cores",
+ 6 AIT_NUKEBALL    "obsolete",
+ 7 AIT_RPG         "Rockets",
+ 8 AIT_SERIOUSPACK "SeriousPack",
+ 9 AIT_BACKPACK    "BackPack",
+10 AIT_357         "Rounds",
+11 AIT_BOLTS       "Bolts",
 
-  // Alt ammo
-  12 AIT_MP7GRENADES "MP7 Grenades (internal)",
-  13 AIT_ENERGYBALLS "Energy Balls (internal)",
+// Alt ammo
+12 AIT_MP7GRENADES "MP7 Grenades (internal)",
+13 AIT_ENERGYBALLS "Energy Balls (internal)",
+
+// Separate ammo boxes
+14 AIT_SMG1        "Bullets",
+15 AIT_USP         "Pistol",
 };
 
 // event for sending through receive item
@@ -88,7 +92,7 @@ name      "Ammo Item";
 thumbnail "Thumbnails\\AmmoItem.tbn";
 
 properties:
-  1 enum AmmoItemType m_EaitType "Type" 'Y' = AIT_SMG1,
+  1 enum AmmoItemType m_EaitType "Type" 'Y' = AIT_BULLETS,
 
 components:
   0 class CLASS_BASE    "Classes\\Item.ecl",
@@ -133,7 +137,9 @@ functions:
   virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
     switch (m_EaitType) {
       case AIT_SPAS:        vSize = FLOAT3D(0.44f, 0.29f, 0.35f); return COLSH_BOX;
-      case AIT_SMG1:        vSize = FLOAT3D(0.95f, 0.7f, 0.6f); return COLSH_BOX;
+      case AIT_BULLETS:
+      case AIT_SMG1:        vSize = FLOAT3D(0.95f, 0.66f, 0.6f); return COLSH_BOX;
+      case AIT_USP:         vSize = FLOAT3D(0.94f, 0.57f, 0.29f); return COLSH_BOX;
       case AIT_RPG:         vSize = FLOAT3D(0.2f, 0.2f, 1.5f); return COLSH_CAPSULE;
       case AIT_GRENADES:    vSize = FLOAT3D(0.35f, 0.35f, 0.75f); return COLSH_CAPSULE;
       case AIT_ROCKETS:
@@ -150,7 +156,9 @@ functions:
   virtual BOOL GetPhysOffset(CPlacement3D &plOffset) const {
     switch (m_EaitType) {
       case AIT_SPAS:        plOffset = CPlacement3D(FLOAT3D(-0.02f, 0.145f, 0), ANGLE3D(0, 0, 0)); return TRUE;
-      case AIT_SMG1:        plOffset = CPlacement3D(FLOAT3D(0, 0.35f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case AIT_BULLETS:
+      case AIT_SMG1:        plOffset = CPlacement3D(FLOAT3D(0, 0.33f, 0), ANGLE3D(0, 0, 0)); return TRUE;
+      case AIT_USP:         plOffset = CPlacement3D(FLOAT3D(0, 0.285f, 0), ANGLE3D(0, 0, 0)); return TRUE;
       case AIT_RPG:         plOffset = CPlacement3D(FLOAT3D(0, 0.1f, -0.1f), ANGLE3D(0, 0, 0)); return TRUE;
       case AIT_GRENADES:    plOffset = CPlacement3D(FLOAT3D(0, 0.175f, 0), ANGLE3D(0, 0, 0)); return TRUE;
       case AIT_ROCKETS:
@@ -170,32 +178,37 @@ functions:
     pes->es_ctCount = 1;
     pes->es_ctAmmount = m_fValue;
     switch (m_EaitType) {
-      case AIT_SMG1:      
+      case AIT_BULLETS:
+      case AIT_SMG1:
         pes->es_strName = "Bullets"; 
         pes->es_fValue = m_fValue*AV_SHELLS;
         break;
-      case AIT_SPAS:     
+      case AIT_USP:
+        pes->es_strName = "Pistol"; 
+        pes->es_fValue = m_fValue*AV_SHELLS;
+        break;
+      case AIT_SPAS:
         pes->es_strName = "Shells"; 
         pes->es_fValue = m_fValue*AV_BULLETS;
         break;
-      case AIT_GRENADES:    
+      case AIT_GRENADES:
         pes->es_strName = "Grenades"; 
         pes->es_fValue = m_fValue*AV_GRENADES;
         break;
       case AIT_ROCKETS:
-      case AIT_AR2: 
+      case AIT_AR2:
         pes->es_strName = "Cores"; 
         pes->es_fValue = m_fValue*AV_ELECTRICITY;
         break;
-      case AIT_RPG: 
+      case AIT_RPG:
         pes->es_strName = "Rockets"; 
         pes->es_fValue = m_fValue*AV_IRONBALLS;
         break;
-      case AIT_SERIOUSPACK: 
+      case AIT_SERIOUSPACK:
         pes->es_strName = "SeriousPack"; 
         pes->es_fValue = m_fValue*100000;
         break;
-      case AIT_BACKPACK: 
+      case AIT_BACKPACK:
         pes->es_strName = "BackPack"; 
         pes->es_fValue = m_fValue*100000;
         break;
@@ -237,6 +250,7 @@ functions:
         AddItemAttachment(AMMOHANDLER_ATTACHMENT_SPAS, MODEL_SPAS, TEXTURE_SPAS, 0, 0, 0);
         break;
 
+      case AIT_BULLETS:
       case AIT_SMG1:
         m_fValue = _aiMaxMag[MAG_SMG1];
         m_fRespawnTime = (m_fCustomRespawnTime > 0) ? m_fCustomRespawnTime : 30.0f; 
@@ -245,6 +259,16 @@ functions:
         // set appearance
         AddItem(MODEL_HANDLER, TEXTURE_SMG1, 0, 0, 0);
         AddItemAttachment(AMMOHANDLER_ATTACHMENT_SMG1, MODEL_SMG1, TEXTURE_SMG1, 0, 0, 0);
+        break;
+
+      case AIT_USP:
+        m_fValue = _aiMaxMag[MAG_USP];
+        m_fRespawnTime = (m_fCustomRespawnTime > 0) ? m_fCustomRespawnTime : 30.0f; 
+        m_strDescription.PrintF("Pistol: %d", (int)m_fValue);
+
+        // set appearance
+        AddItem(MODEL_HANDLER, TEXTURE_PISTOL, 0, 0, 0);
+        AddItemAttachment(AMMOHANDLER_ATTACHMENT_PISTOL, MODEL_PISTOL, TEXTURE_PISTOL, 0, 0, 0);
         break;
 
       case AIT_RPG:
