@@ -497,15 +497,15 @@ BOOL odeObject::IsKinematic(void) const {
 };
 
 // Disable object physics
-void odeObject::Freeze(void) {
-  if (!IsCreated() || IsFrozen()) return;
+void odeObject::Freeze(BOOL bForce) {
+  if (!IsCreated() || (IsFrozen() && !bForce)) return;
 
   dBodyDisable(body);
 };
 
 // Reenable object physics
-void odeObject::Unfreeze(void) {
-  if (!IsCreated() || !IsFrozen()) return;
+void odeObject::Unfreeze(BOOL bForce) {
+  if (!IsCreated() || (!IsFrozen() && !bForce)) return;
 
   dBodyEnable(body);
 };

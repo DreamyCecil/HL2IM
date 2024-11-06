@@ -217,10 +217,10 @@ class odeObject {
     BOOL IsKinematic(void) const;
 
     // Disable object physics
-    void Freeze(void);
+    void Freeze(BOOL bForce = FALSE);
 
     // Reenable object physics
-    void Unfreeze(void);
+    void Unfreeze(BOOL bForce = FALSE);
 
     // Check if object physics are disabled
     BOOL IsFrozen(void) const;

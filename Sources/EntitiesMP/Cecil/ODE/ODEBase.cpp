@@ -233,23 +233,26 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
     const FLOAT3D vDir(-contact.geom.normal[0], -contact.geom.normal[1], -contact.geom.normal[2]);
     const FLOAT3D vPos(contact.geom.pos[0], contact.geom.pos[1], contact.geom.pos[2]);
 
-    odeObject *pObj = NULL;
+    odeObject *pObjPlayer = NULL;
     odeObject *pObjOther = NULL;
     CEntity *penPlayer = NULL;
 
     if (bPlayer1) {
-      pObj = obj1;
+      pObjPlayer = obj1;
       pObjOther = obj2;
       penPlayer = pen1;
     }
 
     if (bPlayer2) {
-      pObj = obj2;
+      pObjPlayer = obj2;
       pObjOther = obj1;
       penPlayer = pen2;
     }
 
     if (pObjOther != NULL && pObjOther->GetOwner() != NULL) {
+      // Keep updating the object to prevent it from freezing in place when colliding with players
+      pObjOther->Unfreeze(TRUE);
+
       EBlock eBlock;
       eBlock.penOther = penPlayer;
       eBlock.plCollision = FLOATplane3D(vDir, vPos);
