@@ -189,6 +189,8 @@ functions:
     PhysObj().EndShape();
     PhysObj().SetKinematic(TRUE);
 
+    dBodySetMaxAngularSpeed(PhysObj().body, dInfinity);
+
     // Add this object to the controller
     _penGlobalController->m_cKinematicEntities.Add(PhysObj().nPhysOwner);
   };
@@ -200,23 +202,16 @@ functions:
     // [Cecil] NOTE: This placement offsetting is needed in order to "predict" the next movement position of a brush
     // If it's not done, any physics object that lies on top will lag behind by a tick and, for example, will appear
     // "inside" of it or "floating" slightly above it when it's moving up and down respectively
-    plCurrent.pl_PositionVector += en_vCurrentTranslationAbsolute * ONE_TICK;
 
-    // Move after the brush
-    const FLOAT3D vDiff = (plCurrent.pl_PositionVector - PhysObj().GetPosition());
+    // Move after the brush's predicted position
+    const FLOAT3D vNextPos = GetPlacement().pl_PositionVector + en_vCurrentTranslationAbsolute * ONE_TICK;
+
+    const FLOAT3D vDiff = (vNextPos - PhysObj().GetPosition());
     PhysObj().SetCurrentTranslation(vDiff / ONE_TICK);
 
-    // [Cecil] FIXME: When certain brushes rotate at weird angles (especially when using banking rotation in any way),
-    // the physics object goes crazy due to the fact that its rotation is set in absolute euler angles instead of relative
-    // to the physics body (like it's done with entities), so it's very hard to calculate an appropriate rotation angle
-
-    // Rotate using an absolute difference in rotation matrices
-    FLOATmatrix3D mDiff = GetRotationMatrix();
-    mDiff *= !PhysObj().GetMatrix();
-
-    // DecomposeRotationMatrixNoSnap() seems to be very unstable here, don't use it
+    // Set rotation from the matrix difference in absolute coordinates
     ANGLE3D aDiff;
-    DecomposeRotationMatrix(aDiff, mDiff);
+    DecomposeRotationMatrixNoSnap(aDiff, GetRotationMatrix() * !PhysObj().GetMatrix());
 
     PhysObj().SetCurrentRotation(aDiff / ONE_TICK);
   };

@@ -455,7 +455,14 @@ void odeObject::SetCurrentRotation(const ANGLE3D &aRotation) {
 
   // Instead of HPB angles it's using axes to rotate around:
   // X - pitch; Y - heading; Z - banking
-  dBodySetAngularVel(body, RadAngle(aRotation(2)), RadAngle(aRotation(1)), RadAngle(aRotation(3)));
+
+  // NOTE: DO NOT use RadAngle()!!! It wraps the angle around to be in 0-360 range,
+  // making negative degrees turn into positive radians! Curse you, Croteam!!!
+  const dReal fX = (aRotation(2) * PI / ANGLE_180);
+  const dReal fY = (aRotation(1) * PI / ANGLE_180);
+  const dReal fZ = (aRotation(3) * PI / ANGLE_180);
+
+  dBodySetAngularVel(body, fX, fY, fZ);
 };
 
 ANGLE3D odeObject::GetCurrentRotation(void) const {
