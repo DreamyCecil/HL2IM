@@ -1484,6 +1484,9 @@ void CGame::StopGame(void) {
   // [Cecil] Stop physics
   ODE_End(TRUE);
 
+  // [Cecil] Reset global controller
+  _penGlobalController = NULL;
+
   // stop eventual camera
   CAM_Stop();
   // and game
@@ -2415,6 +2418,11 @@ void CGame::GameRedrawView( CDrawPort *pdpDrawPort, ULONG ulFlags)
         dpMsg.PutText( TRANS("Recording"), 
         dpMsg.GetWidth()*0.1f, 
         dpMsg.GetHeight()*0.1f, C_CYAN|192);
+      }
+
+      // [Cecil] Do global rendering
+      if (_penGlobalController != NULL) {
+        _penGlobalController->RenderOnScreen(&dpMsg);
       }
 
       // print some statistics

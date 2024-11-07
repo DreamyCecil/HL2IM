@@ -1,6 +1,11 @@
 // [Cecil] New surface materials
 #include <EntitiesMP/Cecil/Materials.h>
 
+// [Cecil] Global controller
+#include <XGizmo/Objects/EntityRefList.h>
+#include <EntitiesMP/Mod/GlobalController.h>
+DECL_DLL extern CGlobalController *_penGlobalController;
+
 // Bit shifters for ammo
 #define AMMO_NAPALM        4 // [Cecil] 357
 #define AMMO_BULLETS       0 // [Cecil] SMG1

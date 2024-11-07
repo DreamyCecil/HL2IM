@@ -27,6 +27,8 @@ thumbnail "";
 features  "IsImportant";
 
 properties:
+  1 FLOAT m_tmLevelStart = 0.0f,
+
 {
   // Physics objects that currently exist in the world
   CEntityReferences m_cPhysEntities;
@@ -191,9 +193,28 @@ functions:
   void OnLevelStart(BOOL bFreshStart) {
     UpdateLevel();
 
-    // Start physics
     if (bFreshStart) {
-      ODE_Start();
+      // Remember level start time
+      m_tmLevelStart = _pTimer->CurrentTick();
+
+      // Start physics
+      if (GetSP()->sp_iPhysFlags & PHYSF_ENABLE) {
+        ODE_Start();
+      }
+    }
+  };
+
+  // Global rendering method
+  void RenderOnScreen(CDrawPort *pdp) {
+    const PIX pixW = pdp->GetWidth();
+    const PIX pixH = pdp->GetHeight();
+
+    // Display the funny
+    if (_pTimer->GetLerpedCurrentTick() - m_tmLevelStart < 2.0f) {
+      pdp->SetFont(_pfdDisplayFont);
+      pdp->SetTextAspect(1.0f);
+      pdp->SetTextScaling(pixH / 640.0f); // 640 instead of 480 to make text smaller
+      pdp->PutTextCXY("Node Graph out of Date. Rebuilding...", pixW * 0.5f, pixH * (1.0f / 3.0f), 0xFFFFFFFF);
     }
   };
 
@@ -234,7 +255,7 @@ procedures:
         }
 
         on (EPostLevelChange) : {
-          OnLevelStart(GetSP()->sp_iPhysFlags & PHYSF_ENABLE);
+          OnLevelStart(TRUE);
           resume;
         }
 
@@ -283,7 +304,7 @@ procedures:
 
     autowait(ONE_TICK);
 
-    OnLevelStart(GetSP()->sp_iPhysFlags & PHYSF_ENABLE);
+    OnLevelStart(TRUE);
     jump MainLoop();
   };
 };
