@@ -52,8 +52,11 @@ extern INDEX hl2_bAutoBunnyhop;
 extern INDEX hl2_iNewEnemies;
 extern INDEX hl2_bEnemyDrops;
 extern INDEX hl2_bUseMaterials;
-extern INDEX hl2_iPhysicsIterations;
 extern INDEX hl2_bAdminMenu;
+
+extern INDEX hl2_bEnablePhysics;
+extern INDEX hl2_iPhysicsIterations;
+extern INDEX hl2_bItemPhysics;
 
 static void SetGameModeParameters(CSessionProperties &sp) {
   sp.sp_gmGameMode = (CSessionProperties::GameMode) Clamp(INDEX(gam_iStartMode), -1L, 2L);
@@ -151,6 +154,10 @@ static void HL2_Parameters(CSessionProperties &sp) {
                    | (hl2_bUseMaterials ? HL2F_MATERIALS : 0)
                    | (hl2_bEnemyDrops   ? HL2F_ENEMYDROP : 0)
                    | (hl2_bAdminMenu    ? HL2F_ADMINMENU : 0);
+
+  // Physics flags
+  sp.sp_iPhysFlags |= (hl2_bEnablePhysics ? PHYSF_ENABLE : 0)
+                   | (hl2_bItemPhysics    ? PHYSF_ITEMS  : 0);
 
   // Gamemodes
   sp.sp_iHLGamemode = hl2_iGamemode;

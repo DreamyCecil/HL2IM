@@ -234,7 +234,7 @@ procedures:
         }
 
         on (EPostLevelChange) : {
-          OnLevelStart(TRUE);
+          OnLevelStart(GetSP()->sp_iPhysFlags & PHYSF_ENABLE);
           resume;
         }
 
@@ -283,7 +283,7 @@ procedures:
 
     autowait(ONE_TICK);
 
-    OnLevelStart(TRUE);
+    OnLevelStart(GetSP()->sp_iPhysFlags & PHYSF_ENABLE);
     jump MainLoop();
   };
 };

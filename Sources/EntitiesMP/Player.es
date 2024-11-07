@@ -8228,12 +8228,6 @@ procedures:
  *                        M  A  I  N                        *
  ************************************************************/
   Main() {
-    CPrintF("New player at %f\n", _pTimer->CurrentTick());
-    // Restart physics
-    if (ODE_IsStarted()) {
-      ODE_Start();
-    }
-
     // remember start time
     time_t tmStart;
     time(&tmStart);

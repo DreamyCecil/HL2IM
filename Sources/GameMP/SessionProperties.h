@@ -1,4 +1,4 @@
-// [Cecil] New Options Flags
+// [Cecil] New options flags
 #define HL2F_INFALT    (1<<0) // Infinite Alt Ammo
 #define HL2F_BHOP      (1<<1) // Bunnyhopping
 #define HL2F_AUTOBHOP  (1<<2) // Automatically jump after landing
@@ -8,7 +8,11 @@
 #define HL2F_ENEMYDROP (1<<7) // Enemies drop their weapons
 #define HL2F_ADMINMENU (1<<8) // Everyone is allowed to use the admin menu
 
-// [Cecil] New Gamemodes
+// [Cecil] Realistic physics flags
+#define PHYSF_ENABLE (1 << 0) // Use realistic physics
+#define PHYSF_ITEMS  (1 << 1) // Enable physics for items
+
+// [Cecil] New gamemodes
 enum EHL2Gamemode {
   HLGM_NONE = -1,
 
@@ -101,6 +105,7 @@ public:
   INDEX sp_iStartWeapons;
   FLOAT sp_fGravityGunPower;
   INDEX sp_iPhysicsIterations;
+  INDEX sp_iPhysFlags;
 
   // [Cecil] Clear the properties
   void Clear(void) {

@@ -122,8 +122,11 @@ INDEX hl2_bAutoBunnyhop = FALSE;
 INDEX hl2_iNewEnemies = 2; // 0 - No, 1 - Beta 0.7, 2 - Yes
 INDEX hl2_bEnemyDrops = FALSE;
 INDEX hl2_bUseMaterials = TRUE;
-INDEX hl2_iPhysicsIterations = 4;
 INDEX hl2_bAdminMenu = FALSE;
+
+INDEX hl2_bEnablePhysics = TRUE;
+INDEX hl2_iPhysicsIterations = 4;
+INDEX hl2_bItemPhysics = TRUE;
 
 // [Cecil] Menu music
 static INDEX hl2_bMenuMusic = TRUE;
@@ -992,8 +995,11 @@ void CGame::InitInternal( void)
   _pShell->DeclareSymbol("persistent user INDEX hl2_iNewEnemies;", &hl2_iNewEnemies);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bEnemyDrops;", &hl2_bEnemyDrops);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bUseMaterials;", &hl2_bUseMaterials);
-  _pShell->DeclareSymbol("persistent user INDEX hl2_iPhysicsIterations;", &hl2_iPhysicsIterations);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bAdminMenu;", &hl2_bAdminMenu);
+
+  _pShell->DeclareSymbol("persistent user INDEX hl2_bEnablePhysics;", &hl2_bEnablePhysics);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_iPhysicsIterations;", &hl2_iPhysicsIterations);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_bItemPhysics;", &hl2_bItemPhysics);
 
   // [Cecil] Menu music
   _pShell->DeclareSymbol("persistent user INDEX hl2_bMenuMusic;", &hl2_bMenuMusic);

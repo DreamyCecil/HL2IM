@@ -66,6 +66,20 @@ functions:
     return TRUE;
   };
 
+  virtual BOOL UseRealisticPhysics(void) const {
+    // Disable item physics
+    if (!(GetSP()->sp_iPhysFlags & PHYSF_ITEMS)) {
+      return FALSE;
+    }
+
+    // Use engine physics with respawning items
+    if (m_bRespawn) {
+      return FALSE;
+    }
+
+    return CPhysBase::UseRealisticPhysics();
+  };
+
   virtual BOOL CanGravityGunInteract(CCecilPlayerEntity *penPlayer) const {
     // Ignore respawning and invisible items
     if (!m_bGravityGunInteract || m_bRespawn || en_RenderType == RT_EDITORMODEL || en_RenderType == RT_SKAEDITORMODEL) {
