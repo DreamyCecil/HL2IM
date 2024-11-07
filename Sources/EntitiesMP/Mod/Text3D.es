@@ -48,7 +48,7 @@ enum ETextAnchorY {
   2 TAY_BOTTOM "2 Bottom",
 };
 
-class CCecilText3D : CEntity {
+class CCecilText3D : CRationalEntity {
 name      "Text3D";
 thumbnail "Thumbnails\\Marker.tbn";
 features  "HasName", "IsTargetable";
@@ -75,6 +75,10 @@ properties:
  32 enum ETextAnchorY m_eAnchorY "Text Anchor Y" = TAY_TOP,
  33 enum ETextBlendType m_eBlendType "Text Blending" = TBT_BLEND,
 
+ // [Cecil] TEMP
+ 50 INDEX m_iCounterMode = -1,
+ 51 INDEX m_iCounter = 0,
+
 {
   CFontData m_fdFontLoaded;
   CFontData *m_pfdFontRender;
@@ -94,7 +98,7 @@ functions:
   };
 
   virtual void Read_t(CTStream *istr) {
-    CEntity::Read_t(istr);
+    CRationalEntity::Read_t(istr);
     SetupText();
   };
 
@@ -185,6 +189,33 @@ procedures:
     SetModelMainTexture(TEXTURE_MARKER);
 
     SetupText();
+
+    autowait(ONE_TICK);
+
+    // [Cecil] TEMP: Activate counter mode
+    if (m_strText.HasPrefix("%0")) {
+      m_iCounterMode = m_strText.Length() - 1;
+      m_iCounter = 0;
+
+      m_strText.PrintF("%0*d", m_iCounterMode, m_iCounter);
+      SetupText();
+    }
+
+    wait() {
+      // [Cecil] TEMP: Count up each trigger
+      on (ETrigger) : {
+        if (m_iCounterMode != -1) {
+          m_iCounter++;
+
+          m_strText.PrintF("%0*d", m_iCounterMode, m_iCounter);
+          SetupText();
+        }
+        resume;
+      }
+
+      otherwise() : { resume; }
+    }
+
     return;
   };
 };
