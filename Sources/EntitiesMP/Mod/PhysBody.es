@@ -41,7 +41,7 @@ properties:
 11 FLOAT m_fSize2 "Size Y/H" = 1.0f,
 12 FLOAT m_fSize3 "Size Z/L" = 1.0f,
 
-20 FLOAT m_fMass "Mass" = 0.5f,
+20 FLOAT m_fMass "Mass" = 1.0f,
 21 BOOL m_bGravityGunPickUp "Gravity gun can pick up" = TRUE,
 22 FLOAT m_fTouchDamage "Touch damage" = 0.0f,
 23 FLOAT m_fBlockDamage "Block damage" = 0.0f,

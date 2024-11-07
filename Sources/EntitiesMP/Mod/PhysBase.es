@@ -38,6 +38,11 @@ features  "AbstractBaseClass";
 properties:
  1 BOOL m_bPhysEnabled "Physics enabled" = TRUE, // Use realistic physics
  2 BOOL m_bPhysDynamic "Physics dynamic body" = TRUE, // Create a dynamic body instead of a static geom
+ 3 FLOAT m_fPhysMass   "Physics mass multiplier" = 1.0f, // Multiply GetPhysMass() value
+
+ 5 FLOAT m_fPhysFriction  "Physics friction" = 1.0f, // Multiply GetPhysFriction() value
+ 6 FLOAT m_fPhysBounce    "Physics bounce" = 1.0f, // Multiply GetPhysBounce() value
+ 7 FLOAT m_fPhysBounceVel "Physics bounce velocity" = 1.0f, // Multiply GetPhysBounceVel() value
 
 // Touching/blocking data
 10 INDEX m_iTouchType = 0, // 1 - touched, 2 - blocked
@@ -229,6 +234,11 @@ functions:
   // Get physics object mass
   virtual FLOAT GetPhysMass(void) const { return 1.0f; };
 
+  // Get physics collision parameters
+  virtual FLOAT GetPhysFriction(void) const { return 1.0f; };
+  virtual FLOAT GetPhysBounce(void) const { return 0.1f; };
+  virtual FLOAT GetPhysBounceVel(void) const { return 1.0f; };
+
   // Get physics touch damage
   virtual FLOAT GetPhysTouchDamage(const ETouch &eTouch) const { return 0.0f; };
 
@@ -251,11 +261,15 @@ functions:
 
     if (GetPhysOffset(plOffset)) {
       plOffset.RelativeToAbsolute(GetPlacement());
-      PhysObj().BeginShape(plOffset, GetPhysMass(), m_bPhysDynamic);
+      PhysObj().BeginShape(plOffset, GetPhysMass() * m_fPhysMass, m_bPhysDynamic);
 
     } else {
-      PhysObj().BeginShape(GetPlacement(), GetPhysMass(), m_bPhysDynamic);
+      PhysObj().BeginShape(GetPlacement(), GetPhysMass() * m_fPhysMass, m_bPhysDynamic);
     }
+
+    PhysObj().fFriction  = GetPhysFriction() * m_fPhysFriction;
+    PhysObj().fBounce    = Clamp(GetPhysBounce() * m_fPhysBounce, 0.0f, 1.0f);
+    PhysObj().fBounceVel = GetPhysBounceVel() * m_fPhysBounceVel;
 
     // Add geoms of a specific max size
     FLOAT3D vMaxSize;

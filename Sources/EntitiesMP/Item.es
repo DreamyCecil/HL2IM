@@ -98,6 +98,10 @@ functions:
     return !m_bRespawn;
   };
 
+  virtual FLOAT GetPhysMass(void) const { return 0.5f; };
+  virtual FLOAT GetPhysFriction(void) const { return 0.7f; };
+  virtual FLOAT GetPhysBounce(void) const { return 0.7f; };
+
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType, FLOAT fDamage, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) {
     if (PhysicsUsable()) {
       CPhysBase::ReceiveDamage(penInflictor, dmtType, fDamage, vHitPoint, vDirection);

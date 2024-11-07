@@ -82,10 +82,17 @@ class odeTrimesh {
 // Physical object
 class odeObject {
   public:
+    // Setup
     CPlacement3D plCenter; // Origin placement of the body
     BOOL bSetupBody; // Object has a physical body
     FLOAT fSetupMass; // Object mass
 
+    // Collision parameters
+    FLOAT fFriction;
+    FLOAT fBounce;
+    FLOAT fBounceVel;
+
+    // Physical identity
     dBodyID body; // Physical body
     dGeomID geom; // Body geometry
     dJointID joint; // Only used when attaching another body to this one
@@ -107,6 +114,7 @@ class odeObject {
   public:
     // Constructor
     odeObject(void) : plCenter(_odeCenter), bSetupBody(FALSE), fSetupMass(0.0f),
+      fFriction(1.0f), fBounce(0.1f), fBounceVel(1.0f),
       body(NULL), geom(NULL), joint(NULL), ulTag(-1)
     {
       dMassSetZero(&mass);

@@ -34,10 +34,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 CPhysEngine *_pODE = NULL;
 
 // [Cecil] TEMP: Console commands
-static FLOAT ode_fFriction = 1.0f; //1.8f;
-static FLOAT ode_fBounce = 0.1f;
-static FLOAT ode_fBounceVelocity = 1.0f;
-
 static BOOL ode_bReportCollisions = FALSE;
 INDEX ode_iCollisionGrid = 0; // 1 - display cells at 0.5m; 2 - display cells at player's legs
 INDEX ode_bRenderPosition = FALSE;
@@ -132,7 +128,7 @@ static inline void SetupContactSurface(dSurfaceParameters &surface, odeObject *o
   surface.mode = dContactBounce | dContactApprox1;
 
   // Apply surface friction from 0 to 2
-  surface.mu = fFriction * 2.0f * ode_fFriction;
+  surface.mu = fFriction * 2.0f * obj1->fFriction * obj2->fFriction;
 
   // BTBA collision
   /*surface.mode = dContactBounce | dContactSlip1 | dContactSlip2 | dContactApprox1;
@@ -147,8 +143,8 @@ static inline void SetupContactSurface(dSurfaceParameters &surface, odeObject *o
     surface.slip2 = 0.5;
   }
 
-  surface.bounce = ode_fBounce;
-  surface.bounce_vel = ode_fBounceVelocity;
+  surface.bounce = obj1->fBounce * obj2->fBounce;
+  surface.bounce_vel = obj1->fBounceVel * obj2->fBounceVel;
   //surface.soft_erp = 0.5;
 };
 
@@ -318,10 +314,6 @@ CPhysEngine::CPhysEngine(void) {
   // [Cecil] TEMP: Removed for now; check if they're serialized properly
   //dCreatePlane(space, 0, +1, 0, -4096); // Bottom
   //dCreatePlane(space, 0, -1, 0, -4096); // Top
-
-  _pShell->DeclareSymbol("user FLOAT ode_fFriction;", &ode_fFriction);
-  _pShell->DeclareSymbol("user FLOAT ode_fBounce;", &ode_fBounce);
-  _pShell->DeclareSymbol("user FLOAT ode_fBounceVelocity;", &ode_fBounceVelocity);
 
   _pShell->DeclareSymbol("user INDEX ode_bReportCollisions;", &ode_bReportCollisions);
   _pShell->DeclareSymbol("user INDEX ode_iCollisionGrid;", &ode_iCollisionGrid);

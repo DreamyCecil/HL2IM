@@ -468,6 +468,10 @@ void odeObject::Write_t(CWriteStream &strm) {
   strm.Write_key(bSetupBody);
   strm.Write_key(fSetupMass);
 
+  strm.Write_key(fFriction);
+  strm.Write_key(fBounce);
+  strm.Write_key(fBounceVel);
+
   // [Cecil] NOTE: This mass must be written instead of body->mass because it resets body mass in EndShape()
   strm.Write_key(mass.mass);
   strm.WriteMatrix_key(mass.I);
@@ -489,6 +493,10 @@ void odeObject::Read_t(CTStream *istr) {
   *istr >> plCenter;
   *istr >> bSetupBody;
   *istr >> fSetupMass;
+
+  *istr >> fFriction;
+  *istr >> fBounce;
+  *istr >> fBounceVel;
 
   // [Cecil] NOTE: This mass must be read instead of body->mass because it resets body mass in EndShape()
   *istr >> mass.mass;
