@@ -127,6 +127,12 @@ functions:
   void Precache(void) {
     PrecacheSound(SOUND_KEY);
   }
+
+  // [Cecil] Use engine physics for keys
+  virtual BOOL UseRealisticPhysics(void) const {
+    return FALSE;
+  };
+
   /* Fill in entity statistics - for AI purposes only */
   BOOL FillEntityStatistics(EntityStats *pes)
   {

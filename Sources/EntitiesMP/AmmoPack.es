@@ -96,6 +96,14 @@ functions:
     return CItem::GetPhysOffset(plOffset);
   };
 
+  virtual BOOL UseRealisticPhysics(void) const {
+    return FALSE;
+  };
+
+  virtual BOOL CanGravityGunInteract(CCecilPlayerEntity *penPlayer) const {
+    return FALSE;
+  };
+
   // [Cecil] Read special flag (0.7 compatibility)
   void Read_t(CTStream *istr) {
     CItem::Read_t(istr);

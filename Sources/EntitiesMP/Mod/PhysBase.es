@@ -211,6 +211,9 @@ functions:
 /*                  Physics object properties                   */
 /****************************************************************/
 
+  // Check whether realistic physics should be used
+  virtual BOOL UseRealisticPhysics(void) const { return m_bPhysEnabled; };
+
   // Get physics object material
   virtual INDEX GetPhysMaterial(void) const { return -1; };
 
@@ -241,7 +244,7 @@ functions:
     // Delete last object
     PhysObj().Clear(TRUE);
 
-    if (!ODE_IsStarted() || !m_bPhysEnabled) { return; }
+    if (!ODE_IsStarted() || !UseRealisticPhysics()) { return; }
 
     // Begin creating a new object
     CPlacement3D plOffset;

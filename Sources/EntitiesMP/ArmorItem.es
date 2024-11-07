@@ -98,6 +98,24 @@ functions:
     return CItem::GetPhysOffset(plOffset);
   };
 
+  virtual BOOL UseRealisticPhysics(void) const {
+    // Use engine physics with the HEV suit
+    if (m_EaitType == ARIT_SUPER) {
+      return FALSE;
+    }
+
+    return CItem::UseRealisticPhysics();
+  };
+
+  virtual BOOL CanGravityGunInteract(CCecilPlayerEntity *penPlayer) const {
+    // Don't interact with the HEV suit
+    if (m_EaitType == ARIT_SUPER) {
+      return FALSE;
+    }
+
+    return CItem::CanGravityGunInteract(penPlayer);
+  };
+
   /* Fill in entity statistics - for AI purposes only */
   BOOL FillEntityStatistics(EntityStats *pes) {
     pes->es_strName = "Armor"; 
