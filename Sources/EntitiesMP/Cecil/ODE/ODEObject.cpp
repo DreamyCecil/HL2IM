@@ -399,6 +399,24 @@ void odeObject::AddForce(const FLOAT3D &vDir, FLOAT fForce) {
   dBodyAddForce(body, vForce(1), vForce(2), vForce(3));
 };
 
+// Add torque in absolute coordinates from the center of the object
+void odeObject::AddTorque(const ANGLE3D &aRotation) {
+  if (!IsCreated()) return;
+
+  Unfreeze();
+
+  dBodyAddTorque(body, DegToRad(aRotation(2)), DegToRad(aRotation(1)), DegToRad(aRotation(3)));
+};
+
+// Add torque in relative coordinates from the center of the object
+void odeObject::AddTorqueRel(const ANGLE3D &aRotation) {
+  if (!IsCreated()) return;
+
+  Unfreeze();
+
+  dBodyAddRelTorque(body, DegToRad(aRotation(2)), DegToRad(aRotation(1)), DegToRad(aRotation(3)));
+};
+
 // Manually update gravitational force
 void odeObject::UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityDir, FLOAT fGravityAccelerationMul) {
   if (!IsCreated()) return;
@@ -455,14 +473,7 @@ void odeObject::SetCurrentRotation(const ANGLE3D &aRotation) {
 
   // Instead of HPB angles it's using axes to rotate around:
   // X - pitch; Y - heading; Z - banking
-
-  // NOTE: DO NOT use RadAngle()!!! It wraps the angle around to be in 0-360 range,
-  // making negative degrees turn into positive radians! Curse you, Croteam!!!
-  const dReal fX = (aRotation(2) * PI / ANGLE_180);
-  const dReal fY = (aRotation(1) * PI / ANGLE_180);
-  const dReal fZ = (aRotation(3) * PI / ANGLE_180);
-
-  dBodySetAngularVel(body, fX, fY, fZ);
+  dBodySetAngularVel(body, DegToRad(aRotation(2)), DegToRad(aRotation(1)), DegToRad(aRotation(3)));
 };
 
 ANGLE3D odeObject::GetCurrentRotation(void) const {
@@ -470,7 +481,7 @@ ANGLE3D odeObject::GetCurrentRotation(void) const {
 
   // Heading - Y; pitch - X; banking - Z
   const dReal *vRotation = dBodyGetAngularVel(body);
-  return ANGLE3D(AngleRad(vRotation[1]), AngleRad(vRotation[0]), AngleRad(vRotation[2]));
+  return ANGLE3D(RadToDeg(vRotation[1]), RadToDeg(vRotation[0]), RadToDeg(vRotation[2]));
 };
 
 // Stop moving

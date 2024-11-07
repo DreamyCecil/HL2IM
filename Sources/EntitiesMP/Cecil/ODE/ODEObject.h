@@ -193,6 +193,12 @@ class odeObject {
     // Add force in an absolute direction from the center of the object
     void AddForce(const FLOAT3D &vDir, FLOAT fForce);
 
+    // Add torque in absolute coordinates from the center of the object
+    void AddTorque(const ANGLE3D &aRotation);
+
+    // Add torque in relative coordinates from the center of the object
+    void AddTorqueRel(const ANGLE3D &aRotation);
+
     // Manually update gravitational force
     void UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityDir, FLOAT fGravityAccelerationMul);
 

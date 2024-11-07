@@ -318,3 +318,13 @@ DECL_DLL extern BOOL _bClassicsPatch;
 inline BOOL IsPlayingGame(void) {
   return !_bWorldEditorApp || GetSP()->sp_bQuickTest;
 };
+
+// [Cecil] NOTE: DO NOT use RadAngle()!!! It wraps the angle around to be in 0-360 range,
+// making negative degrees turn into positive radians! Curse you, Croteam!!!
+inline DOUBLE DegToRad(DOUBLE fDeg) {
+  return (fDeg * PI / ANGLE_180);
+};
+
+inline DOUBLE RadToDeg(DOUBLE fRad) {
+  return (fRad * ANGLE_180 / PI);
+};
