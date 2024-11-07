@@ -587,7 +587,7 @@ void HL2_DrawWeaponScroll(CPlayer *penLast) {
       _pdp->SetTextAspect(1.0f);
 
       for (INDEX iListWeapon = 0; iListWeapon < aiWeapons.Count(); iListWeapon++) {
-        HUD_DrawBorder(fWeaponX, fWeaponY, fSizeX, fSizeY, colBorder, 0);
+        HUD_DrawBorder(fWeaponX, fWeaponY, fSizeX, fSizeY, colBorder, SAF_CENTER);
 
         BOOL bAmmo = (_penWeapons->GetAmmo(aiWeapons[iListWeapon]) > 0
                    || _penWeapons->GetMagCount(aiWeapons[iListWeapon]) > 0
@@ -600,23 +600,25 @@ void HL2_DrawWeaponScroll(CPlayer *penLast) {
         // Weapon icons
         if (iWeaponInList >= 1 && iWeaponInList <= 14) {
           if (eCurrent == aiWeapons[iListWeapon]) {
-            DrawTexture(&_atoWeaponGlow[iWeaponInList-1], fWeaponX, fWeaponY+fSizeY/2.0f - fSizeX/2.0f, fWeaponX+fSizeX, fWeaponY+fSizeY/2.0f + fSizeX/2.0f, colNormal|ubNormalAlpha, 0);
+            DrawTexture(&_atoWeaponGlow[iWeaponInList-1],
+              fWeaponX, fWeaponY+fSizeY/2.0f - fSizeX/2.0f, fWeaponX+fSizeX, fWeaponY+fSizeY/2.0f + fSizeX/2.0f, colNormal|ubNormalAlpha, SAF_CENTER);
           }
 
           COLOR colWeapon = (_abWeaponIconColor[iWeaponInList-1] ? 0xFFFFFF00 : colNormal);
-          DrawTexture(&_atoWeapon[iWeaponInList-1], fWeaponX, fWeaponY+fSizeY/2.0f - fSizeX/2.0f, fWeaponX+fSizeX, fWeaponY+fSizeY/2.0f + fSizeX/2.0f, colWeapon|ubNormalAlpha, 0);
+          DrawTexture(&_atoWeapon[iWeaponInList-1],
+            fWeaponX, fWeaponY+fSizeY/2.0f - fSizeX/2.0f, fWeaponX+fSizeX, fWeaponY+fSizeY/2.0f + fSizeX/2.0f, colWeapon|ubNormalAlpha, SAF_CENTER);
         }
 
         if (eCurrent == aiWeapons[iListWeapon]) {
-          HUD_DrawText(fWeaponX+fSizeX/2.0f, fWeaponY+fSizeY - 12.0f, _astrWeaponName[iWeaponInList-1][0], UI_COL(1.0f)|ubNormalAlpha, 0, 0);
-          HUD_DrawText(fWeaponX+fSizeX/2.0f, fWeaponY+fSizeY - 6.0f, _astrWeaponName[iWeaponInList-1][1], UI_COL(1.0f)|ubNormalAlpha, 0, 0);
+          HUD_DrawText(fWeaponX+fSizeX/2.0f, fWeaponY+fSizeY - 12.0f, _astrWeaponName[iWeaponInList-1][0], UI_COL(1.0f)|ubNormalAlpha, 0, SAF_CENTER);
+          HUD_DrawText(fWeaponX+fSizeX/2.0f, fWeaponY+fSizeY - 6.0f, _astrWeaponName[iWeaponInList-1][1], UI_COL(1.0f)|ubNormalAlpha, 0, SAF_CENTER);
         }
 
         fWeaponY += fSizeY + 8;
       }
     } else {
       // Weapon list
-      HUD_DrawBorder(fWeaponX, fWeaponY, 32, 32, colBorder, 0);
+      HUD_DrawBorder(fWeaponX, fWeaponY, 32, 32, colBorder, SAF_CENTER);
     }
 
     fWeaponY = 16;
@@ -625,7 +627,7 @@ void HL2_DrawWeaponScroll(CPlayer *penLast) {
     _pdp->SetFont(_pfdDisplayFont);
     _pdp->SetTextScaling(_fResScalingY);
     _pdp->SetTextAspect(1.0f);
-    HUD_DrawText(fWeaponX+4, fWeaponY+4, CTString(0, "%d", iList+1), UI_COL(1.0f)|ubNormalAlpha, -1, 0);
+    HUD_DrawText(fWeaponX+4, fWeaponY+4, CTString(0, "%d", iList+1), UI_COL(1.0f)|ubNormalAlpha, -1, SAF_CENTER);
 
     if (iList == iCurIndex-1) {
       fWeaponX += fSizeX + 8;
