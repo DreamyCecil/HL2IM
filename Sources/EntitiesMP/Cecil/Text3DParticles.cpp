@@ -298,9 +298,9 @@ static void RenderCharacter(INDEX iChar, const FLOAT3D &vRenderPos, const FLOATm
 
   boxUV.StretchByVector(FLOAT2D(_fCorrectionU, _fCorrectionV));
 
-  // Adjust alpha for flashing
+  // Adjust alpha for flashing (also multiply by fade-out alpha from 3D setup)
   COLOR colRender = (cfx.colBlend & 0xFFFFFF00);
-  UBYTE ubAlpha   = (cfx.colBlend & 0x000000FF);
+  UBYTE ubAlpha = ULONG(cfx.colBlend & 0xFF) * ULONG(t3d.colDefault & 0xFF) / ULONG(0xFF);
 
   if (cfx.iFlash > 0) {
     colRender |= UBYTE(ubAlpha * (sin(cfx.iFlash * _tmText3D) * 0.5f + 0.5f));
