@@ -1952,6 +1952,9 @@ void CCecilMovableEntity::PreMoving(FLOAT3D &vRotationDir)
 
       // if wants to jump and can jump
       if (fJump < -0.01f && (bCanJumpFromSlope || bAllowedToJump)) {
+        // [Cecil] TEMP: Reset current vertical movement to prevent crazy vertical speeds
+        vTranslationAbsolute = HorizontalDiff(vTranslationAbsolute, en_vGravityDir);
+
         vTranslationAbsolute += en_vGravityDir * fJump;
         en_tmJumped = _pTimer->CurrentTick();
         en_pbpoStandOn = NULL;
@@ -1979,6 +1982,9 @@ void CCecilMovableEntity::PreMoving(FLOAT3D &vRotationDir)
 
       // if wants to jump and can jump
       if (fJump < -0.01f && bAllowedToJump) {
+        // [Cecil] TEMP: Reset current vertical movement to prevent crazy vertical speeds
+        vTranslationAbsolute = HorizontalDiff(vTranslationAbsolute, en_vGravityDir);
+
         vTranslationAbsolute += en_vGravityDir * fJump;
         en_tmJumped = _pTimer->CurrentTick();
         en_pbpoStandOn = NULL;

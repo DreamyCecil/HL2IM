@@ -1423,6 +1423,14 @@ functions:
       }
     }
 
+    // Ignore this check to allow prop flying
+    if (!(GetSP()->sp_iPhysFlags & PHYSF_PROPFLYING)) {
+      // Standing on the object
+      if (GetPlayer()->en_penReference == pen) {
+        return FALSE;
+      }
+    }
+
     return GravityGunCanInteract(GetPlayer(), pen, bPickup);
   };
 
@@ -1473,7 +1481,11 @@ functions:
     // Add relative rotation and absolute speed
     plPlayerView.pl_OrientationAngle += GetPlayer()->GetDesiredRotation() * ONE_TICK;
     plPlayerView.RelativeToAbsolute(plPlayer);
-    plPlayerView.pl_PositionVector += GetPlayer()->en_vCurrentTranslationAbsolute * ONE_TICK;
+
+    // Don't take player movement into account to allow easier object hopping
+    if (!(GetSP()->sp_iPhysFlags & PHYSF_PROPFLYING)) {
+      plPlayerView.pl_PositionVector += GetPlayer()->en_vCurrentTranslationAbsolute * ONE_TICK;
+    }
 
     // Place object in front of the view
     FLOAT3D vTargetDir;

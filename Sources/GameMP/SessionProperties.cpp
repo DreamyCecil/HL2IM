@@ -57,6 +57,7 @@ extern INDEX hl2_bAdminMenu;
 extern INDEX hl2_bEnablePhysics;
 extern INDEX hl2_iPhysicsIterations;
 extern INDEX hl2_bItemPhysics;
+extern INDEX hl2_bPropFlying;
 
 static void SetGameModeParameters(CSessionProperties &sp) {
   sp.sp_gmGameMode = (CSessionProperties::GameMode) Clamp(INDEX(gam_iStartMode), -1L, 2L);
@@ -156,8 +157,9 @@ static void HL2_Parameters(CSessionProperties &sp) {
                    | (hl2_bAdminMenu    ? HL2F_ADMINMENU : 0);
 
   // Physics flags
-  sp.sp_iPhysFlags |= (hl2_bEnablePhysics ? PHYSF_ENABLE : 0)
-                   | (hl2_bItemPhysics    ? PHYSF_ITEMS  : 0);
+  sp.sp_iPhysFlags |= (hl2_bEnablePhysics ? PHYSF_ENABLE     : 0)
+                   | (hl2_bItemPhysics    ? PHYSF_ITEMS      : 0)
+                   | (hl2_bPropFlying     ? PHYSF_PROPFLYING : 0);
 
   // Gamemodes
   sp.sp_iHLGamemode = hl2_iGamemode;

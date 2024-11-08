@@ -9,8 +9,9 @@
 #define HL2F_ADMINMENU (1<<8) // Everyone is allowed to use the admin menu
 
 // [Cecil] Realistic physics flags
-#define PHYSF_ENABLE (1 << 0) // Use realistic physics
-#define PHYSF_ITEMS  (1 << 1) // Enable physics for items
+#define PHYSF_ENABLE     (1 << 0) // Use realistic physics
+#define PHYSF_ITEMS      (1 << 1) // Enable physics for items
+#define PHYSF_PROPFLYING (1 << 2) // Make it easier to fly using objects held by the Gravity Gun
 
 // [Cecil] New gamemodes
 enum EHL2Gamemode {
