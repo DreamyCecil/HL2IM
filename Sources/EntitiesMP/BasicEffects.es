@@ -507,8 +507,7 @@ functions:
   void RenderParticles(void)
   {
     if (m_eptType != EPT_NONE) {
-      FLOAT fStretch = 1.0f; //0.3f;
-      Particles_BulletSpray(en_ulID, GetLerpedPlacement().pl_PositionVector, m_vGravity, m_eptType, m_tmSpawn, m_vStretch, fStretch);
+      Particles_BulletSpray(en_ulID, GetLerpedPlacement().pl_PositionVector, m_vGravity, m_eptType, m_tmSpawn, m_vStretch, 1.0f);
     }
 
     if (m_betType == BET_EXPLOSION_DEBRIS) {

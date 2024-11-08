@@ -176,41 +176,59 @@ CTFileName SprayParticlesSound(CEntity *pen, const SprayParticlesType &spt) {
 
 // Get placement of an attachment
 CPlacement3D GetAttachmentPlacement(CModelObject *pmo, CAttachmentModelObject &amo) {
-  // project reference points to view space
-  FLOAT3D vCenter, vFront, vUp;
   CModelData *pmd = pmo->GetData();
   pmd->md_aampAttachedPosition.Lock();
-  INDEX iPosition = amo.amo_iAttachedPosition;
-  INDEX iCenter = pmd->md_aampAttachedPosition[iPosition].amp_iCenterVertex;
-  INDEX iFront = pmd->md_aampAttachedPosition[iPosition].amp_iFrontVertex;
-  INDEX iUp = pmd->md_aampAttachedPosition[iPosition].amp_iUpVertex;
-  INDEX iFrame = pmo->GetFrame();
 
-  pmo->UnpackVertex(iFrame, iCenter, vCenter);
-  pmo->UnpackVertex(iFrame, iFront, vFront);
-  pmo->UnpackVertex(iFrame, iUp, vUp);
+  const INDEX iPosition = amo.amo_iAttachedPosition;
+  const INDEX iCenter = pmd->md_aampAttachedPosition[iPosition].amp_iCenterVertex;
+  const INDEX iFront = pmd->md_aampAttachedPosition[iPosition].amp_iFrontVertex;
+  const INDEX iUp = pmd->md_aampAttachedPosition[iPosition].amp_iUpVertex;
 
-  // make axis vectors in absolute space
-  FLOAT3D &vO = vCenter;
-  FLOAT3D vY = vUp-vCenter;
-  FLOAT3D vZ = vCenter-vFront;
-  FLOAT3D vX = vY*vZ;
-  vY = vZ*vX;
-  // make a rotation matrix from those vectors
+  // Get attachment points of current frames
+  INDEX iFrame0, iFrame1;
+  FLOAT fRatio;
+  pmo->GetFrame(iFrame0, iFrame1, fRatio);
+
+  FLOAT3D vCenter0, vFront0, vUp0;
+  FLOAT3D vCenter1, vFront1, vUp1;
+
+  pmo->UnpackVertex(iFrame0, iCenter, vCenter0);
+  pmo->UnpackVertex(iFrame0, iFront, vFront0);
+  pmo->UnpackVertex(iFrame0, iUp, vUp0);
+
+  pmo->UnpackVertex(iFrame1, iCenter, vCenter1);
+  pmo->UnpackVertex(iFrame1, iFront, vFront1);
+  pmo->UnpackVertex(iFrame1, iUp, vUp1);
+
+  // Interpolated attachment points
+  FLOAT3D vCenter = Lerp(vCenter0, vCenter1, fRatio);
+  FLOAT3D vFront = Lerp(vFront0, vFront1, fRatio);
+  FLOAT3D vUp = Lerp(vUp0, vUp1, fRatio);
+  
+  CPlacement3D plCenter;
+  plCenter.pl_PositionVector = vCenter;
+
+  // Make axis vectors in absolute space
+  FLOAT3D vY = vUp - vCenter;
+  FLOAT3D vZ = vCenter - vFront;
+  FLOAT3D vX = vY * vZ;
+  vY = vZ * vX;
+
+  // Make a rotation matrix from those vectors
   vX.Normalize();
   vY.Normalize();
   vZ.Normalize();
-  FLOATmatrix3D mOrientation;
-  mOrientation(1,1) = vX(1); mOrientation(1,2) = vY(1); mOrientation(1,3) = vZ(1);
-  mOrientation(2,1) = vX(2); mOrientation(2,2) = vY(2); mOrientation(2,3) = vZ(2);
-  mOrientation(3,1) = vX(3); mOrientation(3,2) = vY(3); mOrientation(3,3) = vZ(3);
 
-  // make reference placement in absolute space
-  CPlacement3D plPoints;
-  plPoints.pl_PositionVector = vO;
-  DecomposeRotationMatrixNoSnap(plPoints.pl_OrientationAngle, mOrientation);
-  CPlacement3D pl = amo.amo_plRelative;
-  pl.RelativeToAbsoluteSmooth(plPoints);
+  FLOATmatrix3D mOrientation;
+  mOrientation(1, 1) = vX(1); mOrientation(1, 2) = vY(1); mOrientation(1, 3) = vZ(1);
+  mOrientation(2, 1) = vX(2); mOrientation(2, 2) = vY(2); mOrientation(2, 3) = vZ(2);
+  mOrientation(3, 1) = vX(3); mOrientation(3, 2) = vY(3); mOrientation(3, 3) = vZ(3);
+  DecomposeRotationMatrixNoSnap(plCenter.pl_OrientationAngle, mOrientation);
+
+  // Attachment offset relative to the center point
+  CPlacement3D plResult = amo.amo_plRelative;
+  plResult.RelativeToAbsoluteSmooth(plCenter);
+
   pmd->md_aampAttachedPosition.Unlock();
-  return pl;
+  return plResult;
 };

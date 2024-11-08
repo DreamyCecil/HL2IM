@@ -1968,7 +1968,7 @@ functions:
 
       case 6: { // radio
         FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir*0.1f;
-        ANGLE3D aAngle = GetViewPlacement(CPlacement3D(FLOAT3D(0.0f, 0.0f, 0.0f), ANGLE3D(180.0f, 0.0f, 0.0f)), FLOAT3D(-1.0f, 0.0f, 0.0f), 1.0f).pl_OrientationAngle;
+        ANGLE3D aAngle = GetViewPlacement(CPlacement3D(FLOAT3D(0, 0, 0), ANGLE3D(180, 0, 0)), FLOAT3D(-1, 0, 0), 1.0f).pl_OrientationAngle;
 
         CEntity *pen = CreateEntity(CPlacement3D(vPos, aAngle), CLASS_RADIO);
         ((CRadio*)pen)->m_bTakeDamage = TRUE;
@@ -2160,26 +2160,22 @@ functions:
   };
 
   // [Cecil] Get absolute view placement
-  CPlacement3D GetViewPlacement(const CPlacement3D &plOffset, const FLOAT3D &vLimitAngle, FLOAT fLerp) {
+  CPlacement3D GetViewPlacement(CPlacement3D plOffset, const FLOAT3D &vLimitAngle, FLOAT fLerp) {
     CPlacement3D pl;
     pl.Lerp(en_plLastViewpoint, en_plViewpoint, fLerp);
 
-    for (INDEX iLimit = 1; iLimit <= 3; iLimit++) {
-      FLOAT fAngle = vLimitAngle(iLimit);
+    for (INDEX i = 1; i <= 3; i++) {
+      FLOAT fAngle = vLimitAngle(i);
 
       if (fAngle >= 0.0f) {
-        pl.pl_OrientationAngle(iLimit) = Clamp(pl.pl_OrientationAngle(iLimit), -fAngle, fAngle);
+        pl.pl_OrientationAngle(i) = Clamp(NormalizeAngle(pl.pl_OrientationAngle(i)), -fAngle, fAngle);
       }
     }
 
-    FLOATmatrix3D mRot;
-    MakeRotationMatrixFast(mRot, pl.pl_OrientationAngle);
+    plOffset.RelativeToAbsoluteSmooth(pl);
+    plOffset.RelativeToAbsoluteSmooth(GetLerpedPlacement());
 
-    pl.pl_PositionVector += plOffset.pl_PositionVector * mRot;
-    pl.pl_OrientationAngle += plOffset.pl_OrientationAngle;
-    pl.RelativeToAbsoluteSmooth(GetLerpedPlacement());
-
-    return pl;
+    return plOffset;
   };
 
   // [Cecil] Play suit sounds
@@ -6469,6 +6465,18 @@ functions:
       pdp->dp_ulBlendingGA += ulG*ulA;
       pdp->dp_ulBlendingBA += ulB*ulA;
       pdp->dp_ulBlendingA  += ulA;
+
+      // [Cecil] Gravity Gun launch glare
+      const TIME tmGGFlare = (_pTimer->GetLerpedCurrentTick() - GetPlayerWeapons()->m_tmGGLaunch);
+
+      if (GetPlayerWeapons()->m_iCurrentWeapon == WEAPON_GRAVITYGUN && tmGGFlare <= 0.5f) {
+        const ULONG ulFlareA = NormFloatToByte(Clamp(0.5f - tmGGFlare * 4.0f, 0.0f, 0.5f));
+
+        pdp->dp_ulBlendingRA += 0xFF * ulFlareA;
+        pdp->dp_ulBlendingGA += 0xFF * ulFlareA;
+        pdp->dp_ulBlendingBA += 0xFF * ulFlareA;
+        pdp->dp_ulBlendingA  += ulFlareA;
+      }
     }
 
     // add world glaring
@@ -7049,49 +7057,50 @@ functions:
           }
         }
       }
+    }
 
-      // [Cecil] Gravity Gun charge
-      if (m_penWeapons != NULL) {
-        if (GetPlayerWeapons()->m_iCurrentWeapon == WEAPON_GRAVITYGUN && _pTimer->GetLerpedCurrentTick() <= GetPlayerWeapons()->m_tmLaunchEffect) {
-          //CPlacement3D plSource = GetViewPlacement(FLOAT3D(0.0f, 0.0f, 0.0f), FLOAT3D(-1.0f, -1.0f, -1.0f), _pTimer->GetLerpFactor());
-          BOOL bSetPos = FALSE;
+    // [Cecil] Gravity Gun charge
+    if (m_penWeapons != NULL) {
+      CPlayerWeapons &enGG = *GetPlayerWeapons();
+      const TIME tmGGFlare = (enGG.m_tmLaunchEffect - _pTimer->GetLerpedCurrentTick());
 
-          FLOAT3D vSource = GetLerpedPlacement().pl_PositionVector;
-          FLOATmatrix3D mRot = GetRotationMatrix();
-          ANGLE3D aView = Lerp(en_plLastViewpoint.pl_OrientationAngle, en_plViewpoint.pl_OrientationAngle, _pTimer->GetLerpFactor());
+      if (enGG.m_iCurrentWeapon == WEAPON_GRAVITYGUN && tmGGFlare > 0.0f) {
+        FLOAT3D vSource = GetLerpedPlacement().pl_PositionVector;
 
-          // body
-          CModelObject *pmo = GetModelObject();
+        // Third-person view
+        if (Particle_GetViewer() != this) {
+          FLOATmatrix3D mPlayerRot, mViewRot;
+          MakeRotationMatrix(mPlayerRot, GetLerpedPlacement().pl_OrientationAngle);
+
+          MakeRotationMatrix(mViewRot, Lerp(en_plLastViewpoint.pl_OrientationAngle, en_plViewpoint.pl_OrientationAngle, _pTimer->GetLerpFactor()));
+          mViewRot = mPlayerRot * mViewRot;
+
+          // Add body position
+          CModelObject *pmo = GetModelForRendering();
           CAttachmentModelObject *pamo = pmo->GetAttachmentModel(PLAYER_ATTACHMENT_TORSO);
 
           if (pamo != NULL) {
-            // get body position
             CPlacement3D plAttach = GetAttachmentPlacement(pmo, *pamo);
-            vSource += plAttach.pl_PositionVector * mRot;
-            pmo = &pamo->amo_moModelObject;
-            MakeRotationMatrixFast(mRot, GetLerpedPlacement().pl_OrientationAngle + aView);
+            vSource += plAttach.pl_PositionVector * mPlayerRot;
 
-            // item position
+            // Add item position
+            pmo = &pamo->amo_moModelObject;
             pamo = pmo->GetAttachmentModel(BODY_ATTACHMENT_TOMMYGUN);
+
             if (pamo != NULL) {
               plAttach = GetAttachmentPlacement(pmo, *pamo);
-              vSource += FLOAT3D(0.2f, 0.25f, -0.4f) * mRot;
+              vSource += (plAttach.pl_PositionVector + FLOAT3D(0.0f, 0.3f, -0.4f)) * mViewRot;
 
-              bSetPos = TRUE;
+              Particles_GravityGunCharge(vSource, enGG.m_vGGHitPos);
             }
-          }
-
-          if (bSetPos) {
-            FLOAT3D vDir = (GetPlayerWeapons()->m_vRayHit - vSource).SafeNormalize();
-            //AnglesToDirectionVector(plSource.pl_OrientationAngle, vDir);
-
-            FLOAT3D vTargetDir = vDir * ClampUp(GetPlayerWeapons()->m_fRayHitDistance-2.0f, 12.0f);
-            Particles_GravityGunCharge(vSource, /*plSource.pl_PositionVector*/vSource + vTargetDir);
           }
         }
       }
+
+      // Hit particles
+      Particles_BulletSpray(en_ulID, enGG.m_vGGHitPos, en_vGravityDir, EPT_BULLET_METAL, enGG.m_tmGGLaunch, -enGG.m_vGGHitDir, 2.0f);
     }
-            
+
     // spirit particles
     if (m_tmSpiritStart != 0.0f) {
       Particles_Appearing(this, m_tmSpiritStart);

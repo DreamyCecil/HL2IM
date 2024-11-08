@@ -3687,7 +3687,7 @@ void Particles_BulletSpray(INDEX iRndBase, FLOAT3D vSource, FLOAT3D vGDir, enum 
       continue;
     }
 
-    FLOAT fSize = (fSizeStart + afStarsPositions[iSpray*2 + iRnd*3][0]/20.0f)*fStretch;
+    FLOAT fSize = (fSizeStart + afStarsPositions[iSpray*2 + iRnd*3][0]/20.0f);
     FLOAT fRotation = fT*500.0f;
     FLOAT fColorFactor = 1.0f;
 
@@ -3712,9 +3712,9 @@ void Particles_BulletSpray(INDEX iRndBase, FLOAT3D vSource, FLOAT3D vGDir, enum 
         afStarsPositions[ iSpark+iRnd][1]*0.75f,
         afStarsPositions[ iSpark+iRnd][2]*0.75f);
 
-      // [Cecil] 12.0 -> 6.0
+      // [Cecil] 12.0 -> 6.0 (+ stretching)
       FLOAT3D vPos0 = vSource + (vDirection+vRandomAngle) * (fT+0.00f) * 6.0f;
-      FLOAT3D vPos1 = vSource + (vDirection+vRandomAngle) * (fT+0.05f) * 6.0f;
+      FLOAT3D vPos1 = vSource + (vDirection+vRandomAngle) * (fT+0.05f) * 6.0f * fStretch;
       FLOAT fColorFactor = 1.0f;
 
       if (fT >= BULLET_SPARK_FADEOUT_START) {
@@ -3723,7 +3723,7 @@ void Particles_BulletSpray(INDEX iRndBase, FLOAT3D vSource, FLOAT3D vGDir, enum 
 
       UBYTE ubColor = UBYTE(CT_OPAQUE*fColorFactor);
       COLOR col = RGBToColor(ubColor,ubColor,ubColor)|CT_OPAQUE;
-      Particle_RenderLine(vPos0, vPos1, 0.01f, col); // [Cecil] 0.05 -> 0.01
+      Particle_RenderLine(vPos0, vPos1, fStretch * 0.01f, col); // [Cecil] 0.05 -> fStretch * 0.01
     }
     Particle_Flush();
   }
@@ -5567,7 +5567,7 @@ void Particles_SniperResidue(CEntity *pen, FLOAT3D vSource, FLOAT3D vTarget) {
 };
 
 // [Cecil] Gravity Gun launch effect
-void Particles_GravityGunCharge(FLOAT3D vSource, FLOAT3D vTarget) {
+void Particles_GravityGunCharge(const FLOAT3D &vSource, const FLOAT3D &vTarget) {
   Particle_PrepareTexture(&_toGGCharge, PBT_ADDALPHA);
   Particle_SetTexturePart(1024, 2048, 0, 0);
 

@@ -159,7 +159,7 @@ void DECL_DLL Particles_ModelGlow2( CModelObject *mo,  CPlacement3D pl, FLOAT tm
 void DECL_DLL Particles_RunAfterBurner(CEntity *pen, FLOAT tmEnd, FLOAT fStretch, INDEX iGradientType);
 
 // [Cecil] Gravity Gun launch effect
-DECL_DLL void Particles_GravityGunCharge(FLOAT3D vSource, FLOAT3D vTarget);
+DECL_DLL void Particles_GravityGunCharge(const FLOAT3D &vSource, const FLOAT3D &vTarget);
 
 // [Cecil] Explosion sparks on some placement
 DECL_DLL void Particles_ExplosionSparksPlace(const CPlacement3D &plPos, FLOAT tmStart, FLOAT3D vStretch, COLOR colMultiply);

@@ -576,8 +576,10 @@ properties:
 333 BOOL m_bCanPickObjects = FALSE,
 334 BOOL m_bPullObject = FALSE,
 335 FLOAT m_tmLaunchEffect = -100.0f,
-336 FLOAT3D m_vGGFlare = FLOAT3D(1.0f, 1.0f, 1.0f),
-337 FLOAT3D m_vLastGGFlare = FLOAT3D(1.0f, 1.0f, 1.0f),
+336 FLOAT3D m_vGGFlare = FLOAT3D(1, 1, 1),
+337 FLOAT3D m_vLastGGFlare = FLOAT3D(1, 1, 1),
+338 FLOAT3D m_vGGHitPos = FLOAT3D(0, 0, 0),
+339 FLOAT3D m_vGGHitDir = FLOAT3D(0, 1, 0),
 
 // New ammo system
 350 INDEX m_iUSP  = 0,
@@ -645,6 +647,9 @@ properties:
 
   // [Cecil] Special weapon particles
   FLOAT m_tmParticles;
+
+  // [Cecil] When Gravity Gun launch happened (for rendering)
+  FLOAT m_tmGGLaunch;
 }
 
 components:
@@ -904,6 +909,7 @@ functions:
     m_aObjectAngle = ANGLE3D(0.0f, 0.0f, 0.0f);
     m_bAmmoWarning = FALSE;
     m_tmParticles = -100.0f;
+    m_tmGGLaunch = -100.0f;
   };
 
   // [Cecil] Reset Max Ammo
@@ -1631,11 +1637,14 @@ functions:
     // nuke and iron cannons have the same view settings
     INDEX iWeaponData = m_iCurrentWeapon;
 
-    // store FOV for Crosshair
-    const FLOAT fFOV = ((CPerspectiveProjection3D &)prProjection).FOVL();
+    // [Cecil] Remember old FOV and view placement
+    const FLOAT fOldFOV = ((CPerspectiveProjection3D &)prProjection).FOVL();
+    const CPlacement3D plOldView = prProjection.ViewerPlacementL();
+
+    // [Cecil] Get lerped view placement
     CPlacement3D plView;
-    plView = ((CPlayer&)*m_penPlayer).en_plViewpoint;
-    plView.RelativeToAbsolute(m_penPlayer->GetPlacement());
+    plView.Lerp(GetPlayer()->en_plLastViewpoint, GetPlayer()->en_plViewpoint, _pTimer->GetLerpFactor());
+    plView.RelativeToAbsolute(m_penPlayer->GetLerpedPlacement());
 
     CPlacement3D plWeapon(FLOAT3D(wpn_fX[iWeaponData], wpn_fY[iWeaponData], wpn_fZ[iWeaponData]),
                           ANGLE3D(AngleDeg(wpn_fH[iWeaponData]), AngleDeg(wpn_fP[iWeaponData]), AngleDeg(wpn_fB[iWeaponData])));
@@ -1717,7 +1726,7 @@ functions:
 
     // prepare render model structure
     CRenderModel rmMain;
-    prProjection.ViewerPlacementL() =  plView;
+    prProjection.ViewerPlacementL() = plView;
     prProjection.FrontClipDistanceL() = wpn_fClip[iWeaponData];
     prProjection.DepthBufferNearL() = 0.0f;
     prProjection.DepthBufferFarL() = 0.1f;
@@ -1738,42 +1747,62 @@ functions:
     rmMain.rm_ulFlags |= RMF_WEAPON; // TEMP: for Truform
     if (tmInvisibility>tmNow) {
       rmMain.rm_colBlend = (rmMain.rm_colBlend&0xffffff00)|ubBlend;
-    }      
-    
+    }
+
     m_moWeapon.SetupModelRendering(rmMain);
     m_moWeapon.RenderModel(rmMain);
 
-    // [Cecil] Special particles for the crossbow
-    if (m_iCurrentWeapon == WEAPON_CROSSBOW) {
-      Particle_PrepareSystem(pdp, apr);
-      Particle_PrepareEntity(1, 0, 0, NULL);
+    // [Cecil] Particles for specific weapons
+    Particle_PrepareSystem(pdp, apr);
+    Particle_PrepareEntity(1, 0, 0, NULL);
 
-      // crossbow model exists
+    if (iWeaponData == WEAPON_GRAVITYGUN) {
+      const TIME tmGGFlare = (m_tmLaunchEffect - _pTimer->GetLerpedCurrentTick());
+      CAttachmentModelObject *pamoLaunch = m_moWeapon.GetAttachmentModel(6);
+
+      if (pamoLaunch != NULL && tmGGFlare > 0.0f) {
+        // Attachment position
+        CPlacement3D plGGLaunch = GetAttachmentPlacement(&m_moWeapon, *pamoLaunch);
+        plGGLaunch.RelativeToAbsoluteSmooth(plWeapon);
+
+        // Hit point relative to the view
+        CPlacement3D plHit(m_vGGHitPos, ANGLE3D(0, 0, 0));
+        plHit.AbsoluteToRelativeSmooth(plOldView);
+
+        // Adjust position relative to the weapon model based on the FOV difference between the weapon and the view
+        const FLOAT fCorrectionFactor = Tan(fWeaponFOV * 0.5f) / Tan(fOldFOV * 0.5f);
+        plHit.pl_PositionVector(3) /= fCorrectionFactor;
+
+        // Hit point from the projection's perspective
+        plHit.RelativeToAbsoluteSmooth(prProjection.ViewerPlacementL());
+
+        Particles_GravityGunCharge(plGGLaunch.pl_PositionVector, plHit.pl_PositionVector);
+      }
+
+    // [Cecil] Special particles for the crossbow
+    } else if (iWeaponData == WEAPON_CROSSBOW) {
+      // Crossbow model exists
       if (m_moWeapon.GetAttachmentModel(0) != NULL) {
         const FLOAT tmParticles = pen->m_tmParticles;
 
-        // rod vertex position
+        // Rod vertex position
         CModelObject *pmoCrossbow = &m_moWeapon.GetAttachmentModel(1)->amo_moModelObject;
-        FLOAT3D vRod = GetVertexPosition(pmoCrossbow, 500);
+        const FLOAT3D vRod = GetVertexPosition(pmoCrossbow, 500);
 
-        // sparks size
-        FLOAT3D vSize = FLOAT3D(1.0f, 1.0f, 1.0f) * 0.02f;
-
-        // sparks placement
+        // Sparks placement
         ANGLE3D aSparks = ANGLE3D(WrapAngle(tmParticles * 3.0f), WrapAngle(tmParticles * 5.0f), WrapAngle(tmParticles * 7.0f));
         CPlacement3D plSparks = CPlacement3D(vRod + FLOAT3D(0.25f, -0.9f, -1.0f), aSparks);
         plSparks.RelativeToAbsolute(plWeapon);
 
-        Particles_ExplosionSparksPlace(plSparks, tmParticles, vSize, 0xFFFFFFFF);
+        Particles_ExplosionSparksPlace(plSparks, tmParticles, FLOAT3D(1, 1, 1) * 0.02f, 0xFFFFFFFF);
       }
-
-      Particle_EndSystem();
     }
 
+    Particle_EndSystem(); // [Cecil]
     EndModelRenderingView();
 
     // restore FOV for Crosshair
-    ((CPerspectiveProjection3D &)prProjection).FOVL() = fFOV;
+    ((CPerspectiveProjection3D &)prProjection).FOVL() = fOldFOV;
   };
 
 
@@ -2303,28 +2332,6 @@ functions:
     }
   };
 
-  // [Cecil] Increase gravity gun flare
-  void IncreaseGGFlare(INDEX iAttachFlare, FLOAT fMaxSize, FLOAT fAdd) {
-    CModelObject *pmo = &m_moWeapon.GetAttachmentModel(iAttachFlare)->amo_moModelObject;
-
-    if (pmo->mo_Stretch(1) + fAdd > fMaxSize) {
-      pmo->StretchModel(FLOAT3D(fMaxSize, fMaxSize, fMaxSize));
-    } else {
-      pmo->StretchModel(pmo->mo_Stretch + FLOAT3D(fAdd, fAdd, fAdd));
-    }
-  };
-
-  // [Cecil] Decrease gravity gun flare
-  void DecreaseGGFlare(INDEX iAttachFlare, FLOAT fMinSize, FLOAT fSub) {
-    CModelObject *pmo = &m_moWeapon.GetAttachmentModel(iAttachFlare)->amo_moModelObject;
-
-    if (pmo->mo_Stretch(1) - fSub < fMinSize) {
-      pmo->StretchModel(FLOAT3D(fMinSize, fMinSize, fMinSize));
-    } else {
-      pmo->StretchModel(pmo->mo_Stretch - FLOAT3D(fSub, fSub, fSub));
-    }
-  };
-
   void SetFlare(INDEX iFlare, INDEX iAction) {
     // if not a prediction head
     if (!IsPredictionHead()) {
@@ -2348,33 +2355,20 @@ functions:
     m_vLastGGFlare = m_vGGFlare;
 
     if (m_bPullObject || HeldObject().IsSynced()) {
-      //IncreaseGGFlare(1, 1.2f, 0.1f);
       m_vGGFlare(1) = ClampUp(m_vGGFlare(1) + 0.1f, 1.2f);
 
     } else {
-      //DecreaseGGFlare(1, 0.8f, 0.1f);
       m_vGGFlare(1) = ClampDn(m_vGGFlare(1) - 0.1f, 0.8f);
     }
 
-    //DecreaseGGFlare(10, 0.01f, 1.0f);
-    m_vGGFlare(2) = ClampDn(m_vGGFlare(2) - 2.0f, 0.01f);
+    m_vGGFlare(2) = ClampDn(m_vGGFlare(2) * 0.5f, 0.01f);
   };
 
   // [Cecil] Gravity Gun effects
   void ControlGGEffects(void) {
     CPlayerWeapons *pen = (CPlayerWeapons *)GetPredictionTail();
 
-    // launching effect
-    CModelObject *pmoLaunch = &m_moWeapon.GetAttachmentModel(6)->amo_moModelObject;
-
-    if (_pTimer->GetLerpedCurrentTick() <= m_tmLaunchEffect) {
-      FLOAT fSideX = (int(m_tmLaunchEffect*10.0f) % 2 ? -2.0f : 2.0f); //(rand() % 2) ? -1.0f : 1.0f;
-      pmoLaunch->StretchModel(FLOAT3D(fSideX, 2.0f, 1.0f)*2.0f);
-    } else {
-      pmoLaunch->StretchModel(FLOAT3D(0.0f, 0.0f, 0.0f));
-    }
-
-    // hide holding effects
+    // Hide holding effects
     if (!pen->HeldObject().IsSynced()) {
       for (INDEX iHide = 2; iHide <= 5; iHide++) {
         CModelObject *pmoEffect = &m_moWeapon.GetAttachmentModel(iHide)->amo_moModelObject;
@@ -2383,12 +2377,12 @@ functions:
       return;
     }
 
-    // show holding effects
+    // Show holding effects
     for (INDEX iShow = 2; iShow <= 5; iShow++) {
       CAttachmentModelObject *amoEffect = m_moWeapon.GetAttachmentModel(iShow);
       amoEffect->amo_moModelObject.StretchModel(FLOAT3D(1.0f, 1.0f, 1.0f));
 
-      // move charges
+      // Move charges
       if (iShow >= 4) {
         amoEffect->amo_plRelative.pl_OrientationAngle(3) = (rand() % 100)/10.0f;
       }
@@ -2403,8 +2397,12 @@ functions:
 
       CModelObject *pmo = &m_moWeapon.GetAttachmentModel(1)->amo_moModelObject;
       pmo->StretchModel(FLOAT3D(vFlare(1), vFlare(1), vFlare(1)));
+
       pmo = &m_moWeapon.GetAttachmentModel(10)->amo_moModelObject;
       pmo->StretchModel(FLOAT3D(vFlare(2), vFlare(2), vFlare(2)));
+
+      const FLOAT fRatio = Clamp(vFlare(2) / 20.0f - 0.6f, 0.0f, 0.4f) * 2.5f;
+      pmo->mo_colBlendColor = C_WHITE | NormFloatToByte(Lerp(1.0f, 0.2f, fRatio));
 
       ControlGGEffects();
       return;
@@ -6154,22 +6152,26 @@ procedures:
         }
       }
 
-      // launch effect time
-      m_tmLaunchEffect = _pTimer->CurrentTick() + 0.1f;
+      // Launch effect time and hit point
+      m_tmGGLaunch = _pTimer->CurrentTick();
+      m_tmLaunchEffect = m_tmGGLaunch + 0.15f;
 
-      // increase flare
+      m_vGGHitPos = m_vRayHit;
+      m_vGGHitDir = vTargetDir;
+
+      // Increase flare
       CAttachmentModelObject *pamo = m_moWeapon.GetAttachmentModel(10);
-      //pamo->amo_moModelObject.StretchModel(FLOAT3D(8.0f, 8.0f, 8.0f));
       pamo->amo_plRelative.pl_OrientationAngle(3) = FRnd() * 360.0f;
-      m_vGGFlare(2) = 8.0f;
 
-      // stop holding
+      m_vGGFlare(2) = 10.0f;
+      m_vLastGGFlare(2) = m_vGGFlare(2) / 0.5f;
+
+      // Stop holding
       StopHolding(FALSE);
 
-      autowait(ONE_TICK);
       DoRecoil(ANGLE3D(Lerp(-5.0f, 5.0f, FRnd()), 4.0f, 0.0f), 100.0f);
-      
-      autowait(m_moWeapon.GetAnimLength(GRAVITYGUN_ANIM_FIREOPEN)-0.35f);
+
+      autowait(m_moWeapon.GetAnimLength(GRAVITYGUN_ANIM_FIREOPEN)-0.3f);
 
     } else if (TRUE) {
       m_moWeapon.PlayAnim(GRAVITYGUN_ANIM_FIRE, 0);
