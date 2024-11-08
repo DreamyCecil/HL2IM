@@ -3312,7 +3312,12 @@ functions:
 
     ANGLE aFOV = plr_fFOV;
 
-    // [Cecil] Steam patch workaround
+    // [Cecil] Limit custom FOV in Deathmatch
+    if (!GetSP()->sp_bCooperative) {
+      aFOV = Clamp(aFOV, 60.0f, 110.0f);
+    }
+
+    // [Cecil] Adjust FOV for vanilla game
     if (!_bClassicsPatch) {
       // Get aspect ratio of the current resolution
       FLOAT fAspectRatio = FLOAT(pdp->GetWidth()) / FLOAT(pdp->GetHeight());
@@ -3325,6 +3330,21 @@ functions:
 
       // 90 FOV on 16:9 resolution will become 106.26...
       aFOV = 2.0f * ATan(fVerticalAngle);
+
+    // Change main FOV using Classics Patch commands and reset them instead
+    } else {
+      static CSymbolPtr pfFOV("sam_fCustomFOV");
+      static CSymbolPtr pfThirdFOV("sam_fThirdPersonFOV");
+
+      if (pfFOV.Exists() && pfFOV.GetFloat() != -1.0f) {
+        plr_fFOV = pfFOV.GetFloat();
+        pfFOV.GetFloat() = -1.0f;
+      }
+
+      if (pfThirdFOV.Exists() && pfThirdFOV.GetFloat() != -1.0f) {
+        plr_fFOV = pfThirdFOV.GetFloat();
+        pfThirdFOV.GetFloat() = -1.0f;
+      }
     }
 
     CPlayerWeapons &penWeapons = (CPlayerWeapons&)*m_penWeapons;
@@ -3339,11 +3359,8 @@ functions:
       aFOV *= (Lerp(penWeapons.m_fSniperFOVlast, penWeapons.m_fSniperFOV, _pTimer->GetLerpFactor()) / 90.0f);
     }
 
-    // [Cecil] Multiply zoom
-    if (GetSP()->sp_bCooperative) {
-      aFOV *= (plr_fFOV / 90.0f);
-      aFOV = Clamp(aFOV, 1.0f, 179.0f);
-    }
+    // [Cecil] Limit overall FOV
+    aFOV = Clamp(aFOV, 1.0f, 179.0f);
 
     ApplyShaking(plViewer);
 
