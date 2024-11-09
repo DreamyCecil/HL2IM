@@ -62,8 +62,8 @@ functions:
       if (eReminder.iValue==REMINDER_DEATTACH_FIREBALL)
       {
         RemoveAttachment(DEMON_ATTACHMENT_FIREBALL);
+        return TRUE;
       }
-      return TRUE;
     }
     return CEnemyBase::HandleEvent(ee);
   }

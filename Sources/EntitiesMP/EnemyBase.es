@@ -2040,6 +2040,16 @@ functions:
         }
       } break;
 
+      // [Cecil] Call enemy step function
+      case EVENTCODE_EReminder: {
+        const EReminder &eStep = (const EReminder &)ee;
+
+        if (eStep.iValue == ENEMY_STEP_VAL) {
+          OnStep();
+          return TRUE;
+        }
+      } break;
+
       // [Cecil] Gravity Gun actions
       case EVENTCODE_EGravityGunStart: {
         // Don't pickup dead enemies
@@ -2357,12 +2367,7 @@ procedures:
             call DoPatrolling(); 
           }
           // if time is up
-          on (EReminder eReminder) : {
-            // [Cecil] Enemy loop
-            if (eReminder.iValue == ENEMY_STEP_VAL) {
-              pass;
-            }
-
+          on (EReminder) : {
             // stop patroling
             stop;
           }
@@ -2418,15 +2423,6 @@ procedures:
         on (EDamage) : { pass; }
         // pass space beam hit
         on (EHitBySpaceShipBeam) : { pass;}
-
-        // [Cecil] Pass enemy step function
-        on (EReminder eStep) : {
-          if (eStep.iValue == ENEMY_STEP_VAL) {
-            pass;
-          }
-          resume;
-        }
-
         // ignore all other events
         otherwise () : { resume; }
       }
@@ -2674,14 +2670,6 @@ procedures:
             // pass the event
             pass;
           }
-        }
-
-        // [Cecil] Pass enemy step function
-        on (EReminder eStep) : {
-          if (eStep.iValue == ENEMY_STEP_VAL) {
-            pass;
-          }
-          resume;
         }
 
         on (ESound) : { resume; } // ignore all sounds
@@ -3203,14 +3191,6 @@ procedures:
         jump Inactive();
       }
 
-      // [Cecil] Pass enemy step function
-      on (EReminder eStep) : {
-        if (eStep.iValue == ENEMY_STEP_VAL) {
-          pass;
-        }
-        resume;
-      }
-
       // warn for all obsolete events
       on (EStartAttack) : {
         //CPrintF("%s: StartAttack event is obsolete!\n", GetName());
@@ -3272,14 +3252,6 @@ procedures:
         }
 
         // [Cecil] 'resume' instead of 'return'
-        resume;
-      }
-
-      // [Cecil] Pass enemy step function
-      on (EReminder eStep) : {
-        if (eStep.iValue == ENEMY_STEP_VAL) {
-          pass;
-        }
         resume;
       }
     }
@@ -3430,14 +3402,6 @@ procedures:
         IfTargetCrushed(eTouch.penOther, (FLOAT3D&)eTouch.plCollision);
         if (IsOfClass(eTouch.penOther, "Bouncer")) {
           JumpFromBouncer(this, eTouch.penOther);
-        }
-        resume;
-      }
-
-      // [Cecil] Call enemy step function
-      on (EReminder eStep) : {
-        if (eStep.iValue == ENEMY_STEP_VAL) {
-          OnStep();
         }
         resume;
       }
