@@ -222,6 +222,9 @@ functions:
   // Get physics object material
   virtual INDEX GetPhysMaterial(void) const { return -1; };
 
+  // Check if decals can be attached to the object
+  virtual BOOL AreDecalsAllowed(void) const { return TRUE; };
+
   // Get physical collision size and shape
   virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
     vSize = FLOAT3D(1, 1, 1);

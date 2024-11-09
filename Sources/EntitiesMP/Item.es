@@ -56,6 +56,8 @@ components:
 
 functions:
   // [Cecil] Physics overrides
+  virtual BOOL AreDecalsAllowed(void) const { return FALSE; };
+
   virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
     vSize = FLOAT3D(1, 1, 1);
     return COLSH_BOX;

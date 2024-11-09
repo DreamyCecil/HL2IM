@@ -6,9 +6,11 @@
 #include "Models/Effects/ShockWave01/ShockWave.h"
 #include "Models/Effects/BloodOnTheWall01/Blood.h"
 #include "EntitiesMP/MovingBrush.h"
+
 // [Cecil]
 #include "EntitiesMP/Cecil/Effects.h"
 #include "EntitiesMP/Cecil/Physics.h"
+#include "EntitiesMP/Mod/PhysBase.h"
 
 #define EXPLOSION_GRENADE_TEXTURE_ANIM_FAST 0
 #define EXPLOSION_GRENADE_TEXTURE_ANIM_MEDIUM 1
@@ -755,6 +757,16 @@ functions:
       }
 
       penNearEntity = pbpoNearBrush->bpo_pbscSector->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity;
+    }
+
+    // [Cecil] Hide the effect if decals aren't allowed on physics objects
+    if (IsDerivedFromID(penNearEntity, CPhysBase_ClassID))
+    {
+      if (!((CPhysBase &)*penNearEntity).AreDecalsAllowed()) {
+        SwitchToEditorModel();
+        SetParent(NULL);
+        return;
+      }
     }
 
     // [Cecil] Removed "else" and added returns above instead
