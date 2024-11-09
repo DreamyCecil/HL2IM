@@ -1425,8 +1425,8 @@ functions:
 
     // Ignore this check to allow prop flying
     if (!(GetSP()->sp_iPhysFlags & PHYSF_PROPFLYING)) {
-      // Standing on the object
-      if (GetPlayer()->en_penReference == pen) {
+      // Standing on the object (that isn't kinematic)
+      if (GetPlayer()->en_penReference == pen && !_penGlobalController->IsKinematic(pen)) {
         return FALSE;
       }
     }

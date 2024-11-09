@@ -218,6 +218,16 @@ functions:
     }
   };
 
+  // Check if the entity is physical
+  BOOL IsPhysical(CEntity *pen) {
+    return m_cPhysEntities.IsReferenced(pen);
+  };
+
+  // Check if the entity is kinematic
+  BOOL IsKinematic(CEntity *pen) {
+    return m_cKinematicEntities.IsReferenced(pen);
+  };
+
   // Find physics objects in some area
   void FindPhysObjects(const FLOATaabbox3D &box, CDynamicContainer<class CPhysBase> &cOutput) {
     CDynamicContainer<CEntity> cenInRange;
