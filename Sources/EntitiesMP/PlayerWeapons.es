@@ -6118,45 +6118,55 @@ procedures:
   FireGravityGun() {
     GetAnimator()->FireAnimation(BODY_ANIM_SHOTGUN_FIRELONG, 0);
 
-    // if can launch something
+    // If can launch something
     CEntity *penHolding = HeldObject().GetSyncedEntity();
 
     if (penHolding != NULL || SuitableObject(m_penRayHit, 1, FALSE)) {
       m_moWeapon.PlayAnim(GRAVITYGUN_ANIM_FIREOPEN, 0);
       WeaponSound(SND_FIRE_1, SOUND_GG_LAUNCH1 + IRnd() % 4);
 
-      // determine the target object
+      // Determine the target object
       CEntity *penTarget = (penHolding != NULL ? penHolding : m_penRayHit);
-      CMovableEntity *penObject = (CMovableEntity*)penTarget;
 
-      // launch object
+      const BOOL bPhysical = IsEntityPhysical(penTarget);
+      const BOOL bRollingStone = IsOfClass(penTarget, "RollingStone");
+
+      // Launch object
       CPlacement3D plView = GetPlayer()->en_plViewpoint;
       plView.RelativeToAbsolute(GetPlayer()->GetPlacement());
 
       const FLOAT3D vTargetDir = (m_vRayHit - plView.pl_PositionVector).Normalize();
 
-      // object's mass
+      // Object's mass
       FLOAT fMassFactor = 1.0f;
-      if (penTarget->GetEntityInfo() != NULL) {
-        fMassFactor = 100.0f / Clamp(((EntityInfo*)penTarget->GetEntityInfo())->fMass, 100.0f, 500.0f);
+
+      if (bPhysical) {
+        const FLOAT fPhysMass = ((CPhysBase *)penTarget)->PhysObj().mass.mass;
+        fMassFactor = 10.0f * (fPhysMass * 0.5f + 0.5f);
+
+      } else if (penTarget->GetEntityInfo() != NULL) {
+        fMassFactor = 100.0f / Clamp(((EntityInfo *)penTarget->GetEntityInfo())->fMass, 100.0f, 500.0f);
+
+      } else if (bRollingStone) {
+        fMassFactor = 1.0f / Clamp(((CRollingStone *)penTarget)->m_fStretch, 0.2f, 50.0f);
       }
 
-      // launch certain objects
-      if (!IsOfClass(penTarget, "Projectile") && penTarget->GetRenderType() == RT_MODEL) {
+      // Launch certain objects
+      if (!IsOfClass(penTarget, "Projectile")) {
         EGravityGunPush ePush;
         ePush.vDir = vTargetDir / _pTimer->TickQuantum * fMassFactor * 3.0f * GetSP()->sp_fGravityGunPower;
-        ePush.vHit = penObject->GetPlacement().pl_PositionVector;
+        ePush.vHit = penTarget->GetPlacement().pl_PositionVector;
         ePush.bLaunch = TRUE;
-        penObject->SendEvent(ePush);
+        penTarget->SendEvent(ePush);
       }
 
-      // damage certain objects
-      if (!IsOfClass(penTarget, "RollingStone")) {
-        // explosive damage for brushes
+      // Damage certain objects if they aren't being held
+      if (penTarget != penHolding && !bRollingStone) {
+        // Explosive damage for brushes
         if (IsOfClass(penTarget, "Moving Brush")) {
           InflictDirectDamage(penTarget, m_penPlayer, DMT_EXPLOSION, 20.0f, m_vRayHit, vTargetDir);
 
-        } else if (IsDerivedFromID(penTarget, CPhysBase_ClassID)) {
+        } else if (bPhysical) {
           InflictDirectDamage(penTarget, m_penPlayer, DMT_IMPACT, 50.0f, m_vRayHit, vTargetDir);
 
         } else {
@@ -6223,28 +6233,35 @@ procedures:
     WeaponSound(SND_FIRE_1, SOUND_GG_TOOHEAVY);
     
     while (HoldingAltFire()) {
-      // pick up the object
+      // Pick up the object
       if (SuitableObject(m_penRayHit, 1, TRUE)) {
         WeaponSound(SND_FIRE_1, SOUND_GG_PICKUP);
         m_moWeapon.PlayAnim(GRAVITYGUN_ANIM_PRONGSOPEN, 0);
+
         StartHolding(m_penRayHit);
         m_bPullObject = FALSE;
 
         m_bAltFireWeapon = FALSE;
         return EEnd();
 
-      // pull the object
+      // Pull the object
       } else if (SuitableObject(m_penRayHit, 0, TRUE)) {
-        CMovableEntity *pen = (CMovableEntity*)&*m_penRayHit;
+        CMovableEntity *pen = (CMovableEntity *)&*m_penRayHit;
 
-        // move towards the player
+        // Move towards the player
         CPlacement3D plView = GetPlayer()->en_plViewpoint;
         plView.RelativeToAbsolute(GetPlayer()->GetPlacement());
 
         const FLOAT3D vToPlayer = (plView.pl_PositionVector - pen->GetPlacement().pl_PositionVector).Normalize();
+        FLOAT fDivider = 20.0f / 3.0f;
+
+        // Lesser divider for the stronger pull of physics objects
+        if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
+          fDivider *= 0.2f;
+        }
 
         EGravityGunPush ePush;
-        ePush.vDir = vToPlayer / _pTimer->TickQuantum / 20.0f * 3.0f;
+        ePush.vDir = vToPlayer / _pTimer->TickQuantum / fDivider;
         ePush.vHit = m_vRayHit;
         ePush.bLaunch = FALSE;
         pen->SendEvent(ePush);
