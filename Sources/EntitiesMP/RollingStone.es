@@ -1,6 +1,9 @@
 604
 %{
 #include "StdH.h"
+
+// [Cecil] Gravity Gun actions
+#include "EntitiesMP/Cecil/Physics.h"
 %}
 
 uses "EntitiesMP/Debris";
@@ -58,6 +61,23 @@ functions:
     PrecacheSound(SOUND_BOUNCE);
     PrecacheSound(SOUND_ROLL);
   }
+
+  // [Cecil] Immediately react to certain events
+  BOOL HandleEvent(const CEntityEvent &ee) {
+    switch (ee.ee_slEvent) {
+      // Gravity Gun actions
+      case EVENTCODE_EGravityGunStart: return TRUE;
+      case EVENTCODE_EGravityGunStop: return TRUE;
+
+      case EVENTCODE_EGravityGunPush: {
+        const EGravityGunPush &ePush = (const EGravityGunPush &)ee;
+        GravityGunPush(this, ePush.vDir, ePush.vHit);
+      } return TRUE;
+    }
+
+    return CMovableModelEntity::HandleEvent(ee);
+  };
+
   void PostMoving() {
     CMovableModelEntity::PostMoving();
 
