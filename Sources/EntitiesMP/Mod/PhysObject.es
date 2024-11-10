@@ -41,7 +41,7 @@ components:
 functions:
   // [Cecil] TEMP: Copy render model
   virtual CModelObject *GetModelForRendering(void) {
-    if (m_penModel != NULL) {
+    if (m_penModel != NULL && m_penModel != this) {
       CModelObject &mo = *m_penModel->GetModelForRendering();
       m_moRenderModel.Copy(mo);
 
@@ -55,6 +55,15 @@ functions:
     }
 
     return CPhysBody::GetModelForRendering();
+  };
+
+  // [Cecil] TEMP: Copy render model
+  virtual BOOL AdjustShadingParameters(FLOAT3D &vLightDirection, COLOR &colLight, COLOR &colAmbient) {
+    if (m_penModel != NULL && m_penModel != this) {
+      return m_penModel->AdjustShadingParameters(vLightDirection, colLight, colAmbient);
+    }
+
+    return CPhysBody::AdjustShadingParameters(vLightDirection, colLight, colAmbient);
   };
 
   // Select default render type for the physics object
