@@ -374,29 +374,15 @@ CEntity *SpawnHitTypeEffect(const SSpawnHitEffectArgs &args)
       // bullet stain
       ESpawnEffect ese;
 
-      // [Cecil] Replaced with switch-case
+      // [Cecil] Extra effects per bullet type
       switch (bhtType) {
-        case BHT_BRUSH_STONE:
-          ese.betType = (bSound ? BET_BULLETSTAINSTONE : BET_BULLETSTAINSTONENOSOUND);
-          break;
-
-        case BHT_BRUSH_SAND:
-          ese.betType = (bSound ? BET_BULLETSTAINSAND : BET_BULLETSTAINSANDNOSOUND);
-          break;
-
-        case BHT_BRUSH_RED_SAND:
-          ese.betType = (bSound ? BET_BULLETSTAINREDSAND : BET_BULLETSTAINREDSANDNOSOUND);
-          break;
-
         case BHT_BRUSH_WATER: {
-          ese.betType = (bSound ? BET_BULLETSTAINWATER : BET_BULLETSTAINWATERNOSOUND);
-
-          // [Cecil] Extra wave effect
+          // Extra wave effect
           ESpawnEffect eseWave;
           eseWave.betType = BET_BULLET_WATERWAVE;
           eseWave.vNormal = vHitNormal;
           eseWave.colMuliplier = C_WHITE|CT_OPAQUE;
-          
+
           FLOAT fWaveNx = vHitNormal(1);
           FLOAT fWaveNy = vHitNormal(2);
           FLOAT fWaveNz = vHitNormal(3);
@@ -415,40 +401,11 @@ CEntity *SpawnHitTypeEffect(const SSpawnHitEffectArgs &args)
             FatalError(TRANS("Cannot create basic effect class: %s"), strError);
           }
         } break;
-
-        case BHT_BRUSH_UNDER_WATER:
-          ese.betType = (bSound ? BET_BULLETSTAINUNDERWATER : BET_BULLETSTAINUNDERWATERNOSOUND);
-          break;
-
-        case BHT_BRUSH_GRASS:
-          ese.betType = (bSound ? BET_BULLETSTAINGRASS : BET_BULLETSTAINGRASSNOSOUND);
-          break;
-
-        case BHT_BRUSH_WOOD:
-          ese.betType = (bSound ? BET_BULLETSTAINWOOD : BET_BULLETSTAINWOODNOSOUND);
-          break;
-
-        case BHT_BRUSH_SNOW:
-          ese.betType = (bSound ? BET_BULLETSTAINSNOW : BET_BULLETSTAINSNOWNOSOUND);
-          break;
-
-        // [Cecil] Own types
-        case BHT_BRUSH_METAL:
-          ese.betType = (bSound ? BET_BULLET_METAL : BET_BULLET_METAL_NOSOUND);
-          break;
-
-        case BHT_BRUSH_CHAINLINK:
-          ese.betType = (bSound ? BET_BULLET_CHAINLINK : BET_BULLET_CHAINLINK_NOSOUND);
-          break;
-
-        case BHT_BRUSH_TILES:
-          ese.betType = (bSound ? BET_BULLET_TILES : BET_BULLET_TILES_NOSOUND);
-          break;
-
-        case BHT_BRUSH_GLASS:
-          ese.betType = (bSound ? BET_BULLET_GLASS : BET_BULLET_GLASS_NOSOUND);
-          break;
       }
+
+      // [Cecil] Set generic bullet hole effect with a subtype
+      ese.betType = BET_BULLETHOLE;
+      ese.iSubType = INDEX(bhtType) * 2 + INDEX(!!bSound); // Every even subtype is a "soundless" version of the effect
 
       ese.vNormal = vHitNormal;
       ese.colMuliplier = C_WHITE|CT_OPAQUE;

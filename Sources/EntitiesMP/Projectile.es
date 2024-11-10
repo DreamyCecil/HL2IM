@@ -416,7 +416,7 @@ void CProjectile_OnPrecache(CDLLEntityClass *pdec, INDEX iUser)
     pdec->PrecacheSound(SOUND_ROD_HIT);
     pdec->PrecacheSound(SOUND_ROD_HITBODY1);
     pdec->PrecacheSound(SOUND_ROD_HITBODY2);
-    pdec->PrecacheClass(CLASS_BASIC_EFFECT, BET_BULLETSTAINSTONE);
+    pdec->PrecacheClass(CLASS_BASIC_EFFECT, BET_BULLETHOLE);
     break;
 
   default:

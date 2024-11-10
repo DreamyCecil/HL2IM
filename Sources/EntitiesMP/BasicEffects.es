@@ -20,7 +20,7 @@
 #define SHOCKWAVE_TEXTURE_ANIM_MEDIUM 1
 #define SHOCKWAVE_TEXTURE_ANIM_SLOW 2
 
-// [Cecil]
+// [Cecil] 2.0 in vanilla game
 #define BULLET_LIFETIME 60.0f
 
 // [Cecil] List of currently existing bullet holes
@@ -51,51 +51,59 @@ enum BasicEffectType {
  20 BET_BULLETTRAIL          "Bullet trail",     // white trail where bullet has passed
  21 BET_GIZMO_SPLASH_FX      "Gizmo splash fx",     // gizmo splash fx
  22 BET_GIZMOSTAIN           "Gizmo stain",     // gizmo stain
- 30 BET_BULLETSTAINSTONE     "Bullet stain stone",     // bullet stain with ricochet on stone
- 31 BET_BULLETSTAINSAND      "Bullet stain sand",     // bullet stain with ricochet on sand
- 32 BET_BULLETSTAINWATER     "Bullet stain water",     // bullet stain with ricochet on water surface
- 33 BET_BULLETSTAINUNDERWATER "Bullet stain underwater",    // bullet stain with ricochet on underwater surface
- 34 BET_BULLETSTAINSTONENOSOUND "Bullet stain stonenosound",  // bullet stain on stone with no sound
- 35 BET_BULLETSTAINSANDNOSOUND  "Bullet stain sandnosound",  // bullet stain on sand with no sound
- 36 BET_BULLETSTAINWATERNOSOUND "Bullet stain waternosound",  // bullet stain on water surface with no sound
- 37 BET_BULLETSTAINUNDERWATERNOSOUND "Bullet stain underwater no sound", // bullet stain on under water surface with no sound
- 38 BET_BULLETSTAINREDSAND      "Bullet stain red sand",     // bullet stain with ricochet on red sand
- 39 BET_BULLETSTAINREDSANDNOSOUND "Bullet stain red sand no sound",   // bullet stain with ricochet on red sand without sound
- 40 BET_LIGHT_CANNON            "Light cannon",     // cannon explosion with lo sound volume
- 41 BET_CANNON_NOLIGHT          "Cannon no light",     // cannon explosion without light witn lo sound volume
- 42 BET_BULLETSTAINGRASS        "Bullet stain grass",     // bullet stain with ricochet on grass
- 43 BET_BULLETSTAINWOOD         "Bullet stain wood",     // bullet stain with ricochet on wood
- 44 BET_BULLETSTAINGRASSNOSOUND "Bullet stain grass no sound",     // bullet stain on grass with no sound
- 45 BET_BULLETSTAINWOODNOSOUND  "Bullet stain wood no sound",     // bullet stain on wood with no sound
- 46 BET_EXPLOSION_DEBRIS        "Explosion debris",     // debrises flying out of explosion
- 47 BET_EXPLOSION_SMOKE         "Explosion smoke",     // smoke left behind explosion
- 48 BET_SUMMONERSTAREXPLOSION   "Summoner star explosion",     // magic explosion of starts for summoner
- 49 BET_COLLECT_ENERGY          "Collect energy",
- 50 BET_GROWING_SWIRL           "Growing swirl",
- 52 BET_DISAPPEAR_DUST          "Disappear dust",
- 53 BET_DUST_FALL               "Dust fall",
- 54 BET_BULLETSTAINSNOW         "Bullet stain snow", 
- 55 BET_BULLETSTAINSNOWNOSOUND  "Bullet stain snow",
+
+ // [Cecil] These obsolete types now convert into subtypes of BET_BULLETHOLE and are
+ // prefixed with "BET_OLD_BH_" instead of "BET_BULLETSTAIN" to generate code errors
+ 30 BET_OLD_BH_STONE             "Bullet stain stone",     // bullet stain with ricochet on stone
+ 31 BET_OLD_BH_SAND              "Bullet stain sand",     // bullet stain with ricochet on sand
+ 32 BET_OLD_BH_WATER             "Bullet stain water",     // bullet stain with ricochet on water surface
+ 33 BET_OLD_BH_UNDERWATER        "Bullet stain underwater",    // bullet stain with ricochet on underwater surface
+ 34 BET_OLD_BH_STONENOSOUND      "Bullet stain stonenosound",  // bullet stain on stone with no sound
+ 35 BET_OLD_BH_SANDNOSOUND       "Bullet stain sandnosound",  // bullet stain on sand with no sound
+ 36 BET_OLD_BH_WATERNOSOUND      "Bullet stain waternosound",  // bullet stain on water surface with no sound
+ 37 BET_OLD_BH_UNDERWATERNOSOUND "Bullet stain underwater no sound", // bullet stain on under water surface with no sound
+ 38 BET_OLD_BH_REDSAND           "Bullet stain red sand",     // bullet stain with ricochet on red sand
+ 39 BET_OLD_BH_REDSANDNOSOUND    "Bullet stain red sand no sound",   // bullet stain with ricochet on red sand without sound
+ 40 BET_LIGHT_CANNON             "Light cannon",     // cannon explosion with lo sound volume
+ 41 BET_CANNON_NOLIGHT           "Cannon no light",     // cannon explosion without light witn lo sound volume
+ 42 BET_OLD_BH_GRASS             "Bullet stain grass",     // bullet stain with ricochet on grass
+ 43 BET_OLD_BH_WOOD              "Bullet stain wood",     // bullet stain with ricochet on wood
+ 44 BET_OLD_BH_GRASSNOSOUND      "Bullet stain grass no sound",     // bullet stain on grass with no sound
+ 45 BET_OLD_BH_WOODNOSOUND       "Bullet stain wood no sound",     // bullet stain on wood with no sound
+ 46 BET_EXPLOSION_DEBRIS         "Explosion debris",     // debrises flying out of explosion
+ 47 BET_EXPLOSION_SMOKE          "Explosion smoke",     // smoke left behind explosion
+ 48 BET_SUMMONERSTAREXPLOSION    "Summoner star explosion",     // magic explosion of starts for summoner
+ 49 BET_COLLECT_ENERGY           "Collect energy",
+ 50 BET_GROWING_SWIRL            "Growing swirl",
+ 52 BET_DISAPPEAR_DUST           "Disappear dust",
+ 53 BET_DUST_FALL                "Dust fall",
+ 54 BET_OLD_BH_SNOW              "Bullet stain snow", 
+ 55 BET_OLD_BH_SNOWNOSOUND       "Bullet stain snow",
 
  // [Cecil] Own types
  56 BET_GOOSTAIN                 "Goo stain",
  57 BET_GOOSTAINGROW             "Goo stain grow",
- 58 BET_BULLET_METAL             "Bullet Stain Hard Metal",
- 59 BET_BULLET_METAL_NOSOUND     "Bullet Stain Hard Metal No Sound",
- 60 BET_BULLET_CHAINLINK         "Bullet Stain Metal",
- 61 BET_BULLET_CHAINLINK_NOSOUND "Bullet Stain Metal No Sound",
- 62 BET_BULLET_TILES             "Bullet Stain Tiles",
- 63 BET_BULLET_TILES_NOSOUND     "Bullet Stain Tiles No Sound",
- 64 BET_BULLET_GLASS             "Bullet Stain Glass",
- 65 BET_BULLET_GLASS_NOSOUND     "Bullet Stain Glass No Sound",
+ 58 BET_OLD_BH_METAL             "Bullet Stain Hard Metal",
+ 59 BET_OLD_BH_METAL_NOSOUND     "Bullet Stain Hard Metal No Sound",
+ 60 BET_OLD_BH_CHAINLINK         "Bullet Stain Metal",
+ 61 BET_OLD_BH_CHAINLINK_NOSOUND "Bullet Stain Metal No Sound",
+ 62 BET_OLD_BH_TILES             "Bullet Stain Tiles",
+ 63 BET_OLD_BH_TILES_NOSOUND     "Bullet Stain Tiles No Sound",
+ 64 BET_OLD_BH_GLASS             "Bullet Stain Glass",
+ 65 BET_OLD_BH_GLASS_NOSOUND     "Bullet Stain Glass No Sound",
  66 BET_BULLET_WATERWAVE         "Bullet Water Wave",
  67 BET_CROSSBOW_ROD             "Crossbow Rod",
+
+ // [Cecil] "BET_BULLETSTAINSTONE" has been repurposed as a generic bullet hole type with other types converting into
+ // its subtypes, which are now prefixed with "BET_OLD_BH_" instead of "BET_BULLETSTAIN" to generate code errors
+ 68 BET_BULLETHOLE "Generic bullet hole",
 };
 
 
 // input parameter for spwaning a basic effect
 event ESpawnEffect {
   enum BasicEffectType betType,   // type of effect
+  INDEX iSubType,                 // [Cecil] Effect sub-type
   FLOAT3D vNormal,                // normal for orientative effects
   FLOAT3D vDirection,             // direction oriented effects
   FLOAT3D vStretch,               // stretch effect model
@@ -164,29 +172,8 @@ void CBasicEffect_OnPrecache(CDLLEntityClass *pdec, INDEX iUser)
       pdec->PrecacheTexture(TEXTURE_LASERWAVE);
       break;
 
-    case BET_BULLETSTAINSTONE:
-    case BET_BULLETSTAINSAND:
-    case BET_BULLETSTAINREDSAND:
-    case BET_BULLETSTAINWATER:
-    case BET_BULLETSTAINUNDERWATER:
-    case BET_BULLETSTAINSTONENOSOUND:
-    case BET_BULLETSTAINSANDNOSOUND:
-    case BET_BULLETSTAINREDSANDNOSOUND:
-    case BET_BULLETSTAINWATERNOSOUND:
-    case BET_BULLETSTAINUNDERWATERNOSOUND:
-    case BET_BULLETSTAINGRASS:
-    case BET_BULLETSTAINWOOD:
-    case BET_BULLETSTAINGRASSNOSOUND:
-    case BET_BULLETSTAINWOODNOSOUND:
-    case BET_BULLETSTAINSNOW:
-    case BET_BULLETSTAINSNOWNOSOUND:
-    // [Cecil]
-    case BET_BULLET_METAL:
-    case BET_BULLET_METAL_NOSOUND:
-    case BET_BULLET_TILES:
-    case BET_BULLET_TILES_NOSOUND:
-    case BET_BULLET_GLASS:
-    case BET_BULLET_GLASS_NOSOUND:
+    // [Cecil] Generic bullet hole type
+    case BET_BULLETHOLE:
     case BET_BULLET_WATERWAVE: {
       pdec->PrecacheModel(MODEL_BULLET_HIT);
       pdec->PrecacheTexture(TEXTURE_BULLET_HIT);
@@ -284,10 +271,10 @@ properties:
   6 FLOAT3D m_vNormal    = FLOAT3D(0,0,0), // normal for orientative effects
   7 FLOAT3D m_vStretch   = FLOAT3D(0,0,0), // stretch effect
   8 FLOAT3D m_vDirection = FLOAT3D(0,0,0), // direction oriented effects
-  10 FLOAT m_fDepthSortOffset = 0.0f,
-  11 FLOAT m_fFadeInSpeed = 0.0f,
-  12 FLOAT m_tmSpawn = 0.0f,  // when it was spawned
-  13 FLOAT m_tmWaitAfterDeath = 0.0f,       // after death wait time
+ 10 FLOAT m_fDepthSortOffset = 0.0f,
+ 11 FLOAT m_fFadeInSpeed = 0.0f,
+ 12 FLOAT m_tmSpawn = 0.0f,  // when it was spawned
+ 13 FLOAT m_tmWaitAfterDeath = 0.0f,       // after death wait time
 
  20 BOOL m_bLightSource = FALSE,    // effect is also light source
  21 CAnimObject m_aoLightAnimation, // light animation object
@@ -300,6 +287,9 @@ properties:
  40 enum EffectParticlesType m_eptType = EPT_NONE, // type of particle effect
  41 FLOAT m_tmWhenShot = 0.0f, // when entity was shot
  42 FLOAT3D m_vGravity = FLOAT3D(0,0,0), // simulated direction of gravity
+
+ // [Cecil] Extra subtype of an effect type
+ 50 INDEX m_iSubType = -1,
 
 {
   CLightSource m_lsLightSource;
@@ -691,12 +681,8 @@ functions:
       BOOL bBullet = FALSE;
       BOOL bGlass = FALSE;
 
-      // [Cecil] Changed to BET_BULLETSTAINSTONE .. BET_BULLETSTAINREDSANDNOSOUND range and added own types
-      if ((m_betType >= BET_BULLETSTAINSTONE && m_betType <= BET_BULLETSTAINREDSANDNOSOUND)
-       || (m_betType >= BET_BULLETSTAINGRASS && m_betType <= BET_BULLETSTAINWOODNOSOUND)
-       || (m_betType >= BET_BULLETSTAINSNOW  && m_betType <= BET_BULLETSTAINSNOWNOSOUND)
-       || (m_betType >= BET_BULLET_METAL && m_betType <= BET_BULLET_GLASS_NOSOUND))
-      {
+      // [Cecil] Generic bullet hole type
+      if (m_betType == BET_BULLETHOLE) {
         // [Cecil] Check for portal polygons too
         INearestPolygon::SResults np;
 
@@ -723,7 +709,7 @@ functions:
 
         // [Cecil]
         bBullet = TRUE;
-        bGlass = (m_betType == BET_BULLET_GLASS || m_betType == BET_BULLET_GLASS_NOSOUND);
+        bGlass = (m_iSubType / 2 == BHT_BRUSH_GLASS);
 
       } else {
         // [Cecil] Moved from above
@@ -1081,106 +1067,99 @@ functions:
   /************************************************************
  *                   BULLET HIT / STAIN                     *
  ************************************************************/
-  void BulletStainSand(BOOL bSound) {
-    if (bSound) {
-      m_soEffect.Set3DParameters(20.0f, 10.0f, 1.0f, 1.0f+FRnd()*0.2f);
 
-      PlaySound(m_soEffect, SurfaceImpactSound(this, SURFACE_SAND), SOF_3D);
-      m_fSoundTime = 1.0f;
-    }
-    
-    SetModel(MODEL_BULLET_SHOT);
-    SetModelMainTexture(TEXTURE_BULLET_CONCRETE1 + IRnd()%5);
+  // [Cecil] Generic bullet hole setup
+  void GenericBulletHole(void) {
+    const BulletHitType eHitType = BulletHitType(m_iSubType / 2);
 
-    SetNormal();
-    m_fWaitTime = BULLET_LIFETIME;// 2.0f;
-    m_fFadeTime = 2.0f;
-    m_bLightSource = FALSE;
-    m_eptType = EPT_BULLET_SAND;
-    FLOAT3D vTemp = m_vStretch;
-    ParentToNearestPolygonAndStretch();
-    m_vStretch = vTemp;
-  };
+    INDEX iModel, iTexture;
+    FLOAT fStretch = -1;
 
-  void BulletStainRedSand(BOOL bSound) {
-    if (bSound) {
-      m_soEffect.Set3DParameters(20.0f, 10.0f, 1.0f, 1.0f+FRnd()*0.2f);
+    // Select particles type from hit type
+    switch (eHitType) {
+      case BHT_BRUSH_WATER: iModel = MODEL_SHOCKWAVE; iTexture = TEXTURE_HL2_WATERSPLASH; fStretch = 0.125f; break;
+      case BHT_BRUSH_WOOD: iModel = MODEL_BULLET_SHOT_BLEND; iTexture = TEXTURE_BULLET_WOOD1 + IRnd() % 5; fStretch = 1; break;
+      case BHT_BRUSH_METAL:
+      case BHT_BRUSH_CHAINLINK: iModel = MODEL_BULLET_SHOT; iTexture = TEXTURE_BULLET_METAL1 + IRnd() % 5; fStretch = 2; break;
+      case BHT_BRUSH_GLASS: iModel = MODEL_BULLET_SHOT_ADD; iTexture = TEXTURE_BULLET_GLASS1 + IRnd() % 5; fStretch = 2; break;
 
-      PlaySound(m_soEffect, SurfaceImpactSound(this, SURFACE_SAND), SOF_3D);
-      m_fSoundTime = 1.0f;
-    }
-    
-    SetModel(MODEL_BULLET_SHOT);
-    SetModelMainTexture(TEXTURE_BULLET_CONCRETE1 + IRnd()%5);
-
-    SetNormal();
-    m_fWaitTime = BULLET_LIFETIME;// 2.0f;
-    m_fFadeTime = 2.0f;
-    m_bLightSource = FALSE;
-    m_eptType = EPT_BULLET_RED_SAND;
-    FLOAT3D vTemp = m_vStretch;
-    ParentToNearestPolygonAndStretch();
-    m_vStretch = vTemp;
-  };
-
-  void BulletStainStone(BOOL bSound, BOOL bSmoke) {
-    if (bSound) {
-      m_soEffect.Set3DParameters(20.0f, 10.0f, 1.0f, 1.0f+FRnd()*0.2f);
-
-      PlaySound(m_soEffect, SurfaceImpactSound(this, SURFACE_STONE), SOF_3D);
-      m_fSoundTime = 1.0f;
+      // BHT_BRUSH_STONE, BHT_BRUSH_UNDER_WATER, BHT_BRUSH_SAND, BHT_BRUSH_RED_SAND, BHT_BRUSH_GRASS,
+      // BHT_BRUSH_SNOW, BHT_BRUSH_TILES
+      default: iModel = MODEL_BULLET_SHOT; iTexture = TEXTURE_BULLET_CONCRETE1 + IRnd() % 5; break;
     }
 
-    SetModel(MODEL_BULLET_SHOT);
-    SetModelMainTexture(TEXTURE_BULLET_CONCRETE1 + IRnd()%5);
-    SetNormal();
+    SetModel(iModel);
+    SetModelMainTexture(iTexture);
 
-    m_fWaitTime = BULLET_LIFETIME;// 2.0f;
-    m_fFadeTime = 2.0f;
+    if (fStretch != -1) {
+      GetModelObject()->StretchModel(FLOAT3D(fStretch, fStretch, fStretch));
+      ModelChangeNotify();
+    }
+
+    // Select particles type from hit type
+    switch (eHitType) {
+      case BHT_BRUSH_SAND: m_eptType = EPT_BULLET_SAND; break;
+      case BHT_BRUSH_WATER: m_eptType = EPT_BULLET_WATER; break;
+      case BHT_BRUSH_UNDER_WATER: m_eptType = EPT_BULLET_UNDER_WATER; break;
+      case BHT_BRUSH_RED_SAND: m_eptType = EPT_BULLET_RED_SAND; break;
+      case BHT_BRUSH_GRASS: m_eptType = EPT_BULLET_GRASS; break;
+      case BHT_BRUSH_WOOD: m_eptType = EPT_BULLET_WOOD; break;
+      case BHT_BRUSH_SNOW: m_eptType = EPT_BULLET_SNOW; break;
+      case BHT_BRUSH_METAL:
+      case BHT_BRUSH_CHAINLINK: m_eptType = EPT_BULLET_METAL; break;
+      case BHT_BRUSH_GLASS: m_eptType = EPT_BULLET_GLASS; break;
+
+      // BHT_BRUSH_STONE, BHT_BRUSH_TILES
+      default: m_eptType = EPT_BULLET_STONE; break;
+    }
+
+    // Every odd subtype has a sound
+    if (m_iSubType % 2 == 1) {
+      CTFileName fnmSound;
+      FLOAT fPitchRnd = 0.2f;
+
+      // Select impact sound from hit type
+      switch (eHitType) {
+        case BHT_BRUSH_WATER: fnmSound.PrintF("Sounds\\Impact\\water_bullet%d.wav", IRnd() % 3 + 1); break;
+        case BHT_BRUSH_SAND:
+        case BHT_BRUSH_RED_SAND: fnmSound = SurfaceImpactSound(this, SURFACE_SAND); break;
+        case BHT_BRUSH_GRASS: fnmSound = SurfaceImpactSound(this, SURFACE_GRASS); break;
+        case BHT_BRUSH_WOOD: fnmSound = SurfaceImpactSound(this, SURFACE_WOOD); break;
+        case BHT_BRUSH_SNOW: fnmSound = SurfaceImpactSound(this, SURFACE_SNOW); break;
+        case BHT_BRUSH_METAL: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(METAL_GRATE)); fPitchRnd = 0.1f; break;
+        case BHT_BRUSH_CHAINLINK: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(CHAINLINK)); fPitchRnd = 0.1f; break;
+        case BHT_BRUSH_TILES: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(TILES)); break;
+        case BHT_BRUSH_GLASS: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(GLASS)); fPitchRnd = 0.1f; break;
+
+        // BHT_BRUSH_STONE, BHT_BRUSH_UNDER_WATER
+        default: fnmSound = SurfaceImpactSound(this, SURFACE_STONE); break;
+      }
+
+      m_soEffect.Set3DParameters(20.0f, 10.0f, 1.0f, 1.0f + FRnd() * fPitchRnd);
+      PlaySound(m_soEffect, fnmSound, SOF_3D);
+      m_fSoundTime = 1.0f;
+    }
+
+    SetNormal();
     m_bLightSource = FALSE;
 
-    if (bSmoke) {
-      m_eptType = EPT_BULLET_STONE;
+    // Water-specific logic
+    if (eHitType == BHT_BRUSH_WATER) {
+      GetModelObject()->PlayAnim(SHOCKWAVE_ANIM_FAST, 0);
+
+      FindGravityVectorFromSector();
+      m_fWaitTime = 0.25f;
+      m_fFadeTime = 0.25f;
+      m_tmWaitAfterDeath = 1.0f;
+
     } else {
-      m_eptType = EPT_BULLET_UNDER_WATER;
+      m_fWaitTime = BULLET_LIFETIME;
+      m_fFadeTime = 2.0f;
+
+      FLOAT3D vTemp = m_vStretch;
+      ParentToNearestPolygonAndStretch();
+      m_vStretch = vTemp;
     }
-
-    FLOAT3D vTemp = m_vStretch;
-    ParentToNearestPolygonAndStretch();
-    m_vStretch = vTemp;
-  };
-
-  void BulletStainWater(BOOL bSound) {
-    if (bSound) {
-      m_soEffect.Set3DParameters(20.0f, 10.0f, 1.0f, 1.0f+FRnd()*0.2f);
-
-      CTString strWaterBullet;
-      strWaterBullet.PrintF("Sounds\\Impact\\water_bullet%d.wav", IRnd()%3 + 1);
-      PlaySound(m_soEffect, CTFileName(strWaterBullet), SOF_3D);
-
-      m_fSoundTime = 1.0f;
-    }
-
-    SetModel(MODEL_SHOCKWAVE);
-    SetModelMainTexture(TEXTURE_HL2_WATERSPLASH);
-
-    CModelObject &moShockwave = *GetModelObject();
-    // [Cecil] Medium -> Fast
-    moShockwave.PlayAnim(SHOCKWAVE_ANIM_FAST, 0);
-    // [Cecil] 0.25 -> 0.125
-    moShockwave.StretchModel(FLOAT3D(0.125f, 0.125f, 0.125f));
-    ModelChangeNotify();
-
-    SetNormal();
-    FindGravityVectorFromSector();
-
-    // [Cecil] 0.5 -> 0.25
-    m_fWaitTime = 0.25f;
-    m_fFadeTime = 0.25f;
-
-    m_bLightSource = FALSE;
-    m_tmWaitAfterDeath = 1.0f;
-    m_eptType = EPT_BULLET_WATER;
   };
 
   // [Cecil] Water wave effect
@@ -1211,149 +1190,6 @@ functions:
     SetNormalForHalfFaceForward();
     m_fWaitTime = 0.1f;
     m_bLightSource = FALSE;
-  };
-
-  void BulletStainGrass(BOOL bSound) {
-    if (bSound) {
-      m_soEffect.Set3DParameters(20.0f, 10.0f, 1.0f, 1.0f+FRnd()*0.2f);
-
-      PlaySound(m_soEffect, SurfaceImpactSound(this, SURFACE_GRASS), SOF_3D);
-      m_fSoundTime = 1.0f;
-    }
-    
-    SetModel(MODEL_BULLET_SHOT);
-    SetModelMainTexture(TEXTURE_BULLET_CONCRETE1 + IRnd()%5);
-
-    SetNormal();
-    m_fWaitTime = BULLET_LIFETIME;// 2.0f;
-    m_fFadeTime = 2.0f;
-    m_bLightSource = FALSE;
-    m_eptType = EPT_BULLET_GRASS;
-    FLOAT3D vTemp = m_vStretch;
-    ParentToNearestPolygonAndStretch();
-    m_vStretch = vTemp;
-  };
-
-  void BulletStainWood(BOOL bSound) {
-    if (bSound) {
-      m_soEffect.Set3DParameters(20.0f, 10.0f, 1.0f, 1.0f+FRnd()*0.2f);
-
-      PlaySound(m_soEffect, SurfaceImpactSound(this, SURFACE_WOOD), SOF_3D);
-      m_fSoundTime = 1.0f;
-    }
-    
-    SetModel(MODEL_BULLET_SHOT_BLEND);
-    SetModelMainTexture(TEXTURE_BULLET_WOOD1 + IRnd()%5);
-    CModelObject &moHole = *GetModelObject();
-    moHole.StretchModel(FLOAT3D(1.0f, 1.0f, 1.0f));
-    ModelChangeNotify();
-
-    SetNormal();
-    m_fWaitTime = BULLET_LIFETIME;// 2.0f;
-    m_fFadeTime = 2.0f;
-    m_bLightSource = FALSE;
-    m_eptType = EPT_BULLET_WOOD;
-    FLOAT3D vTemp = m_vStretch;
-    ParentToNearestPolygonAndStretch();
-    m_vStretch = vTemp;
-  };
-
-  void BulletStainSnow(BOOL bSound) {
-    if (bSound) {
-      m_soEffect.Set3DParameters(20.0f, 10.0f, 1.0f, 1.0f+FRnd()*0.2f);
-
-      PlaySound(m_soEffect, SurfaceImpactSound(this, SURFACE_SNOW), SOF_3D);
-      m_fSoundTime = 1.0f;
-    }
-    
-    SetModel(MODEL_BULLET_SHOT);
-    SetModelMainTexture(TEXTURE_BULLET_CONCRETE1 + IRnd()%5);
-
-    SetNormal();
-    m_fWaitTime = BULLET_LIFETIME;// 2.0f;
-    m_fFadeTime = 2.0f;
-    m_bLightSource = FALSE;
-    m_eptType = EPT_BULLET_SNOW;
-    FLOAT3D vTemp = m_vStretch;
-    ParentToNearestPolygonAndStretch();
-    m_vStretch = vTemp;
-  };
-
-  // [Cecil]
-  void BulletStainMetal(BOOL bSound, BOOL bChainlink) {
-    if (bSound) {
-      m_soEffect.Set3DParameters(20.0f, 10.0f, 1.0f, 1.0f+FRnd()*0.1f);
-
-      if (bChainlink) {
-        PlaySound(m_soEffect, SurfaceImpactSound(this, MATERIAL_VAR(CHAINLINK)), SOF_3D);
-      } else {
-        PlaySound(m_soEffect, SurfaceImpactSound(this, MATERIAL_VAR(METAL_GRATE)), SOF_3D);
-      }
-      m_fSoundTime = 1.0f;
-    }
-    
-    SetModel(MODEL_BULLET_SHOT);
-    SetModelMainTexture(TEXTURE_BULLET_METAL1 + IRnd()%5);
-    CModelObject &moHole = *GetModelObject();
-    moHole.StretchModel(FLOAT3D(2.0f, 2.0f, 2.0f));
-    ModelChangeNotify();
-
-    SetNormal();
-    m_fWaitTime = BULLET_LIFETIME;
-    m_fFadeTime = 2.0f;
-    m_bLightSource = FALSE;
-    m_eptType = EPT_BULLET_METAL;
-    FLOAT3D vTemp = m_vStretch;
-    ParentToNearestPolygonAndStretch();
-    m_vStretch = vTemp;
-  };
-
-  // [Cecil]
-  void BulletStainTiles(BOOL bSound) {
-    if (bSound) {
-      m_soEffect.Set3DParameters(20.0f, 10.0f, 1.0f, 1.0f+FRnd()*0.2f);
-
-      PlaySound(m_soEffect, SurfaceImpactSound(this, MATERIAL_VAR(TILES)), SOF_3D);
-      m_fSoundTime = 1.0f;
-    }
-
-    SetModel(MODEL_BULLET_SHOT);
-    SetModelMainTexture(TEXTURE_BULLET_CONCRETE1 + IRnd()%5);
-    SetNormal();
-
-    m_fWaitTime = BULLET_LIFETIME;
-    m_fFadeTime = 2.0f;
-    m_bLightSource = FALSE;
-    m_eptType = EPT_BULLET_STONE;
-
-    FLOAT3D vTemp = m_vStretch;
-    ParentToNearestPolygonAndStretch();
-    m_vStretch = vTemp;
-  };
-
-  // [Cecil]
-  void BulletStainGlass(BOOL bSound) {
-    if (bSound) {
-      m_soEffect.Set3DParameters(20.0f, 10.0f, 1.0f, 1.0f+FRnd()*0.1f);
-
-      PlaySound(m_soEffect, SurfaceImpactSound(this, MATERIAL_VAR(GLASS)), SOF_3D);
-      m_fSoundTime = 1.0f;
-    }
-    
-    SetModel(MODEL_BULLET_SHOT_ADD);
-    SetModelMainTexture(TEXTURE_BULLET_GLASS1 + IRnd()%5);
-    CModelObject &moHole = *GetModelObject();
-    moHole.StretchModel(FLOAT3D(2.0f, 2.0f, 2.0f));
-    ModelChangeNotify();
-
-    SetNormal();
-    m_fWaitTime = BULLET_LIFETIME;
-    m_fFadeTime = 2.0f;
-    m_bLightSource = FALSE;
-    m_eptType = EPT_BULLET_GLASS;
-    FLOAT3D vTemp = m_vStretch;
-    ParentToNearestPolygonAndStretch();
-    m_vStretch = vTemp;
   };
 
 /************************************************************
@@ -1671,7 +1507,36 @@ procedures:
     m_vDirection = eSpawn.vDirection;
     m_vStretch = eSpawn.vStretch;
     m_betType = eSpawn.betType;
+    m_iSubType = eSpawn.iSubType;
     m_colMultiplyColor = eSpawn.colMuliplier;
+
+    // [Cecil] Convert old bullet types
+    switch (m_betType) {
+      case BET_OLD_BH_STONE:             m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_STONE*2 + 1; break;
+      case BET_OLD_BH_STONENOSOUND:      m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_STONE*2 + 0; break;
+      case BET_OLD_BH_SAND:              m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_SAND*2 + 1; break;
+      case BET_OLD_BH_SANDNOSOUND:       m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_SAND*2 + 0; break;
+      case BET_OLD_BH_WATER:             m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_WATER*2 + 1; break;
+      case BET_OLD_BH_WATERNOSOUND:      m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_WATER*2 + 0; break;
+      case BET_OLD_BH_UNDERWATER:        m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_UNDER_WATER*2 + 1; break;
+      case BET_OLD_BH_UNDERWATERNOSOUND: m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_UNDER_WATER*2 + 0; break;
+      case BET_OLD_BH_REDSAND:           m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_RED_SAND*2 + 1; break;
+      case BET_OLD_BH_REDSANDNOSOUND:    m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_RED_SAND*2 + 0; break;
+      case BET_OLD_BH_GRASS:             m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_GRASS*2 + 1; break;
+      case BET_OLD_BH_GRASSNOSOUND:      m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_GRASS*2 + 0; break;
+      case BET_OLD_BH_WOOD:              m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_WOOD*2 + 1; break;
+      case BET_OLD_BH_WOODNOSOUND:       m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_WOOD*2 + 0; break;
+      case BET_OLD_BH_SNOW:              m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_SNOW*2 + 1; break;
+      case BET_OLD_BH_SNOWNOSOUND:       m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_SNOW*2 + 0; break;
+      case BET_OLD_BH_METAL:             m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_METAL*2 + 1; break;
+      case BET_OLD_BH_METAL_NOSOUND:     m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_METAL*2 + 0; break;
+      case BET_OLD_BH_CHAINLINK:         m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_CHAINLINK*2 + 1; break;
+      case BET_OLD_BH_CHAINLINK_NOSOUND: m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_CHAINLINK*2 + 0; break;
+      case BET_OLD_BH_TILES:             m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_TILES*2 + 1; break;
+      case BET_OLD_BH_TILES_NOSOUND:     m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_TILES*2 + 0; break;
+      case BET_OLD_BH_GLASS:             m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_GLASS*2 + 1; break;
+      case BET_OLD_BH_GLASS_NOSOUND:     m_betType = BET_BULLETHOLE; m_iSubType = BHT_BRUSH_GLASS*2 + 0; break;
+    }
 
     // [Cecil] Parent to some entity
     if (eSpawn.penParent != NULL) {
@@ -1687,16 +1552,6 @@ procedures:
       case BET_SHOCKWAVE: ShockWave(); break;
       case BET_LASERWAVE: LaserWave(); break;
       case BET_BULLETTRAIL: BulletTrail(); break;
-      case BET_BULLETSTAINSAND: BulletStainSand(TRUE); break;
-      case BET_BULLETSTAINREDSAND: BulletStainRedSand(TRUE); break;
-      case BET_BULLETSTAINSTONE: BulletStainStone(TRUE, TRUE); break;
-      case BET_BULLETSTAINWATER: BulletStainWater(TRUE); break;
-      case BET_BULLETSTAINUNDERWATER: BulletStainStone(TRUE, FALSE); break;
-      case BET_BULLETSTAINSANDNOSOUND: BulletStainSand(FALSE); break;
-      case BET_BULLETSTAINREDSANDNOSOUND: BulletStainRedSand(FALSE); break;
-      case BET_BULLETSTAINSTONENOSOUND: BulletStainStone(FALSE, TRUE); break;
-      case BET_BULLETSTAINWATERNOSOUND: BulletStainWater(FALSE); break;
-      case BET_BULLETSTAINUNDERWATERNOSOUND: BulletStainStone(FALSE, FALSE); break;
       case BET_BLOODSPILL: BloodSpill(m_colMultiplyColor); break;
       case BET_BLOODSTAIN: BloodStain(); break;
       case BET_GIZMOSTAIN: GizmoStain(); break;
@@ -1711,10 +1566,6 @@ procedures:
       case BET_TELEPORT: TeleportEffect(); break;
       case BET_BOMB: BombExplosion(); break;
       case BET_GIZMO_SPLASH_FX: GizmoSplashFX(); break;
-      case BET_BULLETSTAINGRASS: BulletStainGrass(TRUE); break;
-      case BET_BULLETSTAINGRASSNOSOUND: BulletStainGrass(FALSE); break;
-      case BET_BULLETSTAINWOOD: BulletStainWood(TRUE); break;
-      case BET_BULLETSTAINWOODNOSOUND: BulletStainWood(FALSE); break;
       case BET_EXPLOSION_DEBRIS: ExplosionDebris(); break;
       case BET_COLLECT_ENERGY: CollectEnergy(); break;
       case BET_EXPLOSION_SMOKE: ExplosionSmoke(); break;
@@ -1722,63 +1573,41 @@ procedures:
       case BET_GROWING_SWIRL: GrowingSwirl(); break;
       case BET_DISAPPEAR_DUST: DisappearDust(); break;
       case BET_DUST_FALL: DustFall(); break;
-      case BET_BULLETSTAINSNOW: BulletStainSnow(TRUE); break;
-      case BET_BULLETSTAINSNOWNOSOUND: BulletStainSnow(FALSE); break;
-        
+
       // [Cecil] Own types
       case BET_GOOSTAIN: GooStain(); break;
       case BET_GOOSTAINGROW: GooStainGrow(); break;
-      case BET_BULLET_METAL: BulletStainMetal(TRUE, FALSE); break;
-      case BET_BULLET_METAL_NOSOUND: BulletStainMetal(FALSE, FALSE); break;
-      case BET_BULLET_CHAINLINK: BulletStainMetal(TRUE, TRUE); break;
-      case BET_BULLET_CHAINLINK_NOSOUND: BulletStainMetal(FALSE, TRUE); break;
-      case BET_BULLET_TILES: BulletStainTiles(TRUE); break;
-      case BET_BULLET_TILES_NOSOUND: BulletStainTiles(FALSE); break;
-      case BET_BULLET_GLASS: BulletStainGlass(TRUE); break;
-      case BET_BULLET_GLASS_NOSOUND: BulletStainGlass(FALSE); break;
       case BET_BULLET_WATERWAVE: BulletWaterWave(); break;
       case BET_CROSSBOW_ROD: CrossbowRod(); break;
+      case BET_BULLETHOLE: GenericBulletHole(); break;
 
       default:
         ASSERTALWAYS("Unknown effect type");
     }
 
     // [Cecil] Bullet hole behaviour
-    switch (m_betType) {
-      case BET_BULLETSTAINSAND:       case BET_BULLETSTAINSANDNOSOUND:
-      case BET_BULLETSTAINREDSAND:    case BET_BULLETSTAINREDSANDNOSOUND:
-      case BET_BULLETSTAINSTONE:      case BET_BULLETSTAINSTONENOSOUND:
-      case BET_BULLETSTAINWATER:      case BET_BULLETSTAINWATERNOSOUND:
-      case BET_BULLETSTAINUNDERWATER: case BET_BULLETSTAINUNDERWATERNOSOUND:
-      case BET_BULLETSTAINGRASS:      case BET_BULLETSTAINGRASSNOSOUND:
-      case BET_BULLETSTAINWOOD:       case BET_BULLETSTAINWOODNOSOUND:
-      case BET_BULLETSTAINSNOW:       case BET_BULLETSTAINSNOWNOSOUND:
-      case BET_BULLET_METAL:          case BET_BULLET_METAL_NOSOUND:
-      case BET_BULLET_CHAINLINK:      case BET_BULLET_CHAINLINK_NOSOUND:
-      case BET_BULLET_TILES:          case BET_BULLET_TILES_NOSOUND:
-      case BET_BULLET_GLASS:          case BET_BULLET_GLASS_NOSOUND: {
-        // Find all bullet holes in the proximity of this one
-        CDynamicContainer<CEntity> cenToRemove;
+    if (m_betType == BET_BULLETHOLE) {
+      // Find all bullet holes in the proximity of this one
+      CDynamicContainer<CEntity> cenToRemove;
 
-        FOREACHINDYNAMICCONTAINER(_cenBulletHoles, CEntity, iten) {
-          if (DistanceTo(this, iten) < 0.075f) {
-            cenToRemove.Add(iten);
-          }
+      FOREACHINDYNAMICCONTAINER(_cenBulletHoles, CEntity, iten) {
+        if (DistanceTo(this, iten) < 0.075f) {
+          cenToRemove.Add(iten);
         }
+      }
 
-        // Hide bullet holes that need to be removed
-        while (cenToRemove.Count() > 0) {
-          CEntity *pen = cenToRemove.Pointer(0);
+      // Hide bullet holes that need to be removed
+      while (cenToRemove.Count() > 0) {
+        CEntity *pen = cenToRemove.Pointer(0);
 
-          cenToRemove.Remove(pen);
-          _cenBulletHoles.Remove(pen);
+        cenToRemove.Remove(pen);
+        _cenBulletHoles.Remove(pen);
 
-          pen->SwitchToEditorModel();
-        }
+        pen->SwitchToEditorModel();
+      }
 
-        // Add this bullet hole to the list
-        _cenBulletHoles.Add(this);
-      } break;
+      // Add this bullet hole to the list
+      _cenBulletHoles.Add(this);
     }
 
     // setup light source
