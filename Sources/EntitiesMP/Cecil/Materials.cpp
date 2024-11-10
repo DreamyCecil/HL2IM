@@ -318,11 +318,14 @@ BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime) {
 
       // New surfaces
       default: {
+        // [Cecil] TEMP: Leave new surfaces as is if they've already been set
         if (iSurfaceType >= SURFACE_LAST_VANILLA) {
+          continue;
+
           // [material] - [the normal type of this material]
           // e.g. SUR_METAL_NOIMPACT - SUR_METAL_NORMAL
-          INDEX iShifted = (iSurfaceType - SURFACE_LAST_VANILLA);
-          iType = (iShifted - INDEX(iShifted / ESRT_LAST) * ESRT_LAST);
+          //INDEX iShifted = (iSurfaceType - SURFACE_LAST_VANILLA);
+          //iType = (iShifted - INDEX(iShifted / ESRT_LAST) * ESRT_LAST);
         }
       }
     }
