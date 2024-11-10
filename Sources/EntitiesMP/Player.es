@@ -1979,8 +1979,8 @@ functions:
         }
       } break;
 
-      // [Cecil] FIXME: If physics are toggled for some entity that's currently being held by the gravity gun,
-      // it leads to a crash in that entity's DoMoving() function a couple ticks later for unknown reasons
+      // [Cecil] FIXME: If physics are toggled for some entity held by the gravity gun, the entity might change its
+      // physics & collision flags, which will make the gravity gun overwrite them with incorrect ones on release
       // [Cecil] TEMP: Because of this the gravity gun is forced to drop the object for now
       case 8: {
         GetPlayerWeapons()->StopHolding(FALSE);

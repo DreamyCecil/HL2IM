@@ -111,20 +111,8 @@ CCecilClipMove::CCecilClipMove(CCecilMovableEntity *penEntity)
 
     // [Cecil] Entity has a custom collision
     if (penEntity->GetPhysicsFlags() & EPF_CUSTOMCOLLISION) {
+      // Perform setup for the moving entity later
       cm_bPreciseCollision = TRUE;
-
-      // Remember entity and placements
-      cm_penB = penEntity;
-      GetPositionsOfEntity(cm_penB, cm_vB0, cm_mB0, cm_vB1, cm_mB1);
-
-      ASSERT(penEntity->en_pciCollisionInfo != NULL);
-
-      // Create bounding box for the entire movement path
-      FLOATaabbox3D box0, box1;
-      penEntity->en_pciCollisionInfo->MakeBoxAtPlacement(cm_vB0, cm_mB0, box0);
-      penEntity->en_pciCollisionInfo->MakeBoxAtPlacement(cm_vB1, cm_mB1, box1);
-      cm_boxMovementPath  = box0;
-      cm_boxMovementPath |= box1;
 
     } else {
       // remember entity and placements
@@ -1075,6 +1063,27 @@ void CCecilClipMove::ClipMoveToBrushes(void)
     return;
   }
 
+  // [Cecil] Do "initial" setup now, if clipping precisely
+  if (cm_bPreciseCollision) {
+    // [Cecil] NOTE: Using entity A because the brush is always entity B
+    // and it will have to perform the regular sphere-to-brush collision
+
+    // Remember entity and placements
+    cm_penA = cm_penMoving;
+    GetPositionsOfEntity(cm_penA, cm_vA0, cm_mA0, cm_vA1, cm_mA1);
+
+    // Create spheres for the entity
+    ASSERT(cm_penA->en_pciCollisionInfo!=NULL);
+    cm_pamsA = &cm_penA->en_pciCollisionInfo->ci_absSpheres;
+
+    // Create bounding box for the entire movement path
+    FLOATaabbox3D box0, box1;
+    cm_penA->en_pciCollisionInfo->MakeBoxAtPlacement(cm_vA0, cm_mA0, box0);
+    cm_penA->en_pciCollisionInfo->MakeBoxAtPlacement(cm_vA1, cm_mA1, box1);
+    cm_boxMovementPath  = box0;
+    cm_boxMovementPath |= box1;
+  }
+
   // for each zoning sector that this entity is in
   {FOREACHSRCOFDST(cm_penMoving->en_rdSectors, CBrushSector, bsc_rsEntities, pbsc)
     // if it collides with this one
@@ -1167,6 +1176,22 @@ void CCecilClipMove::ClipMoveToModels(void)
 {
   if (cm_penMoving->en_ulCollisionFlags&ECF_IGNOREMODELS) {
     return;
+  }
+
+  // [Cecil] Do "initial" setup now, if clipping precisely
+  if (cm_bPreciseCollision) {
+    // Remember entity and placements
+    cm_penB = cm_penMoving;
+    GetPositionsOfEntity(cm_penB, cm_vB0, cm_mB0, cm_vB1, cm_mB1);
+
+    ASSERT(cm_penB->en_pciCollisionInfo != NULL);
+
+    // Create bounding box for the entire movement path
+    FLOATaabbox3D box0, box1;
+    cm_penB->en_pciCollisionInfo->MakeBoxAtPlacement(cm_vB0, cm_mB0, box0);
+    cm_penB->en_pciCollisionInfo->MakeBoxAtPlacement(cm_vB1, cm_mB1, box1);
+    cm_boxMovementPath  = box0;
+    cm_boxMovementPath |= box1;
   }
 
   // create mask for skipping deleted entities
