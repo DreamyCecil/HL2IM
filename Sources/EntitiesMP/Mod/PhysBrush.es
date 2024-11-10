@@ -81,6 +81,11 @@ functions:
   };
 
   // Wrappers for CMovableBrushEntity
+  void OnInitialize(const CEntityEvent &eeInput) {
+    CCecilMovableEntity::OnInitialize(eeInput);
+    PhysOnInit();
+  };
+
   void OnEnd(void) {
     PhysOnEnd();
     CCecilMovableEntity::OnEnd();

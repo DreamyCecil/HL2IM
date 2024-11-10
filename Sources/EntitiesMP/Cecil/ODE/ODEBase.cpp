@@ -34,7 +34,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 CPhysEngine *_pODE = NULL;
 
 // [Cecil] TEMP: Console commands
-static BOOL ode_bReportCollisions = FALSE;
+static INDEX ode_bReportCollisions = FALSE;
+static INDEX ode_bReportOutOfBounds = FALSE;
 INDEX ode_iCollisionGrid = 0; // 1 - display cells at 0.5m; 2 - display cells at player's legs
 INDEX ode_bRenderPosition = FALSE;
 
@@ -316,6 +317,7 @@ CPhysEngine::CPhysEngine(void) {
   //dCreatePlane(space, 0, -1, 0, -4096); // Top
 
   _pShell->DeclareSymbol("user INDEX ode_bReportCollisions;", &ode_bReportCollisions);
+  _pShell->DeclareSymbol("user INDEX ode_bReportOutOfBounds;", &ode_bReportOutOfBounds);
   _pShell->DeclareSymbol("user INDEX ode_iCollisionGrid;", &ode_iCollisionGrid);
   _pShell->DeclareSymbol("user INDEX ode_bRenderPosition;", &ode_bRenderPosition);
 };
@@ -545,6 +547,21 @@ INDEX ODE_GetSimIterations(void) {
 void ODE_ReportCollision(const char *strFormat, ...) {
   // Don't report if disabled or if not a server
   if (!ode_bReportCollisions || (_pNetwork->IsNetworkEnabled() && !_pNetwork->IsServer())) return;
+
+  va_list arg;
+  va_start(arg, strFormat);
+
+  CTString str;
+  str.VPrintF(strFormat, arg);
+  CPrintF("[%.2f] %s\n", _pTimer->CurrentTick(), str.str_String);
+
+  va_end(arg);
+};
+
+// [Cecil] TEMP: Report when a physics object goes out of bounds
+void ODE_ReportOutOfBounds(const char *strFormat, ...) {
+  // Don't report if disabled or if not a server
+  if (!ode_bReportOutOfBounds || (_pNetwork->IsNetworkEnabled() && !_pNetwork->IsServer())) return;
 
   va_list arg;
   va_start(arg, strFormat);

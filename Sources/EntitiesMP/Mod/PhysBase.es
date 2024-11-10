@@ -18,7 +18,19 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdH.h"
 
 #include "EntitiesMP/Cecil/Physics.h"
-#include <Engine/Math/OBBox.h>
+
+// How long to wait before returning to the last valid physical position
+static const _tmOutOfBoundsLimit = 1.0f;
+static const _tmValidPosUpdateFrequency = 1.0f;
+
+// Check if the entity is inside any sector
+inline BOOL IsInsideAnySector(CEntity *pen) {
+  {FOREACHSRCOFDST(pen->en_rdSectors, CBrushSector, bsc_rsEntities, pbsc)
+    return TRUE;
+  ENDFOR}
+
+  return FALSE;
+};
 
 // [Cecil] TEMP
 extern INDEX ode_bRenderPosition;
@@ -50,6 +62,13 @@ properties:
 12 FLOAT3D m_vTouchClipped = FLOAT3D(0, 0, 0), // Vector of the clipped line on touch
 13 FLOAT3D m_vTouchHit = FLOAT3D(0, 0, 0), // Where the touch occurred
 
+// Last valid position for restoration
+20 FLOAT3D m_vValidPos = FLOAT3D(0, 0, 0),
+21 FLOATmatrix3D m_mValidRot = FLOATmatrix3D(0),
+22 FLOAT m_tmOutOfBounds = -100.0f,
+23 FLOAT m_tmLastMovement = -100.0f,
+24 BOOL m_bCreatedOOB = FALSE, // Don't do out-of-bounds checks for objects that are created out of bounds
+
 {
   SPhysObject m_obj; // Actual physics object simulated by the external physics engine
   FLOAT3D m_vObjPos; // Physics object position before simulation update
@@ -71,12 +90,12 @@ functions:
     m_syncGravityGun.SetOwner(this);
   };
 
+  // Wrappers for CMovableModelEntity
   void OnInitialize(const CEntityEvent &eeInput) {
     CCecilMovableModelEntity::OnInitialize(eeInput);
-    CreateObject();
+    PhysOnInit();
   };
 
-  // Wrappers for CMovableModelEntity
   void OnEnd(void) {
     PhysOnEnd();
     CCecilMovableModelEntity::OnEnd();
@@ -90,6 +109,12 @@ functions:
   void Read_t(CTStream *istr) {
     CCecilMovableModelEntity::Read_t(istr);
     PhysRead_t(istr);
+  };
+
+  // Initialization
+  virtual void PhysOnInit(void) {
+    m_mValidRot.Diagonal(1.0f);
+    CreateObject();
   };
 
   // Destructor
@@ -174,9 +199,44 @@ functions:
       return;
     }
 
+    const FLOAT3D vLastPos = m_vObjPos;
+
+    if (!m_bCreatedOOB) {
+      // Keep updating out of bounds timer until the object goes outside all sectors
+      if (IsInsideAnySector(this)) {
+        m_tmOutOfBounds = _pTimer->CurrentTick();
+
+      // Restore last valid position if fell outside the sectors for too long
+      } else if (_pTimer->CurrentTick() - m_tmOutOfBounds >= _tmOutOfBoundsLimit) {
+        PhysObj().SetPosition(m_vValidPos);
+        PhysObj().SetMatrix(m_mValidRot);
+
+        // Randomize movement to prevent it from falling the same way over and over
+        const FLOAT3D vRnd = FLOAT3D(FRnd() - 0.5f, FRnd() - 0.5f, FRnd() - 0.5f) / _pTimer->TickQuantum;
+        PhysObj().SetCurrentTranslation(vRnd * 0.2f);
+        PhysObj().SetCurrentRotation(vRnd * 15.0f);
+
+        ODE_ReportOutOfBounds("ID:%u went out of bounds at ^cff7f7f%s^C; restored to ^c7fff7f%s^C", en_ulID,
+          ODE_PrintVectorForReport(vLastPos), ODE_PrintVectorForReport(m_vValidPos));
+      }
+    }
+
     // Remember current position
     m_vObjPos = PhysObj().GetPosition();
     m_mObjRot = PhysObj().GetMatrix();
+
+    if (!m_bCreatedOOB) {
+      // Keep track of when the last significant movement occurred (further than 0.2m in one tick)
+      if ((m_vObjPos - vLastPos).Length() > 0.2f * _pTimer->TickQuantum) {
+        m_tmLastMovement = _pTimer->CurrentTick();
+
+      // Remember valid position if haven't moved much recently
+      } else if (_pTimer->CurrentTick() - m_tmLastMovement >= _tmValidPosUpdateFrequency) {
+        m_vValidPos = PhysObj().GetPosition();
+        m_mValidRot = PhysObj().GetMatrix();
+        m_tmLastMovement = _pTimer->CurrentTick() + _tmValidPosUpdateFrequency;
+      }
+    }
 
     if (PhysObj().IsFrozen()) {
       PhysStepFrozen();
@@ -286,6 +346,13 @@ functions:
     m_vObjPos = PhysObj().GetPosition();
     m_mObjRot = PhysObj().GetMatrix();
 
+    // Remember valid position
+    m_vValidPos = m_vObjPos;
+    m_mValidRot = m_mObjRot;
+    m_tmOutOfBounds = _pTimer->CurrentTick();
+    m_tmLastMovement = _pTimer->CurrentTick();
+    m_bCreatedOOB = !IsInsideAnySector(this);
+
     // Add this object to the controller
     _penGlobalController->m_cPhysEntities.Add(PhysObj().nPhysOwner);
   };
@@ -389,6 +456,13 @@ functions:
         // Reset current position
         m_vObjPos = vPos;
         m_mObjRot = mRot;
+
+        // Remember valid position
+        m_vValidPos = m_vObjPos;
+        m_mValidRot = m_mObjRot;
+        m_tmOutOfBounds = _pTimer->CurrentTick();
+        m_tmLastMovement = _pTimer->CurrentTick();
+        m_bCreatedOOB = !IsInsideAnySector(this);
       } return TRUE;
 
       // Gravity Gun actions

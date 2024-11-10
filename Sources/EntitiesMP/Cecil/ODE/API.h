@@ -50,6 +50,9 @@ DECL_DLL INDEX ODE_GetSimIterations(void);
 // [Cecil] TEMP: Report on collisions with physics objects
 void ODE_ReportCollision(const char *strFormat, ...);
 
+// [Cecil] TEMP: Report when a physics object goes out of bounds
+void ODE_ReportOutOfBounds(const char *strFormat, ...);
+
 __forceinline CTString ODE_PrintVectorForReport(const FLOAT3D &v) {
   return CTString(0, "pos(%+.2f, %+.2f, %+.2f)", v(1), v(2), v(3));
 };
