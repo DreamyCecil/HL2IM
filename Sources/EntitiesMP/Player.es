@@ -1649,9 +1649,9 @@ functions:
     PhysObj().AddSphere(PHYS_SPHERE_RADIUS);
     PhysObj().EndShape();
 
-    dBodySetGravityMode(PhysObj().body, 0);
-    dBodySetMaxAngularSpeed(PhysObj().body, 0);
-    dBodySetAutoDisableFlag(PhysObj().body, 0);
+    PhysObj().SetGravity(FALSE);
+    PhysObj().SetMaxRotationSpeed(0);
+    PhysObj().SetAutoDisable(FALSE);
   };
 
   // [Cecil] Move physics object

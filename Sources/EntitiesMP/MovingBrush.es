@@ -187,9 +187,9 @@ functions:
     PhysObj().AddTrimesh();
 
     PhysObj().EndShape();
-    PhysObj().SetKinematic(TRUE);
 
-    dBodySetMaxAngularSpeed(PhysObj().body, dInfinity);
+    PhysObj().SetKinematic(TRUE);
+    PhysObj().SetMaxRotationSpeed(dInfinity);
 
     // Add this object to the controller
     _penGlobalController->m_cKinematicEntities.Add(PhysObj().nPhysOwner);

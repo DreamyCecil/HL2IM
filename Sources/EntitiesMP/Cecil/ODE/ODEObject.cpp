@@ -484,12 +484,44 @@ ANGLE3D odeObject::GetCurrentRotation(void) const {
   return ANGLE3D(RadToDeg(vRotation[1]), RadToDeg(vRotation[0]), RadToDeg(vRotation[2]));
 };
 
+// Toggle whether the body is affected by physics engine's gravity
+void odeObject::SetGravity(BOOL bState) {
+  if (!IsCreated()) return;
+
+  dBodySetGravityMode(body, bState);
+};
+
+// Limit maximum rotation speed (from 0 to dInfinity)
+void odeObject::SetMaxRotationSpeed(FLOAT fMaxSpeed) {
+  if (!IsCreated()) return;
+
+  dBodySetMaxAngularSpeed(body, fMaxSpeed);
+};
+
 // Stop moving
 void odeObject::ResetSpeed(void) {
   if (!IsCreated()) return;
 
   dBodySetLinearVel(body, 0, 0, 0);
   dBodySetAngularVel(body, 0, 0, 0);
+};
+
+// Toggle auto-disabling optimization
+void odeObject::SetAutoDisable(BOOL bState) {
+  if (!IsCreated()) return;
+
+  dBodySetAutoDisableFlag(body, bState);
+};
+
+// Check if the body is using auto-disabling optimizations
+BOOL odeObject::IsAutoDisabled(void) const {
+  // Geoms without bodies don't move
+  if (!IsCreated()) {
+    ASSERTALWAYS("Checking whether a body is auto-disabled without an actual body!");
+    return FALSE;
+  }
+
+  return dBodyGetAutoDisableFlag(body);
 };
 
 // Toggle between kinematic and dynamic bodies

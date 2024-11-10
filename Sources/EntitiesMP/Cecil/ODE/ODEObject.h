@@ -218,11 +218,23 @@ class odeObject {
     void SetCurrentRotation(const ANGLE3D &aRotation);
     ANGLE3D GetCurrentRotation(void) const;
 
+    // Toggle whether the body is affected by physics engine's gravity
+    void SetGravity(BOOL bState);
+
+    // Limit maximum rotation speed (from 0 to dInfinity)
+    void SetMaxRotationSpeed(FLOAT fMaxSpeed);
+
     // Stop moving
     void ResetSpeed(void);
 
   // Object state
   public:
+
+    // Toggle auto-disabling optimization
+    void SetAutoDisable(BOOL bState);
+
+    // Check if the body is using auto-disabling optimizations
+    BOOL IsAutoDisabled(void) const;
 
     // Toggle between kinematic and dynamic bodies
     void SetKinematic(BOOL bState);
