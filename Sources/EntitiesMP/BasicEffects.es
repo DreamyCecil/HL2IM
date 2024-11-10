@@ -668,37 +668,25 @@ functions:
   // parent the effect if needed and adjust size not to get out of the polygon
   void ParentToNearestPolygonAndStretch(void) {
     CEntity *penNearEntity = NULL;
-
-    // For finding the nearest polygon
-    FLOAT3D vPoint; 
-    FLOATplane3D plPlaneNormal;
     FLOAT fDistanceToEdge;
-    CBrushPolygon *pbpoNearBrush = NULL;
-
-    CForceStrength fsGravity, fsField;
 
     // [Cecil] Already parented to something
     if (GetParent() != NULL) {
       penNearEntity = GetParent();
 
-      // Determine gravity vector from the closest polygon
-      pbpoNearBrush = GetNearestPolygon(vPoint, plPlaneNormal, fDistanceToEdge);
-
-      if (pbpoNearBrush != NULL) {
-        CBrushSector *pbscContent = pbpoNearBrush->bpo_pbscSector;
-        INDEX iForceType = pbscContent->GetForceType();
-
-        CEntity *penNearBrush = pbscContent->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity;
-        penNearBrush->GetForce(iForceType, GetPlacement().pl_PositionVector, fsGravity, fsField);
-
-        m_vGravity = fsGravity.fs_vDirection;
-      }
+      // Determine gravity vector from the current sector
+      FindGravityVectorFromSector();
 
       // [Cecil] TODO: Pass this distance from somewhere
       // Reset distance to edge for the actual effect
       fDistanceToEdge = 1.0f;
 
     } else {
+      // For finding the nearest polygon
+      FLOAT3D vPoint; 
+      FLOATplane3D plPlaneNormal;
+      CBrushPolygon *pbpoNearBrush = NULL;
+
       // [Cecil] Bullet check
       BOOL bBullet = FALSE;
       BOOL bGlass = FALSE;
@@ -721,7 +709,10 @@ functions:
           CBrushSector *pbscContent = pbpoNearBrush->bpo_pbscSector;
           INDEX iForceType = pbscContent->GetForceType();
           CEntity *penNearBrush = pbscContent->bsc_pbmBrushMip->bm_pbrBrush->br_penEntity;
+
+          CForceStrength fsGravity, fsField;
           penNearBrush->GetForce(iForceType, en_plPlacement.pl_PositionVector, fsGravity, fsField);
+
           // remember gravity vector
           m_vGravity = fsGravity.fs_vDirection;
 
