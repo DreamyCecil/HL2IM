@@ -105,7 +105,7 @@ functions:
   virtual void InitPhysicsObject(void) {
     InitAsBrush();
     SetPhysicsFlags(EPF_BRUSH_MOVING | EPF_CUSTOMCOLLISION);
-    SetCollisionFlags(ECF_BRUSH);
+    SetCollisionFlags(ECF_PHYS_TESTALL | ECF_PHYS_ISBRUSH);
   };
 
 procedures:
