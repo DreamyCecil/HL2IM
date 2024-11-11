@@ -72,6 +72,15 @@ functions:
   };
 
   // [Cecil] Physics overrides
+  virtual INDEX GetPhysMaterial(void) const {
+    switch (m_EaitType) {
+      case ARIT_STRONG:
+      case ARIT_SUPER: return SUR_METAL_NORMAL;
+    }
+
+    return CItem::GetPhysMaterial();
+  };
+
   virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
     switch (m_EaitType) {
       case ARIT_SHARD:

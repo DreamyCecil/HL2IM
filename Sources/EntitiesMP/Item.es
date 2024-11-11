@@ -56,6 +56,7 @@ components:
 
 functions:
   // [Cecil] Physics overrides
+  virtual INDEX GetPhysMaterial(void) const { return SUR_PLASTIC_NORMAL; };
   virtual BOOL AreDecalsAllowed(void) const { return FALSE; };
 
   virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {

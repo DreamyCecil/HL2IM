@@ -134,6 +134,15 @@ functions:
   };
 
   // [Cecil] Physics overrides
+  virtual INDEX GetPhysMaterial(void) const {
+    switch (m_EwitType) {
+      case WIT_CROWBAR: return SUR_METAL_NORMAL;
+      case WIT_GRENADE: return SUR_PLASTIC_NORMAL; // [Cecil] TODO: Implement grenade surface
+    }
+
+    return SUR_WEAPON_NORMAL;
+  };
+
   virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
     switch (m_EwitType) {
       case WIT_CROWBAR:    vSize = FLOAT3D(0.3f, 0.05f, 1.7f); return COLSH_BOX;

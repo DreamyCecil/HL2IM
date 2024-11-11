@@ -134,6 +134,16 @@ functions:
   };
 
   // [Cecil] Physics overrides
+  virtual INDEX GetPhysMaterial(void) const {
+    switch (m_EaitType) {
+      case AIT_RPG:
+      case AIT_ROCKETS:
+      case AIT_AR2: return SUR_METAL_NORMAL;
+    }
+
+    return CItem::GetPhysMaterial();
+  };
+
   virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {
     switch (m_EaitType) {
       case AIT_SPAS:        vSize = FLOAT3D(0.44f, 0.29f, 0.35f); return COLSH_BOX;
