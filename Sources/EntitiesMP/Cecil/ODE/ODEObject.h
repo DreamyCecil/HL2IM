@@ -79,12 +79,17 @@ class odeTrimesh {
     BOOL FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute, BOOL bOffsetOutwards = FALSE);
 };
 
+// Physics object flags
+enum EPhysObjectFlags {
+  OBJF_BODY = (1 << 0), // Object has a physical body
+};
+
 // Physical object
 class odeObject {
   public:
     // Setup
     CPlacement3D plCenter; // Origin placement of the body
-    BOOL bSetupBody; // Object has a physical body
+    ULONG ulSetupFlags; // Behavior flags
     FLOAT fSetupMass; // Object mass
 
     // Collision parameters
@@ -113,7 +118,7 @@ class odeObject {
 
   public:
     // Constructor
-    odeObject(void) : plCenter(_odeCenter), bSetupBody(FALSE), fSetupMass(0.0f),
+    odeObject(void) : plCenter(_odeCenter), ulSetupFlags(0), fSetupMass(0.0f),
       fFriction(1.0f), fBounce(0.1f), fBounceVel(1.0f),
       body(NULL), geom(NULL), joint(NULL), ulTag(-1)
     {
@@ -158,7 +163,7 @@ class odeObject {
   public:
 
     // Begin setting up physics shape
-    void BeginShape(const CPlacement3D &plSetCenter, FLOAT fSetMass, BOOL bCreateBody);
+    void BeginShape(const CPlacement3D &plSetCenter, FLOAT fSetMass, ULONG ulSetFlags);
 
     // Finish setting up physics shape
     void EndShape(void);

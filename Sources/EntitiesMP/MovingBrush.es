@@ -170,7 +170,7 @@ functions:
     if (IsEmptyBrush() || (GetFlags() & ENF_HIDDEN)) { return; }
 
     // Begin creating a new object
-    PhysObj().BeginShape(GetPlacement(), 1.0f, TRUE);
+    PhysObj().BeginShape(GetPlacement(), 1.0f, OBJF_BODY);
 
     // Determine if the brush is flat to offset some polygons
     FLOATaabbox3D boxBrush;

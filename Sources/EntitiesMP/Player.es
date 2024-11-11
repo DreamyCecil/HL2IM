@@ -1653,7 +1653,7 @@ functions:
     CPlacement3D plSphere(FLOAT3D(0, vSize(2), 0), ANGLE3D(0, 0, 0));
     plSphere.RelativeToAbsoluteSmooth(GetPlacement());
 
-    PhysObj().BeginShape(plSphere, 1.0f, TRUE);
+    PhysObj().BeginShape(plSphere, 1.0f, OBJF_BODY);
     PhysObj().AddSphere(PHYS_SPHERE_RADIUS);
     PhysObj().EndShape();
 

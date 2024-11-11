@@ -465,7 +465,7 @@ void odeObject::Write_t(CWriteStream &strm) {
   strm.WriteID(_cidODE_ObjProps);
 
   strm.WritePlace("plCenter", plCenter);
-  strm.Write_key(bSetupBody);
+  strm.Write_key(ulSetupFlags);
   strm.Write_key(fSetupMass);
 
   strm.Write_key(fFriction);
@@ -491,7 +491,7 @@ void odeObject::Read_t(CTStream *istr) {
   istr->ExpectID_t(_cidODE_ObjProps);
 
   *istr >> plCenter;
-  *istr >> bSetupBody;
+  *istr >> ulSetupFlags;
   *istr >> fSetupMass;
 
   *istr >> fFriction;

@@ -57,8 +57,9 @@ functions:
   void DoMoving(void) { CCecilMovableEntity::DoMoving(); };
   void PostMoving(void) { CCecilMovableEntity::PostMoving(); };
 
+  INDEX GetCollisionBoxIndex(void) { return CCecilMovableEntity::GetCollisionBoxIndex(); };
+
   // Don't use these CMovableModelEntity methods
-  INDEX GetCollisionBoxIndex(void)                         { ASSERT(FALSE); return 0; };
   BOOL CheckForCollisionNow(INDEX i, CEntity **ppen)       { ASSERT(FALSE); return FALSE; };
   BOOL ChangeCollisionBoxIndexNow(INDEX i, CEntity **ppen) { ASSERT(FALSE); return FALSE; };
   BOOL ChangeCollisionBoxIndexNow(INDEX i)                 { ASSERT(FALSE); return FALSE; };

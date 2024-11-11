@@ -418,7 +418,7 @@ void ODE_Start(void) {
 
   // Create world mesh
   _pODE->CreateWorldMesh();
-  _pODE->pObjWorld->BeginShape(_odeCenter, 0.0f, FALSE);
+  _pODE->pObjWorld->BeginShape(_odeCenter, 0.0f, 0);
 
   // Iterate through all physical objects in the world
   CWorld &wo = _pNetwork->ga_World;

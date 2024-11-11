@@ -199,9 +199,9 @@ void odeObject::SetupGeom(void) {
 };
 
 // Begin setting up physics shape
-void odeObject::BeginShape(const CPlacement3D &plSetCenter, FLOAT fSetMass, BOOL bCreateBody) {
+void odeObject::BeginShape(const CPlacement3D &plSetCenter, FLOAT fSetMass, ULONG ulSetFlags) {
   plCenter = plSetCenter;
-  bSetupBody = bCreateBody;
+  ulSetupFlags = ulSetFlags;
   fSetupMass = fSetMass;
 
   // Clear old geometry and body
@@ -212,7 +212,7 @@ void odeObject::BeginShape(const CPlacement3D &plSetCenter, FLOAT fSetMass, BOOL
 void odeObject::EndShape(void) {
   _pODE->lhObjects.AddTail(lnInObjects);
 
-  if (bSetupBody) {
+  if (ulSetupFlags & OBJF_BODY) {
     // Create physical body
     body = dBodyCreate(_pODE->world);
     dGeomSetBody(geom, body);
@@ -245,7 +245,7 @@ void odeObject::AddSphere(FLOAT fRadius) {
   SetupGeom();
 
   // Physical body
-  if (bSetupBody && fSetupMass > 0.0f) {
+  if ((ulSetupFlags & OBJF_BODY) && fSetupMass > 0.0f) {
     // Calculate density ('p = m/V' where 'V = (4/3) * pi * r^3')
     static const FLOAT fVolumeMul = (4.0f / 3.0f) * PI;
     const dReal fDensity = fSetupMass / (fVolumeMul * (fRadius * fRadius * fRadius));
@@ -264,7 +264,7 @@ void odeObject::AddBox(const odeVector &vSize) {
   SetupGeom();
 
   // Physical body
-  if (bSetupBody && fSetupMass > 0.0f) {
+  if ((ulSetupFlags & OBJF_BODY) && fSetupMass > 0.0f) {
     // Calculate density ('p = m/V' where 'V = w*h*l')
     const dReal fDensity = fSetupMass / (vSize(1) * vSize(2) * vSize(3));
 
@@ -291,7 +291,7 @@ void odeObject::AddCapsule(FLOAT fRadius, FLOAT fLength) {
   SetupGeom();
 
   // Physical body
-  if (bSetupBody && fSetupMass > 0.0f) {
+  if ((ulSetupFlags & OBJF_BODY) && fSetupMass > 0.0f) {
     // [Cecil] TEMP: Volume of a cylinder, not a capsule
     // Calculate density ('p = m/V' where 'V = pi * h * r^2')
     const dReal fDensity = fSetupMass / (PI * fLength * fRadius * fRadius);
@@ -313,7 +313,7 @@ void odeObject::AddCylinder(FLOAT fRadius, FLOAT fLength) {
   SetupGeom();
 
   // Physical body
-  if (bSetupBody && fSetupMass > 0.0f) {
+  if ((ulSetupFlags & OBJF_BODY) && fSetupMass > 0.0f) {
     // Calculate density ('p = m/V' where 'V = pi * h * r^2')
     const dReal fDensity = fSetupMass / (PI * fLength * fRadius * fRadius);
 
@@ -329,7 +329,7 @@ void odeObject::AddTrimesh(void) {
   SetupGeom();
 
   // Physical body
-  if (bSetupBody && fSetupMass > 0.0f) {
+  if ((ulSetupFlags & OBJF_BODY) && fSetupMass > 0.0f) {
     // [Cecil] TEMP: Volume of a box surrounding the trimesh, not the actual trimesh
     // Calculate density ('p = m/V' where 'V = w*h*l')
     const odeVector vSize = mesh.boxVolume.Size();

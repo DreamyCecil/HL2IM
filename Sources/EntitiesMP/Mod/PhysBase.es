@@ -324,11 +324,11 @@ functions:
 
     if (GetPhysOffset(plOffset)) {
       plOffset.RelativeToAbsolute(GetPlacement());
-      PhysObj().BeginShape(plOffset, GetPhysMass() * m_fPhysMass, m_bPhysDynamic);
-
     } else {
-      PhysObj().BeginShape(GetPlacement(), GetPhysMass() * m_fPhysMass, m_bPhysDynamic);
+      plOffset = GetPlacement();
     }
+
+    PhysObj().BeginShape(plOffset, GetPhysMass() * m_fPhysMass, (m_bPhysDynamic ? OBJF_BODY : 0));
 
     PhysObj().fFriction  = GetPhysFriction() * m_fPhysFriction;
     PhysObj().fBounce    = Clamp(GetPhysBounce() * m_fPhysBounce, 0.0f, 1.0f);

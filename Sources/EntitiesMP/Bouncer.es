@@ -83,7 +83,7 @@ functions:
     if (IsEmptyBrush() || (GetFlags() & ENF_HIDDEN)) { return; }
 
     // Begin creating a new object
-    PhysObj().BeginShape(GetPlacement(), 1.0f, TRUE);
+    PhysObj().BeginShape(GetPlacement(), 1.0f, OBJF_BODY);
 
     // No vertices added
     if (!PhysObj().mesh.FromBrush(GetBrush(), NULL, FALSE)) {
