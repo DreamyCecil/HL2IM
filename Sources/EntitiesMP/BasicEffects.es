@@ -1080,7 +1080,8 @@ functions:
       case BHT_BRUSH_WATER: iModel = MODEL_SHOCKWAVE; iTexture = TEXTURE_HL2_WATERSPLASH; fStretch = 0.125f; break;
       case BHT_BRUSH_WOOD: iModel = MODEL_BULLET_SHOT_BLEND; iTexture = TEXTURE_BULLET_WOOD1 + IRnd() % 5; fStretch = 1; break;
       case BHT_BRUSH_METAL:
-      case BHT_BRUSH_CHAINLINK: iModel = MODEL_BULLET_SHOT; iTexture = TEXTURE_BULLET_METAL1 + IRnd() % 5; fStretch = 2; break;
+      case BHT_BRUSH_CHAINLINK:
+      case BHT_BRUSH_WEAPON: iModel = MODEL_BULLET_SHOT; iTexture = TEXTURE_BULLET_METAL1 + IRnd() % 5; fStretch = 2; break;
       case BHT_BRUSH_GLASS: iModel = MODEL_BULLET_SHOT_ADD; iTexture = TEXTURE_BULLET_GLASS1 + IRnd() % 5; fStretch = 2; break;
 
       // BHT_BRUSH_STONE, BHT_BRUSH_UNDER_WATER, BHT_BRUSH_SAND, BHT_BRUSH_RED_SAND, BHT_BRUSH_GRASS,
@@ -1106,8 +1107,10 @@ functions:
       case BHT_BRUSH_WOOD: m_eptType = EPT_BULLET_WOOD; break;
       case BHT_BRUSH_SNOW: m_eptType = EPT_BULLET_SNOW; break;
       case BHT_BRUSH_METAL:
-      case BHT_BRUSH_CHAINLINK: m_eptType = EPT_BULLET_METAL; break;
+      case BHT_BRUSH_CHAINLINK:
+      case BHT_BRUSH_WEAPON: m_eptType = EPT_BULLET_METAL; break;
       case BHT_BRUSH_GLASS: m_eptType = EPT_BULLET_GLASS; break;
+      case BHT_BRUSH_PLASTIC: m_eptType = EPT_NONE; break;
 
       // BHT_BRUSH_STONE, BHT_BRUSH_TILES
       default: m_eptType = EPT_BULLET_STONE; break;
@@ -1130,6 +1133,8 @@ functions:
         case BHT_BRUSH_CHAINLINK: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(CHAINLINK)); fPitchRnd = 0.1f; break;
         case BHT_BRUSH_TILES: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(TILES)); break;
         case BHT_BRUSH_GLASS: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(GLASS)); fPitchRnd = 0.1f; break;
+        case BHT_BRUSH_PLASTIC: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(PLASTIC)); break;
+        case BHT_BRUSH_WEAPON: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(WEAPON)); break;
 
         // BHT_BRUSH_STONE, BHT_BRUSH_UNDER_WATER
         default: fnmSound = SurfaceImpactSound(this, SURFACE_STONE); break;

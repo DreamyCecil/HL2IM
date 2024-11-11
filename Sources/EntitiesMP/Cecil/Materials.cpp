@@ -53,6 +53,8 @@ EP_ENUMBEG(EWorldSurfaceType)
   NEW_ENUM_SURFACE(CHAINLINK),
   NEW_ENUM_SURFACE(TILES),
   NEW_ENUM_SURFACE(GLASS),
+  NEW_ENUM_SURFACE(PLASTIC),
+  NEW_ENUM_SURFACE(WEAPON),
 EP_ENUMEND(EWorldSurfaceType);
 
 // Get surface type for a non-brush entity (-1 if unknown)
@@ -201,11 +203,13 @@ void SwitchMaterialConfig(INDEX iConfig) {
 // Relevant materials and their names
 const char *_astrMaterials[] = {
   "STONE", "SAND", "WATER", "RED_SAND", "GRASS", "WOOD", "SNOW", "METAL", "METAL_GRATE", "CHAINLINK", "TILES", "GLASS",
+  "PLASTIC", "WEAPON",
 };
 
 static INDEX _aiMaterials[] = {
   SURFACE_STONE, SURFACE_SAND, SURFACE_WATER, SURFACE_RED_SAND, SURFACE_GRASS, SURFACE_WOOD, SURFACE_SNOW,
   MATERIAL_VAR(METAL), MATERIAL_VAR(METAL_GRATE), MATERIAL_VAR(CHAINLINK), MATERIAL_VAR(TILES), MATERIAL_VAR(GLASS),
+  MATERIAL_VAR(PLASTIC), MATERIAL_VAR(WEAPON),
 };
 
 static const INDEX _ctMaterials = ARRAYCOUNT(_aiMaterials);

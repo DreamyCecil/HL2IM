@@ -892,12 +892,21 @@ components:
 740 sound SOUND_CROWBAR_IMPACT1 "Models\\Weapons\\Crowbar\\Sounds\\Impact1.wav",
 741 sound SOUND_CROWBAR_IMPACT2 "Models\\Weapons\\Crowbar\\Sounds\\Impact2.wav",
 
-742 sound SOUND_SILENCE "Sounds\\Misc\\Silence.wav",
+742 sound SOUND_PLASTIC_IMPACT1 "Sounds\\Impact\\plastic_hard1.wav",
+743 sound SOUND_PLASTIC_IMPACT2 "Sounds\\Impact\\plastic_hard2.wav",
+744 sound SOUND_PLASTIC_IMPACT3 "Sounds\\Impact\\plastic_hard3.wav",
+745 sound SOUND_PLASTIC_IMPACT4 "Sounds\\Impact\\plastic_hard4.wav",
+
+746 sound SOUND_WEAPONHARD_IMPACT1 "Sounds\\Impact\\weapon_bullet1.wav",
+747 sound SOUND_WEAPONHARD_IMPACT2 "Sounds\\Impact\\weapon_bullet2.wav",
+748 sound SOUND_WEAPONHARD_IMPACT3 "Sounds\\Impact\\weapon_bullet3.wav",
+
+749 sound SOUND_SILENCE "Sounds\\Misc\\Silence.wav",
 
 // [Cecil] Other Sounds
-750 sound SOUND_SELECT_WEAPON "Sounds\\Weapons\\WeaponSelect.wav",
-751 sound SOUND_WARNING       "Sounds\\Player\\Warning.wav",
-752 sound SOUND_AMMO          "Sounds\\Items\\AmmoPickup.wav",
+900 sound SOUND_SELECT_WEAPON "Sounds\\Weapons\\WeaponSelect.wav",
+901 sound SOUND_WARNING       "Sounds\\Player\\Warning.wav",
+902 sound SOUND_AMMO          "Sounds\\Items\\AmmoPickup.wav",
 
 functions:
   // [Cecil] Constructor

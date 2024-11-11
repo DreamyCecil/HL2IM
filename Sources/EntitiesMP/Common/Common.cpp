@@ -281,6 +281,7 @@ EffectParticlesType GetParticleEffectTypeForSurface(INDEX iSurfaceType)
     case MATERIAL_CASES(METAL):
     case MATERIAL_CASES(METAL_GRATE):
     case MATERIAL_CASES(CHAINLINK):
+    case MATERIAL_CASES(WEAPON):
       eptType = EPT_BULLET_METAL;
       break;
 
@@ -290,6 +291,10 @@ EffectParticlesType GetParticleEffectTypeForSurface(INDEX iSurfaceType)
 
     case MATERIAL_CASES(GLASS):
       eptType = EPT_BULLET_GLASS;
+      break;
+
+    case MATERIAL_CASES(PLASTIC):
+      eptType = EPT_NONE;
       break;
   }
   return eptType;
@@ -339,6 +344,14 @@ BulletHitType GetBulletHitTypeForSurface(INDEX iSurfaceType)
     case MATERIAL_CASES(GLASS):
       bhtType = BHT_BRUSH_GLASS;
       break;
+
+    case MATERIAL_CASES(PLASTIC):
+      bhtType = BHT_BRUSH_PLASTIC;
+      break;
+
+    case MATERIAL_CASES(WEAPON):
+      bhtType = BHT_BRUSH_WEAPON;
+      break;
   }
   return bhtType;
 }
@@ -370,7 +383,9 @@ CEntity *SpawnHitTypeEffect(const SSpawnHitEffectArgs &args)
     case BHT_BRUSH_METAL:
     case BHT_BRUSH_CHAINLINK:
     case BHT_BRUSH_TILES:
-    case BHT_BRUSH_GLASS: {
+    case BHT_BRUSH_GLASS:
+    case BHT_BRUSH_PLASTIC:
+    case BHT_BRUSH_WEAPON: {
       // bullet stain
       ESpawnEffect ese;
 

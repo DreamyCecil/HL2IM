@@ -1570,7 +1570,15 @@ components:
 288 sound SOUND_GLASS3 "Sounds\\Steps\\glass3.wav",
 289 sound SOUND_GLASS4 "Sounds\\Steps\\glass4.wav",
 
-290 sound SOUND_SILENCE "Sounds\\Misc\\Silence.wav",
+290 sound SOUND_PLASTIC1 "Sounds\\Impact\\plastic_soft1.wav",
+291 sound SOUND_PLASTIC2 "Sounds\\Impact\\plastic_soft2.wav",
+292 sound SOUND_PLASTIC3 "Sounds\\Impact\\plastic_soft3.wav",
+293 sound SOUND_PLASTIC4 "Sounds\\Impact\\plastic_soft4.wav",
+
+294 sound SOUND_WEAPON1 "Sounds\\Steps\\weapon1.wav",
+295 sound SOUND_WEAPON2 "Sounds\\Steps\\weapon2.wav",
+
+296 sound SOUND_SILENCE "Sounds\\Misc\\Silence.wav",
 
 // [Cecil] Flashlight
 300 model MODEL_FLASHLIGHT        "Models\\Editor\\LightSource.mdl",
@@ -2231,6 +2239,11 @@ functions:
   };
 
   void AddBulletSpray(FLOAT3D vPos, EffectParticlesType eptType, FLOAT3D vStretch) {
+    // [Cecil] No spray
+    if (eptType == EPT_NONE) {
+      return;
+    }
+
     BulletSprayLaunchData &bsld = m_absldData[m_iFirstEmptyBSLD];
     bsld.bsld_vPos = vPos;
     bsld.bsld_vG = en_vGravityDir;

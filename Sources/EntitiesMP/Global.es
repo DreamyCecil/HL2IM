@@ -164,6 +164,8 @@ enum BulletHitType {
  13 BHT_BRUSH_CHAINLINK "",
  14 BHT_BRUSH_TILES "",
  15 BHT_BRUSH_GLASS "",
+ 16 BHT_BRUSH_PLASTIC "",
+ 17 BHT_BRUSH_WEAPON "",
 };
 
 enum EffectParticlesType {

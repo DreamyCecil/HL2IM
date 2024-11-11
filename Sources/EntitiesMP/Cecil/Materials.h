@@ -94,6 +94,8 @@ enum EWorldSurfaceType {
   NEW_SURFACE(CHAINLINK,   2),
   NEW_SURFACE(TILES,       3),
   NEW_SURFACE(GLASS,       4),
+  NEW_SURFACE(PLASTIC,     5),
+  NEW_SURFACE(WEAPON,      6),
 
   // Last overall surface (don't use)
   SURFACE_LAST_OVERALL,

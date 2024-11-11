@@ -21,9 +21,18 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // Surface Sound for the Player
 CTFileName SurfaceStepSound(CPlayer *pen) {
   CTString strPath = "";
-  INDEX iRnd = pen->IRnd()%3 + 1;
+  INDEX iRnd;
 
-  // don't repeat the same sound
+  switch (pen->m_iLastSurface) {
+    case MATERIAL_CASES(WEAPON):
+      iRnd = 1;
+      break;
+
+    default:
+      iRnd = pen->IRnd() % 3 + 1;
+  }
+
+  // Don't repeat the same sound
   if (pen->m_iLastSurfaceSound != -1 && iRnd >= pen->m_iLastSurfaceSound) {
     iRnd++;
   }
@@ -64,6 +73,14 @@ CTFileName SurfaceStepSound(CPlayer *pen) {
 
     case MATERIAL_CASES(GLASS):
       strPath.PrintF("Sounds\\Steps\\glass%d.wav", iRnd);
+      break;
+
+    case MATERIAL_CASES(PLASTIC):
+      strPath.PrintF("Sounds\\Impact\\plastic_soft%d.wav", iRnd);
+      break;
+
+    case MATERIAL_CASES(WEAPON):
+      strPath.PrintF("Sounds\\Steps\\weapon%d.wav", iRnd);
       break;
 
     default: strPath.PrintF("Sounds\\Steps\\concrete%d.wav", iRnd);
@@ -112,6 +129,14 @@ CTFileName SurfaceImpactSound(CEntity *pen, const INDEX &iSurface) {
 
     case MATERIAL_CASES(GLASS):
       strPath.PrintF("Sounds\\Impact\\glass%d.wav", pen->IRnd()%4 + 1);
+      break;
+
+    case MATERIAL_CASES(PLASTIC):
+      strPath.PrintF("Sounds\\Impact\\plastic_hard%d.wav", pen->IRnd()%4 + 1);
+      break;
+
+    case MATERIAL_CASES(WEAPON):
+      strPath.PrintF("Sounds\\Impact\\weapon_bullet%d.wav", pen->IRnd()%3 + 1);
       break;
 
     default: strPath.PrintF("Sounds\\Impact\\concrete%d.wav", pen->IRnd()%4 + 1);
