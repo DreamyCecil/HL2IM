@@ -184,11 +184,6 @@ public:
 
 static CStaticStackArray<CEntityForce> _aefForces;
 
-void ClearMovableEntityCaches(void)
-{
-  _aefForces.Clear();
-}
-
 // this one is used in rendering - gets lerped placement between ticks 
 CPlacement3D CCecilMovableEntity::GetLerpedPlacement(void) const
 {
@@ -531,6 +526,14 @@ BOOL CCecilMovableEntity::TestFields(INDEX &iUpContent, INDEX &iDnContent, FLOAT
     // get min/max parameters of entity inside sector
     double dMin, dMax;
     bsc.bsc_bspBSPTree.FindLineMinMax(FLOATtoDOUBLE(vMin), FLOATtoDOUBLE(vMax), dMin, dMax);
+
+    // [Cecil] NOTE: Custom collision shapes are not treated the same way when determining which sectors the entity is currently inside and
+    // that leads to inconsistencies where the entity is still considered to be inside another sector but this line that's being checked above
+    // is fully outside that sector. Because of that sector ratio becomes invalid and this sector isn't considered when calculating forces.
+    if ((GetPhysicsFlags() & EPF_CUSTOMCOLLISION) && dMin > dMax) {
+      dMax = 1.0f;
+      dMin = 0.0f;
+    }
 
     // if sector content is not default
     INDEX iContent = bsc.GetContentType();
