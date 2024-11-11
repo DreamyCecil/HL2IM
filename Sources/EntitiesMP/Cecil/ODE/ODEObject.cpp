@@ -235,6 +235,8 @@ void odeObject::EndShape(void) {
 
 // Make a sphere
 void odeObject::AddSphere(FLOAT fRadius) {
+  ASSERT(fRadius > 0);
+
   // Interpret radius as diameter
   fRadius *= 0.5f;
 
@@ -255,6 +257,8 @@ void odeObject::AddSphere(FLOAT fRadius) {
 
 // Make a box
 void odeObject::AddBox(const odeVector &vSize) {
+  ASSERT(vSize(1) > 0 && vSize(2) > 0 && vSize(3) > 0);
+
   // Geometry for collisions
   geom = dCreateBox(_pODE->space, vSize(1), vSize(2), vSize(3));
   SetupGeom();
@@ -271,6 +275,14 @@ void odeObject::AddBox(const odeVector &vSize) {
 
 // Make a capsule
 void odeObject::AddCapsule(FLOAT fRadius, FLOAT fLength) {
+  ASSERT(fRadius > 0 && fLength >= 0);
+
+  // If length is small enough, both caps of the capsule essentially form a sphere
+  if (fLength <= 0.0f) {
+    AddSphere(fRadius);
+    return;
+  }
+
   // Interpret radius as diameter
   fRadius *= 0.5f;
 
@@ -291,6 +303,8 @@ void odeObject::AddCapsule(FLOAT fRadius, FLOAT fLength) {
 
 // Make a cylinder
 void odeObject::AddCylinder(FLOAT fRadius, FLOAT fLength) {
+  ASSERT(fRadius > 0 && fLength > 0);
+
   // Interpret radius as diameter
   fRadius *= 0.5f;
 
