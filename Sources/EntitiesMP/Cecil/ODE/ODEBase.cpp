@@ -220,12 +220,46 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
 
   int ct = dCollide(geom1, geom2, MAX_NUM_CONTACTS, &aContacts[0].geom, sizeof(dContact));
 
+  // Bounce off bouncers only once
+  BOOL bBouncedOff = FALSE;
+
   // Add contact joints
   for (int iAttach = 0; iAttach < ct; iAttach++) {
     dContact &contact = aContacts[iAttach];
     dJointID c = dJointCreateContact(_pODE->world, _pODE->jgContacts, &contact);
     dJointAttach(c, body1, body2);
 
+    // Apply bouncer force to the other object
+    if (!bBouncedOff) {
+      const BOOL bBouncer1 = IsOfClassID(pen1, CBouncer_ClassID);
+      const BOOL bBouncer2 = IsOfClassID(pen2, CBouncer_ClassID);
+      CEntity *penBouncer = NULL;
+      odeObject *pObjBounce = NULL;
+
+      if (bBouncer1 && !bBouncer2) {
+        penBouncer = pen1;
+        pObjBounce = obj2;
+      }
+
+      if (bBouncer2 && !bBouncer1) {
+        penBouncer = pen2;
+        pObjBounce = obj1;
+      }
+
+      if (penBouncer != NULL && pObjBounce != NULL) {
+        CBouncer &enBouncer = (CBouncer &)*penBouncer;
+
+        FLOAT3D vDir;
+        AnglesToDirectionVector(enBouncer.m_aDirection, vDir);
+
+        const FLOAT fForce = (enBouncer.m_fSpeed * 0.3f) * pObjBounce->mass.mass;
+        pObjBounce->AddForce(vDir, fForce / _pTimer->TickQuantum);
+
+        bBouncedOff = TRUE;
+        continue;
+      }
+    }
+    
     // Emulate blocking when colliding with player objects
     const FLOAT3D vDir(-contact.geom.normal[0], -contact.geom.normal[1], -contact.geom.normal[2]);
     const FLOAT3D vPos(contact.geom.pos[0], contact.geom.pos[1], contact.geom.pos[2]);
