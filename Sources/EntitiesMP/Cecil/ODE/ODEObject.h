@@ -210,6 +210,9 @@ class odeObject {
     // Manually update gravitational force
     void UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityDir, FLOAT fGravityAccelerationMul);
 
+    // Get direction vector of the current gravity
+    FLOAT3D GetGravity(void) const;
+
     // Absolute movement speed
     void SetCurrentTranslation(const FLOAT3D &vSpeed);
     FLOAT3D GetCurrentTranslation(void) const;

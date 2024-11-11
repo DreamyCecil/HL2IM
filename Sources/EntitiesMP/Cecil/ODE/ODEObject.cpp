@@ -463,6 +463,35 @@ void odeObject::UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityDir, FL
   dBodyAddForce(body, vGravity(1), vGravity(2), vGravity(3));
 };
 
+// Get direction vector of the current gravity
+FLOAT3D odeObject::GetGravity(void) const {
+  if (!IsCreated()) return FLOAT3D(0, 0, 0);
+
+  // World gravity
+  if (dBodyGetGravityMode(body)) {
+    dVector3 vWorldGravity;
+    dWorldGetGravity(_pODE->world, vWorldGravity);
+
+    const dReal fWorldGravityLen = sqrt(
+        vWorldGravity[0] * vWorldGravity[0]
+      + vWorldGravity[1] * vWorldGravity[1]
+      + vWorldGravity[2] * vWorldGravity[2]
+    );
+
+    if (fWorldGravityLen <= 0.001) {
+      return FLOAT3D(0, 0, 0);
+    }
+
+    return FLOAT3D(vWorldGravity[0], vWorldGravity[1], vWorldGravity[2]) / fWorldGravityLen;
+  }
+
+  // Entity gravity
+  CMovableEntity *pen = (CMovableEntity *)nPhysOwner.GetOwner();
+  ASSERT(pen != NULL);
+
+  return pen->en_vGravityDir;
+};
+
 // Absolute movement speed
 void odeObject::SetCurrentTranslation(const FLOAT3D &vSpeed) {
   if (!IsCreated()) return;
