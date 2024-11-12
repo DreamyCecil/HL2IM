@@ -358,20 +358,29 @@ void odeObject::WriteBody_t(CWriteStream &strm) {
 
   strm.Write_key(body->adis.linear_average_threshold);
   strm.Write_key(body->adis.angular_average_threshold);
-  strm.Write("body->adis.average_samples", (ULONG)body->adis.average_samples);
+
+  const ULONG ulAverageSamples = body->adis.average_samples;
+  strm.Write("body->adis.average_samples", ulAverageSamples);
+
   strm.Write_key(body->adis.idle_time);
   strm.Write_key(body->adis.idle_steps);
   strm.Write_key(body->adis_timeleft);
   strm.Write_key(body->adis_stepsleft);
-
-  ASSERT(body->average_counter == 0);
-  ASSERT(body->average_ready == 0);
 
   strm.Write_key(body->dampingp.linear_scale);
   strm.Write_key(body->dampingp.angular_scale);
   strm.Write_key(body->dampingp.linear_threshold);
   strm.Write_key(body->dampingp.angular_threshold);
   strm.Write_key(body->max_angular_speed);
+
+  // Write average samples buffers
+  for (ULONG ulBuffer = 0; ulBuffer < ulAverageSamples; ulBuffer++) {
+    strm.WriteVector_key(body->average_lvel_buffer[ulBuffer]);
+    strm.WriteVector_key(body->average_avel_buffer[ulBuffer]);
+  }
+
+  strm.Write("body->average_counter", (ULONG)body->average_counter);
+  strm.Write_key(body->average_ready);
 };
 
 // Read object's body if there's any
@@ -432,23 +441,33 @@ void odeObject::ReadBody_t(CTStream *istr) {
   *istr >> body->adis.linear_average_threshold;
   *istr >> body->adis.angular_average_threshold;
 
-  ULONG ulSamples;
-  *istr >> ulSamples;
-  body->adis.average_samples = ulSamples;
+  ULONG ulAverageSamples;
+  *istr >> ulAverageSamples;
+  body->adis.average_samples = ulAverageSamples;
 
   *istr >> body->adis.idle_time;
   *istr >> body->adis.idle_steps;
   *istr >> body->adis_timeleft;
   *istr >> body->adis_stepsleft;
 
-  ASSERT(body->average_counter == 0);
-  ASSERT(body->average_ready == 0);
-
   *istr >> body->dampingp.linear_scale;
   *istr >> body->dampingp.angular_scale;
   *istr >> body->dampingp.linear_threshold;
   *istr >> body->dampingp.angular_threshold;
   *istr >> body->max_angular_speed;
+
+  // Setup and read average samples buffers
+  dBodySetAutoDisableAverageSamplesCount(body, ulAverageSamples);
+
+  for (ULONG ulBuffer = 0; ulBuffer < ulAverageSamples; ulBuffer++) {
+    ReadVector(istr, body->average_lvel_buffer[ulBuffer]);
+    ReadVector(istr, body->average_avel_buffer[ulBuffer]);
+  }
+
+  ULONG ulCounter;
+  *istr >> ulCounter;
+  body->average_counter = ulCounter;
+  *istr >> body->average_ready;
 
   // Set current state
   dBodySetPosition(body, body->posr.pos[0], body->posr.pos[1], body->posr.pos[2]);
@@ -569,9 +588,11 @@ void CPhysEngine::WriteObjects(CWriteStream &strm, CObjects &cAll, CObjects &cWi
 
     pObj->ulTag = ctTagCounter++;
     strm.Write_key(pObj->ulTag);
-    
+
+    // Write joint state (the joint itself is written later)
     strm.WriteID(_cidODE_ObjJoint);
-    BOOL bJoint = (pObj->joint != NULL);
+
+    const BOOL bJoint = (pObj->joint != NULL);
     strm.Write_key(bJoint);
 
     if (bJoint) cWithJoints.Add(pObj);
@@ -631,7 +652,9 @@ void CPhysEngine::ReadObjects(CTStream *istr, CObjects &cAll, CObjects &cWithJoi
 
     *istr >> pObj->ulTag;
 
+    // Read joint state (the joint itself is read later)
     istr->ExpectID_t(_cidODE_ObjJoint);
+
     BOOL bJoint;
     *istr >> bJoint;
 
