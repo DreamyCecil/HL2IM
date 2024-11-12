@@ -2738,6 +2738,14 @@ CTFileName CGame::GetQuickSaveName(BOOL bSave)
   return fnmDir+fnmName;
 }
 
+// [Cecil] Font texture that needs to be resized
+static CTextureObject _toTitleFont;
+
+inline void UpdateMenuFonts(void) {
+  if (_toTitleFont.GetData() != NULL) {
+    ((CTextureData *)_toTitleFont.GetData())->ChangeSize(512);
+  }
+};
 
 void CGame::GameMainLoop(void) {
   if (gam_bQuickSave && GetSP()->sp_gmGameMode != CSessionProperties::GM_FLYOVER) {
@@ -2852,6 +2860,9 @@ void CGame::GameMainLoop(void) {
     // do main loop procesing
     _pNetwork->MainLoop();
 
+    // [Cecil] Resize menu fonts while in a game
+    UpdateMenuFonts();
+
     // [Cecil] Stop menu music
     if (IsScriptSoundPlaying(5)) {
       StopScriptSound(5);
@@ -2927,9 +2938,12 @@ void CGame::LCDInit(void) {
     _toHLBack1A.SetData_t(CTFILENAME("Textures\\MenuBack1A.tex"));
     _toHLBack1B.SetData_t(CTFILENAME("Textures\\MenuBack1B.tex"));
     _toHLBack1_Anim.SetData_t(CTFILENAME("Textures\\MenuBackAnim.tex"));
-    ((CTextureData*)_toHLBack1A.GetData())->Force(TEX_CONSTANT);
-    ((CTextureData*)_toHLBack1B.GetData())->Force(TEX_CONSTANT);
-    ((CTextureData*)_toHLBack1_Anim.GetData())->Force(TEX_CONSTANT);
+    _toTitleFont.SetData_t(CTFILENAME("Fonts\\Title2.tex"));
+
+    ((CTextureData *)_toHLBack1A.GetData())->Force(TEX_CONSTANT);
+    ((CTextureData *)_toHLBack1B.GetData())->Force(TEX_CONSTANT);
+    ((CTextureData *)_toHLBack1_Anim.GetData())->Force(TEX_CONSTANT);
+    ((CTextureData *)_toTitleFont.GetData())->Force(TEX_CONSTANT);
 
   } catch (char *strError) {
     FatalError("%s\n", strError);
@@ -3158,14 +3172,9 @@ COLOR CGame::LCDBlinkingColor(COLOR col0, COLOR col1) {
 
 // menu interface functions
 void CGame::MenuPreRenderMenu(const char *strMenuName) {
-  // [Cecil] Resize menu fonts
-  try {
-    CTextureObject to;
-    to.SetData_t(CTFILENAME("Fonts\\Title2.tex"));
-    ((CTextureData*)to.GetData())->ChangeSize(512);
-
-  } catch (char *strError) {
-    CPrintF("%s\n", strError);
+  // [Cecil] Resize menu fonts while not in a game
+  if (!gm_bGameOn) {
+    UpdateMenuFonts();
   }
 };
 
