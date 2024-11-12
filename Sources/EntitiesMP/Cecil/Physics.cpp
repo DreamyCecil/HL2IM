@@ -323,7 +323,7 @@ void GravityGunHolding(CPlayerWeapons *penWeapons, CMovableEntity *pen, const EG
   }
 
   // Only rotate certain class types
-  if (!IsDerivedFromID(pen, CPhysBase_ClassID) && !IsOfClassID(pen, CRadio_ClassID)) return;
+  if (!IsDerivedFromID(pen, CPhysBase_ClassID)) return;
 
   // Rotate
   if (bPhysical) {
@@ -407,8 +407,7 @@ BOOL GravityGunCanInteract(CCecilPlayerEntity *penPlayer, CEntity *pen, BOOL bPi
 
   // Always interact with certain moving objects
   if (IsOfClassID(pen, CMovingBrush_ClassID) || IsOfClassID(pen, CRollingStone_ClassID)
-   || IsOfClassID(pen, CProjectile_ClassID)
-   || IsOfClassID(pen, CRadio_ClassID) || IsOfClassID(pen, CRollerMine_ClassID)) {
+   || IsOfClassID(pen, CProjectile_ClassID)) {
     return TRUE;
   }
 
@@ -422,13 +421,7 @@ BOOL GravityGunCanInteract(CCecilPlayerEntity *penPlayer, CEntity *pen, BOOL bPi
 
 // Get sync class for holding the object using with the gravity gun
 CSyncedEntityPtr *GetGravityGunSync(CEntity *pen) {
-  if (IsOfClassID(pen, CRadio_ClassID)) {
-    return &((CRadio *)pen)->m_syncGravityGun;
-
-  } else if (IsOfClassID(pen, CRollerMine_ClassID)) {
-    return &((CRollerMine *)pen)->m_syncGravityGun;
-
-  } else if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
+  if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
     return &((CPhysBase *)pen)->m_syncGravityGun;
 
   } else if (IsDerivedFromID(pen, CEnemyBase_ClassID)) {

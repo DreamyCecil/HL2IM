@@ -1952,9 +1952,9 @@ functions:
       } break;
 
       case 4: { // roller mine
-        FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir*0.1f;
-        CEntity *pen = CreateEntity(CPlacement3D(vPos, ANGLE3D(0.0f, 0.0f, 0.0f)), CLASS_ROLLERMINE);
-        ((CRollerMine*)pen)->m_bTakeDamage = TRUE;
+        FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir;
+        CEntity *pen = CreateEntity(CPlacement3D(vPos, ANGLE3D(0, 0, 0)), CLASS_ROLLERMINE);
+        ((CRollerMine *)pen)->m_bTakeDamage = TRUE;
         pen->Initialize();
 
         if (_pNetwork->IsPlayerLocal(this)) {
@@ -1975,11 +1975,11 @@ functions:
       } break;
 
       case 6: { // radio
-        FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir*0.1f;
+        FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir * 0.1f;
         ANGLE3D aAngle = GetViewPlacement(CPlacement3D(FLOAT3D(0, 0, 0), ANGLE3D(180, 0, 0)), FLOAT3D(-1, 0, 0), 1.0f).pl_OrientationAngle;
 
         CEntity *pen = CreateEntity(CPlacement3D(vPos, aAngle), CLASS_RADIO);
-        ((CRadio*)pen)->m_bTakeDamage = TRUE;
+        ((CRadio *)pen)->m_bTakeDamage = TRUE;
         pen->Initialize();
 
         if (_pNetwork->IsPlayerLocal(this)) {

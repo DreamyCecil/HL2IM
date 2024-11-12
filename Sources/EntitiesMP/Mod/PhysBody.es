@@ -121,10 +121,10 @@ functions:
   virtual FLOAT GetPhysMass(void) const { return m_fMass; };
 
   // Get physics touch damage
-  virtual FLOAT GetPhysTouchDamage(const ETouch &eTouch) const { return m_fTouchDamage; };
+  virtual FLOAT GetPhysTouchDamage(const ETouch &eTouch) { return m_fTouchDamage; };
 
   // Get physics block damage
-  virtual FLOAT GetPhysBlockDamage(const EBlock &eBlock) const { return m_fBlockDamage; };
+  virtual FLOAT GetPhysBlockDamage(const EBlock &eBlock) { return m_fBlockDamage; };
 
 /****************************************************************/
 /*                   Physics object creation                    */

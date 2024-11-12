@@ -337,10 +337,10 @@ procedures:
     // [Cecil] Spawn rollermines
     if (GetSP()->sp_iHLGamemode == HLGM_MINEKILL && (IsOfClass(this, "Ammo Item") || IsOfClass(this, "Weapon Item"))) {
       CPlacement3D plMine = GetPlacement();
-      plMine.pl_PositionVector += FLOAT3D(0.0f, 0.1f, 0.0f) * GetRotationMatrix();
-      CEntity *pen = CreateEntity(plMine, CLASS_ROLLERMINE);
+      plMine.pl_PositionVector += FLOAT3D(0, 1, 0) * GetRotationMatrix();
 
-      ((CRollerMine*)pen)->m_bTakeDamage = TRUE;
+      CEntity *pen = CreateEntity(plMine, CLASS_ROLLERMINE);
+      ((CRollerMine *)pen)->m_bTakeDamage = TRUE;
       pen->Initialize();
     }
 

@@ -303,10 +303,10 @@ functions:
   virtual FLOAT GetPhysBounceVel(void) const { return 1.0f; };
 
   // Get physics touch damage
-  virtual FLOAT GetPhysTouchDamage(const ETouch &eTouch) const { return 0.0f; };
+  virtual FLOAT GetPhysTouchDamage(const ETouch &eTouch) { return 0.0f; };
 
   // Get physics block damage
-  virtual FLOAT GetPhysBlockDamage(const EBlock &eBlock) const { return 0.0f; };
+  virtual FLOAT GetPhysBlockDamage(const EBlock &eBlock) { return 0.0f; };
 
 /****************************************************************/
 /*                   Physics object creation                    */
