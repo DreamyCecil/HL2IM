@@ -1369,6 +1369,11 @@ BOOL CGame::StartDemoPlay(const CTFileName &fnDemo)
   try {
     _pNetwork->StartDemoPlay_t( fnDemo);
     CPrintF(TRANS("Started playing demo: %s\n"), fnDemo);
+
+    // [Cecil] Restart physics only in singleplayer
+    const BOOL bRestartPhysics = (GetSP()->sp_ctMaxPlayers == 1 && (GetSP()->sp_iPhysFlags & PHYSF_ENABLE));
+    if (bRestartPhysics) ODE_Start();
+
   } catch (char *strError) {
     // stop network provider
     _pNetwork->StopProvider();
@@ -1416,8 +1421,11 @@ BOOL CGame::StartDemoRec(const CTFileName &fnDemo)
 {
   // save demo recording
   try {
+    // [Cecil] Restart physics only in singleplayer
+    const BOOL bRestartPhysics = (GetSP()->sp_ctMaxPlayers == 1 && (GetSP()->sp_iPhysFlags & PHYSF_ENABLE));
+
     // [Cecil] Prevent demos from being recorded while physics simulation is running
-    if (ODE_IsStarted()) {
+    if (ODE_IsStarted() && !bRestartPhysics) {
       ThrowF_t(TRANS("Physics simulation is currently active! It needs to be disabled before recording demos for proper physics synchronization."));
     }
 
@@ -1425,6 +1433,10 @@ BOOL CGame::StartDemoRec(const CTFileName &fnDemo)
     CPrintF(TRANS("Started recording demo: %s\n"), fnDemo);
     // save a thumbnail
     SaveThumbnail(fnDemo.NoExt()+"Tbn.tex");
+
+    // [Cecil] Restart physics for synchronization
+    if (bRestartPhysics) ODE_Start();
+
     return TRUE;
   } catch (char *strError) {
     // and display error
