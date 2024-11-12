@@ -184,7 +184,7 @@ functions:
     }
 
     PhysObj().mesh.Build();
-    PhysObj().AddTrimesh();
+    PhysObj().SetTrimesh();
 
     PhysObj().EndShape();
 

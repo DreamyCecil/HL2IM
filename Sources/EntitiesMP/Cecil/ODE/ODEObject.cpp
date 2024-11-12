@@ -234,11 +234,17 @@ void odeObject::EndShape(void) {
 };
 
 // Make a sphere
-void odeObject::AddSphere(FLOAT fRadius) {
+BOOL odeObject::SetSphere(FLOAT fRadius) {
   ASSERT(fRadius > 0);
 
   // Interpret radius as diameter
   fRadius *= 0.5f;
+
+  // Resize the sphere
+  if (geom != NULL && dGeomGetClass(geom) == dSphereClass) {
+    dGeomSphereSetRadius(geom, fRadius);
+    return FALSE;
+  }
 
   // Geometry for collisions
   geom = dCreateSphere(_pODE->space, fRadius);
@@ -253,11 +259,19 @@ void odeObject::AddSphere(FLOAT fRadius) {
     // Set mass
     dMassSetSphere(&mass, fDensity, fRadius);
   }
+
+  return TRUE;
 };
 
 // Make a box
-void odeObject::AddBox(const odeVector &vSize) {
+BOOL odeObject::SetBox(const odeVector &vSize) {
   ASSERT(vSize(1) > 0 && vSize(2) > 0 && vSize(3) > 0);
+
+  // Resize the box
+  if (geom != NULL && dGeomGetClass(geom) == dBoxClass) {
+    dGeomBoxSetLengths(geom, vSize(1), vSize(2), vSize(3));
+    return FALSE;
+  }
 
   // Geometry for collisions
   geom = dCreateBox(_pODE->space, vSize(1), vSize(2), vSize(3));
@@ -271,20 +285,27 @@ void odeObject::AddBox(const odeVector &vSize) {
     // Set mass
     dMassSetBox(&mass, fDensity, vSize(1), vSize(2), vSize(3));
   }
+
+  return TRUE;
 };
 
 // Make a capsule
-void odeObject::AddCapsule(FLOAT fRadius, FLOAT fLength) {
+BOOL odeObject::SetCapsule(FLOAT fRadius, FLOAT fLength) {
   ASSERT(fRadius > 0 && fLength >= 0);
 
   // If length is small enough, both caps of the capsule essentially form a sphere
   if (fLength <= 0.0f) {
-    AddSphere(fRadius);
-    return;
+    return SetSphere(fRadius);
   }
 
   // Interpret radius as diameter
   fRadius *= 0.5f;
+
+  // Resize the capsule
+  if (geom != NULL && dGeomGetClass(geom) == dCapsuleClass) {
+    dGeomCapsuleSetParams(geom, fRadius, fLength);
+    return FALSE;
+  }
 
   // Geometry for collisions
   geom = dCreateCapsule(_pODE->space, fRadius, fLength);
@@ -299,14 +320,22 @@ void odeObject::AddCapsule(FLOAT fRadius, FLOAT fLength) {
     // Set mass
     dMassSetCapsule(&mass, fDensity, 3, fRadius, fLength);
   }
+
+  return TRUE;
 };
 
 // Make a cylinder
-void odeObject::AddCylinder(FLOAT fRadius, FLOAT fLength) {
+BOOL odeObject::SetCylinder(FLOAT fRadius, FLOAT fLength) {
   ASSERT(fRadius > 0 && fLength > 0);
 
   // Interpret radius as diameter
   fRadius *= 0.5f;
+
+  // Resize the cylinder
+  if (geom != NULL && dGeomGetClass(geom) == dCylinderClass) {
+    dGeomCylinderSetParams(geom, fRadius, fLength);
+    return FALSE;
+  }
 
   // Geometry for collisions
   geom = dCreateCylinder(_pODE->space, fRadius, fLength);
@@ -320,10 +349,12 @@ void odeObject::AddCylinder(FLOAT fRadius, FLOAT fLength) {
     // Set mass
     dMassSetCylinder(&mass, fDensity, 3, fRadius, fLength);
   }
+
+  return TRUE;
 };
 
 // Make a trimesh
-void odeObject::AddTrimesh(void) {
+BOOL odeObject::SetTrimesh(void) {
   // Geometry for collisions
   geom = dCreateTriMesh(_pODE->space, mesh.trimesh, NULL, NULL, NULL);
   SetupGeom();
@@ -338,6 +369,8 @@ void odeObject::AddTrimesh(void) {
     // Set mass
     dMassSetTrimesh(&mass, fDensity, geom);
   }
+
+  return TRUE;
 };
 
 // Create a joint between two objects

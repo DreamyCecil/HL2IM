@@ -169,18 +169,19 @@ class odeObject {
     void EndShape(void);
 
     // Add object of a certain shape relative to the object center
-    void AddSphere(FLOAT fRadius);
-    void AddBox(const odeVector &vSize);
-    void AddCapsule(FLOAT fRadius, FLOAT fLength);
+    // All methods return TRUE when the shape is created anew instead of changing parameters of an existing one
+    BOOL SetSphere(FLOAT fRadius);
+    BOOL SetBox(const odeVector &vSize);
+    BOOL SetCapsule(FLOAT fRadius, FLOAT fLength);
 
     // [Cecil] NOTE: Cylinder collisions seem to be unfinished and they cannot collide with
     // other cylinders or capsules as a result; prefer capsules or multiple boxes instead
-    void AddCylinder(FLOAT fRadius, FLOAT fLength);
+    BOOL SetCylinder(FLOAT fRadius, FLOAT fLength);
 
     // [Cecil] NOTE: Before making the trimesh body, the trimesh geometry itself must be
     // created via mesh.FromBrush() for adding polygons from individual brushes and then
     // via mesh.Build() to create the trimesh geometry before calling this function
-    void AddTrimesh(void);
+    BOOL SetTrimesh(void);
 
     // Create a joint between two objects
     void Connect(odeObject &objOther);

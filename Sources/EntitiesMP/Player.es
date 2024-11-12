@@ -1654,7 +1654,7 @@ functions:
     plSphere.RelativeToAbsoluteSmooth(GetPlacement());
 
     PhysObj().BeginShape(plSphere, 1.0f, OBJF_BODY);
-    PhysObj().AddSphere(PHYS_SPHERE_RADIUS);
+    PhysObj().SetSphere(PHYS_SPHERE_RADIUS);
     PhysObj().EndShape();
 
     PhysObj().SetGravity(FALSE);

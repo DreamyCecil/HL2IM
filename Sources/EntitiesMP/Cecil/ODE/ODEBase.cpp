@@ -462,7 +462,7 @@ void ODE_Start(void) {
 
   // Finish up world mesh
   _pODE->pObjWorld->mesh.Build();
-  _pODE->pObjWorld->AddTrimesh();
+  _pODE->pObjWorld->SetTrimesh();
   _pODE->pObjWorld->EndShape();
 
   // Notify physics objects about simulation starting
