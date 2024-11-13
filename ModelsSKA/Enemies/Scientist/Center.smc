@@ -1,0 +1,10 @@
+NAME "Center";
+{
+  SKELETON  	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Center.bs";
+  ALLFRAMESBBOX	-0.25,0,-0.25,0.25,1.25,0.25;
+  COLISION
+  {
+    "Stand"  {-0.25,0,-0.25,0.25,1.25,0.25;}
+    "Death"  {-0.5,0,-0.5,0.5,0.5,0.5;}
+  }
+}

@@ -1,0 +1,37 @@
+NAME "Scientist1";
+{
+  MESH       	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Scientist.bm";
+  TEXTURES   
+  {
+    "Hand"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci2_hand1.tex";
+    "Knuckles"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci2_knuckles.tex";
+    "sci2_needle1"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci2_needle1.tex";
+    "sci3(back2)"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3(back2).tex";
+    "sci3(chest)"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3(chest).tex";
+    "sci3(c-tail)"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3(c-tail).tex";
+    "sci3(l-arm)"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3(l-arm).tex";
+    "sci3(l-leg)"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3(l-leg).tex";
+    "sci3(pelvis)"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3(pelvis).tex";
+    "sci3(r-arm)"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3(r-arm).tex";
+    "sci3(r-leg)"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3(r-leg).tex";
+    "sci3(shoe)"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3(shoe).tex";
+    "SCI3_Collar1"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3_collar1.tex";
+    "SCI3_LegBack1"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3_legback1.tex";
+  }
+  MESH       	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Head1.bm";
+  TEXTURES   
+  {
+    "sci3x_face1"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3x_face1.tex";
+    "sci3x_glasses1"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3x_glasses1.tex";
+    "sci3x_grim1"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3x_grim1.tex";
+    "sci3x_hside1"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci3x_hside1.tex";
+    "sci2_teeth"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci2_teeth.tex";
+    "sci2_tounge"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci2_tounge.tex";
+  }
+  SKELETON  	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Scientist.bs";
+  ANIMSET   	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Scientist.ba";
+  ALLFRAMESBBOX	-0.25,0,-0.25,0.25,1.25,0.25;
+  COLISION
+  {
+  }
+}

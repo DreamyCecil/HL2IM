@@ -69,7 +69,6 @@ Sources/Obj/
 *.rpt	# crashinfo
 
 # Game Resources
-Animations/
 Demos/
 !Demos/empty
 Levels/

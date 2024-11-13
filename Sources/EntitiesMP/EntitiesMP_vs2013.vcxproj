@@ -347,6 +347,7 @@ copy "$(SolutionDir)Extras\ode\lib\ReleaseDLL\ode.dll" "$(SolutionDir)..\Bin\" &
     <ClCompile Include="Mod\BetaEnemies\Manhack.cpp" />
     <ClCompile Include="Mod\BetaEnemies\Merasmus.cpp" />
     <ClCompile Include="Mod\BetaEnemies\Metrocop.cpp" />
+    <ClCompile Include="Mod\Enemies\ScientistSKA.cpp" />
     <ClCompile Include="Mod\PhysBase.cpp" />
     <ClCompile Include="Mod\PhysBody.cpp" />
     <ClCompile Include="Mod\PhysBrush.cpp" />
@@ -2914,6 +2915,21 @@ copy "$(SolutionDir)Extras\ode\lib\ReleaseDLL\ode.dll" "$(SolutionDir)..\Bin\" &
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
     </CustomBuild>
     <CustomBuild Include="Mod\BetaEnemies\Metrocop.es">
+      <FileType>Document</FileType>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">$(ProjectName)\%(RelativeDir)%(Filename).es</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug_110|Win32'">cd "$(SolutionDir)" &amp;&amp; ecc "$(ProjectName)\%(RelativeDir)%(Filename).es" -compat</Command>
+    </CustomBuild>
+    <CustomBuild Include="Mod\Enemies\ScientistSKA.es">
       <FileType>Document</FileType>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release_110|Win32'">%(RelativeDir)%(Filename).cpp;%(Outputs)</Outputs>

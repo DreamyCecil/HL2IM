@@ -1,0 +1,85 @@
+SHADER_PARAMS 1.0;
+SHADER_SURFACES 4
+{
+  SHADER_SURFACE "L_Face1";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "L_Face1";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "L_Side1";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "L_Side1";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "sci2_teeth";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci2_teeth";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "sci2_tounge";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci2_tounge";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+};
+SHADER_PARAMS_END

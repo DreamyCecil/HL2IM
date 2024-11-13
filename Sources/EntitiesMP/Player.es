@@ -50,6 +50,7 @@
 #include "HL2Models/ItemHandler.h"      // Item attachments
 #include "EntitiesMP/Mod/RollerMine.h"  // Roller mine spawning
 #include "EntitiesMP/Mod/Radio.h"       // Radio spawning
+#include "EntitiesMP/Mod/Enemies/ScientistSKA.h" // Interact with the science team
 
 #define FL_PLACE CPlacement3D(FLOAT3D(-32000.0f, -512.0f, -32000.0f), ANGLE3D(0.0f, 0.0f, 0.0f))
 
@@ -4645,6 +4646,12 @@ functions:
       // [Cecil] Radio on/off
       if (IsOfClassID(pen, CRadio_ClassID) && penWeapons->m_fRayHitDistance < 3.0f) {
         pen->SendEvent(ETrigger());
+        iUseSound = SOUND_APPLY;
+      }
+
+      // [Cecil] Talk to scientists
+      if (IsOfClassID(pen, CScientistSKA_ClassID) && penWeapons->m_fRayHitDistance < 3.0f) {
+        ((CScientistSKA &)*pen).OnInteract(this);
         iUseSound = SOUND_APPLY;
       }
 

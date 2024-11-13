@@ -119,7 +119,8 @@ FLOAT hl2_fJumpMultiplier = 1.0f;
 INDEX hl2_bBunnyhopping = FALSE;
 INDEX hl2_bAutoBunnyhop = FALSE;
 
-INDEX hl2_iNewEnemies = 2; // 0 - No, 1 - Beta 0.7, 2 - Yes
+// [Cecil] TEMP: Use beta enemies until enough new ones are added
+INDEX hl2_iNewEnemies = 1; // 0 - No, 1 - Beta 0.7, 2 - Yes
 INDEX hl2_bEnemyDrops = FALSE;
 INDEX hl2_bUseMaterials = TRUE;
 INDEX hl2_bAdminMenu = FALSE;

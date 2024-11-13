@@ -1,0 +1,265 @@
+SHADER_PARAMS 1.0;
+SHADER_SURFACES 13
+{
+  SHADER_SURFACE "SCI3_Collar1";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "SCI3_Collar1";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "SCI3_LegBack1";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "SCI3_LegBack1";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci2_Hand1";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "Hand";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci2_Knuckles";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "Knuckles";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci3_Back2";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci3(back2)";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci3_CTail";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci3(c-tail)";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci3_Chest";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci3(chest)";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci3_LArm";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci3(l-arm)";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci3_LLeg";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci3(l-leg)";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci3_Pelvis";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci3(pelvis)";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci3_RArm";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci3(r-arm)";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci3_RLeg";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci3(r-leg)";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci3_Shoe";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci3(shoe)";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+};
+SHADER_PARAMS_END

@@ -32,7 +32,7 @@ class CWorldPatch : public CWorld {
     // [Cecil] Replace certain classes on creation
     CEntity *P_CreateEntity(const CPlacement3D &plPlacement, CEntityClass *pecClass) {
       // Skip to the original function if not in game
-      if (_bWorldEditorApp && !GetSP()->sp_bQuickTest) {
+      if (!IsPlayingGame()) {
         return (this->*pCreateEntityFunc)(plPlacement, pecClass);
       }
 
@@ -44,9 +44,11 @@ class CWorldPatch : public CWorld {
         if (fnmClass == CTString("Classes\\" _OldClass ".ecl")) \
           fnmClass = CTFILENAME("Classes\\" _NewClass ".ecl")
 
+      const BOOL bBeta = !!(GetSP()->sp_iHL2Flags & HL2F_ENEMIES1);
+      const BOOL bNew  = !!(GetSP()->sp_iHL2Flags & HL2F_ENEMIES2);
+
       // Beta 0.7 enemies
-      if (GetSP()->sp_iHL2Flags & HL2F_ENEMIES1)
-      {
+      if (bBeta) {
              CLASS_REPLACE("Boneman",       "BetaEnemies\\Antlion");
         else CLASS_REPLACE("Werebull",      "BetaEnemies\\AntlionGuard");
         else CLASS_REPLACE("Guffy",         "BetaEnemies\\CombineElite");
@@ -56,6 +58,15 @@ class CWorldPatch : public CWorld {
         else CLASS_REPLACE("Eyeman",        "BetaEnemies\\Manhack");
         else CLASS_REPLACE("Summoner",      "BetaEnemies\\Merasmus");
         else CLASS_REPLACE("Headman",       "BetaEnemies\\Metrocop");
+
+      // Half-Life 2 enemies
+      } else if (bNew) {
+        NOTHING;
+      }
+
+      // New enemies overall
+      if (bBeta || bNew) {
+        CLASS_REPLACE("BigHead", "Enemies\\ScientistSKA");
       }
 
       // Obtain a replacement entity class

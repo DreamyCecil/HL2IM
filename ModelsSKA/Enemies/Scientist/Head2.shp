@@ -1,0 +1,145 @@
+SHADER_PARAMS 1.0;
+SHADER_SURFACES 7
+{
+  SHADER_SURFACE "Face1";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "Face1";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Hair_Side1";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "Hair_Side1";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Hair_Side2";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "Hair_Side2";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "sci2_teeth";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci2_teeth";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "sci2_tounge";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci2_tounge";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci3_Shoe";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci3(shoe)";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Stache1";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "Stache1";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+};
+SHADER_PARAMS_END

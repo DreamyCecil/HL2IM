@@ -2073,12 +2073,17 @@ functions:
 
     return CCecilMovableModelEntity::HandleEvent(ee);
   }
+
+  // [Cecil] Get main SKA model instance
+  virtual CModelInstance *GetMainModelInstance(void) {
+    return GetModelInstance();
+  };
   
   // returns length of animation
   FLOAT GetAnimLength(int iAnim)
   {
     if(en_RenderType==RT_SKAMODEL) {
-      return GetModelInstance()->GetAnimLength(iAnim);
+      return GetMainModelInstance()->GetAnimLength(iAnim);
     } else {
       return GetModelObject()->GetAnimLength(iAnim);
     }
@@ -2117,7 +2122,7 @@ functions:
   FLOAT3D &GetModelStretch()
   {
     if(en_RenderType==RT_SKAMODEL) {
-      return GetModelInstance()->mi_vStretch;
+      return GetMainModelInstance()->mi_vStretch;
     } else {
       return GetModelObject()->mo_Stretch;
     }
@@ -2127,7 +2132,7 @@ functions:
   void StretchModel(FLOAT3D vStretch)
   {
     if(en_RenderType==RT_SKAMODEL) {
-      GetModelInstance()->StretchModel( vStretch);
+      GetMainModelInstance()->StretchModel( vStretch);
     } else {
       GetModelObject()->StretchModel( vStretch);
     }
@@ -2137,7 +2142,7 @@ functions:
   void StretchSingleModel( FLOAT3D vStretch)
   {
     if(en_RenderType==RT_SKAMODEL) {
-      GetModelInstance()->StretchSingleModel( vStretch);
+      GetMainModelInstance()->StretchSingleModel( vStretch);
     } else {
       GetModelObject()->StretchSingleModel( vStretch);
     }

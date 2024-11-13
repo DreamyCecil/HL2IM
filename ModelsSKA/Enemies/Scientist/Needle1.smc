@@ -1,0 +1,17 @@
+NAME "Needle";
+{
+  MESH       	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Needle.bm";
+  TEXTURES   
+  {
+    "Sci2_Chrome1"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci2_chrome1.tex";
+    "Hand"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci2_hand1.tex";
+    "Knuckles"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci2_knuckles.tex";
+    "sci2_needle1"	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Textures\sci2_needle1.tex";
+  }
+  SKELETON  	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Scientist.bs";
+  ANIMSET   	TFNM "Mods\HL2IM\ModelsSKA\Enemies\Scientist\Scientist.ba";
+  ALLFRAMESBBOX	-0.25,0,-0.25,0.25,1.25,0.25;
+  COLISION
+  {
+  }
+}

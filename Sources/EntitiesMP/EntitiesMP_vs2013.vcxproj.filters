@@ -76,6 +76,9 @@
     <Filter Include="Header Files\Cecil headers\ODE headers">
       <UniqueIdentifier>{76c66c6b-e471-471d-a336-adae937377c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Class Files\Cecil\Enemies">
+      <UniqueIdentifier>{d069213e-36e0-491c-ae2c-91a515964a0d}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\Cecil headers\Collision headers">
       <UniqueIdentifier>{9c7f5c09-d9a0-44b2-ac7d-b05907bbc66f}</UniqueIdentifier>
     </Filter>
@@ -629,6 +632,9 @@
     </ClCompile>
     <ClCompile Include="Cecil\ODE\ODEObject.cpp">
       <Filter>Source Files\Cecil sources\ODE sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\Enemies\ScientistSKA.cpp">
+      <Filter>Source Files\Entity sources</Filter>
     </ClCompile>
     <ClCompile Include="Mod\PhysObject.cpp">
       <Filter>Source Files\Entity sources</Filter>
@@ -1221,6 +1227,9 @@
     </CustomBuild>
     <CustomBuild Include="Mod\BetaEnemies\Metrocop.es">
       <Filter>Class Files\Cecil\BetaEnemies</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Mod\Enemies\ScientistSKA.es">
+      <Filter>Class Files\Cecil\Enemies</Filter>
     </CustomBuild>
     <CustomBuild Include="Mod\PhysBody.es">
       <Filter>Class Files\Cecil</Filter>

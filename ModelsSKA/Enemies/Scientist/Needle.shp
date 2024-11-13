@@ -1,0 +1,85 @@
+SHADER_PARAMS 1.0;
+SHADER_SURFACES 4
+{
+  SHADER_SURFACE "sci2_needle1";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "sci2_needle1";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci2_Chrome1";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "Sci2_Chrome1";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci2_Hand1";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "Hand";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+  SHADER_SURFACE "Sci2_Knuckles";
+  {
+    SHADER_NAME "Shaders\Base.sha";
+    SHADER_TEXTURES 1
+    {
+      "Knuckles";
+    };
+    SHADER_UVMAPS 1
+    {
+      0;
+    };
+    SHADER_COLORS 1
+    {
+      0xFFFFFFFF;
+    };
+    SHADER_FLOATS 0
+    {
+    };
+    SHADER_FLAGS 0x00000000;
+  };
+};
+SHADER_PARAMS_END
