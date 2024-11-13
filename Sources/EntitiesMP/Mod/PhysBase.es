@@ -395,16 +395,27 @@ functions:
     // Drop this object
     GravityGunObjectDrop(m_syncGravityGun);
 
-    if (PhysicsUsable()) { return; }
+    if (!PhysicsUsable()) { return; }
 
     const FLOAT3D vCenter = PhysObj().GetPosition();
     PhysObj().Clear(TRUE);
 
     // Update other objects around it
     if (_penGlobalController != NULL) {
-      FLOAT3D vSize;
-      GetPhysCollision(vSize);
-      _penGlobalController->UpdatePhysObjects(FLOATaabbox3D(vCenter, vSize.Length() * 5.0f));
+      FLOATaabbox3D box;
+
+      if (GetRenderType() == RT_BRUSH) {
+        GetSize(box);
+        box.Expand(8.0f);
+        box += GetPlacement().pl_PositionVector;
+
+      } else {
+        FLOAT3D vSize;
+        GetPhysCollision(vSize);
+        box = FLOATaabbox3D(vCenter, vSize.Length() * 5.0f);
+      }
+
+      _penGlobalController->UpdatePhysObjects(box);
     }
   };
 
