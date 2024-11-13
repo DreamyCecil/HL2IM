@@ -108,7 +108,8 @@ functions:
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType, FLOAT fDamage, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) {
     if (PhysicsUsable()) {
       CPhysBase::ReceiveDamage(penInflictor, dmtType, fDamage, vHitPoint, vDirection);
-    } else {
+
+    } else if (CanDamagePhysObject(penInflictor)) {
       CCecilMovableModelEntity::ReceiveDamage(penInflictor, dmtType, fDamage, vHitPoint, vDirection);
     }
   };
@@ -335,13 +336,20 @@ procedures:
     autowait(0.1f);
 
     // [Cecil] Spawn rollermines
-    if (GetSP()->sp_iHLGamemode == HLGM_MINEKILL && (IsOfClass(this, "Ammo Item") || IsOfClass(this, "Weapon Item"))) {
-      CPlacement3D plMine = GetPlacement();
-      plMine.pl_PositionVector += FLOAT3D(0, 1, 0) * GetRotationMatrix();
+    if (GetSP()->sp_iHLGamemode == HLGM_MINEKILL) {
+      const BOOL bAmmo = IsOfClass(this, "Ammo Item");
+      const BOOL bWeapon = IsOfClass(this, "Weapon Item");
 
-      CEntity *pen = CreateEntity(plMine, CLASS_ROLLERMINE);
-      ((CRollerMine *)pen)->m_bTakeDamage = TRUE;
-      pen->Initialize();
+      if (bAmmo || bWeapon) {
+        CPlacement3D plMine = GetPlacement();
+        plMine.pl_PositionVector += FLOAT3D(0, 1, 0) * GetRotationMatrix();
+
+        CEntity *pen = CreateEntity(plMine, CLASS_ROLLERMINE);
+        ((CRollerMine *)pen)->m_fDamage = (bWeapon ? 2.0f : 1.0f); // More damage from "weapon" mines
+        ((CRollerMine *)pen)->m_fPhysHealth = (bWeapon ? 500.0f : 200.0f);
+        ((CRollerMine *)pen)->m_bPhysEnvDamage = FALSE;
+        pen->Initialize();
+      }
     }
 
     SetPredictable(TRUE);
@@ -382,18 +390,18 @@ procedures:
         resume;
       }
 
+      // [Cecil] Destroy items on death
+      on (EDeath) : {
+        // Pretend that it's been picked up by everyone
+        m_ulPickedMask = 0xFFFFFFFF;
+        stop;
+      }
+
       on (EEnd) : { stop; }
     }
 
-    // [Cecil] Drop this object
-    GravityGunObjectDrop(m_syncGravityGun);
-
-    // [Cecil] Destory physics object and update objects around the item
-    PhysObj().Clear(TRUE);
-
-    if (_penGlobalController != NULL) {
-      _penGlobalController->UpdatePhysObjects(FLOATaabbox3D(GetPlacement().pl_PositionVector, 8.0f));
-    }
+    // [Cecil] Destroy physics object
+    DestroyObject();
 
     // wait for sound to end
     autowait(m_fPickSoundLen+0.5f);

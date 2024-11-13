@@ -1,11 +1,6 @@
 5003
 %{
 #include "StdH.h"
-
-// Gravity Gun actions
-#include "EntitiesMP/Cecil/Physics.h"
-
-#include "EntitiesMP/EnemyBase.h"
 %}
 
 uses "EntitiesMP/Mod/PhysBase";
@@ -19,9 +14,8 @@ features  "HasName", "IsTargetable";
 properties:
   1 CTString m_strName "Name" = "Radio",
   2 CSoundObject m_soSong,
-  
+
   5 BOOL m_bActive     "Active" = TRUE,
-  6 BOOL m_bTakeDamage "Take Damage" = FALSE,
 
 components:
   1 class CLASS_BASIC_EFFECT "Classes\\BasicEffect.ecl",
@@ -103,53 +97,6 @@ functions:
     penEffect->Initialize(eSpawnEffect);
   };
 
-  void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType, FLOAT fDamage, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) {
-    // No damage
-    if (fDamage <= 0.0f) {
-      return;
-    }
-
-    // Receive environment damage
-    if (!IsDerivedFromID(penInflictor, CEnemyBase_ClassID) && !IS_PLAYER(penInflictor)) {
-      CPhysBase::ReceiveDamage(penInflictor, dmtType, fDamage, vHitPoint, vDirection);
-      return;
-    }
-
-    // kick damage
-    FLOAT fKickDamage = fDamage;
-    if (dmtType == DMT_EXPLOSION || dmtType == DMT_IMPACT || dmtType == DMT_CANNONBALL_EXPLOSION) {
-      fKickDamage *= 1.5f;
-    }
-
-    if (dmtType == DMT_DROWNING || dmtType == DMT_CHAINSAW) {
-      fKickDamage /= 10.0f;
-    }
-
-    if (dmtType == DMT_BURNING) {
-      fKickDamage /= 100000.0f;
-    }
-
-    // add new damage
-    FLOAT3D vDirectionFixed = -en_vGravityDir;
-    if (vDirection.ManhattanNorm() > 0.5f) {
-      vDirectionFixed = vDirection;
-    }
-
-    FLOAT3D vDamage = (vDirectionFixed - en_vGravityDir/2) * fKickDamage;
-    
-    FLOAT fNewLen = vDamage.Length();
-    FLOAT fNewRootLen = Sqrt(fNewLen);
-
-    // push it back
-    GiveImpulseTranslationAbsolute(vDamage/fNewRootLen);
-
-    if (m_bTakeDamage) {
-      CPhysBase::ReceiveDamage(penInflictor, dmtType, fDamage, vHitPoint, vDirection);
-    } else {
-      CPhysBase::PhysicsDamageImpact(dmtType, fDamage, vHitPoint, vDirection);
-    }
-  };
-
   // Set appropriate flags for the item
   void SetItemFlags(BOOL bRealisticPhysics) {
     if (bRealisticPhysics) {
@@ -172,7 +119,6 @@ procedures:
     autowait(ONE_TICK);
     SetItemFlags(ODE_IsStarted());
 
-    SetHealth(1000.0f);
     AddToMovers();
     m_soSong.Set3DParameters(32.0f, 4.0f, 1.0f, 1.0f);
 
@@ -242,15 +188,8 @@ procedures:
       otherwise() : { resume; }
     }
 
-    // Drop this object
-    GravityGunObjectDrop(m_syncGravityGun);
-
-    // Destory physics object and update objects around the item
-    PhysObj().Clear(TRUE);
-
-    if (_penGlobalController != NULL) {
-      _penGlobalController->UpdatePhysObjects(FLOATaabbox3D(GetPlacement().pl_PositionVector, 8.0f));
-    }
+    // Destroy physics object
+    DestroyObject();
 
     // Cease to exist
     Destroy();

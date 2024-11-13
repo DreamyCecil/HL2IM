@@ -18,6 +18,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdH.h"
 
 #include "EntitiesMP/Cecil/Physics.h"
+#include "EntitiesMP/MovingBrush.h"
 %}
 
 uses "EntitiesMP/Mod/PhysBase";
@@ -86,6 +87,31 @@ functions:
 
   BOOL HandleEvent(const CEntityEvent &ee) {
     switch (ee.ee_slEvent) {
+      // Destroy entity on death
+      case EVENTCODE_EDeath: {
+        DestroyObject();
+
+        if (GetRenderType() == RT_BRUSH) {
+          // Hide brushes
+          ForceFullStop();
+          SetDefaultProperties();
+          NotifyCollisionChanged();
+
+          SetFlags(GetFlags() | ENF_HIDDEN);
+          SetCollisionFlags(ECF_IMMATERIAL);
+
+        } else {
+          // Destroy models
+          Destroy();
+        }
+
+        // Send destruction events to parented entities
+        FOREACHINLIST(CEntity, en_lnInParent, en_lhChildren, iten) {
+          iten->SendEvent(EBrushDestroyed());
+          iten->SendEvent(ERangeModelDestruction());
+        }
+      } break;
+
       // Physics simulation
       case EVENTCODE_EPhysicsStart: {
         ConnectGeoms();

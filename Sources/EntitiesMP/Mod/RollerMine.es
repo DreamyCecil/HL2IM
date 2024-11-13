@@ -1,11 +1,6 @@
 5002
 %{
 #include "StdH.h"
-
-// Gravity Gun actions
-#include "EntitiesMP/Cecil/Physics.h"
-
-#include "EntitiesMP/EnemyBase.h"
 %}
 
 uses "EntitiesMP/Mod/PhysBase";
@@ -20,7 +15,6 @@ properties:
   1 CTString m_strName    "Name" = "Roller Mine",
   3 FLOAT m_fDamage       "Damage multiplier" 'D' = 1.0f,
   4 FLOAT m_fStretch      "Stretch" 'S' = 1.0f,
-  8 CEntityPointer m_penDeathTarget "Death target" 'T',
 
  10 CSoundObject m_soRoll,
  11 INDEX m_iRollSound = -1,
@@ -34,7 +28,6 @@ properties:
  31 FLOAT m_fLastDist = -1.0f,
  32 FLOAT m_tmJump = -100.0f,
  33 BOOL m_bActive     "Active" = TRUE,
- 34 BOOL m_bTakeDamage "Take Damage" = FALSE,
 
 components:
   1 class CLASS_BASIC_EFFECT "Classes\\BasicEffect.ecl",
@@ -115,18 +108,6 @@ functions:
         m_bActive = FALSE;
         m_penTarget = NULL;
       } return TRUE;
-
-      case EVENTCODE_EDeath: {
-        const EDeath &eDeath = (const EDeath &)ee;
-        ExplosionEffect();
-        InflictRangeDamage(this, DMT_EXPLOSION, 20 * m_fStretch, GetPlacement().pl_PositionVector, 2 * m_fStretch, 8 * m_fStretch);
-
-        SendToTarget(m_penDeathTarget, EET_TRIGGER, eDeath.eLastDamage.penInflictor);
-
-        // [Cecil] NOTE: For some reason the game enters an infinite loop on rollermine death,
-        // so it purposefully breaks here to pass the event into the looped procedure to exit it
-        m_bLogicLoop = FALSE;
-      } break;
 
       // Physics simulation
       case EVENTCODE_EPhysicsStart: {
@@ -251,25 +232,6 @@ functions:
     penEffect->Initialize(eSpawnEffect);
   };
 
-  void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType, FLOAT fDamage, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) {
-    // No damage
-    if (fDamage <= 0.0f) {
-      return;
-    }
-
-    // Receive environment damage
-    if (!IsDerivedFromID(penInflictor, CEnemyBase_ClassID) && !IS_PLAYER(penInflictor)) {
-      CPhysBase::ReceiveDamage(penInflictor, dmtType, fDamage, vHitPoint, vDirection);
-      return;
-    }
-
-    if (m_bTakeDamage) {
-      CPhysBase::ReceiveDamage(penInflictor, dmtType, fDamage, vHitPoint, vDirection);
-    } else {
-      CPhysBase::PhysicsDamageImpact(dmtType, fDamage, vHitPoint, vDirection);
-    }
-  };
-
   void PostMoving() {
     CPhysBase::PostMoving();
 
@@ -354,7 +316,6 @@ procedures:
     autowait(ONE_TICK);
     SetItemFlags(ODE_IsStarted());
 
-    SetHealth(200.0f);
     AddToMovers();
 
     m_soState.Set3DParameters(50.0f, 10.0f, 1.0f, 1.0f);
@@ -412,23 +373,21 @@ procedures:
       }
 
       wait (ONE_TICK) {
-        // HandleEvent() passes the death event here on purpose
-        on (EDeath) : { stop; }
+        on (EDeath) : {
+          ExplosionEffect();
+          InflictRangeDamage(this, DMT_EXPLOSION, 20 * m_fStretch, GetPlacement().pl_PositionVector, 2 * m_fStretch, 8 * m_fStretch);
+
+          m_bLogicLoop = FALSE;
+          stop;
+        }
 
         on (ETimer) : { stop; }
         otherwise() : { resume; }
       }
     }
 
-    // Drop this object
-    GravityGunObjectDrop(m_syncGravityGun);
-
-    // Destory physics object and update objects around the item
-    PhysObj().Clear(TRUE);
-
-    if (_penGlobalController != NULL) {
-      _penGlobalController->UpdatePhysObjects(FLOATaabbox3D(GetPlacement().pl_PositionVector, 8.0f));
-    }
+    // Destroy physics object
+    DestroyObject();
 
     // Cease to exist
     Destroy();

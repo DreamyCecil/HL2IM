@@ -18,6 +18,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdH.h"
 
 #include "EntitiesMP/Cecil/Physics.h"
+#include "EntitiesMP/EnemyBase.h"
 
 // How long to wait before returning to the last valid physical position
 static const _tmOutOfBoundsLimit = 1.0f;
@@ -68,6 +69,11 @@ properties:
 22 FLOAT m_tmOutOfBounds = -100.0f,
 23 FLOAT m_tmLastMovement = -100.0f,
 24 BOOL m_bCreatedOOB = FALSE, // Don't do out-of-bounds checks for objects that are created out of bounds
+
+// Generic destructivity properties
+30 FLOAT m_fPhysHealth "Phys health" = -1.0f,
+31 BOOL m_bPhysEnvDamage "Phys only environment damage" = FALSE,
+32 CEntityPointer m_penPhysDeath "Phys death target",
 
 {
   SPhysObject m_obj; // Actual physics object simulated by the external physics engine
@@ -325,6 +331,12 @@ functions:
 
     if (!ODE_IsStarted() || !UseRealisticPhysics()) { return; }
 
+    // Hidden (or destroyed, in brush's case)
+    if (GetFlags() & ENF_HIDDEN) { return; }
+
+    // Empty brush
+    if (GetRenderType() == RT_BRUSH && IsEmptyBrush()) { return; }
+
     // Begin creating a new object
     CPlacement3D plOffset;
 
@@ -361,6 +373,9 @@ functions:
 
     // Add this object to the controller
     _penGlobalController->m_cPhysEntities.Add(PhysObj().nPhysOwner);
+
+    // Reset health
+    SetHealth(m_fPhysHealth);
   };
 
   // Add physics object geometry
@@ -375,12 +390,42 @@ functions:
     }
   };
 
+  // Destory physics object
+  void DestroyObject(void) {
+    // Drop this object
+    GravityGunObjectDrop(m_syncGravityGun);
+
+    if (PhysicsUsable()) { return; }
+
+    const FLOAT3D vCenter = PhysObj().GetPosition();
+    PhysObj().Clear(TRUE);
+
+    // Update other objects around it
+    if (_penGlobalController != NULL) {
+      FLOAT3D vSize;
+      GetPhysCollision(vSize);
+      _penGlobalController->UpdatePhysObjects(FLOATaabbox3D(vCenter, vSize.Length() * 5.0f));
+    }
+  };
+
 /****************************************************************/
 /*                Common physics object movement                */
 /****************************************************************/
+  BOOL CanDamagePhysObject(CEntity *penInflictor) const {
+    // Health isn't set
+    if (m_fPhysHealth < 0.0f) { return FALSE; }
+
+    // Not environment-exclusive
+    if (!m_bPhysEnvDamage) { return TRUE; }
+
+    // Environment-exclusive means no enemies or players
+    return !IsDerivedFromID(penInflictor, CEnemyBase_ClassID) && !IS_PLAYER(penInflictor);
+  };
 
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType, FLOAT fDamage, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) {
-    CCecilMovableModelEntity::ReceiveDamage(penInflictor, dmtType, fDamage, vHitPoint, vDirection);
+    if (CanDamagePhysObject(penInflictor)) {
+      CCecilMovableModelEntity::ReceiveDamage(penInflictor, dmtType, fDamage, vHitPoint, vDirection);
+    }
 
     PhysicsDamageImpact(dmtType, fDamage, vHitPoint, vDirection);
   };
@@ -418,6 +463,15 @@ functions:
 
   BOOL HandleEvent(const CEntityEvent &ee) {
     switch (ee.ee_slEvent) {
+      // Send event on death once
+      case EVENTCODE_EDeath: {
+        const EDeath &eDeath = (const EDeath &)ee;
+        SendToTarget(m_penPhysDeath, EET_TRIGGER, eDeath.eLastDamage.penInflictor);
+
+        m_fPhysHealth = -1.0f;
+        m_penPhysDeath = NULL;
+      } break;
+
       // Damage on touch
       case EVENTCODE_ETouch: {
         const ETouch &eTouch = (const ETouch &)ee;

@@ -1954,7 +1954,8 @@ functions:
       case 4: { // roller mine
         FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir;
         CEntity *pen = CreateEntity(CPlacement3D(vPos, ANGLE3D(0, 0, 0)), CLASS_ROLLERMINE);
-        ((CRollerMine *)pen)->m_bTakeDamage = TRUE;
+        ((CRollerMine *)pen)->m_fPhysHealth = 200.0f;
+        ((CRollerMine *)pen)->m_bPhysEnvDamage = FALSE;
         pen->Initialize();
 
         if (_pNetwork->IsPlayerLocal(this)) {
@@ -1979,7 +1980,8 @@ functions:
         ANGLE3D aAngle = GetViewPlacement(CPlacement3D(FLOAT3D(0, 0, 0), ANGLE3D(180, 0, 0)), FLOAT3D(-1, 0, 0), 1.0f).pl_OrientationAngle;
 
         CEntity *pen = CreateEntity(CPlacement3D(vPos, aAngle), CLASS_RADIO);
-        ((CRadio *)pen)->m_bTakeDamage = TRUE;
+        ((CRadio *)pen)->m_fPhysHealth = 1000.0f;
+        ((CRadio *)pen)->m_bPhysEnvDamage = FALSE;
         pen->Initialize();
 
         if (_pNetwork->IsPlayerLocal(this)) {
