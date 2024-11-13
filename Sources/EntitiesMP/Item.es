@@ -7,6 +7,7 @@
 #include "EntitiesMP/Cecil/Physics.h"
 // [Cecil] Roller Mine spawning
 #include "EntitiesMP/Mod/RollerMine.h"
+#include "EntitiesMP/Copier.h"
 
 // [Cecil] Static items on the ground
 #define EPF_GROUND_ITEM (EPF_COLLIDEWITHCUSTOM | EPF_COLLIDEWITHCUSTOM_EXCL | \
@@ -316,7 +317,41 @@ functions:
     return slUsedMemory;
   }
 
+  // [Cecil] Spawn rollermines on freshly created items
+  void MinekillLogic(void) {
+    const BOOL bAmmo = IsOfClass(this, "Ammo Item");
+    const BOOL bWeapon = IsOfClass(this, "Weapon Item");
 
+    if (!bAmmo && !bWeapon) {
+      return;
+    }
+
+    CPlacement3D plMine = GetPlacement();
+    plMine.pl_PositionVector += FLOAT3D(0, 1, 0) * GetRotationMatrix();
+
+    CEntity *penMine = CreateEntity(plMine, CLASS_ROLLERMINE);
+    ((CRollerMine *)penMine)->m_fDamage = (bWeapon ? 2.0f : 1.0f); // More damage from "weapon" mines
+    ((CRollerMine *)penMine)->m_fPhysHealth = (bWeapon ? 500.0f : 200.0f);
+    ((CRollerMine *)penMine)->m_bPhysEnvDamage = FALSE;
+    penMine->Initialize();
+
+    if (m_penTarget != NULL) {
+      return;
+    }
+
+    // Retarget copiers to spawn rollermines instead of this item
+    FOREACHINDYNAMICCONTAINER(GetWorld()->wo_cenEntities, CEntity, iten)
+    {
+      CEntity *penCopier = iten;
+      if (!IsOfClassID(penCopier, CCopier_ClassID)) { continue; }
+
+      CEntityPointer &penCopierTarget = ((CCopier *)penCopier)->m_penTarget;
+
+      if (penCopierTarget == this) {
+        penCopierTarget = penMine;
+      }
+    }
+  };
 
 procedures:
 
@@ -337,19 +372,7 @@ procedures:
 
     // [Cecil] Spawn rollermines
     if (GetSP()->sp_iHLGamemode == HLGM_MINEKILL) {
-      const BOOL bAmmo = IsOfClass(this, "Ammo Item");
-      const BOOL bWeapon = IsOfClass(this, "Weapon Item");
-
-      if (bAmmo || bWeapon) {
-        CPlacement3D plMine = GetPlacement();
-        plMine.pl_PositionVector += FLOAT3D(0, 1, 0) * GetRotationMatrix();
-
-        CEntity *pen = CreateEntity(plMine, CLASS_ROLLERMINE);
-        ((CRollerMine *)pen)->m_fDamage = (bWeapon ? 2.0f : 1.0f); // More damage from "weapon" mines
-        ((CRollerMine *)pen)->m_fPhysHealth = (bWeapon ? 500.0f : 200.0f);
-        ((CRollerMine *)pen)->m_bPhysEnvDamage = FALSE;
-        pen->Initialize();
-      }
+      MinekillLogic();
     }
 
     SetPredictable(TRUE);
