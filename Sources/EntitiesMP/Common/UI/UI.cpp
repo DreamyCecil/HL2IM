@@ -37,9 +37,9 @@ extern FLOAT _fResScalingX;
 extern FLOAT _fResScalingY;
 
 // [Cecil] UI Color
-extern INDEX hl2_colUIMain   = 0xFFFF008F;
-extern INDEX hl2_colUIEmpty  = 0xFF000000; // alpha doesn't matter
-extern INDEX hl2_colUIBorder = 0x0000003F;
+INDEX hl2_colUIMain   = 0xFFFF008F;
+INDEX hl2_colUIEmpty  = 0xFF000000; // alpha doesn't matter
+INDEX hl2_colUIBorder = 0x0000003F;
 
 // [Cecil] Half-Life 2 Icons
 //static CTextureObject _toOverlay;

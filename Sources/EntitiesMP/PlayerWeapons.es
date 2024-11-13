@@ -51,8 +51,6 @@ extern INDEX hud_bShowWeapon;
 
 // [Cecil] Crosshair bars
 #include "EntitiesMP/Common/UI/UI.h"
-extern INDEX hl2_colUIMain;
-extern INDEX hl2_colUIEmpty;
 extern INDEX hl2_bCrosshairColoring;
 
 #include "EntitiesMP/Cecil/Physics.h"
@@ -245,18 +243,17 @@ static INDEX hud_bShowCoords     = FALSE;
 static FLOAT plr_tmSnoopingDelay = 1.0f; // seconds 
 extern FLOAT plr_tmSnoopingTime  = 1.0f; // seconds 
 
-// some static vars
-static INDEX _iLastCrosshairType = -1;
-static CTextureObject _toCrosshair;
-
 // [Cecil] Crosshair bars
 static CTextureObject _toBarEmpty;
+static CTextureObject _toBarEmpty4K;
 static CTextureObject _toBarFull;
+static CTextureObject _toBarFull4K;
 
 // must do this to keep dependency catcher happy
-CTFileName fn1 = CTFILENAME("Textures\\Interface\\Crosshair.tex");
-CTFileName fn2 = CTFILENAME("Textures\\Interface\\BarEmpty.tex");
-CTFileName fn3 = CTFILENAME("Textures\\Interface\\BarFull.tex");
+static CTFileName _fnmBarEmpty   = CTFILENAME("Textures\\Interface\\BarEmpty.tex");
+static CTFileName _fnmBarEmpty4K = CTFILENAME("Textures\\Interface\\BarEmpty4K.tex");
+static CTFileName _fnmBarFull    = CTFILENAME("Textures\\Interface\\BarFull.tex");
+static CTFileName _fnmBarFull4K  = CTFILENAME("Textures\\Interface\\BarFull4K.tex");
 
 void CPlayerWeapons_Precache(ULONG ulAvailable)
 {
@@ -467,6 +464,17 @@ void CPlayerWeapons_Init(void) {
 
   _pShell->DeclareSymbol("persistent user FLOAT plr_tmSnoopingTime;",  &plr_tmSnoopingTime);
   _pShell->DeclareSymbol("persistent user FLOAT plr_tmSnoopingDelay;", &plr_tmSnoopingDelay);
+
+  // [Cecil] Load crosshair textures
+  try {
+    _toBarEmpty.SetData_t(_fnmBarEmpty);
+    _toBarEmpty4K.SetData_t(_fnmBarEmpty4K);
+    _toBarFull.SetData_t(_fnmBarFull);
+    _toBarFull4K.SetData_t(_fnmBarFull4K);
+
+  } catch (char *strError) {
+    FatalError(strError);
+  }
 
   // precache base weapons
   CPlayerWeapons_Precache(0x03);
@@ -2096,39 +2104,11 @@ functions:
 
   // Render Crosshair
   void RenderCrosshair(CProjection3D &prProjection, CDrawPort *pdp, CPlacement3D &plViewSource) {
-    INDEX iCrossHair = GetPlayer()->GetSettings()->ps_iCrossHairType+1;
+    //INDEX iCrossHair = GetPlayer()->GetSettings()->ps_iCrossHairType+1;
 
-    // adjust crosshair type
-    if (iCrossHair <= 0) {
-      iCrossHair = 0;
-      _iLastCrosshairType = 0;
-    }
-
-    // create new crosshair texture (if needed)
-    if (_iLastCrosshairType != iCrossHair) {
-      _iLastCrosshairType = iCrossHair;
-
-      try {
-        // load new crosshair texture
-        _toCrosshair.SetData_t(CTFILENAME("Textures\\Interface\\Crosshair.tex"));
-
-        // [Cecil]
-        _toBarEmpty.SetData_t(CTFILENAME("Textures\\Interface\\BarEmpty.tex"));
-        _toBarFull.SetData_t(CTFILENAME("Textures\\Interface\\BarFull.tex"));
-
-      } catch (char *strError) { 
-        // didn't make it! - reset crosshair
-        CPrintF( strError);
-        iCrossHair = 0;
-        return;
-      }
-    }
-
-    COLOR colCrosshair = C_WHITE;
-    TIME tmNow = _pTimer->CurrentTick();
-
-    // if hit anything
-    FLOAT3D vOnScreen;
+    // [Cecil] White crosshair on nothing, otherwise suit color
+    const BOOL bAnyWeapon = (m_iCurrentWeapon != WEAPON_NONE || GetPlayer()->m_bHEVSuit);
+    COLOR colCrosshair = (bAnyWeapon && !hl2_bCrosshairColoring ? _UI_COL : C_WHITE);
 
     //const FLOAT3D vRayHit = Lerp( m_vRayHitLast, m_vRayHit, _pTimer->GetLerpFactor());
     const FLOAT3D vRayHit = m_vRayHit;  // lerping doesn't seem to work ???
@@ -2152,38 +2132,35 @@ functions:
       }
     }
 
-    // screen center
-    vOnScreen(1) = (FLOAT)pdp->GetWidth() * 0.5f;
-    vOnScreen(2) = (FLOAT)pdp->GetHeight() * 0.5f;
+    const PIX pixX = pdp->GetWidth() * 0.5f;
+    const PIX pixY = pdp->GetHeight() * 0.5f;
+    const FLOAT fScaling = (FLOAT)pdp->GetHeight() / 480.0f;
 
-    const FLOAT fSize = 16;
+    // [Cecil] Same ratio when holding nothing, wider when holding a weapon
+    const PIX pixOffX = 10;
+    const PIX pixOffY = (bAnyWeapon ? 8 : 10);
 
-    // draw crosshair
-    const FLOAT fI0 = + (PIX)vOnScreen(1) - fSize;
-    const FLOAT fI1 = + (PIX)vOnScreen(1) + fSize;
-    const FLOAT fJ0 = - (PIX)vOnScreen(2) - fSize + pdp->GetHeight();
-    const FLOAT fJ1 = - (PIX)vOnScreen(2) + fSize + pdp->GetHeight();
-
-    pdp->InitTexture(&_toCrosshair);
-    pdp->AddTexture(fI0-1, fJ0,   fI1-1, fJ1,   0x0000003F);
-    pdp->AddTexture(fI0+1, fJ0,   fI1+1, fJ1,   0x0000003F);
-    pdp->AddTexture(fI0,   fJ0-1, fI1,   fJ1-1, 0x0000003F);
-    pdp->AddTexture(fI0,   fJ0+1, fI1,   fJ1+1, 0x0000003F);
-    pdp->AddTexture(fI0,   fJ0,   fI1,   fJ1, colCrosshair|0xAA);
-    pdp->FlushRenderingQueue();
+    pdp->DrawPoint(pixX,         pixY,         colCrosshair | 0xEF, 1);
+    pdp->DrawPoint(pixX-pixOffX, pixY,         colCrosshair | 0xEF, 1);
+    pdp->DrawPoint(pixX+pixOffX, pixY,         colCrosshair | 0xEF, 1);
+    pdp->DrawPoint(pixX,         pixY-pixOffY, colCrosshair | 0xEF, 1);
+    pdp->DrawPoint(pixX,         pixY+pixOffY, colCrosshair | 0xEF, 1);
 
     // [Cecil] Bar contents
-    if (GetPlayer()->m_bHEVSuit) {
+    if (bAnyWeapon) {
       const UBYTE ubAlpha = (hl2_colUIMain & 0xFF);
 
       FLOAT fCurHealth = (GetPlayer()->GetHealth() / 100.0f);
-      FLOAT fCurAmmo = FLOAT(GetAmmo(m_iCurrentWeapon)) / FLOAT(GetMaxAmmo(m_iCurrentWeapon));
+      FLOAT fCurAmmo;
+
       if (GetMaxMagCount(m_iCurrentWeapon) > 1) {
         fCurAmmo = FLOAT(GetMagCount(m_iCurrentWeapon)) / FLOAT(GetMaxMagCount(m_iCurrentWeapon));
+      } else {
+        fCurAmmo = FLOAT(GetAmmo(m_iCurrentWeapon)) / FLOAT(GetMaxAmmo(m_iCurrentWeapon));
       }
 
-      const FLOAT fHealthRatio = Clamp(fCurHealth * 0.725f + 0.15f, 0.0f, 1.0f);
-      const FLOAT fAmmoRatio   = Clamp(fCurAmmo   * 0.725f + 0.15f, 0.0f, 1.0f);
+      const FLOAT fHealthRatio = Clamp(fCurHealth * 0.94f + 0.03f, 0.0f, 1.0f);
+      const FLOAT fAmmoRatio   = Clamp(fCurAmmo   * 0.94f + 0.03f, 0.0f, 1.0f);
 
       const BOOL bHealthWarning = (fCurHealth <= 0.3f);
       const BOOL bAmmoWarning = (fCurAmmo <= 0.3f);
@@ -2202,49 +2179,64 @@ functions:
       }
 
       // [Cecil] Bar positions
-      FLOAT fBarRatio = 1.0f - fHealthRatio;
-      COLOR colBar = (bHealthWarning ? UI_RED : _UI_COL) | ubAlpha;
-      FLOAT fBarX1 =  (PIX)vOnScreen(1) - 48;
-      FLOAT fBarX2 =  (PIX)vOnScreen(1) - 16;
-      FLOAT fBarY1 = -(PIX)vOnScreen(2) - 32 + pdp->GetHeight();
-      FLOAT fBarY2 = -(PIX)vOnScreen(2) - 32 + pdp->GetHeight() + 64.0f*fBarRatio;
+      const FLOAT fBarH = 28.0f * fScaling;
+      const FLOAT fBarHalfH = fBarH * 0.5f;
+      const FLOAT fBarOffX1 = 22.0f * fScaling;
+      const FLOAT fBarOffX2 = fBarOffX1 - fBarHalfH;
 
       // [Cecil] Empty bars
-      pdp->InitTexture(&_toBarEmpty);
+      FLOAT fBarRatio = 1.0f - fHealthRatio;
+      COLOR colBar = (bHealthWarning ? UI_RED : colCrosshair) | ubAlpha;
+      FLOAT fBarX1 = pixX - fBarOffX1;
+      FLOAT fBarX2 = pixX - fBarOffX2;
+      FLOAT fBarY1 = pixY - fBarHalfH;
+      FLOAT fBarY2 = pixY - fBarHalfH + fBarH * fBarRatio;
+
+      // Bigger texture if resolution is higher than 1080p (1080 / 480 = 2.25)
+      if (fScaling > 2.25f) {
+        pdp->InitTexture(&_toBarEmpty4K);
+      } else {
+        pdp->InitTexture(&_toBarEmpty);
+      }
       pdp->AddTexture(fBarX1, fBarY1, fBarX2, fBarY2, 0.0f, 0.0f, 1.0f, fBarRatio, colBar);
 
       fBarRatio = 1.0f - fAmmoRatio;
-      colBar = (bAmmoWarning ? UI_RED : _UI_COL) | ubAlpha;
-      fBarX1 =  (PIX)vOnScreen(1) + 48;
-      fBarX2 =  (PIX)vOnScreen(1) + 16;
-      fBarY2 = -(PIX)vOnScreen(2) - 32 + pdp->GetHeight() + 64.0f*fBarRatio;
+      colBar = (bAmmoWarning ? UI_RED : colCrosshair) | ubAlpha;
+      fBarX1 = pixX + fBarOffX1;
+      fBarX2 = pixX + fBarOffX2;
+      fBarY2 = pixY - fBarHalfH + fBarH * fBarRatio;
 
       pdp->AddTexture(fBarX1, fBarY1, fBarX2, fBarY2, 0.0f, 0.0f, 1.0f, fBarRatio, colBar);
       pdp->FlushRenderingQueue();
 
       // [Cecil] Full bars
       fBarRatio = fHealthRatio;
-      colBar = (bHealthWarning ? UI_RED : _UI_COL) | ubAlpha;
-      fBarX1 =  (PIX)vOnScreen(1) - 48;
-      fBarX2 =  (PIX)vOnScreen(1) - 16;
-      fBarY1 = -(PIX)vOnScreen(2) + 32 + pdp->GetHeight() - 64.0f*fBarRatio;
-      fBarY2 = -(PIX)vOnScreen(2) + 32 + pdp->GetHeight();
+      colBar = (bHealthWarning ? UI_RED : colCrosshair) | ubAlpha;
+      fBarX1 = pixX - fBarOffX1;
+      fBarX2 = pixX - fBarOffX2;
+      fBarY1 = pixY + fBarHalfH - fBarH * fBarRatio;
+      fBarY2 = pixY + fBarHalfH;
 
-      pdp->InitTexture(&_toBarFull);
+      // Bigger texture if resolution is higher than 1080p (1080 / 480 = 2.25)
+      if (fScaling > 2.25f) {
+        pdp->InitTexture(&_toBarFull4K);
+      } else {
+        pdp->InitTexture(&_toBarFull);
+      }
       pdp->AddTexture(fBarX1, fBarY1, fBarX2, fBarY2, 0.0f, 1.0f-fBarRatio, 1.0f, 1.0f, colBar);
 
       fBarRatio = fAmmoRatio;
-      colBar = (bAmmoWarning ? UI_RED : _UI_COL) | ubAlpha;
-      fBarX1 =  (PIX)vOnScreen(1) + 48;
-      fBarX2 =  (PIX)vOnScreen(1) + 16;
-      fBarY1 = -(PIX)vOnScreen(2) + 32 + pdp->GetHeight() - 64.0f*fBarRatio;
+      colBar = (bAmmoWarning ? UI_RED : colCrosshair) | ubAlpha;
+      fBarX1 = pixX + fBarOffX1;
+      fBarX2 = pixX + fBarOffX2;
+      fBarY1 = pixY + fBarHalfH - fBarH * fBarRatio;
 
       pdp->AddTexture(fBarX1, fBarY1, fBarX2, fBarY2, 0.0f, 1.0f-fBarRatio, 1.0f, 1.0f, colBar);
       pdp->FlushRenderingQueue();
     }
 
     // if there is still time
-    TIME tmDelta = m_tmLastTarget - tmNow;
+    TIME tmDelta = m_tmLastTarget - _pTimer->CurrentTick();
     if (tmDelta > 0) {
       // printout current target info
       SLONG slDPWidth  = pdp->GetWidth();

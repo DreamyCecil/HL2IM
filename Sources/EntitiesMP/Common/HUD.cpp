@@ -66,11 +66,6 @@ static TIME _tmLast = -1.0f;
 static CFontData _fdNumbers;
 static CFontData _fdNumbersGlow;
 
-// [Cecil] UI Colors
-extern INDEX hl2_colUIMain;
-extern INDEX hl2_colUIEmpty;
-extern INDEX hl2_colUIBorder;
-
 // array for pointers of all players
 extern CPlayer *_apenPlayers[NET_MAXGAMEPLAYERS] = {0};
 

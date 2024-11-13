@@ -410,9 +410,6 @@ extern FLOAT hud_tmLatencySnapshot = 1.0f;
 extern INDEX hud_bShowMatchInfo = TRUE;
 
 // [Cecil] UI Customization
-extern INDEX hl2_colUIMain;
-extern INDEX hl2_colUIEmpty;
-extern INDEX hl2_colUIBorder;
 static FLOAT hl2_fCaptionsWidth = 384.0f;
 static INDEX hl2_iHUDPreset = 0;
 

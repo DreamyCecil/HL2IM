@@ -18,6 +18,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <EntitiesMP/Player.h>
 #include <EntitiesMP/PlayerWeapons.h>
 
+extern INDEX hl2_colUIMain;
+extern INDEX hl2_colUIEmpty;
+extern INDEX hl2_colUIBorder;
+
 // UI Colors
 #define _UI_COL      GetUIColor(hl2_colUIMain)     // Def: 0xFFE30000
 #define _UI_COL_GLOW (hl2_colUIMain  & 0xFFFFFF00) // Def: 0xFFFF0000
