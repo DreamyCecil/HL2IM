@@ -93,6 +93,12 @@ functions:
   // Wrappers for CMovableModelEntity
   void OnInitialize(const CEntityEvent &eeInput) {
     CCecilMovableModelEntity::OnInitialize(eeInput);
+
+    // Update sectors around the entity for out-of-bounds detection
+    if (en_rdSectors.IsEmpty()) {
+      FindSectorsAroundEntity();
+    }
+
     PhysOnInit();
   };
 
