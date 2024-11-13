@@ -70,7 +70,7 @@ functions:
   };
 
   // Physics overrides
-  virtual INDEX GetPhysMaterial(void) const { return SUR_METAL_GRATE_NORMAL; };
+  virtual INDEX GetPhysMaterial(void) const { return SUR_METAL_NORMAL; };
   virtual BOOL AreDecalsAllowed(void) const { return FALSE; };
 
   virtual ECollisionShape GetPhysCollision(FLOAT3D &vSize) const {

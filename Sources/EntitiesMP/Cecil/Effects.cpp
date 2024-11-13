@@ -112,7 +112,9 @@ CTFileName SurfaceImpactSound(CEntity *pen, const INDEX &iSurface) {
       break;
 
     case MATERIAL_CASES(METAL):
-      strPath.PrintF("Models\\Weapons\\Crowbar\\Sounds\\Impact%d.wav", pen->IRnd()%2 + 1);
+      strPath.PrintF("Sounds\\Impact\\metal%d.wav", pen->IRnd()%4 + 1);
+      // [Cecil] TODO: Use these sounds specifically on the crowbar weapon item instead
+      //strPath.PrintF("Models\\Weapons\\Crowbar\\Sounds\\Impact%d.wav", pen->IRnd()%2 + 1);
       break;
 
     case MATERIAL_CASES(METAL_GRATE):

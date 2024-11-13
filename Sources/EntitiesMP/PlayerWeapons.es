@@ -299,8 +299,6 @@ void CPlayerWeapons_Precache(ULONG ulAvailable)
   pdec->PrecacheModel(MODEL_CROWBAR_HAND);
   pdec->PrecacheTexture(TEXTURE_CROWBAR);
   pdec->PrecacheSound(SOUND_CROWBAR_SWING);
-  pdec->PrecacheSound(SOUND_CROWBAR_IMPACT1);
-  pdec->PrecacheSound(SOUND_CROWBAR_IMPACT2);
 
   pdec->PrecacheModel(MODEL_PISTOL_HANDLER);
   pdec->PrecacheModel(MODEL_PISTOL);
