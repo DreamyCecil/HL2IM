@@ -20,6 +20,14 @@ uses "EntitiesMP/Mod/PhysBase";
 %{
 // used to render certain entities only for certain players (like picked items, etc.)
 extern ULONG _ulPlayerRenderingMask;
+
+// [Cecil] Precache respawn sounds
+void CItem_Precache(void) {
+  CDLLEntityClass *pdec = &CItem_DLLClass;
+
+  pdec->PrecacheSound(SOUND_RESPAWN1);
+  pdec->PrecacheSound(SOUND_RESPAWN2);
+};
 %}
 
 class export CItem : CPhysBase {
@@ -50,10 +58,14 @@ properties:
  51 BOOL m_bGravityGunInteract "Gravity gun can interact" = TRUE,
 
 components:
-  1 model MODEL_ITEM "Models\\Items\\ItemHolder.mdl",
+ 1 model MODEL_ITEM "Models\\Items\\ItemHolder.mdl",
 
 // [Cecil] Classes
- 10 class CLASS_ROLLERMINE "Classes\\RollerMine.ecl",
+10 class CLASS_ROLLERMINE "Classes\\RollerMine.ecl",
+
+// [Cecil] Respawn sounds
+20 sound SOUND_RESPAWN1 "Sounds\\Items\\Respawn1.wav",
+21 sound SOUND_RESPAWN2 "Sounds\\Items\\Respawn2.wav",
 
 functions:
   // [Cecil] Physics overrides
@@ -453,7 +465,11 @@ procedures:
       }
       // show yourself
       SwitchToModel();
-    
+
+      // [Cecil] Play respawn sound
+      m_soPick.Set3DParameters(32.0f, 1.0f, 1.0f, 1.0f);
+      PlaySound(m_soPick, (IRnd() & 1) ? SOUND_RESPAWN1 : SOUND_RESPAWN2, SOF_3D|SOF_VOLUMETRIC);
+
     // cease to exist
     } else {
       return EEnd();

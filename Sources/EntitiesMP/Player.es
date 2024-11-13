@@ -825,12 +825,14 @@ void CPlayer_Precache(void)
   pdec->PrecacheClass(CLASS_RADIO);
 
   // [Cecil] Precache items
+  extern void CItem_Precache(void);
   extern void CAmmoItem_Precache(void);
   extern void CAmmoPack_Precache(void);
   extern void CArmorItem_Precache(void);
   extern void CHealthItem_Precache(void);
   extern void CPowerUpItem_Precache(void);
   extern void CWeaponItem_Precache(void);
+  CItem_Precache();
   CAmmoItem_Precache();
   CAmmoPack_Precache();
   CArmorItem_Precache();
