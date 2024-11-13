@@ -60,7 +60,8 @@ functions:
   // [Cecil] TEMP: Copy render model
   virtual BOOL AdjustShadingParameters(FLOAT3D &vLightDirection, COLOR &colLight, COLOR &colAmbient) {
     if (m_penModel != NULL && m_penModel != this) {
-      return m_penModel->AdjustShadingParameters(vLightDirection, colLight, colAmbient);
+      m_penModel->AdjustShadingParameters(vLightDirection, colLight, colAmbient);
+      return FALSE; // No shadow
     }
 
     return CPhysBody::AdjustShadingParameters(vLightDirection, colLight, colAmbient);
