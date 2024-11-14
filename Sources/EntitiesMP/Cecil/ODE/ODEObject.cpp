@@ -416,6 +416,18 @@ FLOAT3D odeObject::GetPosition(void) const {
   return FLOAT3D(aPos[0], aPos[1], aPos[2]);
 };
 
+// Check if current object position is valid
+BOOL odeObject::IsValidPosition(void) const {
+  // No geom - no problem (usually)
+  if (geom == NULL) {
+    ASSERTALWAYS("Checking whether a geom's position is valid without a geom!");
+    return TRUE;
+  }
+
+  const dReal *aPos = dGeomGetPosition(geom);
+  return IsValidDouble(aPos[0]) && IsValidDouble(aPos[1]) && IsValidDouble(aPos[2]);
+};
+
 // Set rotation matrix of an object
 void odeObject::SetMatrix(const FLOATmatrix3D &mSetRot) {
   if (geom == NULL) return;

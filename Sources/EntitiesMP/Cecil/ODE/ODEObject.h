@@ -198,6 +198,9 @@ class odeObject {
     // Get position of an object
     FLOAT3D GetPosition(void) const;
 
+    // Check if current object position is valid
+    BOOL IsValidPosition(void) const;
+
     // Set rotation matrix of an object
     void SetMatrix(const FLOATmatrix3D &mSetRot);
 

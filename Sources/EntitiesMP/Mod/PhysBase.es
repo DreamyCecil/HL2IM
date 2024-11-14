@@ -671,6 +671,15 @@ functions:
 
   // Physics object callback to make the entity follow its movement
   void OnPhysicsMovement(void) {
+    // [Cecil] TEMP: Delete entities with invalid physics object positions
+    if (!PhysObj().IsValidPosition()) {
+      ODE_ReportOutOfBounds("ID:%u  ^cff7f7f%s entity at %s has invalid physics position!^C Deleting entity...", en_ulID,
+        GetClass()->ec_pdecDLLClass->dec_strName, ODE_PrintVectorForReport(GetPlacement().pl_PositionVector));
+
+      Destroy();
+      return;
+    }
+
     CPlacement3D plSource;
 
     if (GetPhysOffset(plSource)) {
