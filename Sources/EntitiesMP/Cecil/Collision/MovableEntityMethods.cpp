@@ -486,8 +486,42 @@ BOOL CCecilMovableEntity::TestFields(INDEX &iUpContent, INDEX &iDnContent, FLOAT
   FLOATmatrix3D &mRotation = en_mRotation;
   FLOAT3D vMin, vMax;
 
+  // [Cecil] Custom collision
+  FLOATaabbox3D boxSize;
+  ECollisionShape eShape;
+
+  // [Cecil] Determine min/max points using custom collision dimensions
+  if (GetCustomCollisionShape(this, boxSize, eShape)) {
+    const FLOAT3D vCenter = boxSize.Center();
+    FLOAT3D vSize = boxSize.Size();
+
+    // Find longest size axis
+    if (vSize(3) >= vSize(2) && vSize(3) >= vSize(1)) {
+      vSize = FLOAT3D(0, 0, vSize(3));
+
+    } else if (vSize(1) >= vSize(3) && vSize(1) >= vSize(2)) {
+      vSize = FLOAT3D(vSize(1), 0, 0);
+
+    } else {
+      vSize = FLOAT3D(0, vSize(2), 0);
+    }
+
+    // Shift each point by movement speed in case the line is parallel to the polygon that separates the sectors
+    const FLOAT3D vSpeed = GetDesiredTranslation() * _pTimer->TickQuantum;
+    vMin = (vCenter - vSpeed - vSize * 0.5f) * mRotation + vOffset;
+    vMax = (vCenter + vSpeed + vSize * 0.5f) * mRotation + vOffset;
+
+    if (!bBrush) {
+      // Project all spheres in the entity to absolute space (for touch field testing)
+      CStaticArray<CMovingSphere> &absSpheres = en_pciCollisionInfo->ci_absSpheres;
+
+      FOREACHINSTATICARRAY(absSpheres, CMovingSphere, itms) {
+        itms->ms_vRelativeCenter0 = itms->ms_vCenter*mRotation+vOffset;
+      }
+    }
+
   // [Cecil] Determine min/max points for brushes
-  if (bBrush) {
+  } else if (bBrush) {
     FLOATaabbox3D box;
     GetSize(box);
     vMin = FLOAT3D(0, box.Min()(2), 0) * mRotation + vOffset;
@@ -527,12 +561,14 @@ BOOL CCecilMovableEntity::TestFields(INDEX &iUpContent, INDEX &iDnContent, FLOAT
     double dMin, dMax;
     bsc.bsc_bspBSPTree.FindLineMinMax(FLOATtoDOUBLE(vMin), FLOATtoDOUBLE(vMax), dMin, dMax);
 
-    // [Cecil] NOTE: Custom collision shapes are not treated the same way when determining which sectors the entity is currently inside and
-    // that leads to inconsistencies where the entity is still considered to be inside another sector but this line that's being checked above
-    // is fully outside that sector. Because of that sector ratio becomes invalid and this sector isn't considered when calculating forces.
+    // [Cecil] NOTE: There seems to be a bug either with custom collision shapes or in general where not all sectors can be found around entities
+    // during movement (in CEntity::FindSectorsAroundEntityNear() method). It's because "near" sectors are found from brush polygons cached around
+    // the moving entity. I guess not all of them are being cached and the entity appears in "limbo" for a bit until it moves far enough inside the
+    // new sector. This leads to this loop only going through a single sector in CEntity::en_rdSectors, which is then skipped due to the line above
+    // being completely outside of it. To solve this, CEntity::FindSectorsAroundEntityNear() is now patched to run CEntity::FindSectorsAroundEntity()
+    // method instead for entities marked with custom collision and this sector with invalid line ratio is skipped in its entirety.
     if ((GetPhysicsFlags() & EPF_CUSTOMCOLLISION) && dMin > dMax) {
-      dMax = 1.0f;
-      dMin = 0.0f;
+      continue;
     }
 
     // if sector content is not default

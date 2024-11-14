@@ -22,14 +22,19 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <Engine/Templates/Stock_CEntityClass.h>
 
-// [Cecil] Original function pointer
+#include <EntitiesMP/Mod/PhysBase.h>
+
+// Original function pointers
 typedef CEntity *(CWorld::*CCreateEntityFunc)(const CPlacement3D &, CEntityClass *);
 static CCreateEntityFunc pCreateEntityFunc = NULL;
 
-// [Cecil] World functions patch
+typedef void (CEntity::*CFindSectorsFunc)(void);
+static CFindSectorsFunc pFindSectorsFunc = NULL;
+
+// World functions patch
 class CWorldPatch : public CWorld {
   public:
-    // [Cecil] Replace certain classes on creation
+    // Replace certain classes on creation
     CEntity *P_CreateEntity(const CPlacement3D &plPlacement, CEntityClass *pecClass) {
       // Skip to the original function if not in game
       if (!IsPlayingGame()) {
@@ -82,8 +87,32 @@ class CWorldPatch : public CWorld {
     };
 };
 
-// [Cecil] World patches
+// Entity functions patch
+class CEntityPatch : public CEntity {
+  public:
+    void P_FindSectorsAroundEntityNear(void) {
+      // [Cecil] TEMP: Search for sectors as precisely as possible in order to not skip anything
+      // This is currently only relevant for CPhysBase entities but this check is much faster and
+      // in line with the check inside CCecilMovableEntity::TestFields() that skips invalid sectors
+      if (GetPhysicsFlags() & EPF_CUSTOMCOLLISION) {
+        FindSectorsAroundEntity();
+        return;
+      }
+
+      // Proceed to the original function
+      (this->*pFindSectorsFunc)();
+    };
+};
+
+// Initialize function patches on game start
 void InitWorldPatches(void) {
   pCreateEntityFunc = &CWorld::CreateEntity;
   CPatch *pPatchCreate = new CPatch(pCreateEntityFunc, &CWorldPatch::P_CreateEntity, true, true);
+
+  ASSERT(pPatchCreate->IsValid() && pPatchCreate->IsPatched());
+
+  pFindSectorsFunc = &CEntity::FindSectorsAroundEntityNear;
+  CPatch *pPatchFindSectors = new CPatch(pFindSectorsFunc, &CEntityPatch::P_FindSectorsAroundEntityNear, true, true);
+
+  ASSERT(pPatchFindSectors->IsValid() && pPatchFindSectors->IsPatched());
 };
