@@ -157,8 +157,6 @@ BOOL odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute,
 // Delete the object
 void odeObject::Delete(void) {
   Clear(TRUE);
-  mesh.Clear();
-
   nPhysOwner.SetOwner(NULL);
 };
 
@@ -178,6 +176,9 @@ void odeObject::Clear(BOOL bRemoveNode) {
   body = NULL;
   geom = NULL;
   joint = NULL;
+
+  // Clear trimesh data
+  mesh.Clear();
 };
 
 // Called on object movement
