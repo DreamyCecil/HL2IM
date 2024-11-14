@@ -464,8 +464,9 @@ void odeObject::AddTorqueRel(const ANGLE3D &aRotation) {
   dBodyAddRelTorque(body, DegToRad(aRotation(2)), DegToRad(aRotation(1)), DegToRad(aRotation(3)));
 };
 
-// Manually update gravitational force
-void odeObject::UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityDir, FLOAT fGravityAccelerationMul) {
+// Manually update gravitational force using custom gravity direction with acceleration speed
+// If center point deviates from [0, 0, 0], it applies force at that point relative to the center of the object
+void odeObject::UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityAcc, const FLOAT3D &vCenter) {
   if (!IsCreated()) return;
 
   // Reenable ODE gravity
@@ -488,12 +489,16 @@ void odeObject::UpdateGravity(BOOL bManual, const FLOAT3D &vManualGravityDir, FL
   );
 
   // Add manual gravity force
-  const dReal fGravityForceMul = fWorldGravityLen * fGravityAccelerationMul * mass.mass * ODE_GetSimIterations();
-  const odeVector vGravity = odeVector(vManualGravityDir(1), vManualGravityDir(2), vManualGravityDir(3)) * fGravityForceMul;
+  const dReal fGravityForceMul = fWorldGravityLen * mass.mass * ODE_GetSimIterations();
+  const odeVector vGravity = odeVector(vManualGravityAcc(1), vManualGravityAcc(2), vManualGravityAcc(3)) * fGravityForceMul;
 
   // [Cecil] TODO: Perhaps it would be more wise to fork ODE and implement gravity vectors per body like it's already
   // done with a number of other variables that take their values from the world by default. Should be extremely easy.
-  dBodyAddForce(body, vGravity(1), vGravity(2), vGravity(3));
+  if (vCenter != FLOAT3D(0, 0, 0)) {
+    dBodyAddForceAtRelPos(body, vGravity(1), vGravity(2), vGravity(3), vCenter(1), vCenter(2), vCenter(3));
+  } else {
+    dBodyAddForce(body, vGravity(1), vGravity(2), vGravity(3));
+  }
 };
 
 // Get direction vector of the current gravity
