@@ -5155,7 +5155,7 @@ procedures:
         WeaponSound(SND_ALT, SprayParticlesSound(this, m_sptCrowbarParticles));
         break;
       case 2: // Hit brush
-        WeaponSound(SND_ALT, SurfaceImpactSound(this, m_iCrowbarSurface));
+        WeaponSound(SND_ALT, SurfaceHitSound(this, m_iCrowbarSurface));
         break;
     }
 

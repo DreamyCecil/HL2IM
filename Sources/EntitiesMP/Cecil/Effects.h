@@ -15,12 +15,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #define HL2_GOO_SPRAY SPT_GOO //SPT_SLIME
 
-// Surface Sound for the Player
+// Surface sound for the player
 CTFileName SurfaceStepSound(CPlayer *pen);
-// Surface Impact Sound
-CTFileName SurfaceImpactSound(CEntity *pen, const INDEX &iSurface);
-// Particles Sound
-CTFileName SprayParticlesSound(CEntity *pen, const SprayParticlesType &spt);
+
+// Surface hit sound
+CTFileName SurfaceHitSound(CEntity *pen, INDEX iSurface);
+
+// Particles sound
+CTFileName SprayParticlesSound(CEntity *pen, SprayParticlesType spt);
 
 // Get placement of an attachment
 CPlacement3D GetAttachmentPlacement(CModelObject *pmo, CAttachmentModelObject &amo);

@@ -1125,19 +1125,19 @@ functions:
       switch (eHitType) {
         case BHT_BRUSH_WATER: fnmSound.PrintF("Sounds\\Impact\\water_bullet%d.wav", IRnd() % 3 + 1); break;
         case BHT_BRUSH_SAND:
-        case BHT_BRUSH_RED_SAND: fnmSound = SurfaceImpactSound(this, SURFACE_SAND); break;
-        case BHT_BRUSH_GRASS: fnmSound = SurfaceImpactSound(this, SURFACE_GRASS); break;
-        case BHT_BRUSH_WOOD: fnmSound = SurfaceImpactSound(this, SURFACE_WOOD); break;
-        case BHT_BRUSH_SNOW: fnmSound = SurfaceImpactSound(this, SURFACE_SNOW); break;
-        case BHT_BRUSH_METAL: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(METAL_GRATE)); fPitchRnd = 0.1f; break;
-        case BHT_BRUSH_CHAINLINK: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(CHAINLINK)); fPitchRnd = 0.1f; break;
-        case BHT_BRUSH_TILES: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(TILES)); break;
-        case BHT_BRUSH_GLASS: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(GLASS)); fPitchRnd = 0.1f; break;
-        case BHT_BRUSH_PLASTIC: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(PLASTIC)); break;
-        case BHT_BRUSH_WEAPON: fnmSound = SurfaceImpactSound(this, MATERIAL_VAR(WEAPON)); break;
+        case BHT_BRUSH_RED_SAND:  fnmSound = SurfaceHitSound(this, SURFACE_SAND); break;
+        case BHT_BRUSH_GRASS:     fnmSound = SurfaceHitSound(this, SURFACE_GRASS); break;
+        case BHT_BRUSH_WOOD:      fnmSound = SurfaceHitSound(this, SURFACE_WOOD); break;
+        case BHT_BRUSH_SNOW:      fnmSound = SurfaceHitSound(this, SURFACE_SNOW); break;
+        case BHT_BRUSH_METAL:     fnmSound = SurfaceHitSound(this, MATERIAL_VAR(METAL_GRATE)); fPitchRnd = 0.1f; break;
+        case BHT_BRUSH_CHAINLINK: fnmSound = SurfaceHitSound(this, MATERIAL_VAR(CHAINLINK)); fPitchRnd = 0.1f; break;
+        case BHT_BRUSH_TILES:     fnmSound = SurfaceHitSound(this, MATERIAL_VAR(TILES)); break;
+        case BHT_BRUSH_GLASS:     fnmSound = SurfaceHitSound(this, MATERIAL_VAR(GLASS)); fPitchRnd = 0.1f; break;
+        case BHT_BRUSH_PLASTIC:   fnmSound = SurfaceHitSound(this, MATERIAL_VAR(PLASTIC)); break;
+        case BHT_BRUSH_WEAPON:    fnmSound = SurfaceHitSound(this, MATERIAL_VAR(WEAPON)); break;
 
         // BHT_BRUSH_STONE, BHT_BRUSH_UNDER_WATER
-        default: fnmSound = SurfaceImpactSound(this, SURFACE_STONE); break;
+        default: fnmSound = SurfaceHitSound(this, SURFACE_STONE); break;
       }
 
       m_soEffect.Set3DParameters(20.0f, 10.0f, 1.0f, 1.0f + FRnd() * fPitchRnd);

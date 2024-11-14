@@ -18,7 +18,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <EntitiesMP/Player.h>
 
-// Surface Sound for the Player
+// Surface sound for the player
 CTFileName SurfaceStepSound(CPlayer *pen) {
   CTString strPath = "";
   INDEX iRnd;
@@ -89,8 +89,8 @@ CTFileName SurfaceStepSound(CPlayer *pen) {
   return CTFileName(strPath);
 };
 
-// Surface Impact Sound
-CTFileName SurfaceImpactSound(CEntity *pen, const INDEX &iSurface) {
+// Surface hit sound
+CTFileName SurfaceHitSound(CEntity *pen, INDEX iSurface) {
   CTString strPath = "";
 
   switch (iSurface) {
@@ -147,8 +147,8 @@ CTFileName SurfaceImpactSound(CEntity *pen, const INDEX &iSurface) {
   return CTFileName(strPath);
 };
 
-// Particles Sound
-CTFileName SprayParticlesSound(CEntity *pen, const SprayParticlesType &spt) {
+// Particles sound
+CTFileName SprayParticlesSound(CEntity *pen, SprayParticlesType spt) {
   switch (spt) {
     case SPT_BLOOD:
     case SPT_FEATHER:
