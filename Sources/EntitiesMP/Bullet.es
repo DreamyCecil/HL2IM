@@ -315,10 +315,8 @@ functions:
 
               penSound->m_fnSound = SprayParticlesSound(penOfFlesh, sptType);
               penSound->m_iFlags = SOF_3D|SOF_VOLUMETRIC;
-              penSound->m_fWaitTime = 0.5f;
-
-              penSound->Initialize();
               penSound->SetParameters(50.0f, 5.0f, 1.0f, 1.0f);
+              penSound->Initialize();
             }
             break;
           }

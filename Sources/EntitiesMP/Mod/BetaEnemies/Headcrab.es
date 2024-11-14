@@ -130,10 +130,8 @@ functions:
       CCecilSound3D *penSound = (CCecilSound3D *)&*CreateEntity(GetPlacement(), CLASS_SOUND3D);
       penSound->m_fnSound = CTFILENAME("Models\\Enemies\\Headcrab\\Sounds\\Death.wav");
       penSound->m_iFlags = SOF_3D|SOF_VOLUMETRIC;
-      penSound->m_fWaitTime = 2.5f;
-
-      penSound->Initialize();
       penSound->SetParameters(64.0f, 12.0f, 1.5f, 1.0f);
+      penSound->Initialize();
     }
   };
 
