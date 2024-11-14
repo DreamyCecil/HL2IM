@@ -259,11 +259,18 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
         continue;
       }
     }
-    
-    // Emulate blocking when colliding with player objects
+
     const FLOAT3D vDir(-contact.geom.normal[0], -contact.geom.normal[1], -contact.geom.normal[2]);
     const FLOAT3D vPos(contact.geom.pos[0], contact.geom.pos[1], contact.geom.pos[2]);
 
+    // Notify physics objects about a contact
+    if (!bBouncedOff) {
+      const FLOAT fContactSpeed = contact.geom.depth / _pTimer->TickQuantum;
+      obj1->ContactCallback(vPos, vDir, fContactSpeed);
+      obj2->ContactCallback(vPos, vDir, fContactSpeed);
+    }
+
+    // Emulate blocking when colliding with player objects
     odeObject *pObjPlayer = NULL;
     odeObject *pObjOther = NULL;
     CEntity *penPlayer = NULL;

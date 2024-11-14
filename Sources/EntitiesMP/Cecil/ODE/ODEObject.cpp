@@ -189,7 +189,17 @@ void odeObject::MovedCallback(dBodyID body)
   if (pen == NULL) return;
 
   if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
-    ((CPhysBase *)pen)->UpdateMovement();
+    ((CPhysBase *)pen)->OnPhysicsMovement();
+  }
+};
+
+// Called on object contact
+void odeObject::ContactCallback(const FLOAT3D &vHit, const FLOAT3D &vDir, FLOAT fSpeed) {
+  CEntity *pen = GetOwner();
+  if (pen == NULL) return;
+
+  if (IsDerivedFromID(pen, CPhysBase_ClassID)) {
+    ((CPhysBase *)pen)->OnPhysicsContact(vHit, vDir, fSpeed);
   }
 };
 

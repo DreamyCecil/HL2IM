@@ -2,20 +2,6 @@
 %{
 #include "StdH.h"
 #include "Models/Items/ItemHolder/ItemHolder.h"
-/*#include "Models/Weapons/Colt/ColtItem.h"
-#include "Models/Weapons/SingleShotgun/SingleShotgunItem.h"
-#include "Models/Weapons/DoubleShotgun/DoubleShotgunItem.h"
-#include "Models/Weapons/TommyGun/TommyGunItem.h"
-#include "Models/Weapons/MiniGun/MiniGunItem.h"
-#include "Models/Weapons/GrenadeLauncher/GrenadeLauncherItem.h"
-#include "Models/Weapons/RocketLauncher/RocketLauncherItem.h"
-#include "ModelsMP/Weapons/Sniper/SniperItem.h"
-#include "ModelsMP/Weapons/Sniper/Body.h"
-#include "ModelsMP/Weapons/Flamer/FlamerItem.h"
-#include "ModelsMP/Weapons/Chainsaw/ChainsawItem.h"
-#include "ModelsMP/Weapons/Chainsaw/BladeForPlayer.h"
-#include "Models/Weapons/Laser/LaserItem.h"
-#include "Models/Weapons/Cannon/Cannon.h"*/
 
 #include "EntitiesMP/PlayerWeapons.h"
 
@@ -175,6 +161,15 @@ functions:
     }
 
     return CItem::GetPhysOffset(plOffset);
+  };
+
+  // [Cecil] TEMP: Special impact sounds for the crowbar
+  virtual CTFileName PhysImpactSound(BOOL bHard) {
+    if (m_EwitType == WIT_CROWBAR) {
+      return CTString(0, "Models\\Weapons\\Crowbar\\Sounds\\Impact%d.wav", IRnd() % 2 + 1);
+    }
+
+    return CItem::PhysImpactSound(bHard);
   };
 
   /* Fill in entity statistics - for AI purposes only */

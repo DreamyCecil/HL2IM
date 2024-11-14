@@ -17,7 +17,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 %{
 #include "StdH.h"
 
+#include "EntitiesMP/Cecil/Effects.h"
 #include "EntitiesMP/Cecil/Physics.h"
+#include "EntitiesMP/Mod/Sound3D.h"
 #include "EntitiesMP/EnemyBase.h"
 
 // How long to wait before returning to the last valid physical position
@@ -135,6 +137,9 @@ properties:
 12 FLOAT3D m_vTouchClipped = FLOAT3D(0, 0, 0), // Vector of the clipped line on touch
 13 FLOAT3D m_vTouchHit = FLOAT3D(0, 0, 0), // Where the touch occurred
 
+14 FLOAT m_tmPhysContactTick = -100.0f, // When the last physics contact occurred
+15 FLOAT m_fPhysDeepestContact = -1.0f, // What length the deepest contact has been since that tick
+
 // Last valid position for restoration
 20 FLOAT3D m_vValidPos = FLOAT3D(0, 0, 0),
 21 FLOATmatrix3D m_mValidRot = FLOATmatrix3D(0),
@@ -157,6 +162,7 @@ properties:
 }
 
 components:
+ 1 class CLASS_SOUND3D "Classes\\Sound3D.ecl",
 
 functions:
   // Constructor
@@ -663,8 +669,8 @@ functions:
     return CCecilMovableModelEntity::HandleEvent(ee);
   };
 
-  // Update movement according to the physical object
-  void UpdateMovement(void) {
+  // Physics object callback to make the entity follow its movement
+  void OnPhysicsMovement(void) {
     CPlacement3D plSource;
 
     if (GetPhysOffset(plSource)) {
@@ -693,6 +699,50 @@ functions:
     // Start moving
     SetDesiredTranslation(vMove / ONE_TICK);
     SetDesiredRotation(aRotate / ONE_TICK);
+  };
+
+  // Physics object callback to make the entity react to physics contacts
+  void OnPhysicsContact(const FLOAT3D &vHit, const FLOAT3D &vDir, FLOAT fSpeed) {
+    // Static object
+    if (!PhysicsUsable()) { return; }
+
+    // Reset contact if the last one was some time ago
+    if (_pTimer->CurrentTick() - m_tmPhysContactTick > 0.5f) {
+      m_fPhysDeepestContact = -1.0f;
+      m_tmPhysContactTick = _pTimer->CurrentTick();
+    }
+
+    // This contact is shorter than the last
+    if (fSpeed <= m_fPhysDeepestContact) {
+      return;
+    }
+
+    // Process the current contact and remember the new depth
+    PhysOnImpact(vHit, vDir, fSpeed);
+    m_fPhysDeepestContact = fSpeed;
+  };
+
+  // Called on the strongest physical impact this tick
+  virtual void PhysOnImpact(const FLOAT3D &vHit, const FLOAT3D &vDir, FLOAT fSpeed) {
+    // Impact speed is too low
+    if (fSpeed < 0.1f) { return; }
+
+    // Play impact sound
+    CTFileName fnmSound = PhysImpactSound(fSpeed > 0.5f);
+    if (fnmSound == "") { return; }
+
+    CPlacement3D plSound(PhysObj().GetPosition(), ANGLE3D(0, 0, 0));
+
+    CCecilSound3D *penSound = (CCecilSound3D *)&*CreateEntity(plSound, CLASS_SOUND3D);
+    penSound->m_fnSound = fnmSound;
+    penSound->m_iFlags = SOF_3D;
+    penSound->SetParameters(64.0f, 2.0f, 1.0f, 1.0f);
+    penSound->Initialize();
+  };
+
+  // Get sound for physics object impact on contact (empty string if no sound)
+  virtual CTFileName PhysImpactSound(BOOL bHard) {
+    return SurfacePhysSound(this, GetPhysMaterial(), bHard);
   };
 
   // React to being touched or blocked

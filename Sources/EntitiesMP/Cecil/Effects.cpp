@@ -159,6 +159,92 @@ CTFileName SurfaceHitSound(CEntity *pen, INDEX iSurface) {
   return fnmSound;
 };
 
+// Surface physics impact sound
+CTFileName SurfacePhysSound(CEntity *pen, INDEX iSurface, BOOL bHard) {
+  CTFileName fnmSound;
+
+  switch (iSurface) {
+    // No sound
+    case SURFACE_GRASS:
+    case SURFACE_GRASS_SLIDING:
+    case SURFACE_GRASS_NOIMPACT:
+    case SURFACE_SAND:
+    case SURFACE_RED_SAND:
+    case SURFACE_SNOW:
+    case SURFACE_WATER:
+      break;
+
+    case SURFACE_WOOD:
+    case SURFACE_WOOD_SLIDING:
+    case SURFACE_WOOD_SLOPE:
+      if (bHard) {
+        fnmSound.PrintF("Sounds\\Physics\\wood\\wood_box_impact_hard%d.wav", pen->IRnd() % 3 + 1);
+      } else {
+        fnmSound.PrintF("Sounds\\Physics\\wood\\wood_plank_impact_soft1.wav");
+      }
+      break;
+
+    case MATERIAL_CASES(METAL):
+      if (bHard) {
+        fnmSound.PrintF("Sounds\\Physics\\metal\\metal_solid_impact_hard%d.wav", pen->IRnd() % 3 + 1);
+      } else {
+        fnmSound.PrintF("Sounds\\Physics\\metal\\metal_solid_impact_soft%d.wav", pen->IRnd() % 3 + 1);
+      }
+      break;
+
+    case MATERIAL_CASES(METAL_GRATE):
+      if (bHard) {
+        fnmSound.PrintF("Sounds\\Physics\\metal\\metal_grate_impact_hard%d.wav", pen->IRnd() % 3 + 1);
+      } else {
+        fnmSound.PrintF("Sounds\\Physics\\metal\\metal_grate_impact_soft%d.wav", pen->IRnd() % 3 + 1);
+      }
+      break;
+
+    case MATERIAL_CASES(CHAINLINK):
+      if (bHard) {
+        fnmSound.PrintF("Sounds\\Physics\\metal\\metal_chainlink_impact_hard%d.wav", pen->IRnd() % 3 + 1);
+      } else {
+        fnmSound.PrintF("Sounds\\Physics\\metal\\metal_chainlink_impact_soft%d.wav", pen->IRnd() % 3 + 1);
+      }
+      break;
+
+    case MATERIAL_CASES(GLASS):
+      if (bHard) {
+        fnmSound.PrintF("Sounds\\Physics\\glass\\glass_sheet_impact_hard%d.wav", pen->IRnd() % 3 + 1);
+      } else {
+        fnmSound.PrintF("Sounds\\Physics\\glass\\glass_sheet_impact_soft%d.wav", pen->IRnd() % 3 + 1);
+      }
+      break;
+
+    case MATERIAL_CASES(PLASTIC):
+      if (bHard) {
+        fnmSound.PrintF("Sounds\\Physics\\plastic\\plastic_box_impact_hard%d.wav", pen->IRnd() % 4 + 1);
+      } else {
+        fnmSound.PrintF("Sounds\\Physics\\plastic\\plastic_box_impact_soft%d.wav", pen->IRnd() % 4 + 1);
+      }
+      break;
+
+    case MATERIAL_CASES(WEAPON):
+      if (bHard) {
+        fnmSound.PrintF("Sounds\\Physics\\metal\\weapon_impact_hard%d.wav", pen->IRnd() % 3 + 1);
+      } else {
+        fnmSound.PrintF("Sounds\\Physics\\metal\\weapon_impact_soft%d.wav", pen->IRnd() % 3 + 1);
+      }
+      break;
+
+    // Stone, ice, lava, tiles etc.
+    default:
+      if (bHard) {
+        fnmSound.PrintF("Sounds\\Physics\\concrete\\concrete_impact_hard%d.wav", pen->IRnd() % 3 + 1);
+      } else {
+        fnmSound.PrintF("Sounds\\Physics\\concrete\\concrete_impact_soft%d.wav", pen->IRnd() % 3 + 1);
+      }
+      break;
+  }
+
+  return fnmSound;
+};
+
 // Particles sound
 CTFileName SprayParticlesSound(CEntity *pen, SprayParticlesType spt) {
   CTFileName fnmSound;

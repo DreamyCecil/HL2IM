@@ -154,6 +154,9 @@ class odeObject {
     // Called on object movement
     static void MovedCallback(dBodyID body);
 
+    // Called on object contact
+    void ContactCallback(const FLOAT3D &vHit, const FLOAT3D &vDir, FLOAT fSpeed);
+
   private:
 
     // Setup a new geom

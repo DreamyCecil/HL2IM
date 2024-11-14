@@ -21,6 +21,9 @@ CTFileName SurfaceStepSound(CPlayer *pen);
 // Surface hit sound
 CTFileName SurfaceHitSound(CEntity *pen, INDEX iSurface);
 
+// Surface physics impact sound
+CTFileName SurfacePhysSound(CEntity *pen, INDEX iSurface, BOOL bHard);
+
 // Particles sound
 CTFileName SprayParticlesSound(CEntity *pen, SprayParticlesType spt);
 
