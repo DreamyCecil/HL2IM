@@ -395,7 +395,7 @@ void odeObject::Connect(odeObject &objOther) {
   const FLOAT3D &v = objOther.plCenter.pl_PositionVector;
   //dJointSetUniversalAnchor(joint, v(1), v(2), v(3));
   dJointSetHingeAnchor(joint, v(1), v(2), v(3));
-  dJointSetHingeAxis(joint, 1, 0, 0);
+  dJointSetHingeAxis(joint, 0, 0, 1);
 };
 
 // Set position of an object
