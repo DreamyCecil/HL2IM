@@ -47,6 +47,9 @@ DECL_DLL void ODE_DoSimulation(CWorld *pwo);
 // Get amount of simulation iterations that happen each game tick
 DECL_DLL INDEX ODE_GetSimIterations(void);
 
+// [Cecil] TEMP: Save the entire simulation in text form for debugging purposes
+DECL_DLL void ODE_SaveStateAsText(void);
+
 // [Cecil] TEMP: Report on collisions with physics objects
 void ODE_ReportCollision(const char *strFormat, ...);
 

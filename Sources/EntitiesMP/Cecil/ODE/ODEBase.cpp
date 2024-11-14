@@ -361,6 +361,8 @@ CPhysEngine::CPhysEngine(void) {
   _pShell->DeclareSymbol("user INDEX ode_bReportOutOfBounds;", &ode_bReportOutOfBounds);
   _pShell->DeclareSymbol("user INDEX ode_iCollisionGrid;", &ode_iCollisionGrid);
   _pShell->DeclareSymbol("user INDEX ode_bRenderPosition;", &ode_bRenderPosition);
+
+  _pShell->DeclareSymbol("user void ode_SaveState(void);", &ODE_SaveStateAsText);
 };
 
 // Create new world mesh
@@ -582,6 +584,23 @@ INDEX ODE_GetSimIterations(void) {
   const INDEX ctDecrease = _pNetwork->GetRealTimeFactor() / 5.0f;
 
   return ClampDn(ctIterations - ctDecrease, (INDEX)1);
+};
+
+// [Cecil] TEMP: Save the entire simulation in text form for debugging purposes
+void ODE_SaveStateAsText(void) {
+  try {
+    const CTString strFile = "Temp\\ode_simulation.txt";
+
+    CTFileStream strm;
+    strm.Create_t(strFile);
+    _pODE->WriteState_t(&strm, TRUE);
+    strm.Close();
+
+    CPrintF("Saved ODE simulation in \"%s\"\n", strFile.str_String);
+
+  } catch (char *strError) {
+    CPrintF("Cannot save ODE simulation: %s\n", strError);
+  }
 };
 
 // [Cecil] TEMP: Report on collisions with physics objects
