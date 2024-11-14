@@ -94,7 +94,6 @@ functions:
         if (GetRenderType() == RT_BRUSH) {
           // Hide brushes
           ForceFullStop();
-          SetDefaultProperties();
           NotifyCollisionChanged();
 
           SetFlags(GetFlags() | ENF_HIDDEN);
