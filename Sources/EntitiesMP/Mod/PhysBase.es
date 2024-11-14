@@ -33,6 +33,78 @@ inline BOOL IsInsideAnySector(CEntity *pen) {
   return FALSE;
 };
 
+// Get density multiplier from a material type
+inline FLOAT GetDensityMultiplier(INDEX iMaterial) {
+  switch (iMaterial) {
+    // Sand sinks slowly
+    case SURFACE_SAND:
+    case SURFACE_RED_SAND:
+    case SURFACE_SNOW:
+      return 1.1f;
+
+    // Water is water
+    case SURFACE_WATER:
+      return 1.0f;
+
+    // Grass floats slightly
+    case SURFACE_GRASS:
+    case SURFACE_GRASS_SLIDING:
+    case SURFACE_GRASS_NOIMPACT:
+      return 0.7f;
+
+    // Stone sinks a bit
+    case SURFACE_STONE:
+    case SURFACE_STONE_NOSTEP:
+    case SURFACE_STONE_HIGHSTAIRS:
+    case SURFACE_CLIMBABLESLOPE:
+    case SURFACE_STONE_NOIMPACT:
+    case SURFACE_STONE_HIGHSTAIRS_NOIMPACT:
+    case MATERIAL_CASES(TILES):
+      return 2.0f;
+
+    // Ice floats normally
+    case SURFACE_ICE:
+    case SURFACE_ICE_CLIMBABLESLOPE:
+    case SURFACE_ICE_SLIDINGSLOPE:
+    case SURFACE_ICE_LESSSLIDING:
+    case SURFACE_ROLLERCOASTER:
+    case SURFACE_ICE_SLIDINGSLOPE_NOIMPACT:
+    case SURFACE_ROLLERCOASTER_NOIMPACT:
+      return 0.6f;
+
+    // Wood floats normally
+    case SURFACE_WOOD:
+    case SURFACE_WOOD_SLIDING:
+    case SURFACE_WOOD_SLOPE:
+      return 0.6f;
+
+    // Molten rocks sink a bit
+    case SURFACE_LAVA:
+      return 2.0f;
+
+    // Metal sinks significantly
+    case MATERIAL_CASES(METAL):
+    case MATERIAL_CASES(METAL_GRATE):
+      return 5.0f;
+
+    // Lighter kind of metal
+    case MATERIAL_CASES(CHAINLINK):
+    case MATERIAL_CASES(WEAPON):
+      return 3.0f;
+
+    // Glass sinks a bit
+    case MATERIAL_CASES(GLASS):
+      return 1.5f;
+
+    // Plastic floats significantly
+    case MATERIAL_CASES(PLASTIC):
+      return 0.2f;
+  }
+
+  ASSERTALWAYS("Cannot determine density multiplier for some material type!");
+  return 1.0f;
+};
+
 // [Cecil] TEMP
 extern INDEX ode_bRenderPosition;
 extern void Particles_ColoredBox(const CPlacement3D &plCenter, const FLOAT3D &vSize, COLOR col);
@@ -258,8 +330,43 @@ functions:
     // Continue with proper physics
     PhysStepRealistic();
 
+    // Regular gravity acceleration multiplier
+    FLOAT fAccMul = en_fGravityA / 30.0f; // 30 seems to be regular gravity acceleration in sectors
+
+    const CContentType &ctUp = GetWorld()->wo_actContentTypes[en_iUpContent];
+    const CContentType &ctDn = GetWorld()->wo_actContentTypes[en_iDnContent];
+
+    // Mass isn't being considered here (multiplied by PhysObj().mass.mass) because it is assumed that the density always matches the object volume
+    // E.g. a "metal" box of the same volume as the "sand" box is always heavier, as should be specified by the mass property (e.g. 5kg vs 1kg)
+    const FLOAT fDensity = 1000.0f * GetDensityMultiplier(GetPhysMaterial());
+
+    const FLOAT fBouyancy = Clamp(
+      1 - (ctDn.ct_fDensity / fDensity) * (    en_fImmersionFactor)
+        - (ctUp.ct_fDensity / fDensity) * (1 - en_fImmersionFactor), -1.0f, +1.0f
+    );
+
+    if (fBouyancy < 0) {
+      // [Cecil] NOTE: I really don't like this "difference, dot product, random constants" formula for multiplying
+      // fAccMul but it produces the best results I could achieve without making objects swiftly shoot out of water
+      const FLOAT3D vDiffV = VerticalDiff(PhysObj().GetCurrentTranslation(), en_vGravityDir);
+      const FLOAT fDiffDir = (vDiffV % -en_vGravityDir);
+
+      const FLOAT fVerticalSpeedMul = (fDiffDir >= 0 ? 2.0f : 0.2f);
+      const FLOAT fVerticalSpeedDamping = ClampDn(Abs(fDiffDir), 1.0f);
+      fAccMul *= fVerticalSpeedMul * fBouyancy / fVerticalSpeedDamping;
+
+    } else {
+      fAccMul *= fBouyancy;
+    }
+
+    // [Cecil] TODO: Add relative torque while the object is floating between two sectors to align it
+    // parallel to the polygon depending on the longest axes of the object size. It can be two axes if
+    // they're both longer than a single shortest axis, otherwise use a single longest axis. For example:
+    // - Rotate by [P  or B] if [Y] is the longest
+    // - Rotate by [H  or B] if [X] is the longest
+    // - Rotate by [P and B] if [X and Z] are the longest (or Y is the shortest)
+
     // Apply manual sector gravity only if the gravity vector deviates from -Y or the acceleration is multiplied too much
-    const FLOAT fAccMul = en_fGravityA / 30.0f; // 30 seems to be regular gravity acceleration in sectors
     const BOOL bManualGravity = PhysicsUseSectorGravity() && (en_vGravityDir(2) >= -0.99f || Abs(fAccMul - 1) > 0.02f);
 
     PhysObj().UpdateGravity(bManualGravity, en_vGravityDir * fAccMul);
