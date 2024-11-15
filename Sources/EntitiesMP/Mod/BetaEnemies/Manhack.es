@@ -80,6 +80,12 @@ functions:
     CManhack_Precache();
   };
 
+  // [Cecil] Remove shadow from the manhack model
+  BOOL AdjustShadingParameters(FLOAT3D &vLightDirection, COLOR &colLight, COLOR &colAmbient) {
+    CEnemyFly::AdjustShadingParameters(vLightDirection, colLight, colAmbient);
+    return FALSE;
+  };
+
   // [Cecil] Remove stains for manhacks
   void LeaveStain(BOOL bGrow) {};
 
@@ -391,7 +397,7 @@ procedures:
     InitAsModel();
     SetPhysicsFlags(EPF_MODEL_WALKING|EPF_HASLUNGS);
     SetCollisionFlags(ECF_MODEL);
-    SetFlags(GetFlags()|ENF_ALIVE|ENF_CLUSTERSHADOWS);
+    SetFlags(GetFlags()|ENF_ALIVE);
 
     // [Cecil] Force flying
     if (m_bAlwaysFly) {
