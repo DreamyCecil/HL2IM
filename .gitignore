@@ -34,6 +34,10 @@
 *.exe
 *.out
 *.app
+!Bin/SeriousEditor.exe
+!Bin/SeriousEditor_Custom.exe
+!Bin/SeriousSam.exe
+!Bin/SeriousSam_Custom.exe
 !Sources/Extras/Ecc.exe
 
 # CMake Build dirs (temp)
