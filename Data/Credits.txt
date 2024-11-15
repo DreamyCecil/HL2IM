@@ -1,43 +1,48 @@
-Half-Life 2 Immersion Mod (Beta 0.75)
-(c) Dreamy Cecil, 2021
+Serious Immersion: Half-Life 2 (Beta 0.8)
+(c) Dreamy Cecil, 2020-2024
+
+Based on Half-Life series by Valve Corporation
 
 
 MADE USING:
 
-Blender 2.83
+Blender
 https://www.blender.org/
 
-Crowbar 0.38
+Crowbar
 https://github.com/ZeqMacaw/Crowbar
 
-GCFScape 1.8.5
+GCFScape
 https://gamebanana.com/tools/26
 
 Notepad++
 https://notepad-plus-plus.org/
 
+Open Dynamics Engine
+https://www.ode.org/
+
 Paint.NET
 https://www.getpaint.net/
 
-Serious Sam SDK v1.07 for Visual Studio 2013
-https://github.com/DreamyCecil/SeriousSam_SDK107
-
-Cecil's Bot Mod
-https://github.com/DreamyCecil/CecilBotMod
+Serious Engine 1 Mod SDK
+https://github.com/DreamyCecil/SE1-ModSDK
 
 
 BLENDER PLUGINS:
 
-Auto Materials by Andrey
+Auto Materials by other1
 http://www.serioussite.ru/load/raznoe/auto_materials_dlja_blender/10-1-0-2736
 
-Blender Source Tools 3.0.1 by Tom Edwards
+Blender Source Tools by Tom Edwards
 http://steamcommunity.com/groups/BlenderSourceTools
 http://steamreview.org/BlenderSourceTools/
 
 ExportAnimationAsSTLs.py by kellyegan
 https://gist.github.com/kellyegan/fb9d710bd20579771b40
 (corrected to export as OBJ with proper dimensions by Dreamy Cecil)
+
+SKA Importer & Exporter by other1
+https://www.serioussite.ru/load/raznoe/serious_engine_1_ska_import_ehksport_dlja_blender/10-1-0-3144
 
 
 PAINT.NET PLUGINS:
@@ -52,6 +57,7 @@ https://forums.getpaint.net/topic/7291-pyrochild-plugins-2017-12-04/
 SPECIAL THANKS:
 
 FreekNik
+Nikc75
 Tin
 ZCaliptium
 
