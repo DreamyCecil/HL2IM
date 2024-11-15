@@ -48,6 +48,7 @@
 #include "EntitiesMP/Cecil/Weapons.h"   // Weapon flags
 #include "EntitiesMP/Common/UI/UI.h"    // UI elements
 #include "HL2Models/ItemHandler.h"      // Item attachments
+#include "EntitiesMP/Mod/PhysObject.h"  // Physics object spawning
 #include "EntitiesMP/Mod/RollerMine.h"  // Roller mine spawning
 #include "EntitiesMP/Mod/Radio.h"       // Radio spawning
 #include "EntitiesMP/Mod/Enemies/ScientistSKA.h" // Interact with the science team
@@ -1958,7 +1959,8 @@ functions:
     }
 
     switch (iSelected) {
-      case 0: { // god mode
+      // God mode
+      case 0: {
         CTString strOn = "on";
 
         if (m_iHAXFlags & HAXF_GOD) {
@@ -1973,7 +1975,8 @@ functions:
         }
       } break;
 
-      case 1: { // noclip
+      // Noclip
+      case 1: {
         CTString strOn = "on";
 
         if (m_iHAXFlags & HAXF_NOCLIP) {
@@ -1988,7 +1991,8 @@ functions:
         }
       } break;
 
-      case 2: { // give all weapons
+      // Give all weapons
+      case 2: {
         GetPlayerWeapons()->m_iAvailableWeapons = 16383;
 
         // Fill the ammo
@@ -1998,14 +2002,20 @@ functions:
 
         // Give HEV suit
         m_bHEVSuit = TRUE;
+
+        if (_pNetwork->IsPlayerLocal(this)) {
+          CPrintF("^cffffff gave all weapons\n");
+        }
       } break;
 
-      case 3: { // kill
+      // Kill player
+      case 3: {
         SetHealth(0.0f);
         SendEvent(EDeath());
       } break;
 
-      case 4: { // roller mine
+      // Spawn rollermine
+      case 4: {
         FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir;
         CEntity *pen = CreateEntity(CPlacement3D(vPos, ANGLE3D(0, 0, 0)), CLASS_ROLLERMINE);
         ((CRollerMine *)pen)->m_fPhysHealth = 200.0f;
@@ -2013,11 +2023,12 @@ functions:
         pen->Initialize();
 
         if (_pNetwork->IsPlayerLocal(this)) {
-          CPrintF("^cffffff created roller mine on %.0f, %.0f, %.0f\n", vPos(1), vPos(2), vPos(3));
+          CPrintF("^cffffff created rollermine at %.0f, %.0f, %.0f\n", vPos(1), vPos(2), vPos(3));
         }
       } break;
 
-      case 5: { // ignite entity
+      // Ignite entity
+      case 5: {
         CEntity *penIgnite = GetPlayerWeapons()->m_penRayHit;
         if (penIgnite != NULL && penIgnite->GetRenderType() == RT_MODEL) {
           SpawnFlame(this, penIgnite, penIgnite->GetPlacement().pl_PositionVector);
@@ -2029,7 +2040,8 @@ functions:
         }
       } break;
 
-      case 6: { // radio
+      // Spawn radio
+      case 6: {
         FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir * 0.1f;
         ANGLE3D aAngle = GetViewPlacement(CPlacement3D(FLOAT3D(0, 0, 0), ANGLE3D(180, 0, 0)), FLOAT3D(-1, 0, 0), 1.0f).pl_OrientationAngle;
 
@@ -2039,7 +2051,44 @@ functions:
         pen->Initialize();
 
         if (_pNetwork->IsPlayerLocal(this)) {
-          CPrintF("^cffffff created radio on %.0f, %.0f, %.0f\n", vPos(1), vPos(2), vPos(3));
+          CPrintF("^cffffff created radio at %.0f, %.0f, %.0f\n", vPos(1), vPos(2), vPos(3));
+        }
+      } break;
+
+      // Spawn wood pallet
+      case 7: {
+        // Create pallet model for the physics object
+        static const CTString strPalletModel = "@@@__HL2_WOOD_PALLET_MODEL__@@@";
+        CEntity *penModel = _pNetwork->GetEntityWithName(strPalletModel, 0);
+
+        if (penModel == NULL) {
+          penModel = GetWorld()->CreateEntity_t(CPlacement3D(FLOAT3D(-32000, 1024, -32000), ANGLE3D(0, 0, 0)), CTString("Classes\\ModelHolder2.ecl"));
+          ((CModelHolder2 *)penModel)->m_strName = strPalletModel;
+          ((CModelHolder2 *)penModel)->m_fnModel = CTString("Models\\Misc\\WoodPallet.mdl");
+          ((CModelHolder2 *)penModel)->m_fnTexture = CTString("Models\\Misc\\WoodPallet.tex");
+          ((CModelHolder2 *)penModel)->m_stClusterShadows = ST_NONE;
+          // Divide model size to align it with object's size
+          ((CModelHolder2 *)penModel)->m_fStretchX = 1.0f / 2.0f;
+          ((CModelHolder2 *)penModel)->m_fStretchY = 1.0f / 0.25f;
+          ((CModelHolder2 *)penModel)->m_fStretchZ = 1.0f / 2.3f;
+          penModel->Initialize();
+        }
+
+        FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir * 0.3f;
+        ANGLE3D aAngle = GetViewPlacement(CPlacement3D(FLOAT3D(0, 0, 0), ANGLE3D(180, 0, 0)), FLOAT3D(-1, 0, 0), 1.0f).pl_OrientationAngle;
+
+        CEntity *pen = GetWorld()->CreateEntity_t(CPlacement3D(vPos, aAngle), CTString("Classes\\PhysObject.ecl"));
+        ((CPhysObject *)pen)->m_penModel = penModel;
+        ((CPhysObject *)pen)->m_fSize1 = 2.0f;
+        ((CPhysObject *)pen)->m_fSize2 = 0.25f;
+        ((CPhysObject *)pen)->m_fSize3 = 2.3f;
+        ((CPhysObject *)pen)->m_eSurfaceType = SURFACE_WOOD;
+        ((CPhysObject *)pen)->m_fPhysHealth = 200.0f;
+        ((CPhysObject *)pen)->m_bPhysEnvDamage = FALSE;
+        pen->Initialize();
+
+        if (_pNetwork->IsPlayerLocal(this)) {
+          CPrintF("^cffffff created wood pallet at %.0f, %.0f, %.0f\n", vPos(1), vPos(2), vPos(3));
         }
       } break;
 
@@ -2067,7 +2116,7 @@ functions:
     const FLOAT fTextScale = fScalingY;
 
     pdp->SetFont(_pfdDisplayFont);
-    pdp->SetTextScaling(fTextScale);
+    pdp->SetTextScaling(fTextScale * 0.8f);
     pdp->SetTextAspect(1.0f);
 
     for (INDEX iButton = 0; iButton < 10; iButton++) {
@@ -2090,7 +2139,7 @@ functions:
         case 4: strButton = "npc_create rollermine"; break;
         case 5: strButton = "ent_fire !picker ignite"; break;
         case 6: strButton = "ent_create prop_physics_override"; break;
-
+        case 7: strButton = "prop_physics_create wood_pallet001a.mdl"; break;
         case 8: strButton = "Start ODE"; break;
         case 9: strButton = "End ODE"; break;
       }
