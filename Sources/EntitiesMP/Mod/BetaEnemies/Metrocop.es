@@ -30,6 +30,36 @@ static EntityInfo eiMetrocop = {
 // [Cecil] Fire positions
 #define PISTOL_FIRE FLOAT3D(0.07f, 1.8f, -0.6f)
 #define SMG1_FIRE   FLOAT3D(0.07f, 0.85f, -0.7f)
+
+// [Cecil] Precache resources
+void CMetrocop_Precache(void) {
+  CDLLEntityClass *pdec = &CMetrocop_DLLClass;
+
+  pdec->PrecacheModel(MODEL_COP);
+  pdec->PrecacheModel(MODEL_CHAINSAW);
+  pdec->PrecacheModel(MODEL_ROCKETLAUNCHER);
+  pdec->PrecacheModel(MODEL_BOMB);
+  pdec->PrecacheTexture(TEXTURE_COP);
+  pdec->PrecacheTexture(TEXTURE_CHAINSAW);
+  pdec->PrecacheTexture(TEXTURE_ROCKETLAUNCHER);
+  pdec->PrecacheTexture(TEXTURE_BOMB);
+
+  pdec->PrecacheSound(SOUND_IDLE);
+  pdec->PrecacheSound(SOUND_SIGHT);
+  pdec->PrecacheSound(SOUND_WOUND);
+  pdec->PrecacheSound(SOUND_DEATH);
+
+  pdec->PrecacheSound(SOUND_FIREFIRECRACKER);
+  pdec->PrecacheSound(SOUND_FIREBOMBERMAN);
+  pdec->PrecacheSound(SOUND_FIREROCKETMAN);
+  pdec->PrecacheSound(SOUND_ATTACKKAMIKAZE);
+  pdec->PrecacheSound(SOUND_IDLEKAMIKAZE);
+
+  pdec->PrecacheClass(CLASS_PROJECTILE, PRT_HEADMAN_FIRECRACKER);
+  pdec->PrecacheClass(CLASS_PROJECTILE, PRT_HEADMAN_ROCKETMAN);
+  pdec->PrecacheClass(CLASS_PROJECTILE, PRT_HEADMAN_BOMBERMAN);
+  pdec->PrecacheClass(CLASS_BASIC_EFFECT, BET_BOMB);
+};
 %}
 
 class CMetrocop : CEnemyBase {
@@ -106,24 +136,7 @@ functions:
 
   void Precache(void) {
     CEnemyBase::Precache();
-    PrecacheSound(SOUND_IDLE);
-    PrecacheSound(SOUND_SIGHT);
-    PrecacheSound(SOUND_WOUND);
-    PrecacheSound(SOUND_DEATH);
-
-    PrecacheModel(MODEL_BOMB);
-    PrecacheTexture(TEXTURE_BOMB);
-
-    PrecacheSound(SOUND_FIREFIRECRACKER);
-    PrecacheSound(SOUND_FIREBOMBERMAN);
-    PrecacheSound(SOUND_FIREROCKETMAN);
-    PrecacheSound(SOUND_ATTACKKAMIKAZE);
-    PrecacheSound(SOUND_IDLEKAMIKAZE);
-
-    PrecacheClass(CLASS_PROJECTILE, PRT_HEADMAN_FIRECRACKER);
-    PrecacheClass(CLASS_PROJECTILE, PRT_HEADMAN_ROCKETMAN);
-    PrecacheClass(CLASS_PROJECTILE, PRT_HEADMAN_BOMBERMAN);
-    PrecacheClass(CLASS_BASIC_EFFECT, BET_BOMB);
+    CMetrocop_Precache();
   };
 
   // [Cecil] Drop weapons

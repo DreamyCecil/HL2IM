@@ -19,8 +19,24 @@ static EntityInfo eiZombie = {
 };
 
 #define HIT_DISTANCE 4.0f
-%}
 
+// [Cecil] Precache resources
+void CFastZombie_Precache(void) {
+  CDLLEntityClass *pdec = &CFastZombie_DLLClass;
+
+  pdec->PrecacheModel(MODEL_FREAK);
+  pdec->PrecacheModel(MODEL_CHAINSAW);
+  pdec->PrecacheTexture(TEXTURE_FREAK);
+  pdec->PrecacheTexture(TEXTURE_CHAINSAW);
+
+  pdec->PrecacheSound(SOUND_IDLE);
+  pdec->PrecacheSound(SOUND_RUN);
+  pdec->PrecacheSound(SOUND_ATTACK);
+  pdec->PrecacheSound(SOUND_WOUND);
+  pdec->PrecacheSound(SOUND_DEATH);
+  pdec->PrecacheSound(SOUND_SIGHT);
+};
+%}
 
 class CFastZombie : CEnemyRunInto {
 name      "FastZombie";
@@ -63,12 +79,7 @@ functions:
 
   void Precache(void) {
     CEnemyBase::Precache();
-    PrecacheSound(SOUND_IDLE);
-    PrecacheSound(SOUND_RUN);
-    PrecacheSound(SOUND_ATTACK);
-    PrecacheSound(SOUND_WOUND);
-    PrecacheSound(SOUND_DEATH);
-    PrecacheSound(SOUND_SIGHT);
+    CFastZombie_Precache();
   };
 
   /* Entity info */

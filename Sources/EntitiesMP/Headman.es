@@ -25,6 +25,9 @@ static EntityInfo eiHeadman = {
 #define EXPLODE_KAMIKAZE   2.5f
 #define BOMBERMAN_ANGLE (45.0f)
 #define BOMBERMAN_LAUNCH (FLOAT3D(0.0f, 1.5f, 0.0f))
+
+// [Cecil] Precache replacement enemy
+extern void CMetrocop_Precache(void);
 %}
 
 class CHeadman: CEnemyBase {
@@ -140,6 +143,9 @@ functions:
       PrecacheTexture(TEXTURE_BOMB);  
                           } break;
     }
+
+    // [Cecil] Precache replacement enemy
+    CMetrocop_Precache();
   };
 
   /* Fill in entity statistics - for AI purposes only */

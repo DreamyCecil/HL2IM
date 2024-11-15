@@ -20,6 +20,21 @@ static EntityInfo eiHeadcrab = {
 };
 
 #define EXPLODE_GIZMO   2.5f
+
+// [Cecil] Precache resources
+void CHeadcrab_Precache(void) {
+  CDLLEntityClass *pdec = &CHeadcrab_DLLClass;
+
+  pdec->PrecacheModel(MODEL_GIZMO);
+  pdec->PrecacheTexture(TEXTURE_GIZMO);
+
+  pdec->PrecacheSound(SOUND_SIGHT);
+  pdec->PrecacheSound(SOUND_IDLE);
+  pdec->PrecacheSound(SOUND_JUMP);
+  pdec->PrecacheSound(SOUND_DEATH_JUMP);
+  pdec->PrecacheSound(SOUND_DEATH); // [Cecil] Separate from the effect
+  pdec->PrecacheClass(CLASS_BLOOD_SPRAY);
+};
 %}
 
 class CHeadcrab: CEnemyBase {
@@ -68,12 +83,7 @@ functions:
   void Precache(void)
   {
     CEnemyBase::Precache();
-    PrecacheSound(SOUND_SIGHT);
-    PrecacheSound(SOUND_IDLE);
-    PrecacheSound(SOUND_JUMP);
-    PrecacheSound(SOUND_DEATH_JUMP);
-    PrecacheSound(SOUND_DEATH); // [Cecil] Separate from the effect
-    PrecacheClass(CLASS_BLOOD_SPRAY);
+    CHeadcrab_Precache();
   };
 
   void SightSound(void) {

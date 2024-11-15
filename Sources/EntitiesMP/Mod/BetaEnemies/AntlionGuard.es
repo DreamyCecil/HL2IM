@@ -20,6 +20,21 @@ static EntityInfo eiGuard = {
 };
 
 #define HIT_DISTANCE 5.0f
+
+// [Cecil] Precache resources
+void CAntlionGuard_Precache(void) {
+  CDLLEntityClass *pdec = &CAntlionGuard_DLLClass;
+
+  pdec->PrecacheModel(MODEL_GUARD);
+  pdec->PrecacheTexture(TEXTURE_GUARD);
+
+  pdec->PrecacheSound(SOUND_IDLE);
+  pdec->PrecacheSound(SOUND_SIGHT);
+  pdec->PrecacheSound(SOUND_KICKHORN);
+  pdec->PrecacheSound(SOUND_IMPACT);
+  pdec->PrecacheSound(SOUND_DEATH);
+  pdec->PrecacheSound(SOUND_RUN);
+};
 %}
 
 class CAntlionGuard : CEnemyRunInto {
@@ -59,12 +74,7 @@ functions:
 
   void Precache(void) {
     CEnemyBase::Precache();
-    PrecacheSound(SOUND_IDLE);
-    PrecacheSound(SOUND_SIGHT);
-    PrecacheSound(SOUND_KICKHORN);
-    PrecacheSound(SOUND_IMPACT);
-    PrecacheSound(SOUND_DEATH);
-    PrecacheSound(SOUND_RUN);
+    CAntlionGuard_Precache();
   };
 
   /* Entity info */

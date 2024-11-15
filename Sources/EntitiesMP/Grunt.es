@@ -32,6 +32,9 @@ static EntityInfo eiGruntCommander = {
 #define FIREPOS_SOLDIER      FLOAT3D(0.07f, 1.36f, -0.78f)*STRETCH_SOLDIER
 #define FIREPOS_COMMANDER_UP  FLOAT3D(0.09f, 1.45f, -0.62f)*STRETCH_COMMANDER
 #define FIREPOS_COMMANDER_DN  FLOAT3D(0.10f, 1.30f, -0.60f)*STRETCH_COMMANDER
+
+// [Cecil] Precache replacement enemy
+extern void CCombineSoldier_Precache(void);
 %}
 
 
@@ -112,6 +115,9 @@ functions:
     PrecacheSound(SOUND_WOUND);
     PrecacheSound(SOUND_FIRE);
     PrecacheSound(SOUND_DEATH);
+
+    // [Cecil] Precache replacement enemy
+    CCombineSoldier_Precache();
   };
 
   /* Receive damage */

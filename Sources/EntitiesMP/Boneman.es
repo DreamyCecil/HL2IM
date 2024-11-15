@@ -17,6 +17,9 @@ static EntityInfo eiBoneman = {
 #define BONES_HIT 2.8f
 #define FIRE_RIGHT_HAND     FLOAT3D( 0.25f, 1.5f, 0.0f)
 #define FIRE_LEFT_HAND      FLOAT3D(-0.25f, 1.5f, 0.0f)
+
+// [Cecil] Precache replacement enemy
+extern void CAntlion_Precache(void);
 %}
 
 
@@ -68,6 +71,9 @@ functions:
     PrecacheModel(MODEL_BONEMAN_LEGS);
 
     PrecacheClass(CLASS_PROJECTILE, PRT_BONEMAN_FIRE);
+
+    // [Cecil] Precache replacement enemy
+    CAntlion_Precache();
   };
 
   // describe how this enemy killed player

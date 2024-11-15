@@ -19,6 +19,9 @@ static EntityInfo eiChainsawFreak = {
 };
 
 #define HIT_DISTANCE 4.0f
+
+// [Cecil] Precache replacement enemy
+extern void CFastZombie_Precache(void);
 %}
 
 
@@ -70,6 +73,9 @@ functions:
     PrecacheSound(SOUND_WOUND);
     PrecacheSound(SOUND_DEATH);
     PrecacheSound(SOUND_SIGHT);
+
+    // [Cecil] Precache replacement enemy
+    CFastZombie_Precache();
   };
 
   /* Entity info */

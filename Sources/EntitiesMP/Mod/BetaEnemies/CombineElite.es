@@ -18,6 +18,24 @@ static EntityInfo eiElite = {
 // [Cecil] Different positions
 #define FIRE_LEFT_ARM   FLOAT3D(-0.25f, +1.125f, -0.5f)
 #define FIRE_RIGHT_ARM  FLOAT3D(+0.25f, +1.060f, -0.5f)
+
+// [Cecil] Precache resources
+void CCombineElite_Precache(void) {
+  CDLLEntityClass *pdec = &CCombineElite_DLLClass;
+
+  pdec->PrecacheModel(MODEL_GUFFY);
+  pdec->PrecacheTexture(TEXTURE_GUFFY);
+  pdec->PrecacheModel(MODEL_GUN);
+  pdec->PrecacheTexture(TEXTURE_GUN);
+
+  pdec->PrecacheSound(SOUND_IDLE);
+  pdec->PrecacheSound(SOUND_SIGHT);
+  pdec->PrecacheSound(SOUND_DEATH);
+  pdec->PrecacheSound(SOUND_FIRE);
+  pdec->PrecacheSound(SOUND_WOUND);
+
+  pdec->PrecacheClass(CLASS_PROJECTILE, PRT_GUFFY_PROJECTILE);
+};
 %}
 
 class CCombineElite : CEnemyBase {
@@ -64,24 +82,7 @@ functions:
 
   void Precache(void) {
     CEnemyBase::Precache();
-    
-    // guffy
-    PrecacheModel(MODEL_GUFFY);
-    PrecacheTexture(TEXTURE_GUFFY);
-
-    // weapon
-    PrecacheModel(MODEL_GUN);
-    PrecacheTexture(TEXTURE_GUN);
-
-    // sounds
-    PrecacheSound(SOUND_IDLE);
-    PrecacheSound(SOUND_SIGHT);
-    PrecacheSound(SOUND_DEATH);
-    PrecacheSound(SOUND_FIRE);
-    PrecacheSound(SOUND_WOUND);
-    
-    // projectile
-    PrecacheClass(CLASS_PROJECTILE, PRT_GUFFY_PROJECTILE);
+    CCombineElite_Precache();
   };
 
   // Entity info

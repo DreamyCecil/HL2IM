@@ -20,8 +20,34 @@ static EntityInfo eiAntlion = {
 
 // [Cecil] Random antlion texture based on the entity ID
 #define ANTLION_TEXTURE_RND (TEXTURE_ANTLION1 + (en_ulID * 123) % 4)
-%}
 
+// [Cecil] Precache resources
+void CAntlion_Precache(void) {
+  CDLLEntityClass *pdec = &CAntlion_DLLClass;
+
+  pdec->PrecacheModel(MODEL_ANTLION);
+  pdec->PrecacheModel(MODEL_BONEMAN_BODY);
+  pdec->PrecacheModel(MODEL_BONEMAN_HAND);
+  pdec->PrecacheModel(MODEL_BONEMAN_LEGS);
+
+  pdec->PrecacheSound(SOUND_IDLE);
+  pdec->PrecacheSound(SOUND_SIGHT);
+  pdec->PrecacheSound(SOUND_WOUND);
+  pdec->PrecacheSound(SOUND_FIRE);
+  pdec->PrecacheSound(SOUND_KICK);
+  pdec->PrecacheSound(SOUND_PUNCH);
+  pdec->PrecacheSound(SOUND_DEATH);
+  pdec->PrecacheSound(SOUND_RUN);
+
+  // [Cecil] Various textures
+  pdec->PrecacheTexture(TEXTURE_ANTLION1);
+  pdec->PrecacheTexture(TEXTURE_ANTLION2);
+  pdec->PrecacheTexture(TEXTURE_ANTLION3);
+  pdec->PrecacheTexture(TEXTURE_ANTLION4);
+
+  pdec->PrecacheClass(CLASS_PROJECTILE, PRT_BONEMAN_FIRE);
+};
+%}
 
 class CAntlion : CEnemyBase {
 name      "Antlion";
@@ -62,26 +88,7 @@ components:
 functions:
   void Precache(void) {
     CEnemyBase::Precache();
-    PrecacheSound(SOUND_IDLE );
-    PrecacheSound(SOUND_SIGHT);
-    PrecacheSound(SOUND_WOUND);
-    PrecacheSound(SOUND_FIRE );
-    PrecacheSound(SOUND_KICK );
-    PrecacheSound(SOUND_PUNCH);
-    PrecacheSound(SOUND_DEATH);
-    PrecacheSound(SOUND_RUN  );
-
-    PrecacheModel(MODEL_BONEMAN_BODY);
-    PrecacheModel(MODEL_BONEMAN_HAND);
-    PrecacheModel(MODEL_BONEMAN_LEGS);
-
-    // [Cecil] Various textures
-    PrecacheTexture(TEXTURE_ANTLION1);
-    PrecacheTexture(TEXTURE_ANTLION2);
-    PrecacheTexture(TEXTURE_ANTLION3);
-    PrecacheTexture(TEXTURE_ANTLION4);
-
-    PrecacheClass(CLASS_PROJECTILE, PRT_BONEMAN_FIRE);
+    CAntlion_Precache();
   };
 
   // describe how this enemy killed player

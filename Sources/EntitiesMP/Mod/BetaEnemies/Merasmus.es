@@ -41,8 +41,44 @@ static INDEX _aiSpawnScheme[SUMMONER_MAX_SS][7] = {100,  4,7,  0,0,  0,0,
                                                     30,  1,2,  2,3,  2,2, 
                                                     15,  1,1,  2,4,  2,3 };
 #define SUMMONER_TEMP_PER_GROUP 6
-%}
 
+// [Cecil] Precache resources
+void CMerasmus_Precache(void) {
+  CDLLEntityClass *pdec = &CMerasmus_DLLClass;
+
+  pdec->PrecacheClass(CLASS_BLOOD_SPRAY);
+  pdec->PrecacheClass(CLASS_SPAWNER_PROJECTILE);
+  pdec->PrecacheClass(CLASS_BASIC_EFFECT, BET_CANNON);
+    
+  pdec->PrecacheModel(MODEL_SUMMONER);
+  pdec->PrecacheModel(MODEL_STAFF);
+  pdec->PrecacheTexture(TEXTURE_SUMMONER);
+  pdec->PrecacheTexture(TEXTURE_STAFF);
+  
+  pdec->PrecacheModel(MODEL_DEBRIS01);
+  pdec->PrecacheModel(MODEL_DEBRIS02);
+  pdec->PrecacheModel(MODEL_DEBRIS03);
+  pdec->PrecacheModel(MODEL_DEBRIS_FLESH);
+  pdec->PrecacheTexture(TEXTURE_DEBRIS_FLESH);
+
+  pdec->PrecacheSound(SOUND_LAUGH);
+  pdec->PrecacheSound(SOUND_EXPLODE);
+  pdec->PrecacheSound(SOUND_TREMORS);
+  pdec->PrecacheSound(SOUND_DEATH);
+  pdec->PrecacheSound(SOUND_LASTWORDS);
+  pdec->PrecacheSound(SOUND_FIRE);
+  pdec->PrecacheSound(SOUND_CHIMES);
+  pdec->PrecacheSound(SOUND_MATERIALIZE);
+  pdec->PrecacheSound(SOUND_TELEPORT);
+  
+  for (INDEX i = SOUND_TAUNT01; i <= SOUND_TAUNTLAST; i++) { 
+    pdec->PrecacheSound(i); 
+  }
+
+  // [Cecil]
+  pdec->PrecacheSound(SOUND_APPEAR);
+};
+%}
 
 class CMerasmus : CEnemyBase {
 name      "Merasmus";
@@ -277,39 +313,7 @@ functions:
   void Precache(void)
   {
     CEnemyBase::Precache();
-    
-    PrecacheClass(CLASS_BLOOD_SPRAY        );
-    PrecacheClass(CLASS_SPAWNER_PROJECTILE );
-
-    PrecacheClass(CLASS_BASIC_EFFECT, BET_CANNON );
-    
-    PrecacheModel(MODEL_SUMMONER     );
-    PrecacheModel(MODEL_STAFF        );
-    PrecacheTexture(TEXTURE_SUMMONER );
-    PrecacheTexture(TEXTURE_STAFF    );
-  
-    PrecacheModel(MODEL_DEBRIS01     );
-    PrecacheModel(MODEL_DEBRIS02     );
-    PrecacheModel(MODEL_DEBRIS03     );
-    PrecacheModel(MODEL_DEBRIS_FLESH );
-    PrecacheTexture(TEXTURE_DEBRIS_FLESH );
-
-    PrecacheSound(SOUND_LAUGH       );
-    PrecacheSound(SOUND_EXPLODE     );
-    PrecacheSound(SOUND_TREMORS     );
-    PrecacheSound(SOUND_DEATH       );
-    PrecacheSound(SOUND_LASTWORDS   );
-    PrecacheSound(SOUND_FIRE        );
-    PrecacheSound(SOUND_CHIMES      );
-    PrecacheSound(SOUND_MATERIALIZE );
-    PrecacheSound(SOUND_TELEPORT    );
-  
-    for (INDEX i=SOUND_TAUNT01; i<=SOUND_TAUNTLAST; i++) { 
-      PrecacheSound(i); 
-    }
-
-    // [Cecil]
-    PrecacheSound(SOUND_APPEAR);
+    CMerasmus_Precache();
   };
 
 

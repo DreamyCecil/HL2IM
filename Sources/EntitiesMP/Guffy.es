@@ -19,6 +19,8 @@ static EntityInfo eiGuffy = {
 #define FIRE_LEFT_ARM   FLOAT3D(-0.56f, +1.125f, -1.32f)
 #define FIRE_RIGHT_ARM  FLOAT3D(+0.50f, +1.060f, -0.82f)
 
+// [Cecil] Precache replacement enemy
+extern void CCombineElite_Precache(void);
 %}
 
 
@@ -87,6 +89,9 @@ functions:
     
     // projectile
     PrecacheClass(CLASS_PROJECTILE, PRT_GUFFY_PROJECTILE);
+
+    // [Cecil] Precache replacement enemy
+    CCombineElite_Precache();
   };
 
   // Entity info

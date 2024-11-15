@@ -18,8 +18,23 @@ static EntityInfo eiManhack = {
 #define BITE_AIR    3.0f
 #define HIT_GROUND  2.0f
 #define FIRE_GROUND   FLOAT3D(0.75f, 1.5f, -1.25f)
-%}
 
+// [Cecil] Precache resources
+void CManhack_Precache(void) {
+  CDLLEntityClass *pdec = &CManhack_DLLClass;
+
+  pdec->PrecacheModel(MODEL_MANHACK);
+  pdec->PrecacheTexture(TEXTURE_MANHACK);
+
+  pdec->PrecacheSound(SOUND_IDLE);
+  pdec->PrecacheSound(SOUND_SIGHT);
+  pdec->PrecacheSound(SOUND_WOUND);
+  pdec->PrecacheSound(SOUND_BITE);
+  pdec->PrecacheSound(SOUND_PUNCH);
+  pdec->PrecacheSound(SOUND_DEATH);
+  pdec->PrecacheSound(SOUND_MUMBLE);
+};
+%}
 
 class CManhack : CEnemyFly {
 name      "Manhack";
@@ -62,13 +77,7 @@ functions:
 
   void Precache(void) {
     CEnemyBase::Precache();
-    PrecacheSound(SOUND_IDLE);
-    PrecacheSound(SOUND_SIGHT);
-    PrecacheSound(SOUND_WOUND);
-    PrecacheSound(SOUND_BITE);
-    PrecacheSound(SOUND_PUNCH);
-    PrecacheSound(SOUND_DEATH);
-    PrecacheSound(SOUND_MUMBLE);
+    CManhack_Precache();
   };
 
   // [Cecil] Remove stains for manhacks

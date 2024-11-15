@@ -32,6 +32,9 @@ static EntityInfo eiEyemanSmall = {
 #define BITE_AIR    3.0f
 #define HIT_GROUND  2.0f
 #define FIRE_GROUND   FLOAT3D(0.75f, 1.5f, -1.25f)
+
+// [Cecil] Precache replacement enemy
+extern void CManhack_Precache(void);
 %}
 
 
@@ -91,6 +94,9 @@ functions:
     PrecacheSound(SOUND_PUNCH);
     PrecacheSound(SOUND_DEATH);
     PrecacheSound(SOUND_MUMBLE);
+
+    // [Cecil] Precache replacement enemy
+    CManhack_Precache();
   };
 
   /* Entity info */

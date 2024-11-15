@@ -42,6 +42,9 @@ INDEX aiSpawnScheme[SUMMONER_MAX_SS][7] = {100,  4,7,  0,0,  0,0,
                                             30,  1,2,  2,3,  2,2, 
                                             15,  1,1,  2,4,  2,3 };
 #define SUMMONER_TEMP_PER_GROUP 6
+
+// [Cecil] Precache replacement enemy
+extern void CMerasmus_Precache(void);
 %}
 
 
@@ -306,7 +309,9 @@ functions:
     for (INDEX i=SOUND_TAUNT01; i<=SOUND_TAUNTLAST; i++) { 
       PrecacheSound(i); 
     }
-  
+
+    // [Cecil] Precache replacement enemy
+    CMerasmus_Precache();
   };
 
 

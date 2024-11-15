@@ -21,6 +21,9 @@ static EntityInfo eiWerebull = {
 };
 
 #define HIT_DISTANCE 5.0f
+
+// [Cecil] Precache replacement enemy
+extern void CAntlionGuard_Precache(void);
 %}
 
 class CWerebull : CEnemyRunInto {
@@ -63,6 +66,9 @@ functions:
     PrecacheSound(SOUND_IMPACT);
     PrecacheSound(SOUND_DEATH);
     PrecacheSound(SOUND_RUN);
+
+    // [Cecil] Precache replacement enemy
+    CAntlionGuard_Precache();
   };
 
   /* Entity info */

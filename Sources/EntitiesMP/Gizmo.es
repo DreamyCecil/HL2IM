@@ -16,6 +16,9 @@ static EntityInfo eiGizmo = {
 };
 
 #define EXPLODE_GIZMO   2.5f
+
+// [Cecil] Precache replacement enemy
+extern void CHeadcrab_Precache(void);
 %}
 
 class CGizmo: CEnemyBase {
@@ -67,6 +70,9 @@ functions:
     PrecacheSound(SOUND_DEATH_JUMP);
     PrecacheClass(CLASS_BASIC_EFFECT, BET_GIZMO_SPLASH_FX);
     PrecacheClass(CLASS_BLOOD_SPRAY);
+
+    // [Cecil] Precache replacement enemy
+    CHeadcrab_Precache();
   };
 
   void SightSound(void) {

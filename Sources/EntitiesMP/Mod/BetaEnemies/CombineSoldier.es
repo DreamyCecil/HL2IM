@@ -29,6 +29,33 @@ static EntityInfo eiSoldier = {
 
 // [Cecil]
 #define AR2_FIRE FLOAT3D(0.15f, 1.30f, -0.7f)*STRETCH_SOLDIER
+
+// [Cecil] Precache resources
+void CCombineSoldier_Precache(void) {
+  CDLLEntityClass *pdec = &CCombineSoldier_DLLClass;
+
+  pdec->PrecacheModel(MODEL_GRUNT);
+  pdec->PrecacheTexture(TEXTURE_SOLDIER);
+  pdec->PrecacheTexture(TEXTURE_COMMANDER);
+
+  pdec->PrecacheModel(MODEL_GUN_SOLDIER);
+  pdec->PrecacheTexture(TEXTURE_GUN_SOLDIER);
+  pdec->PrecacheModel(MODEL_GUN_COMMANDER);
+  pdec->PrecacheTexture(TEXTURE_GUN_COMMANDER);
+
+  pdec->PrecacheClass(CLASS_PROJECTILE, PRT_GRUNT_PROJECTILE_SOL);
+  pdec->PrecacheClass(CLASS_PROJECTILE, PRT_GRUNT_PROJECTILE_COM);
+
+  pdec->PrecacheSound(SOUND_IDLE);
+  pdec->PrecacheSound(SOUND_SIGHT);
+  pdec->PrecacheSound(SOUND_WOUND);
+  pdec->PrecacheSound(SOUND_DEATH);
+
+  // [Cecil] New sounds
+  pdec->PrecacheSound(SOUND_AR2);
+  pdec->PrecacheSound(SOUND_SPAS1);
+  pdec->PrecacheSound(SOUND_SPAS2);
+};
 %}
 
 class CCombineSoldier : CEnemyBase {
@@ -144,23 +171,7 @@ functions:
 
   void Precache(void) {
     CEnemyBase::Precache();
-    
-   if (m_gtType == CS_OVERWATCH) {
-      PrecacheClass(CLASS_PROJECTILE, PRT_GRUNT_PROJECTILE_SOL);
-    }
-    if (m_gtType == CS_PRISON) {
-      PrecacheClass(CLASS_PROJECTILE, PRT_GRUNT_PROJECTILE_COM);
-    }
-
-    PrecacheSound(SOUND_IDLE);
-    PrecacheSound(SOUND_SIGHT);
-    PrecacheSound(SOUND_WOUND);
-    PrecacheSound(SOUND_DEATH);
-
-    // [Cecil] New sounds
-    PrecacheSound(SOUND_AR2);
-    PrecacheSound(SOUND_SPAS1);
-    PrecacheSound(SOUND_SPAS2);
+    CCombineSoldier_Precache();
   };
 
   /* Receive damage */
