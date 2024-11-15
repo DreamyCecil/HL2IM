@@ -73,10 +73,13 @@ Sources/Obj/
 *.rpt	# crashinfo
 
 # Game Resources
-Demos/
+Demos/*
 !Demos/empty
 Levels/
-!Levels/empty
+SaveGame/**/*.sav
+SaveGame/**/*.des
+SaveGame/**/*.tex
+!SaveGame/**/empty
 Scripts/PersistentSymbols.ini
 Temp/*
 !Temp/empty
