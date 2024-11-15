@@ -787,9 +787,9 @@ void CPlayer_Precache(void)
   pdec->PrecacheSound(SOUND_APPLY);
   pdec->PrecacheSound(SOUND_DENY);
 
-  // [Cecil] Step Sounds
-  for (INDEX iStepSound = SOUND_SLOSH1; iStepSound < SOUND_SILENCE; iStepSound++) {
-    pdec->PrecacheSound(iStepSound);
+  // [Cecil] Material sounds
+  for (INDEX iMaterialSound = SOUND_SLOSH1; iMaterialSound < SOUND_SILENCE; iMaterialSound++) {
+    pdec->PrecacheSound(iMaterialSound);
   }
 
   // [Cecil] Flashlight
@@ -798,7 +798,7 @@ void CPlayer_Precache(void)
   pdec->PrecacheTexture(TEXTURE_AMBIENT_LIGHT);
   pdec->PrecacheSound(SOUND_FLASHLIGHT);
 
-  // [Cecil] Pickup Sounds
+  // [Cecil] Pickup sounds
   pdec->PrecacheSound(SOUND_MEDSHOT);
   pdec->PrecacheSound(SOUND_MEDKIT);
   pdec->PrecacheSound(SOUND_SUITBATTERY);
@@ -1519,7 +1519,7 @@ components:
 205 sound SOUND_WATERBUBBLES "Sounds\\Player\\Bubbles.wav",
 206 sound SOUND_POWERUP_BEEP "SoundsMP\\Player\\PowerUpBeep.wav",
 
-// [Cecil] Step Sounds (for precaching)
+// [Cecil] Step sounds for precaching
 250 sound SOUND_SLOSH1 "Sounds\\Steps\\slosh1.wav",
 251 sound SOUND_SLOSH2 "Sounds\\Steps\\slosh2.wav",
 252 sound SOUND_SLOSH3 "Sounds\\Steps\\slosh3.wav",
@@ -1578,32 +1578,86 @@ components:
 294 sound SOUND_WEAPON1 "Sounds\\Steps\\weapon1.wav",
 295 sound SOUND_WEAPON2 "Sounds\\Steps\\weapon2.wav",
 
-296 sound SOUND_SILENCE "Sounds\\Misc\\Silence.wav",
+// [Cecil] Impact sounds for precaching
+296 sound SOUND_PHYS_CONCRETE1 "Sounds\\Physics\\concrete\\concrete_impact_hard1.wav",
+297 sound SOUND_PHYS_CONCRETE2 "Sounds\\Physics\\concrete\\concrete_impact_hard2.wav",
+298 sound SOUND_PHYS_CONCRETE3 "Sounds\\Physics\\concrete\\concrete_impact_hard3.wav",
+299 sound SOUND_PHYS_CONCRETE4 "Sounds\\Physics\\concrete\\concrete_impact_soft1.wav",
+300 sound SOUND_PHYS_CONCRETE5 "Sounds\\Physics\\concrete\\concrete_impact_soft2.wav",
+301 sound SOUND_PHYS_CONCRETE6 "Sounds\\Physics\\concrete\\concrete_impact_soft3.wav",
+
+302 sound SOUND_PHYS_GLASS1 "Sounds\\Physics\\glass\\glass_sheet_impact_hard1.wav",
+303 sound SOUND_PHYS_GLASS2 "Sounds\\Physics\\glass\\glass_sheet_impact_hard2.wav",
+304 sound SOUND_PHYS_GLASS3 "Sounds\\Physics\\glass\\glass_sheet_impact_hard3.wav",
+305 sound SOUND_PHYS_GLASS4 "Sounds\\Physics\\glass\\glass_sheet_impact_soft1.wav",
+306 sound SOUND_PHYS_GLASS5 "Sounds\\Physics\\glass\\glass_sheet_impact_soft2.wav",
+307 sound SOUND_PHYS_GLASS6 "Sounds\\Physics\\glass\\glass_sheet_impact_soft3.wav",
+
+308 sound SOUND_PHYS_METAL1 "Sounds\\Physics\\metal\\metal_chainlink_impact_hard1.wav",
+309 sound SOUND_PHYS_METAL2 "Sounds\\Physics\\metal\\metal_chainlink_impact_hard2.wav",
+310 sound SOUND_PHYS_METAL3 "Sounds\\Physics\\metal\\metal_chainlink_impact_hard3.wav",
+311 sound SOUND_PHYS_METAL4 "Sounds\\Physics\\metal\\metal_chainlink_impact_soft1.wav",
+312 sound SOUND_PHYS_METAL5 "Sounds\\Physics\\metal\\metal_chainlink_impact_soft2.wav",
+313 sound SOUND_PHYS_METAL6 "Sounds\\Physics\\metal\\metal_chainlink_impact_soft3.wav",
+314 sound SOUND_PHYS_METAL7 "Sounds\\Physics\\metal\\metal_grate_impact_hard1.wav",
+315 sound SOUND_PHYS_METAL8 "Sounds\\Physics\\metal\\metal_grate_impact_hard2.wav",
+316 sound SOUND_PHYS_METAL9 "Sounds\\Physics\\metal\\metal_grate_impact_hard3.wav",
+317 sound SOUND_PHYS_METAL10 "Sounds\\Physics\\metal\\metal_grate_impact_soft1.wav",
+318 sound SOUND_PHYS_METAL11 "Sounds\\Physics\\metal\\metal_grate_impact_soft2.wav",
+319 sound SOUND_PHYS_METAL12 "Sounds\\Physics\\metal\\metal_grate_impact_soft3.wav",
+320 sound SOUND_PHYS_METAL13 "Sounds\\Physics\\metal\\metal_solid_impact_hard1.wav",
+321 sound SOUND_PHYS_METAL14 "Sounds\\Physics\\metal\\metal_solid_impact_hard2.wav",
+322 sound SOUND_PHYS_METAL15 "Sounds\\Physics\\metal\\metal_solid_impact_hard3.wav",
+323 sound SOUND_PHYS_METAL16 "Sounds\\Physics\\metal\\metal_solid_impact_soft1.wav",
+324 sound SOUND_PHYS_METAL17 "Sounds\\Physics\\metal\\metal_solid_impact_soft2.wav",
+325 sound SOUND_PHYS_METAL18 "Sounds\\Physics\\metal\\metal_solid_impact_soft3.wav",
+326 sound SOUND_PHYS_METAL19 "Sounds\\Physics\\metal\\weapon_impact_hard1.wav",
+327 sound SOUND_PHYS_METAL20 "Sounds\\Physics\\metal\\weapon_impact_hard2.wav",
+328 sound SOUND_PHYS_METAL21 "Sounds\\Physics\\metal\\weapon_impact_hard3.wav",
+329 sound SOUND_PHYS_METAL22 "Sounds\\Physics\\metal\\weapon_impact_soft1.wav",
+330 sound SOUND_PHYS_METAL23 "Sounds\\Physics\\metal\\weapon_impact_soft2.wav",
+331 sound SOUND_PHYS_METAL24 "Sounds\\Physics\\metal\\weapon_impact_soft3.wav",
+
+332 sound SOUND_PHYS_PLASTIC1 "Sounds\\Physics\\plastic\\plastic_box_impact_hard1.wav",
+333 sound SOUND_PHYS_PLASTIC2 "Sounds\\Physics\\plastic\\plastic_box_impact_hard2.wav",
+334 sound SOUND_PHYS_PLASTIC3 "Sounds\\Physics\\plastic\\plastic_box_impact_hard3.wav",
+335 sound SOUND_PHYS_PLASTIC4 "Sounds\\Physics\\plastic\\plastic_box_impact_hard4.wav",
+336 sound SOUND_PHYS_PLASTIC5 "Sounds\\Physics\\plastic\\plastic_box_impact_soft1.wav",
+337 sound SOUND_PHYS_PLASTIC6 "Sounds\\Physics\\plastic\\plastic_box_impact_soft2.wav",
+338 sound SOUND_PHYS_PLASTIC7 "Sounds\\Physics\\plastic\\plastic_box_impact_soft3.wav",
+339 sound SOUND_PHYS_PLASTIC8 "Sounds\\Physics\\plastic\\plastic_box_impact_soft4.wav",
+
+340 sound SOUND_PHYS_WOOD1 "Sounds\\Physics\\wood\\wood_box_impact_hard1.wav",
+341 sound SOUND_PHYS_WOOD2 "Sounds\\Physics\\wood\\wood_box_impact_hard2.wav",
+342 sound SOUND_PHYS_WOOD3 "Sounds\\Physics\\wood\\wood_box_impact_hard3.wav",
+343 sound SOUND_PHYS_WOOD4 "Sounds\\Physics\\wood\\wood_plank_impact_soft1.wav",
+
+344 sound SOUND_SILENCE "Sounds\\Misc\\Silence.wav",
 
 // [Cecil] Flashlight
-300 model MODEL_FLASHLIGHT        "Models\\Editor\\LightSource.mdl",
-301 texture TEXTURE_POINT_LIGHT   "Models\\Editor\\PointLight.tex",
-302 texture TEXTURE_AMBIENT_LIGHT "Models\\Editor\\AmbientLight.tex",
-303 sound SOUND_FLASHLIGHT        "Sounds\\Player\\Flashlight.wav",
+500 model MODEL_FLASHLIGHT        "Models\\Editor\\LightSource.mdl",
+501 texture TEXTURE_POINT_LIGHT   "Models\\Editor\\PointLight.tex",
+502 texture TEXTURE_AMBIENT_LIGHT "Models\\Editor\\AmbientLight.tex",
+503 sound SOUND_FLASHLIGHT        "Sounds\\Player\\Flashlight.wav",
 
 // [Cecil] Pickup sounds
-310 sound SOUND_MEDSHOT     "Sounds\\Items\\Medshot.wav",
-311 sound SOUND_MEDKIT      "Sounds\\Items\\SmallMedkit.wav",
-312 sound SOUND_SUITBATTERY "Sounds\\Items\\SuitBattery.wav",
-313 sound SOUND_SUITCHARGE  "Sounds\\Items\\SuitChargeDone.wav",
-314 sound SOUND_SUITBELL    "Sounds\\Items\\SuitBell.wav",
-315 sound SOUND_SUITMUSIC   "Sounds\\Items\\SuitMusic.ogg",
+510 sound SOUND_MEDSHOT     "Sounds\\Items\\Medshot.wav",
+511 sound SOUND_MEDKIT      "Sounds\\Items\\SmallMedkit.wav",
+512 sound SOUND_SUITBATTERY "Sounds\\Items\\SuitBattery.wav",
+513 sound SOUND_SUITCHARGE  "Sounds\\Items\\SuitChargeDone.wav",
+514 sound SOUND_SUITBELL    "Sounds\\Items\\SuitBell.wav",
+515 sound SOUND_SUITMUSIC   "Sounds\\Items\\SuitMusic.ogg",
 
 // [Cecil] Suit sounds
-350 sound SOUND_SUIT_AMMO     "Sounds\\Player\\Suit\\Ammo.wav",
-351 sound SOUND_SUIT_HEAT     "Sounds\\Player\\Suit\\Heat.wav",
-352 sound SOUND_SUIT_SHOCK    "Sounds\\Player\\Suit\\Shock.wav",
-353 sound SOUND_SUIT_ARMOR    "Sounds\\Player\\Suit\\NoArmor.wav",
-354 sound SOUND_SUIT_DEATH    "Sounds\\Player\\Suit\\NearDeath.wav",
-355 sound SOUND_SUIT_MEDIC    "Sounds\\Player\\Suit\\SeekMedic.wav",
-356 sound SOUND_SUIT_CRITICAL "Sounds\\Player\\Suit\\WoundCritical.wav",
-357 sound SOUND_SUIT_MAJOR    "Sounds\\Player\\Suit\\WoundMajor.wav",
-358 sound SOUND_SUIT_MINOR    "Sounds\\Player\\Suit\\WoundMinor.wav",
+550 sound SOUND_SUIT_AMMO     "Sounds\\Player\\Suit\\Ammo.wav",
+551 sound SOUND_SUIT_HEAT     "Sounds\\Player\\Suit\\Heat.wav",
+552 sound SOUND_SUIT_SHOCK    "Sounds\\Player\\Suit\\Shock.wav",
+553 sound SOUND_SUIT_ARMOR    "Sounds\\Player\\Suit\\NoArmor.wav",
+554 sound SOUND_SUIT_DEATH    "Sounds\\Player\\Suit\\NearDeath.wav",
+555 sound SOUND_SUIT_MEDIC    "Sounds\\Player\\Suit\\SeekMedic.wav",
+556 sound SOUND_SUIT_CRITICAL "Sounds\\Player\\Suit\\WoundCritical.wav",
+557 sound SOUND_SUIT_MAJOR    "Sounds\\Player\\Suit\\WoundMajor.wav",
+558 sound SOUND_SUIT_MINOR    "Sounds\\Player\\Suit\\WoundMinor.wav",
 
 // ************** FLESH PARTS **************
 210 model   MODEL_FLESH          "Models\\Effects\\Debris\\Flesh\\Flesh.mdl",
