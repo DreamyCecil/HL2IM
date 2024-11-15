@@ -1,32 +1,33 @@
-# Half-Life 2 Immersion Mod
-This is the source code of a mod for classic Serious Sam: The Second Encounter v1.07 that tries to recreate the atmosphere of Half-Life 2 game by adding weapons, enemies, interface and a lot of other features ported directly from Half-Life 2.
-Based on [Serious Engine 1 Mod SDK](https://github.com/DreamyCecil/SE1-ModSDK)
+# Serious Immersion: Half-Life 2
 
-Building
---------
+**Serious Immersion: Half-Life 2** is the very first mod in the **Serious Immersion** series that tries to recreate the atmosphere of **Half-Life 2** game by adding weapons, enemies, interface and a lot of other features ported directly from the original game.
 
-To compile the source code, you'll need to use a compiler from Microsoft Visual C++ 6.0.
+Based on [Serious Engine 1 Mod SDK](https://github.com/DreamyCecil/SE1-ModSDK) and utilizes a [custom Entity Class Compiler](https://github.com/DreamyCecil/SE1-ECC) (`Sources/Extras/Ecc.exe`).
 
-Full guide: https://github.com/DreamyCecil/SE1-ModSDK#building
+# Building
 
-Running
--------
+Building instructions are available here: https://github.com/DreamyCecil/SE1-ModSDK/wiki/Building
+
+### Building Open Dynamics Engine library
+1. Run `Sources/ode_double_opcode_x86.bat` or `Sources/ode_double_opcode_x64.bat` script (depending on the platform you're building for).
+2. Open `Sources/Extras/ode/build/vs2010/ode.sln` Visual Studio solution and compile the project using `ReleaseDLL` build configuration.
+
+After that, when building the mod, it will automatically link the generated `ode.lib` file and copy `ode.dll` into the `Bin/` directory.
+
+# Running
 
 Once the project is compiled, there should be three libraries in the Bin folder: `EntitiesMP.dll`, `GameGUIMP.dll` and `GameMP.dll`.
 
 There are two ways to start the mod:
 1. Create a `.des` file in your Mods directory under the same name as this repository, open it in any text editor and type your mod name in it. Then you'll be able to launch your mod from the game's `Mods` list.
-2. Run `ModStart.bat` or `EditorStart.bat` from the Bin folder to open the editor or the mod.
+2. Run any of the mod launchers from the Bin folder to open the mod (e.g. `SeriousSam.exe`) or the editor (e.g. `SeriousEditor.exe`).
 
-When running a selected project, make sure the mod in project properties **Debugging** -> **Command Arguments** is set to your mod name instead of `HL2IM` (example: `+game HL2IM_Mod`).
+When running a selected project from Visual Studio, make sure that the mod in project properties **Debugging** -> **Command Arguments** is set to your mod name instead of `HL2IM` (example: `+game HL2IM_Mod`).
 
-License
--------
+# License
 
-Just like Croteam's [Serious Engine 1.10](https://github.com/Croteam-official/Serious-Engine) source code, Serious Sam SDK is licensed under the GNU GPL v2 (see LICENSE file).
+**Serious Immersion: Half-Life 2** is licensed under the GNU GPL v2 (see LICENSE file).
 
-This SDK includes Croteam's Entity Class Compiler (`Sources/Extras/Ecc.exe`) that is used to compile `.es` files and officially distributed with classic Serious Sam games. Its source code is included in Serious Engine 1.10.
+Some of the code included with the SDK (under `Sources/Extras/`) is not licensed under GNU GPL v2:
 
-Some of the code included with the SDK may not be licensed under the GNU GPL v2:
-
-* DirectX8 SDK (Headers & Libraries) (`d3d8.h`, `d3d8caps.h` and `d3d8types.h` located in `Sources/Extras`) by Microsoft
+- **Open Dynamics Engine** 0.16.5 (`ode/`) from https://www.ode.org/
