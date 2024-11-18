@@ -23,8 +23,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "EntitiesMP/EnemyBase.h"
 
 // How long to wait before returning to the last valid physical position
-static const _tmOutOfBoundsLimit = 1.0f;
-static const _tmValidPosUpdateFrequency = 1.0f;
+static const TIME _tmOutOfBoundsLimit = 1.0f;
+static const TIME _tmValidPosUpdateFrequency = 1.0f;
 
 // Check if the entity is inside any sector
 inline BOOL IsInsideAnySector(CEntity *pen) {

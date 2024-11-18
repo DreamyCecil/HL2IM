@@ -147,6 +147,12 @@ void ParseStringWithTags(const CTString &strText, INDEX iTagMode, COLOR colDefau
 
 // Replacement for the Particle_SetTexturePart() function from TSE 1.07
 inline void SetTexturePartDirectUV(const FLOATaabbox2D &boxUV) {
+#ifdef _SE1_10
+  // [Cecil] TEMP: Set whatever texture since there's no way to retrieve the exact pointer in 1.10
+  Particle_SetTexturePart(256, 256, 0, 0);
+  return;
+#endif
+
 #ifdef NDEBUG
   static UBYTE *pEngine = reinterpret_cast<UBYTE *>(GetModuleHandleA("Engine.dll"));
   static GFXTexCoord *_atex = reinterpret_cast<GFXTexCoord *>(pEngine + 0x1F6490);

@@ -106,6 +106,11 @@ class CEntityPatch : public CEntity {
 
 // Initialize function patches on game start
 void InitWorldPatches(void) {
+#ifdef _SE1_10
+  // [Cecil] TEMP: Just edit 1.10 functions directly
+  ASSERTALWAYS("Don't use function patches in 1.10!");
+#else
+
   pCreateEntityFunc = &CWorld::CreateEntity;
   CPatch *pPatchCreate = new CPatch(pCreateEntityFunc, &CWorldPatch::P_CreateEntity, true, true);
 
@@ -115,4 +120,6 @@ void InitWorldPatches(void) {
   CPatch *pPatchFindSectors = new CPatch(pFindSectorsFunc, &CEntityPatch::P_FindSectorsAroundEntityNear, true, true);
 
   ASSERT(pPatchFindSectors->IsValid() && pPatchFindSectors->IsPatched());
+
+#endif
 };
