@@ -858,8 +858,17 @@ functions:
         plPhys = GetLerpedPlacement();
       }
 
-      Particles_ColoredBox(plEntity, vSize, C_RED|0x3F); // Entity position
-      Particles_ColoredBox(plPhys, vSize, C_GREEN|0x3F); // Real physics object position
+      // Entity position and then real physics object position
+      if (PhysObj().IsFrozen()) {
+        // Dark purple when disabled
+        Particles_ColoredBox(plEntity, vSize, C_dRED|0x3F);
+        Particles_ColoredBox(plPhys, vSize, C_dBLUE|0x3F);
+
+      } else {
+        // Yellow when enabled
+        Particles_ColoredBox(plEntity, vSize, C_RED|0x3F);
+        Particles_ColoredBox(plPhys, vSize, C_GREEN|0x3F);
+      }
     }
   };
 
