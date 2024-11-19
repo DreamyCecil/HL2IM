@@ -94,7 +94,7 @@ static inline BOOL SkipCollision(CEntity *pen1, CEntity *pen2) {
 // Determine surface type between two objects
 static inline INDEX GetSurfaceTypeBetweenObjects(odeObject *objThis, odeObject *objOther) {
   // Not a world mesh
-  if (objThis != _pODE->pObjWorld) {
+  if (!_pODE->IsWorldMesh(objThis)) {
     // No entity
     if (objThis->GetOwner() == NULL) return -1;
 
@@ -173,9 +173,16 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
   // [Cecil] TEMP: Ignore geoms with no attached objects
   if (obj1 == NULL || obj2 == NULL) return;
 
+  const BOOL bWorld1 = _pODE->IsWorldMesh(obj1);
+  const BOOL bWorld2 = _pODE->IsWorldMesh(obj2);
+
+  // Objects with infinite mass
+  const BOOL bNonDynamic1 = (bK1 || bWorld1);
+  const BOOL bNonDynamic2 = (bK2 || bWorld2);
+
   // Ignore collisions between kinematic bodies and the world
-  if (bK1 && obj2 == _pODE->pObjWorld) return;
-  if (bK2 && obj1 == _pODE->pObjWorld) return;
+  if (bNonDynamic1 && bWorld2) return;
+  if (bNonDynamic2 && bWorld1) return;
 
   CEntity *pen1 = obj1->GetOwner();
   CEntity *pen2 = obj2->GetOwner();
@@ -184,9 +191,9 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
   const BOOL bPlayer1 = IsDerivedFromID(pen1, CPlayer_ClassID);
   const BOOL bPlayer2 = IsDerivedFromID(pen2, CPlayer_ClassID);
 
-  // Don't let player objects collide with the world
-  if (bPlayer1 && obj2 == _pODE->pObjWorld) return;
-  if (bPlayer2 && obj1 == _pODE->pObjWorld) return;
+  // Don't let player objects collide with kinematic objects or the world
+  if (bPlayer1 && bNonDynamic2) return;
+  if (bPlayer2 && bNonDynamic1) return;
   // Or each other
   if (bPlayer1 && bPlayer2) return;
 
@@ -347,7 +354,7 @@ CPhysEngine::CPhysEngine(void) {
   space = dSimpleSpaceCreate(0);
   jgContacts = dJointGroupCreate(0);
 
-  pObjWorld = NULL;
+  ClearWorldMeshes();
 
   pubSaveData = NULL;
   slSaveDataSize = 0;
@@ -365,23 +372,21 @@ CPhysEngine::CPhysEngine(void) {
   _pShell->DeclareSymbol("user void ode_SaveState(void);", &ODE_SaveStateAsText);
 };
 
-// Create new world mesh
-void CPhysEngine::CreateWorldMesh(void) {
-  // Already created
-  ASSERT(pObjWorld == NULL);
-  if (pObjWorld != NULL) return;
+// Add a new world mesh
+odeObject *CPhysEngine::AddWorldMesh(void) {
+  odeObject *pNew = new odeObject;
+  cWorldMeshes.Add(pNew);
 
-  pObjWorld = new odeObject;
+  return pNew;
 };
 
-// Destroy world mesh
-void CPhysEngine::DestroyWorldMesh(void) {
-  // Already destroyed
-  ASSERT(pObjWorld != NULL);
-  if (pObjWorld == NULL) return;
+// Clear all world meshes
+void CPhysEngine::ClearWorldMeshes(void) {
+  FOREACHINDYNAMICCONTAINER(cWorldMeshes, odeObject, itObj) {
+    delete &*itObj;
+  }
 
-  delete pObjWorld;
-  pObjWorld = NULL;
+  cWorldMeshes.Clear();
 };
 
 void ODE_Init(void) {
@@ -390,6 +395,12 @@ void ODE_Init(void) {
 
   _pODE = new CPhysEngine;
 };
+
+// [Cecil] TEMP: How to create world meshes
+// 0 - all brushes as a single mesh
+// 1 - one mesh per brush
+// 2 - one mesh per brush sector
+#define WORLD_MESH_GENERATION_ON_START 0
 
 void ODE_Start(void) {
   if (ODE_IsStarted()) {
@@ -429,9 +440,11 @@ void ODE_Start(void) {
   dWorldSetMaxAngularSpeed(world, 45);
   dWorldSetContactSurfaceLayer(world, 0.001);
 
+#if WORLD_MESH_GENERATION_ON_START <= 0
   // Create world mesh
-  _pODE->CreateWorldMesh();
-  _pODE->pObjWorld->BeginShape(_odeCenter, 0.0f, 0);
+  odeObject *pObjWorld = _pODE->AddWorldMesh();
+  pObjWorld->BeginShape(_odeCenter, 0.0f, OBJF_WORLD);
+#endif
 
   // Iterate through all physical objects in the world
   CWorld &wo = _pNetwork->ga_World;
@@ -469,14 +482,42 @@ void ODE_Start(void) {
 
     // Add static brushes to the world mesh
     if (IsOfClass(pen, "WorldBase")) {
-      _pODE->pObjWorld->mesh.FromBrush(pen->GetBrush(), &iBrushVertexOffset, TRUE);
+      CBrush3D *pbr = pen->GetBrush();
+
+    #if WORLD_MESH_GENERATION_ON_START <= 0
+      pObjWorld->mesh.FromBrush(pbr, &iBrushVertexOffset, TRUE);
+
+    #elif WORLD_MESH_GENERATION_ON_START == 1
+      odeObject *pMesh = _pODE->AddWorldMesh();
+      pMesh->BeginShape(pen->GetPlacement(), 0.0f, OBJF_WORLD);
+
+      if (pMesh->mesh.FromBrush(pbr, NULL, FALSE)) {
+        pMesh->mesh.Build();
+        pMesh->SetTrimesh();
+        pMesh->EndShape();
+      }
+
+    #elif WORLD_MESH_GENERATION_ON_START >= 2
+      FOREACHINDYNAMICARRAY(pbr->GetFirstMip()->bm_abscSectors, CBrushSector, itSec) {
+        odeObject *pMesh = _pODE->AddWorldMesh();
+        pMesh->BeginShape(pen->GetPlacement(), 0.0f, OBJF_WORLD);
+
+        if (pMesh->mesh.FromSector(itSec, NULL, FALSE)) {
+          pMesh->mesh.Build();
+          pMesh->SetTrimesh();
+          pMesh->EndShape();
+        }
+      }
+    #endif
     }
   }
 
+#if WORLD_MESH_GENERATION_ON_START <= 0
   // Finish up world mesh
-  _pODE->pObjWorld->mesh.Build();
-  _pODE->pObjWorld->SetTrimesh();
-  _pODE->pObjWorld->EndShape();
+  pObjWorld->mesh.Build();
+  pObjWorld->SetTrimesh();
+  pObjWorld->EndShape();
+#endif
 
   // Notify physics objects about simulation starting
   FOREACHNODEINREFS(_penGlobalController->m_cPhysEntities, itnP) {
@@ -511,7 +552,7 @@ void ODE_End(BOOL bGameEnd) {
   _pODE->lhObjects.RemAll();
 
   // Destroy the world mesh
-  _pODE->DestroyWorldMesh();
+  _pODE->ClearWorldMeshes();
 };
 
 void ODE_ReadSavedData(void) {

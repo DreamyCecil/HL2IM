@@ -531,36 +531,12 @@ void odeObject::Read_t(CTStream *istr) {
   EndShape();
 };
 
-// [Cecil] TEMP: Controls whether world mesh is serialized alongside regular objects
-#define WRITE_WORLD_MESH_WITH_OBJECTS 1
-
 // Write object data
 void CPhysEngine::WriteObjects(CWriteStream &strm, CObjects &cAll, CObjects &cWithJoints) {
-  // World mesh
-#if !WRITE_WORLD_MESH_WITH_OBJECTS
-  strm.WriteID(_cidODE_WorldMesh);
-  pObjWorld->Write_t(strm);
-#endif
-
   strm.WriteID(_cidODE_Objects);
 
-  // Compare counts
-  INDEX iListObjects = lhObjects.Count();
-
-#if !WRITE_WORLD_MESH_WITH_OBJECTS
-  INDEX iWorldBodies = 0;
-
-  for (dxBody *pCount = world->firstbody; pCount != NULL; pCount = (dxBody *)pCount->next) {
-    iWorldBodies++;
-  }
-
-  if (iListObjects != iWorldBodies) {
-    ASSERTALWAYS("Object list count does not match world body count!");
-    CPrintF("^cff0000Body count mismatch! List: %d, World: %d\n", iListObjects, iWorldBodies);
-  }
-#endif
-
-  strm.Write_key(iListObjects);
+  const INDEX ctListObjects = lhObjects.Count();
+  strm.Write_key(ctListObjects);
 
   INDEX ctTagCounter = 0;
 
@@ -572,16 +548,15 @@ void CPhysEngine::WriteObjects(CWriteStream &strm, CObjects &cAll, CObjects &cWi
       strm.pstrm->PutString_t("\n\n");
     }
 
+    // Write whether it's a world mesh
+    const BOOL bWorldMesh = !!(pObj->ulSetupFlags & OBJF_WORLD);
+    strm.Write("WorldMesh", bWorldMesh);
+
     // Write entity that owns this body
     if (pObj->GetOwner() != NULL) {
       strm.Write("EntityID", (ULONG)pObj->GetOwner()->en_ulID);
     } else {
       strm.Write("EntityID", (ULONG)-1);
-
-    #if !WRITE_WORLD_MESH_WITH_OBJECTS
-      ASSERTALWAYS("No entity for the ODE object!");
-      CPrintF("^cff0000No entity for the ODE object!\n");
-    #endif
     }
 
     pObj->Write_t(strm);
@@ -603,19 +578,16 @@ void CPhysEngine::WriteObjects(CWriteStream &strm, CObjects &cAll, CObjects &cWi
 
 // Read object data
 void CPhysEngine::ReadObjects(CTStream *istr, CObjects &cAll, CObjects &cWithJoints) {
-  // World mesh
-  CreateWorldMesh();
-#if !WRITE_WORLD_MESH_WITH_OBJECTS
-  istr->ExpectID_t(_cidODE_WorldMesh);
-  pObjWorld->Read_t(istr);
-#endif
-
   istr->ExpectID_t(_cidODE_Objects);
 
   INDEX iListObjects;
   *istr >> iListObjects;
 
   for (INDEX iBody = 0; iBody < iListObjects; iBody++) {
+    // Read whether it's a world mesh
+    BOOL bWorldMesh;
+    *istr >> bWorldMesh;
+
     // Read entity that owns this object
     ULONG ulEntity;
     *istr >> ulEntity;
@@ -627,13 +599,12 @@ void CPhysEngine::ReadObjects(CTStream *istr, CObjects &cAll, CObjects &cWithJoi
       penPhysOwner = _pNetwork->ga_World.EntityFromID(ulEntity);
     }
 
-    if (penPhysOwner == NULL) {
-      CPrintF("^cff0000No owner entity!\n");
+    // Don't care about the entity for the world, just create a new mesh
+    if (bWorldMesh) {
+      pObj = AddWorldMesh();
 
-    #if WRITE_WORLD_MESH_WITH_OBJECTS
-      // [Cecil] TEMP: No entity means it's a world mesh
-      pObj = pObjWorld;
-    #endif
+    } else if (penPhysOwner == NULL) {
+      CPrintF("^cff0000No owner entity!\n");
     }
 
     // Object hasn't been set yet
@@ -642,10 +613,9 @@ void CPhysEngine::ReadObjects(CTStream *istr, CObjects &cAll, CObjects &cWithJoi
       pObj = SPhysObject::ForEntity(penPhysOwner);
     }
 
-    ASSERT(pObj != NULL);
-
     if (pObj == NULL) {
-      CPrintF("^cff0000No ODE object for the owner entity!\n");
+      ASSERTALWAYS("No ODE object found to read into!");
+      CPrintF("^cff0000No ODE object found to read into!\n");
     }
 
     pObj->Read_t(istr);

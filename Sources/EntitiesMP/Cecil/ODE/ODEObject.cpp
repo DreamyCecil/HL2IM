@@ -94,7 +94,66 @@ void odeTrimesh::Build(void) {
   */
 };
 
+// Add vertices of some sector
+// Returns TRUE if added any vertices
+BOOL odeTrimesh::FromSector(CBrushSector *pbsc, INDEX *piVertexOffset, BOOL bAbsolute, BOOL bOffsetOutwards) {
+  // Use internal counter
+  INDEX iInternalVertexOffset = 0;
+  if (piVertexOffset == NULL) piVertexOffset = &iInternalVertexOffset;
+
+  BOOL bResult = FALSE;
+
+  // Go through each sector polygon
+  FOREACHINSTATICARRAY(pbsc->bsc_abpoPolygons, CBrushPolygon, itPol) {
+    CBrushPolygon *pbpo = itPol;
+
+    // Skip passable polygons
+    if (pbpo->bpo_ulFlags & BPOF_PASSABLE) continue;
+
+    const INDEX ctVtx = pbpo->bpo_apbvxTriangleVertices.Count();
+
+    // Copy vertex positions
+    FOREACHINSTATICARRAY(pbpo->bpo_apbvxTriangleVertices, CBrushVertex *, itPolVtx) {
+      // Add vertex in absolute coordinates
+      if (bAbsolute) {
+        FLOAT3D vVtx = itPolVtx.Current()->bvx_vAbsolute;
+
+        if (bOffsetOutwards) {
+          FLOAT3D vNormal = (FLOAT3D &)pbpo->bpo_pbplPlane->bpl_plAbsolute;
+          vVtx += vNormal.SafeNormalize() * 0.01f;
+        }
+
+        AddVertex(odeVector(vVtx(1), vVtx(2), vVtx(3)));
+
+      // Add vertex in relative coordinates
+      } else {
+        FLOAT3D vVtx = itPolVtx.Current()->bvx_vRelative;
+
+        if (bOffsetOutwards) {
+          FLOAT3D vNormal = (FLOAT3D &)pbpo->bpo_pbplPlane->bpl_plRelative;
+          vVtx += vNormal.SafeNormalize() * 0.01f;
+        }
+
+        AddVertex(odeVector(vVtx(1), vVtx(2), vVtx(3)));
+      }
+
+      bResult = TRUE;
+    }
+
+    // Copy vertex indices
+    FOREACHINSTATICARRAY(pbpo->bpo_aiTriangleElements, INDEX, itPolIndex) {
+      AddIndex((*itPolIndex) + *piVertexOffset);
+    }
+
+    // Offset vertex indices by the amount of vertices
+    *piVertexOffset += ctVtx;
+  }
+
+  return bResult;
+};
+
 // Add vertices of some brush
+// Returns TRUE if added any vertices
 BOOL odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute, BOOL bOffsetOutwards) {
   // Use internal counter
   INDEX iInternalVertexOffset = 0;
@@ -104,51 +163,7 @@ BOOL odeTrimesh::FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute,
 
   // Go through each sector of the most detailed mip
   FOREACHINDYNAMICARRAY(pbr->GetFirstMip()->bm_abscSectors, CBrushSector, itSec) {
-    // Go through each sector polygon
-    FOREACHINSTATICARRAY(itSec->bsc_abpoPolygons, CBrushPolygon, itPol) {
-      CBrushPolygon *pbpo = itPol;
-
-      // Skip passable polygons
-      if (pbpo->bpo_ulFlags & BPOF_PASSABLE) continue;
-
-      const INDEX ctVtx = pbpo->bpo_apbvxTriangleVertices.Count();
-
-      // Copy vertex positions
-      FOREACHINSTATICARRAY(pbpo->bpo_apbvxTriangleVertices, CBrushVertex *, itPolVtx) {
-        // Add vertex in absolute coordinates
-        if (bAbsolute) {
-          FLOAT3D vVtx = itPolVtx.Current()->bvx_vAbsolute;
-
-          if (bOffsetOutwards) {
-            FLOAT3D vNormal = (FLOAT3D &)pbpo->bpo_pbplPlane->bpl_plAbsolute;
-            vVtx += vNormal.SafeNormalize() * 0.01f;
-          }
-
-          AddVertex(odeVector(vVtx(1), vVtx(2), vVtx(3)));
-
-        // Add vertex in relative coordinates
-        } else {
-          FLOAT3D vVtx = itPolVtx.Current()->bvx_vRelative;
-
-          if (bOffsetOutwards) {
-            FLOAT3D vNormal = (FLOAT3D &)pbpo->bpo_pbplPlane->bpl_plRelative;
-            vVtx += vNormal.SafeNormalize() * 0.01f;
-          }
-
-          AddVertex(odeVector(vVtx(1), vVtx(2), vVtx(3)));
-        }
-
-        bResult = TRUE;
-      }
-
-      // Copy vertex indices
-      FOREACHINSTATICARRAY(pbpo->bpo_aiTriangleElements, INDEX, itPolIndex) {
-        AddIndex((*itPolIndex) + *piVertexOffset);
-      }
-
-      // Offset vertex indices by the amount of vertices
-      *piVertexOffset += ctVtx;
-    }
+    bResult |= FromSector(itSec, piVertexOffset, bAbsolute, bOffsetOutwards);
   }
 
   return bResult;

@@ -74,6 +74,10 @@ class odeTrimesh {
       aIndices.Push() = iIndex;
     };
 
+    // Add vertices of some sector
+    // Returns TRUE if added any vertices
+    BOOL FromSector(CBrushSector *pbsc, INDEX *piVertexOffset, BOOL bAbsolute, BOOL bOffsetOutwards = FALSE);
+
     // Add vertices of some brush
     // Returns TRUE if added any vertices
     BOOL FromBrush(CBrush3D *pbr, INDEX *piVertexOffset, BOOL bAbsolute, BOOL bOffsetOutwards = FALSE);
@@ -81,7 +85,8 @@ class odeTrimesh {
 
 // Physics object flags
 enum EPhysObjectFlags {
-  OBJF_BODY = (1 << 0), // Object has a physical body
+  OBJF_BODY  = (1 << 0), // Object has a physical body
+  OBJF_WORLD = (1 << 1), // Object is part of the world mesh
 };
 
 // Physical object

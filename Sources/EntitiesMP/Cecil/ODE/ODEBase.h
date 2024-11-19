@@ -37,7 +37,7 @@ class CPhysEngine {
     dSpaceID space; // World's collision space
     dJointGroupID jgContacts; // Group of temporary contact joints
 
-    odeObject *pObjWorld; // Static world geometry
+    CDynamicContainer<odeObject> cWorldMeshes; // Static world geometry
 
     CListHead lhObjects; // All odeObject instances in the world
 
@@ -49,11 +49,16 @@ class CPhysEngine {
     // Constructor
     CPhysEngine(void);
 
-    // Create new world mesh
-    void CreateWorldMesh(void);
+    // Add a new world mesh
+    odeObject *AddWorldMesh(void);
 
-    // Destroy world mesh
-    void DestroyWorldMesh(void);
+    // Clear all world meshes
+    void ClearWorldMeshes(void);
+
+    // Check if some object is one of the world meshes
+    inline BOOL IsWorldMesh(const odeObject *pObj) {
+      return !!(pObj->ulSetupFlags & OBJF_WORLD);
+    };
 
   private:
     typedef CDynamicContainer<odeObject> CObjects;

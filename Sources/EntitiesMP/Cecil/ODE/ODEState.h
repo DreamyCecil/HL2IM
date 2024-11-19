@@ -58,9 +58,7 @@ inline void ReadMatrix(CTStream *pstrm, dMatrix3 m) {
 static const CChunkID _cidODE_World     ("ODEW"); // World state
 static const CChunkID _cidODE_Simulation("SIML"); // Simulation properties
 
-static const CChunkID _cidODE_WorldMesh ("WMSH"); // World mesh
 static const CChunkID _cidODE_Objects   ("ODEO"); // Object list
-
 static const CChunkID _cidODE_ObjProps  ("OBJP"); // Object properties
 static const CChunkID _cidODE_ObjGeom   ("OBJG"); // Object geom
 static const CChunkID _cidODE_ObjJoint  ("OBJJ"); // Object joint
