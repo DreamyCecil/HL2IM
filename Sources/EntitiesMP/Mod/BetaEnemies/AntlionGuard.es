@@ -13,8 +13,7 @@ uses "EntitiesMP/EnemyRunInto";
 %{
 // info structure
 static EntityInfo eiGuard = {
-  // [Cecil] Flesh -> Bones
-  EIBT_BONES, 500.0f,
+  EIBT_FLESH, 500.0f,
   0.0f, 3.0f, 0.0f,     // source (eyes)
   0.0f, 1.5f, 0.0f,     // target (body)
 };
@@ -364,7 +363,7 @@ procedures:
     m_iScore = 2000;
 
     // [Cecil] Own type
-    m_sptType = SPT_BONES;
+    m_sptType = SPT_GOO;
 
     if (m_fStepHeight == -1) {
       m_fStepHeight = 4.0f;

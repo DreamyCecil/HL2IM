@@ -237,10 +237,7 @@ functions:
       if (crRay.cr_penHit->GetRenderType() != RT_BRUSH) {
         // if flesh entity
         if (crRay.cr_penHit->GetEntityInfo() != NULL) {
-          if (((EntityInfo*)crRay.cr_penHit->GetEntityInfo())->Eeibt == EIBT_FLESH
-          // [Cecil] NOTE: Don't use IsOfClassID() here because enemy replacements have the same IDs as vanilla enemies!
-          // [Cecil] Some enemies leave goo
-          || IsOfClass(crRay.cr_penHit, "Antlion") || IsOfClass(crRay.cr_penHit, "AntlionGuard")) {
+          if (((EntityInfo*)crRay.cr_penHit->GetEntityInfo())->Eeibt == EIBT_FLESH) {
             CEntity *penOfFlesh = crRay.cr_penHit;
             FLOAT3D vHitNormal = (GetPlacement().pl_PositionVector-m_vTarget).Normalize();
             FLOAT3D vOldHitPos = crRay.cr_vHit;

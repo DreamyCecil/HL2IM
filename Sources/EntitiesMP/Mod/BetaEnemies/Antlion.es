@@ -9,7 +9,7 @@ uses "EntitiesMP/EnemyBase";
 %{
 // info structure
 static EntityInfo eiAntlion = {
- EIBT_BONES, 250.0f,
+ EIBT_FLESH, 250.0f,
  0.0f, 1.9f, 0.0f,    // source (eyes)
  0.0f, 1.9f, 0.0f,    // target (body)
 };
@@ -393,7 +393,7 @@ procedures:
     SetModelMainTexture(ANTLION_TEXTURE_RND);
 
     StandingAnim();
-    m_sptType = SPT_BONES;
+    m_sptType = SPT_GOO;
     // setup moving speed
     m_fWalkSpeed = FRnd() + 2.5f;
     m_aWalkRotateSpeed = FRnd()*25.0f + 45.0f;

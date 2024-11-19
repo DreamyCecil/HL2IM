@@ -131,7 +131,7 @@ functions:
       eSpawnSpray.fSizeMultiplier = 1.0f;
       //eSpawnSpray.sptType = SPT_SLIME;
       // [Cecil] Own type
-      eSpawnSpray.sptType = HL2_GOO_SPRAY;
+      eSpawnSpray.sptType = SPT_GOO;
       eSpawnSpray.vDirection = en_vCurrentTranslationAbsolute/8.0f;
       eSpawnSpray.penOwner = this;
       penSpray->Initialize(eSpawnSpray);
@@ -330,7 +330,7 @@ procedures:
     m_fDamageWounded = 0.0f;
     m_iScore = 500;
     // [Cecil] Own type
-    m_sptType = HL2_GOO_SPRAY;
+    m_sptType = SPT_GOO;
 
     en_fDeceleration = 150.0f;
 
