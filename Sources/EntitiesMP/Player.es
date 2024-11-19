@@ -2323,6 +2323,13 @@ functions:
     }
   };
 
+  // [Cecil] Reset zoom
+  void ResetSuitZoom(void) {
+    m_bSuitZoom = FALSE;
+    m_fZoomFOV = 90.0f;
+    m_fLastZoomFOV = 90.0f;
+  };
+
   void AddBouble(FLOAT3D vPos, FLOAT3D vSpeedRelative) {
     ShellLaunchData &sld = m_asldData[m_iFirstEmptySLD];
     sld.sld_vPos = vPos;
@@ -4951,9 +4958,7 @@ functions:
       aDeltaViewRotation *= fRotationDamping;
 
     } else {
-      m_bSuitZoom = FALSE;
-      m_fZoomFOV = 90.0f;
-      m_fLastZoomFOV = 90.0f;
+      ResetSuitZoom();
     }
 
     //FLOAT3D vDeltaTranslation  = paAction.pa_vTranslation -m_vLastTranslation;
@@ -6181,20 +6186,24 @@ functions:
       ((CPlayerWeapons&)*m_penWeapons).SendEvent(EReloadWeapon());
     }
 
-    // [Cecil] Flashlight
-    if (ulNewButtons & PLACT_FLASHLIGHT) {
-      m_bFlashlight = !m_bFlashlight;
-      PlaySound(m_soFlashlight, SOUND_FLASHLIGHT, SOF_3D|SOF_VOLUMETRIC);
-    }
+    // [Cecil] No flashlight or suit zoom without the suit
+    if (!m_bHEVSuit) {
+      m_bFlashlight = FALSE;
+      m_bSuitZoom = FALSE;
 
-    // [Cecil] Suit Zoom
-    if (ulNewButtons & PLACT_ZOOM) {
-      if (GetPlayerWeapons()->m_iSniping == 0) {
+    } else {
+      // [Cecil] Flashlight
+      if (ulNewButtons & PLACT_FLASHLIGHT) {
+        m_bFlashlight = !m_bFlashlight;
+        PlaySound(m_soFlashlight, SOUND_FLASHLIGHT, SOF_3D|SOF_VOLUMETRIC);
+      }
+
+      // [Cecil] Use suit zoom if not scoping in
+      if (ulReleasedButtons & PLACT_ZOOM) {
+        m_bSuitZoom = FALSE;
+      } else if ((ulNewButtons & PLACT_ZOOM) && GetPlayerWeapons()->m_iSniping == 0) {
         m_bSuitZoom = TRUE;
       }
-    }
-    if (ulReleasedButtons & PLACT_ZOOM) {
-      m_bSuitZoom = FALSE;
     }
 
     // if use is pressed
@@ -6768,10 +6777,7 @@ functions:
     m_fLastRecoilPower = 0.0f;
     m_aCameraShake = ANGLE3D(0.0f, 0.0f, 0.0f);
     m_aLastCameraShake = ANGLE3D(0.0f, 0.0f, 0.0f);
-
-    m_bSuitZoom = FALSE;
-    m_fZoomFOV = 90.0f;
-    m_fLastZoomFOV = 90.0f;
+    ResetSuitZoom();
 
     m_soMouth.Stop();
 
@@ -7391,10 +7397,8 @@ procedures:
     PlaySound(m_soSniperZoom, SOUND_SILENCE, SOF_3D);
 
     // [Cecil] Reset zoom
-    m_bSuitZoom = FALSE;
-    m_fZoomFOV = 90.0f;
-    m_fLastZoomFOV = 90.0f;
-    
+    ResetSuitZoom();
+
     // if in single player, or if this is a predictor entity
     //if (GetSP()->sp_bSinglePlayer || IsPredictor()) {
       // do not print anything
