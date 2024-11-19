@@ -6167,8 +6167,8 @@ procedures:
 
       // Damage certain objects if they aren't being held
       if (penTarget != penHolding && !bRollingStone) {
-        // Explosive damage for brushes
-        if (IsOfClass(penTarget, "Moving Brush")) {
+        // Explosive damage for brushes and models
+        if (IsOfClassID(penTarget, CMovingBrush_ClassID) || IsOfClassID(penTarget, CModelHolder2_ClassID)) {
           InflictDirectDamage(penTarget, m_penPlayer, DMT_EXPLOSION, 20.0f, m_vRayHit, vTargetDir);
 
         } else if (bPhysical) {

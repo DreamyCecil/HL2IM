@@ -22,6 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // Various classes
 #include <EntitiesMP/Mod/Radio.h>
 #include <EntitiesMP/Mod/RollerMine.h>
+#include <EntitiesMP/ModelHolder2.h>
 #include <EntitiesMP/MovingBrush.h>
 #include <EntitiesMP/Projectile.h>
 #include <EntitiesMP/RollingStone.h>
@@ -385,9 +386,6 @@ BOOL GravityGunCanInteract(CCecilPlayerEntity *penPlayer, CEntity *pen, BOOL bPi
   // No object
   if (pen == NULL || pen->GetFlags() & ENF_DELETED) return FALSE;
 
-  // Don't interact with static objects
-  if (!IsDerivedFromID(pen, CMovableEntity_ClassID)) return FALSE;
-
   // Can't pick up certain objects
   if (bPickup && GravityGunCannotPickUp(pen)) return FALSE;
 
@@ -395,9 +393,18 @@ BOOL GravityGunCanInteract(CCecilPlayerEntity *penPlayer, CEntity *pen, BOOL bPi
   if (pen->GetFlags() & ENF_ALIVE) return TRUE;
 
   // Always interact with certain moving objects
-  if (IsOfClassID(pen, CMovingBrush_ClassID) || IsOfClassID(pen, CRollingStone_ClassID)
-   || IsOfClassID(pen, CProjectile_ClassID)) {
+  if (IsOfClassID(pen, CRollingStone_ClassID) || IsOfClassID(pen, CProjectile_ClassID)) {
     return TRUE;
+  }
+
+  // Interact with destructible brushes
+  if (IsOfClassID(pen, CMovingBrush_ClassID)) {
+    return ((CMovingBrush &)*pen).m_fHealth >= 0.0f;
+  }
+
+  // Interact with destructible models
+  if (IsOfClassID(pen, CModelHolder2_ClassID)) {
+    return ((CModelHolder2 &)*pen).m_penDestruction != NULL;
   }
 
   // Interact with physics object
