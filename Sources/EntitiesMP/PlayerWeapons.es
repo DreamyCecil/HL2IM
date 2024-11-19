@@ -49,11 +49,9 @@
 #include "EntitiesMP/EnemyBase.h"
 extern INDEX hud_bShowWeapon;
 
-// [Cecil] Crosshair bars
-#include "EntitiesMP/Common/UI/UI.h"
-extern INDEX hl2_bCrosshairColoring;
-
+// [Cecil]
 #include "EntitiesMP/Cecil/Physics.h"
+#include "EntitiesMP/Common/UI/UI.h"
 
 // [Cecil] For class IDs
 #include "EntitiesMP/Mod/PhysBase.h"
@@ -86,6 +84,8 @@ extern FLOAT cht_fDamageMul;
 
 #define EMPTY_MAG (GetMagCount(m_iCurrentWeapon) <= 0)
 #define HAS_AMMO(Weapon) (GetAmmo(Weapon) > 0 || GetMagCount(Weapon) > 0 || GetAltAmmoCount(Weapon) > 0)
+
+#define GGFLARE_DECREASE_MUL 0.5f
 %}
 
 uses "EntitiesMP/Player";
@@ -240,8 +240,11 @@ static FLOAT hud_fCrosshairRatio    = 0.5f;  // max distance size ratio
 // misc HUD vars
 static INDEX hud_bShowPlayerName = TRUE;
 static INDEX hud_bShowCoords     = FALSE;
-static FLOAT plr_tmSnoopingDelay = 1.0f; // seconds 
-extern FLOAT plr_tmSnoopingTime  = 1.0f; // seconds 
+static FLOAT plr_tmSnoopingDelay = 1.0f; // seconds
+extern FLOAT plr_tmSnoopingTime  = 1.0f; // seconds
+
+// [Cecil]
+INDEX hl2_bReduceGravityGunFlash = FALSE;
 
 // [Cecil] Crosshair bars
 static CTextureObject _toBarEmpty;
@@ -458,12 +461,15 @@ void CPlayerWeapons_Init(void) {
 
   // [Cecil] hud_bCrosshairColoring -> hl2_bCrosshairColoring
   _pShell->DeclareSymbol("persistent user INDEX hl2_bCrosshairColoring;", &hl2_bCrosshairColoring);
-                                  
+
   _pShell->DeclareSymbol("persistent user INDEX hud_bShowPlayerName;", &hud_bShowPlayerName);
   _pShell->DeclareSymbol("persistent user INDEX hud_bShowCoords;",     &hud_bShowCoords);
 
   _pShell->DeclareSymbol("persistent user FLOAT plr_tmSnoopingTime;",  &plr_tmSnoopingTime);
   _pShell->DeclareSymbol("persistent user FLOAT plr_tmSnoopingDelay;", &plr_tmSnoopingDelay);
+
+  // [Cecil]
+  _pShell->DeclareSymbol("persistent user INDEX hl2_bReduceGravityGunFlash;", &hl2_bReduceGravityGunFlash);
 
   // [Cecil] Load crosshair textures
   try {
@@ -2372,7 +2378,7 @@ functions:
       m_vGGFlare(1) = ClampDn(m_vGGFlare(1) - 0.1f, 0.8f);
     }
 
-    m_vGGFlare(2) = ClampDn(m_vGGFlare(2) * 0.5f, 0.01f);
+    m_vGGFlare(2) = ClampDn(m_vGGFlare(2) * GGFLARE_DECREASE_MUL, 0.01f);
   };
 
   // [Cecil] Gravity Gun effects
@@ -6184,8 +6190,8 @@ procedures:
       CAttachmentModelObject *pamo = m_moWeapon.GetAttachmentModel(10);
       pamo->amo_plRelative.pl_OrientationAngle(3) = FRnd() * 360.0f;
 
-      m_vGGFlare(2) = 10.0f;
-      m_vLastGGFlare(2) = m_vGGFlare(2) / 0.5f;
+      m_vGGFlare(2) = (hl2_bReduceGravityGunFlash ? 5.0f : 10.0f);
+      m_vLastGGFlare(2) = m_vGGFlare(2) / GGFLARE_DECREASE_MUL;
 
       // Stop holding
       StopHolding(FALSE);

@@ -413,6 +413,7 @@ extern INDEX hud_bShowMatchInfo = TRUE;
 // [Cecil] UI Customization
 static FLOAT hl2_fCaptionsWidth = 384.0f;
 static INDEX hl2_iHUDPreset = 0;
+extern INDEX hl2_bReduceGravityGunFlash;
 
 static void ResetColors(void) {
   INDEX colMain = hl2_colUIMain;
@@ -6615,7 +6616,7 @@ functions:
       // [Cecil] Gravity Gun launch glare
       const TIME tmGGFlare = (_pTimer->GetLerpedCurrentTick() - GetPlayerWeapons()->m_tmGGLaunch);
 
-      if (GetPlayerWeapons()->m_iCurrentWeapon == WEAPON_GRAVITYGUN && tmGGFlare <= 0.5f) {
+      if (!hl2_bReduceGravityGunFlash && GetPlayerWeapons()->m_iCurrentWeapon == WEAPON_GRAVITYGUN && tmGGFlare <= 0.5f) {
         const ULONG ulFlareA = NormFloatToByte(Clamp(0.5f - tmGGFlare * 4.0f, 0.0f, 0.5f));
 
         pdp->dp_ulBlendingRA += 0xFF * ulFlareA;
