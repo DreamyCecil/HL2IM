@@ -402,6 +402,10 @@ void ODE_Start(void) {
   _pODE->bStarted = TRUE;
   CPutString("^c00ff00ODE simulation started\n");
 
+  if (_pNetwork->IsNetworkEnabled()) {
+    CPutString("^cff7f7fWARNING!^C To allow new players to join the game again, physics simulation must be disabled!\n");
+  }
+
   dWorldID world = _pODE->world;
 
   const dReal fGravity = -9.81;
