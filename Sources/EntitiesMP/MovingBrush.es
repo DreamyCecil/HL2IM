@@ -197,21 +197,31 @@ functions:
 
   // [Cecil] Make physics object follow the brush
   void OnPhysStep(void) {
-    CPlacement3D plCurrent = GetPlacement();
+    const FLOAT3D vCurrent = GetPlacement().pl_PositionVector;
+    const FLOATmatrix3D mCurrent = GetRotationMatrix();
+
+    // [Cecil] TEMP: Reset placement of physics objects with invalid positions
+    if (!PhysObj().IsValidPosition()) {
+      ODE_ReportOutOfBounds("ID:%u  ^cff7f7f%s entity at %s has invalid physics position!^C Resetting to the entity position...", en_ulID,
+        GetClass()->ec_pdecDLLClass->dec_strName, ODE_PrintVectorForReport(GetPlacement().pl_PositionVector));
+
+      PhysObj().SetPosition(vCurrent);
+      PhysObj().SetMatrix(mCurrent);
+    }
 
     // [Cecil] NOTE: This placement offsetting is needed in order to "predict" the next movement position of a brush
     // If it's not done, any physics object that lies on top will lag behind by a tick and, for example, will appear
     // "inside" of it or "floating" slightly above it when it's moving up and down respectively
 
     // Move after the brush's predicted position
-    const FLOAT3D vNextPos = GetPlacement().pl_PositionVector + en_vCurrentTranslationAbsolute * ONE_TICK;
+    const FLOAT3D vNextPos = vCurrent + en_vCurrentTranslationAbsolute * ONE_TICK;
 
     const FLOAT3D vDiff = (vNextPos - PhysObj().GetPosition());
     PhysObj().SetCurrentTranslation(vDiff / ONE_TICK);
 
     // Set rotation from the matrix difference in absolute coordinates
     ANGLE3D aDiff;
-    DecomposeRotationMatrixNoSnap(aDiff, GetRotationMatrix() * !PhysObj().GetMatrix());
+    DecomposeRotationMatrixNoSnap(aDiff, mCurrent * !PhysObj().GetMatrix());
 
     PhysObj().SetCurrentRotation(aDiff / ONE_TICK);
   };

@@ -104,13 +104,25 @@ functions:
 
   // [Cecil] Make physics object follow the brush
   void OnPhysStep(void) {
+    const FLOAT3D vCurrent = GetPlacement().pl_PositionVector;
+    const FLOATmatrix3D mCurrent = GetRotationMatrix();
+
+    // [Cecil] TEMP: Reset placement of physics objects with invalid positions
+    if (!PhysObj().IsValidPosition()) {
+      ODE_ReportOutOfBounds("ID:%u  ^cff7f7f%s entity at %s has invalid physics position!^C Resetting to the entity position...", en_ulID,
+        GetClass()->ec_pdecDLLClass->dec_strName, ODE_PrintVectorForReport(GetPlacement().pl_PositionVector));
+
+      PhysObj().SetPosition(vCurrent);
+      PhysObj().SetMatrix(mCurrent);
+    }
+
     // Move after the brush's position
-    const FLOAT3D vDiff = (GetPlacement().pl_PositionVector - PhysObj().GetPosition());
+    const FLOAT3D vDiff = (vCurrent - PhysObj().GetPosition());
     PhysObj().SetCurrentTranslation(vDiff / ONE_TICK);
 
     // Set rotation from the matrix difference in absolute coordinates
     ANGLE3D aDiff;
-    DecomposeRotationMatrixNoSnap(aDiff, GetRotationMatrix() * !PhysObj().GetMatrix());
+    DecomposeRotationMatrixNoSnap(aDiff, mCurrent * !PhysObj().GetMatrix());
 
     PhysObj().SetCurrentRotation(aDiff / ONE_TICK);
   };

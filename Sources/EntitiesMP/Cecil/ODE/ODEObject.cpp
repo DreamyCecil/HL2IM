@@ -425,7 +425,7 @@ BOOL odeObject::IsValidPosition(void) const {
   }
 
   const dReal *aPos = dGeomGetPosition(geom);
-  return IsValidDouble(aPos[0]) && IsValidDouble(aPos[1]) && IsValidDouble(aPos[2]);
+  return _finite(aPos[0]) && _finite(aPos[1]) && _finite(aPos[2]);
 };
 
 // Set rotation matrix of an object
