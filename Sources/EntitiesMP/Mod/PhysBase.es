@@ -123,13 +123,13 @@ thumbnail "";
 features  "AbstractBaseClass";
 
 properties:
- 1 BOOL m_bPhysEnabled "Physics enabled" = TRUE, // Use realistic physics
- 2 BOOL m_bPhysDynamic "Physics dynamic body" = TRUE, // Create a dynamic body instead of a static geom
- 3 FLOAT m_fPhysMass   "Physics mass multiplier" = 1.0f, // Multiply GetPhysMass() value
+ 1 BOOL m_bPhysEnabled "Phys enabled" = TRUE, // Use realistic physics
+ 2 BOOL m_bPhysDynamic "Phys dynamic body" = TRUE, // Create a dynamic body instead of a static geom
+ 3 FLOAT m_fPhysMass   "Phys mass multiplier" = 1.0f, // Multiply GetPhysMass() value
 
- 5 FLOAT m_fPhysFriction  "Physics friction" = 1.0f, // Multiply GetPhysFriction() value
- 6 FLOAT m_fPhysBounce    "Physics bounce" = 1.0f, // Multiply GetPhysBounce() value
- 7 FLOAT m_fPhysBounceVel "Physics bounce velocity" = 1.0f, // Multiply GetPhysBounceVel() value
+ 5 FLOAT m_fPhysFriction  "Phys friction" = 1.0f, // Multiply GetPhysFriction() value
+ 6 FLOAT m_fPhysBounce    "Phys bounce" = 1.0f, // Multiply GetPhysBounce() value
+ 7 FLOAT m_fPhysBounceVel "Phys bounce velocity" = 1.0f, // Multiply GetPhysBounceVel() value
 
 // Touching/blocking data
 10 INDEX m_iTouchType = 0, // 1 - touched, 2 - blocked
