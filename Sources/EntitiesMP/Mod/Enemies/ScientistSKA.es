@@ -134,7 +134,6 @@ thumbnail "Thumbnails\\Mental.tbn";
 properties:
   // [Cecil] NOTE: Don't add new properties with 1-9 indices, so they don't overlap with BigHead properties
   3 FLOAT m_tmLastGreetTime = -100.0f,
-  4 enum EScientistSkin m_eType "Type" 'Y' = SCI_RANDOM,
   7 BOOL m_bSitting "Sitting" 'S' = FALSE,
 
  10 FLOAT m_fMouthTalk = 0.0f,
@@ -148,11 +147,13 @@ properties:
  20 CEntityPointer m_penStep,
  21 CEntityPointer m_penLastPlayer,
  22 FLOAT m_tmLastPlayerDamage = -100.0f,
- 23 INDEX m_iSkinType = -1, // Selected skin type (because random isn't a valid type)
  24 BOOL m_bStoodUp = TRUE, // Set to FALSE if m_bSitting is FALSE
 
  30 FLOAT m_tmPhraseStart = -100.0f, // When started talking
  31 FLOAT m_tmPhraseLength = 0.0f, // Phrase sound length
+
+ 40 enum EScientistSkin m_eType "Type" 'Y' = SCI_RANDOM,
+ 41 INDEX m_iSkinType = -1, // Selected skin type (because random isn't a valid type)
 
 {
   CAutoPrecacheSound m_aps;
