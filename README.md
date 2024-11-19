@@ -9,8 +9,8 @@ Based on [Serious Engine 1 Mod SDK](https://github.com/DreamyCecil/SE1-ModSDK) a
 Building instructions are available here: https://github.com/DreamyCecil/SE1-ModSDK/wiki/Building
 
 ### Building Open Dynamics Engine library
-1. Run `Sources/ode_double_opcode_x86.bat` or `Sources/ode_double_opcode_x64.bat` script (depending on the platform you're building for).
-2. Open `Sources/Extras/ode/build/vs2010/ode.sln` Visual Studio solution and compile the project using `ReleaseDLL` build configuration.
+1. Run `Sources/ode_double_opcode.bat` script.
+2. Open `Sources/Extras/ode/build/vs2010/ode.sln` Visual Studio solution and compile the project using `ReleaseDLL` build configuration (under `Win32` platform for TSE 1.07).
 
 After that, when building the mod, it will automatically link the generated `ode.lib` file and copy `ode.dll` into the `Bin/` directory.
 
