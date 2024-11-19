@@ -20,22 +20,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <EntitiesMP/Mod/PhysBase.h>
 
 // Various classes
-#include <EntitiesMP/Mod/BetaEnemies/AntlionGuard.h>
-#include <EntitiesMP/Mod/BetaEnemies/Merasmus.h>
 #include <EntitiesMP/Mod/Radio.h>
 #include <EntitiesMP/Mod/RollerMine.h>
-#include <EntitiesMP/AirElemental.h>
-#include <EntitiesMP/Beast.h>
-#include <EntitiesMP/CannonRotating.h>
-#include <EntitiesMP/CannonStatic.h>
-#include <EntitiesMP/Elemental.h>
-#include <EntitiesMP/ExotechLarva.h>
 #include <EntitiesMP/MovingBrush.h>
+#include <EntitiesMP/Projectile.h>
 #include <EntitiesMP/RollingStone.h>
-#include <EntitiesMP/Scorpman.h>
-#include <EntitiesMP/Summoner.h>
-#include <EntitiesMP/Walker.h>
-#include <EntitiesMP/Werebull.h>
 
 namespace INearestPolygon {
 
@@ -371,12 +360,12 @@ static BOOL GravityGunCannotPickUp(CEntity *pen) {
   if (GetGravityGunSync(pen) == NULL) return TRUE;
 
   // Don't pick up large enemies, rolling stones, projectiles, or players
-  if (IsOfClassID(pen, CWalker_ClassID)       || IsOfClassID(pen, CWerebull_ClassID)
-   || IsOfClassID(pen, CScorpman_ClassID)     || IsOfClassID(pen, CBeast_ClassID)
-   || IsOfClassID(pen, CCannonStatic_ClassID) || IsOfClassID(pen, CCannonRotating_ClassID)
-   || IsOfClassID(pen, CElemental_ClassID)    || IsOfClassID(pen, CAirElemental_ClassID)
-   || IsOfClassID(pen, CExotechLarva_ClassID) || IsOfClassID(pen, CSummoner_ClassID)
-   || IsOfClassID(pen, CAntlionGuard_ClassID) || IsOfClassID(pen, CMerasmus_ClassID)
+  if (IsOfClass(pen, "Walker")       || IsOfClass(pen, "Werebull")
+   || IsOfClass(pen, "Scorpman")     || IsOfClass(pen, "Beast")
+   || IsOfClass(pen, "CannonStatic") || IsOfClass(pen, "CannonRotating")
+   || IsOfClass(pen, "Elemental")    || IsOfClass(pen, "AirElemental")
+   || IsOfClass(pen, "ExotechLarva") || IsOfClass(pen, "Summoner")
+   || IsOfClass(pen, "AntlionGuard") || IsOfClass(pen, "Merasmus")
    || IsOfClassID(pen, CRollingStone_ClassID) || IsOfClassID(pen, CProjectile_ClassID)
    || IS_PLAYER(pen)) {
     return TRUE;

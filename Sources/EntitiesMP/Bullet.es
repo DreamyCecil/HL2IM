@@ -238,6 +238,7 @@ functions:
         // if flesh entity
         if (crRay.cr_penHit->GetEntityInfo() != NULL) {
           if (((EntityInfo*)crRay.cr_penHit->GetEntityInfo())->Eeibt == EIBT_FLESH
+          // [Cecil] NOTE: Don't use IsOfClassID() here because enemy replacements have the same IDs as vanilla enemies!
           // [Cecil] Some enemies leave goo
           || IsOfClass(crRay.cr_penHit, "Antlion") || IsOfClass(crRay.cr_penHit, "AntlionGuard")) {
             CEntity *penOfFlesh = crRay.cr_penHit;
@@ -269,11 +270,12 @@ functions:
             // spawn red blood hit spill effect
             args.bhtType = BHT_FLESH;
 
+            // [Cecil] NOTE: Don't use IsOfClassID() here because enemy replacements have the same IDs as vanilla enemies!
             // [Cecil] HL2 enemies
-            if (IsOfClassID(penOfFlesh, CAntlion_ClassID) || IsOfClassID(penOfFlesh, CAntlionGuard_ClassID) || IsOfClassID(penOfFlesh, CHeadcrab_ClassID)) {
+            if (IsOfClass(penOfFlesh, "Antlion") || IsOfClass(penOfFlesh, "AntlionGuard") || IsOfClass(penOfFlesh, "Headcrab")) {
               args.bhtType = BHT_GOO;
 
-            } else if (IsOfClassID(penOfFlesh, CGizmo_ClassID) || IsOfClassID(penOfFlesh, CBeast_ClassID)) {
+            } else if (IsOfClass(penOfFlesh, "Gizmo") || IsOfClass(penOfFlesh, "Beast")) {
               // spawn green blood hit spill effect
               args.bhtType = BHT_ACID;
             }

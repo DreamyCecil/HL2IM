@@ -332,8 +332,8 @@ procedures:
     SetFlags(GetFlags()|ENF_ALIVE);
 
     // [Cecil] Increase health
-    SetHealth(1000.0f);
-    m_fMaxHealth = 1000.0f;
+    SetHealth(300.0f);
+    m_fMaxHealth = 300.0f;
 
     en_fDensity = 2000.0f;
 
