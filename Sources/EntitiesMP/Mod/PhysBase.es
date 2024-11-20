@@ -858,8 +858,12 @@ functions:
         plPhys = GetLerpedPlacement();
       }
 
+      // Bright red when physics are disabled
+      if (!PhysicsUsable()) {
+        Particles_ColoredBox(plEntity, vSize, C_lRED|0x3F);
+
       // Entity position and then real physics object position
-      if (PhysObj().IsFrozen()) {
+      } else if (PhysObj().IsFrozen()) {
         // Dark purple when disabled
         Particles_ColoredBox(plEntity, vSize, C_dRED|0x3F);
         Particles_ColoredBox(plPhys, vSize, C_dBLUE|0x3F);
@@ -879,14 +883,14 @@ functions:
       return CCecilMovableModelEntity::GetLerpedPlacement();
     }
 
-    // Interpolate physics object placement between ticks using quaternions
-    FLOAT3D v0 = m_vObjPos;
-    FLOATquat3D q0;
-    q0.FromMatrix(const_cast<FLOATmatrix3D &>(m_mObjRot));
+    // Interpolate physics object placement between ticks
+    CPlacement3D pl0, pl1, plResult;
 
-    FLOAT3D v1 = PhysObj().GetPosition();
-    FLOATquat3D q1;
-    q1.FromMatrix(const_cast<FLOATmatrix3D &>(PhysObj().GetMatrix()));
+    pl0.pl_PositionVector = m_vObjPos;
+    DecomposeRotationMatrixNoSnap(pl0.pl_OrientationAngle, m_mObjRot);
+
+    pl1.pl_PositionVector = PhysObj().GetPosition();
+    DecomposeRotationMatrixNoSnap(pl1.pl_OrientationAngle, PhysObj().GetMatrix());
 
     FLOAT fRatio;
 
@@ -896,14 +900,7 @@ functions:
       fRatio = _pTimer->GetLerpFactor2();
     }
 
-    CPlacement3D plResult;
-    plResult.pl_PositionVector = Lerp(v0, v1, fRatio);
-
-    FLOATquat3D qResult = Slerp(fRatio, q0, q1);
-    FLOATmatrix3D mResult;
-    qResult.ToMatrix(mResult);
-
-    DecomposeRotationMatrixNoSnap(plResult.pl_OrientationAngle, mResult);
+    plResult.Lerp(pl0, pl1, fRatio);
 
     CPlacement3D plOffset;
 
