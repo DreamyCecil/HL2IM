@@ -1284,7 +1284,7 @@ void SMG1Grenade(void) {
   m_fSoundRange = 50.0f;
   m_bExplode = TRUE;
   en_fDeceleration = 25.0f;
-  m_bLightSource = TRUE;
+  m_bLightSource = FALSE;
   m_bCanHitHimself = TRUE;
   m_bCanBeDestroyed = TRUE;
   m_fWaitAfterDeath = 0.0f;
