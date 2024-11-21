@@ -84,6 +84,7 @@ functions:
 
     // Begin creating a new object
     PhysObj().BeginShape(GetPlacement(), 1.0f, OBJF_BODY);
+    PhysObj().SetCollision(OBJC_WORLD, OBJC_REGULAR);
 
     // No vertices added
     if (!PhysObj().mesh.FromBrush(GetBrush(), NULL, FALSE)) {

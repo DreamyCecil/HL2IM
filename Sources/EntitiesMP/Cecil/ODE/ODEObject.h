@@ -89,6 +89,19 @@ enum EPhysObjectFlags {
   OBJF_WORLD = (1 << 1), // Object is part of the world mesh
 };
 
+// Physics collision flags
+// By default, objects are created in the "regular" category and collide with "all" categories
+enum EPhysCollisionFlags {
+  // Category flags
+  OBJC_WORLD   = (1 << 0), // World object
+  OBJC_REGULAR = (1 << 1), // Regular object
+  OBJC_PLAYER  = (1 << 2), // Player object
+
+  // Collision masks
+  OBJC_ALL     = ~0, // All categories
+  OBJC_NOWORLD = ~OBJC_WORLD, // All but world
+};
+
 // Physical object
 class odeObject {
   public:
@@ -96,6 +109,9 @@ class odeObject {
     CPlacement3D plCenter; // Origin placement of the body
     ULONG ulSetupFlags; // Behavior flags
     FLOAT fSetupMass; // Object mass
+
+    ULONG ulSetupCategories; // Collision categories this object belongs to
+    ULONG ulSetupCollisionMask; // Collision categories this object can collide with
 
     // Collision parameters
     FLOAT fFriction;
@@ -124,6 +140,7 @@ class odeObject {
   public:
     // Constructor
     odeObject(void) : plCenter(_odeCenter), ulSetupFlags(0), fSetupMass(0.0f),
+      ulSetupCategories(OBJC_REGULAR), ulSetupCollisionMask(OBJC_ALL),
       fFriction(1.0f), fBounce(0.1f), fBounceVel(1.0f),
       body(NULL), geom(NULL), joint(NULL), ulTag(-1)
     {
@@ -172,6 +189,9 @@ class odeObject {
 
     // Begin setting up physics shape
     void BeginShape(const CPlacement3D &plSetCenter, FLOAT fSetMass, ULONG ulSetFlags);
+
+    // Pre-set collision masks for the physics shape
+    void SetCollision(ULONG ulCategories, ULONG ulCollide);
 
     // Finish setting up physics shape
     void EndShape(void);

@@ -1710,6 +1710,8 @@ functions:
     plSphere.RelativeToAbsoluteSmooth(GetPlacement());
 
     PhysObj().BeginShape(plSphere, 1.0f, OBJF_BODY);
+    PhysObj().SetCollision(OBJC_PLAYER, OBJC_REGULAR);
+
     PhysObj().SetSphere(PHYS_SPHERE_RADIUS);
     PhysObj().EndShape();
 

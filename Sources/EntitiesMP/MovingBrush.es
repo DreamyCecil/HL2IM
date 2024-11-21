@@ -171,6 +171,7 @@ functions:
 
     // Begin creating a new object
     PhysObj().BeginShape(GetPlacement(), 1.0f, OBJF_BODY);
+    PhysObj().SetCollision(OBJC_WORLD, OBJC_REGULAR);
 
     // Determine if the brush is flat to offset some polygons
     FLOATaabbox3D boxBrush;

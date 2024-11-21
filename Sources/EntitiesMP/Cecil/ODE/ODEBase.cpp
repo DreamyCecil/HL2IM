@@ -159,11 +159,6 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
 
   const BOOL bBody1 = (body1 != NULL);
   const BOOL bBody2 = (body2 != NULL);
-  const BOOL bK1 = (bBody1 && dBodyIsKinematic(body1));
-  const BOOL bK2 = (bBody2 && dBodyIsKinematic(body2));
-
-  // Ignore collisions between kinematic bodies
-  if (bK1 && bK2) return;
 
   if (bBody1 && bBody2 && dAreConnectedExcluding(body1, body2, dJointTypeContact)) return;
 
@@ -173,17 +168,6 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
   // [Cecil] TEMP: Ignore geoms with no attached objects
   if (obj1 == NULL || obj2 == NULL) return;
 
-  const BOOL bWorld1 = _pODE->IsWorldMesh(obj1);
-  const BOOL bWorld2 = _pODE->IsWorldMesh(obj2);
-
-  // Objects with infinite mass
-  const BOOL bNonDynamic1 = (bK1 || bWorld1);
-  const BOOL bNonDynamic2 = (bK2 || bWorld2);
-
-  // Ignore collisions between kinematic bodies and the world
-  if (bNonDynamic1 && bWorld2) return;
-  if (bNonDynamic2 && bWorld1) return;
-
   CEntity *pen1 = obj1->GetOwner();
   CEntity *pen2 = obj2->GetOwner();
 
@@ -191,10 +175,7 @@ static void HandleCollisions(void *pData, dGeomID geom1, dGeomID geom2) {
   const BOOL bPlayer1 = IsDerivedFromID(pen1, CPlayer_ClassID);
   const BOOL bPlayer2 = IsDerivedFromID(pen2, CPlayer_ClassID);
 
-  // Don't let player objects collide with kinematic objects or the world
-  if (bPlayer1 && bNonDynamic2) return;
-  if (bPlayer2 && bNonDynamic1) return;
-  // Or each other
+  // Don't let player objects collide with each other
   if (bPlayer1 && bPlayer2) return;
 
   // Skip collision with players if collision masks don't match
@@ -444,6 +425,7 @@ void ODE_Start(void) {
   // Create world mesh
   odeObject *pObjWorld = _pODE->AddWorldMesh();
   pObjWorld->BeginShape(_odeCenter, 0.0f, OBJF_WORLD);
+  pObjWorld->SetCollision(OBJC_WORLD, OBJC_REGULAR);
 #endif
 
   // Iterate through all physical objects in the world
@@ -490,6 +472,7 @@ void ODE_Start(void) {
     #elif WORLD_MESH_GENERATION_ON_START == 1
       odeObject *pMesh = _pODE->AddWorldMesh();
       pMesh->BeginShape(pen->GetPlacement(), 0.0f, OBJF_WORLD);
+      pMesh->SetCollision(OBJC_WORLD, OBJC_REGULAR);
 
       if (pMesh->mesh.FromBrush(pbr, NULL, FALSE)) {
         pMesh->mesh.Build();
@@ -501,6 +484,7 @@ void ODE_Start(void) {
       FOREACHINDYNAMICARRAY(pbr->GetFirstMip()->bm_abscSectors, CBrushSector, itSec) {
         odeObject *pMesh = _pODE->AddWorldMesh();
         pMesh->BeginShape(pen->GetPlacement(), 0.0f, OBJF_WORLD);
+        pMesh->SetCollision(OBJC_WORLD, OBJC_REGULAR);
 
         if (pMesh->mesh.FromSector(itSec, NULL, FALSE)) {
           pMesh->mesh.Build();

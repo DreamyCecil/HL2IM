@@ -222,6 +222,9 @@ void odeObject::ContactCallback(const FLOAT3D &vHit, const FLOAT3D &vDir, FLOAT 
 // Setup a new geom
 void odeObject::SetupGeom(void) {
   dGeomSetData(geom, this);
+
+  dGeomSetCategoryBits(geom, ulSetupCategories);
+  dGeomSetCollideBits(geom, ulSetupCollisionMask);
 };
 
 // Begin setting up physics shape
@@ -232,6 +235,12 @@ void odeObject::BeginShape(const CPlacement3D &plSetCenter, FLOAT fSetMass, ULON
 
   // Clear old geometry and body
   Clear(FALSE);
+};
+
+// Pre-set collision masks for the physics shape
+void odeObject::SetCollision(ULONG ulCategories, ULONG ulCollide) {
+  ulSetupCategories = ulCategories;
+  ulSetupCollisionMask = ulCollide;
 };
 
 // Finish setting up physics shape
