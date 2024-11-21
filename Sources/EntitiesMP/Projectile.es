@@ -97,6 +97,8 @@ enum ProjectileType {
  75 PRT_AIRELEMENTAL_WIND     "Air Elemental Wind Blast", //air elemental wind blast
  76 PRT_AFTERBURNER_DEBRIS    "Afterburner debris",
  77 PRT_METEOR                "Meteor",
+
+ 80 PRT_ANTLION_BETA "Antlion (Beta)", // [Cecil] Like PRT_BONEMAN_FIRE but with a different model
 };
 
 enum ProjectileMovingType {
@@ -233,9 +235,13 @@ void CProjectile_OnPrecache(CDLLEntityClass *pdec, INDEX iUser)
     pdec->PrecacheClass(CLASS_BASIC_EFFECT, BET_GRENADE_PLANE);
     break;
 
+  // [Cecil] Beta Antlion projectile as well
   case PRT_BONEMAN_FIRE:
-    pdec->PrecacheModel(MODEL_BONEMAN_FIRE         );
-    pdec->PrecacheTexture(TEXTURE_BONEMAN_FIRE     );
+  case PRT_ANTLION_BETA:
+    pdec->PrecacheModel(MODEL_BONEMAN_FIRE);
+    pdec->PrecacheTexture(TEXTURE_BONEMAN_FIRE);
+    pdec->PrecacheModel(MODEL_ANTLION_BETA);
+    pdec->PrecacheTexture(TEXTURE_ANTLION_BETA);
     break;
 
   case PRT_WOMAN_FIRE:
@@ -560,6 +566,10 @@ components:
 // ********* BONEMAN FIRE *********
  60 model   MODEL_BONEMAN_FIRE    "Models\\Enemies\\Boneman\\Projectile\\Projectile.mdl",
  61 texture TEXTURE_BONEMAN_FIRE  "Models\\Enemies\\Boneman\\Projectile\\Projectile.tex",
+
+// [Cecil] Beta Antlion projectile
+ 62 model   MODEL_ANTLION_BETA    "Models\\Enemies\\Antlion\\Projectile\\Projectile.mdl",
+ 63 texture TEXTURE_ANTLION_BETA  "Models\\Enemies\\Antlion\\Projectile\\Projectile.tex",
 
 // ********* WOMAN FIRE *********
  65 model   MODEL_WOMAN_FIRE      "Models\\Enemies\\Woman\\Projectile\\Projectile.mdl",
@@ -1784,14 +1794,23 @@ void CyborgBombExplosion(void) {
 /************************************************************
  *                  BONEMAN PROJECTILE                      *
  ************************************************************/
-void BonemanProjectile(void) {
+
+// [Cecil] Antlion model flag
+void BonemanProjectile(BOOL bAntlion) {
   // set appearance
   InitAsModel();
   SetPhysicsFlags(EPF_PROJECTILE_FLYING);
   SetCollisionFlags(ECF_PROJECTILE_MAGIC);
   SetFlags(GetFlags() | ENF_SEETHROUGH);
-  SetModel(MODEL_BONEMAN_FIRE);
-  SetModelMainTexture(TEXTURE_BONEMAN_FIRE);
+
+  if (bAntlion) {
+    SetModel(MODEL_ANTLION_BETA);
+    SetModelMainTexture(TEXTURE_ANTLION_BETA);
+  } else {
+    SetModel(MODEL_BONEMAN_FIRE);
+    SetModelMainTexture(TEXTURE_BONEMAN_FIRE);
+  }
+
   // start moving
   LaunchAsPropelledProjectile(FLOAT3D(0.0f, 0.0f, -30.0f), (CMovableEntity*)(CEntity*)m_penLauncher);
   SetDesiredRotation(ANGLE3D(0, 0, 0));
@@ -4391,7 +4410,7 @@ procedures:
       case PRT_HEADMAN_FIRECRACKER: HeadmanFirecracker(); break;
       case PRT_HEADMAN_ROCKETMAN: HeadmanRocketman(); break;
       case PRT_HEADMAN_BOMBERMAN: HeadmanBomberman(); break;
-      case PRT_BONEMAN_FIRE: BonemanProjectile(); break;
+      case PRT_BONEMAN_FIRE: BonemanProjectile(FALSE); break;
       case PRT_WOMAN_FIRE: WomanProjectile(); break;
       case PRT_DRAGONMAN_FIRE: DragonmanProjectile(DRAGONMAN_NORMAL); break;
       case PRT_DRAGONMAN_STRONG_FIRE: DragonmanProjectile(DRAGONMAN_STRONG); break;
@@ -4434,6 +4453,7 @@ procedures:
       case PRT_SMG1_GRENADE: SMG1Grenade(); break;
       case PRT_ENERGY_BALL: EnergyBall(); break;
       case PRT_CROSSBOW_ROD: CrossbowRod(); break;
+      case PRT_ANTLION_BETA: BonemanProjectile(TRUE); break;
 
       default: ASSERTALWAYS("Unknown projectile type");
     }

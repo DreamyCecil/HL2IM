@@ -45,7 +45,7 @@ void CAntlion_Precache(void) {
   pdec->PrecacheTexture(TEXTURE_ANTLION3);
   pdec->PrecacheTexture(TEXTURE_ANTLION4);
 
-  pdec->PrecacheClass(CLASS_PROJECTILE, PRT_BONEMAN_FIRE);
+  pdec->PrecacheClass(CLASS_PROJECTILE, PRT_ANTLION_BETA);
 };
 %}
 
@@ -271,10 +271,10 @@ procedures:
     StartModelAnim(BONEMAN_ANIM_ATTACKCLOSELOOP, 0);
     DeactivateRunningSound();
     autowait(0.35f);
-    ShootProjectile(PRT_BONEMAN_FIRE, FIRE_RIGHT_HAND, ANGLE3D(0, 0, 0));
+    ShootProjectile(PRT_ANTLION_BETA, FIRE_RIGHT_HAND, ANGLE3D(0, 0, 0));
     PlaySound(m_soSound, SOUND_FIRE, SOF_3D);
     autowait(0.45f);
-    ShootProjectile(PRT_BONEMAN_FIRE, FIRE_LEFT_HAND, ANGLE3D(0, 0, 0));
+    ShootProjectile(PRT_ANTLION_BETA, FIRE_LEFT_HAND, ANGLE3D(0, 0, 0));
     PlaySound(m_soSound, SOUND_FIRE, SOF_3D);
     autowait(FRnd()/3+0.6f);
 
