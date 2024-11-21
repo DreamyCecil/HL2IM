@@ -533,7 +533,12 @@ void ODE_End(BOOL bGameEnd) {
   _pODE->bStarted = FALSE;
   CPutString("^c00ff00ODE simulation ended\n");
 
-  _pODE->lhObjects.RemAll();
+  // Delete all objects
+  FORDELETELIST(odeObject, lnInObjects, _pODE->lhObjects, it) {
+    it->Clear(TRUE);
+  }
+
+  ASSERT(_pODE->lhObjects.IsEmpty());
 
   // Destroy the world mesh
   _pODE->ClearWorldMeshes();

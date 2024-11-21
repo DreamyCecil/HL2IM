@@ -281,8 +281,6 @@ functions:
 
   // Process physics object before the actual physics simulation
   void OnPhysStep(void) {
-    AddToMovers();
-
     // Using engine physics
     if (!PhysicsUsable()) {
       PhysStepEngine();
@@ -444,7 +442,7 @@ functions:
 
     // Add this object to the controller during the game
     if (IsPlayingGame()) {
-      if (_penGlobalController != NULL && !_penGlobalController->m_cPhysEntities.IsReferenced(this)) {
+      if (_penGlobalController != NULL && !_penGlobalController->IsPhysical(this)) {
         _penGlobalController->m_cPhysEntities.Add(PhysObj().nPhysOwner);
       }
     }

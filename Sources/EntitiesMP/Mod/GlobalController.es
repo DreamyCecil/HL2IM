@@ -237,7 +237,7 @@ functions:
       CEntity *pen = iten;
 
       // Only add entities referenced in the list
-      if (m_cPhysEntities.IsReferenced(pen)) {
+      if (IsPhysical(pen)) {
         cOutput.Add((CPhysBase *)pen);
       }
     }
