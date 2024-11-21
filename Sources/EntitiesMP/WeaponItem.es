@@ -291,9 +291,6 @@ functions:
 
     SetModel(MODEL_ITEM);
     SetProperties();
-
-    // Recreate the physics object
-    CreateObject();
   };
 
 procedures:

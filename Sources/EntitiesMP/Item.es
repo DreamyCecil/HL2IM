@@ -56,6 +56,7 @@ properties:
  50 FLOAT m_fDropTime = 10.0f,
 
  51 BOOL m_bGravityGunInteract "Gravity gun can interact" = TRUE,
+ 52 BOOL m_bDifficultyAdjusted = FALSE,
 
 components:
  1 model MODEL_ITEM "Models\\Items\\ItemHolder.mdl",
@@ -68,6 +69,17 @@ components:
 21 sound SOUND_RESPAWN2 "Sounds\\Items\\Respawn2.wav",
 
 functions:
+  // [Cecil] Initialization
+  virtual void PhysOnInit(void) {
+    // Pre-adjust difficulty only once in-game before creating the physics object
+    if (IsPlayingGame() && !m_bDifficultyAdjusted) {
+      m_bDifficultyAdjusted = TRUE;
+      AdjustDifficulty();
+    }
+
+    CPhysBase::PhysOnInit();
+  };
+
   // [Cecil] Physics overrides
   virtual INDEX GetPhysMaterial(void) const { return SUR_PLASTIC_NORMAL; };
   virtual BOOL AreDecalsAllowed(void) const { return FALSE; };
@@ -388,7 +400,12 @@ procedures:
     }
 
     SetPredictable(TRUE);
-    AdjustDifficulty();
+
+    // [Cecil] Adjust difficulty only once
+    if (!m_bDifficultyAdjusted) {
+      m_bDifficultyAdjusted = TRUE;
+      AdjustDifficulty();
+    }
 
     // [Cecil] Readjust the flags
     SetItemFlags(PhysicsUsable());
