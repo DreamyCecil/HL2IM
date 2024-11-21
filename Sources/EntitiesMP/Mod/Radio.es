@@ -178,9 +178,17 @@ procedures:
         // Adjust item placement to prevent it from falling through the floor
         ANGLE3D aGravity;
         UpVectorToAngles(-en_vGravityDir, aGravity);
-        aGravity(1) = GetPlacement().pl_OrientationAngle(1);
 
-        Teleport(CPlacement3D(PhysObj().GetPosition(), aGravity), FALSE);
+        CPlacement3D plTeleport = GetPlacement();
+
+        if (GetPhysOffset(plTeleport)) {
+          plTeleport.RelativeToAbsolute(GetPlacement());
+        }
+
+        plTeleport.pl_OrientationAngle(2) = aGravity(2);
+        plTeleport.pl_OrientationAngle(3) = aGravity(3);
+
+        Teleport(plTeleport, FALSE);
         ForceFullStop();
         resume;
       }
