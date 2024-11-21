@@ -12,6 +12,7 @@
 #define PHYSF_ENABLE     (1 << 0) // Use realistic physics
 #define PHYSF_ITEMS      (1 << 1) // Enable physics for items
 #define PHYSF_PROPFLYING (1 << 2) // Make it easier to fly using objects held by the Gravity Gun
+#define PHYSF_LOCALITEMS (1 << 3) // Enable physics for items even if every player picks them up separately
 
 // [Cecil] New gamemodes
 enum EHL2Gamemode {

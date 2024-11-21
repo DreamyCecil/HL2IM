@@ -395,12 +395,17 @@ functions:
     m_fValue = ceil(m_fValue * GetSP()->sp_fAmmoQuantity);
   };
 
+  // [Cecil]
+  virtual BOOL IsItemLocal(void) const {
+    return GetSP()->sp_bAmmoStays;
+  };
+
 procedures:
   ItemCollected(EPass epass) : CItem::ItemCollected {
     ASSERT(epass.penOther!=NULL);
 
     // if ammo stays
-    if (GetSP()->sp_bAmmoStays && !(m_bPickupOnce||m_bRespawn)) {
+    if (IsItemLocal() && !(m_bPickupOnce||m_bRespawn)) {
       // if already picked by this player
       BOOL bWasPicked = MarkPickedBy(epass.penOther);
       if (bWasPicked) {
@@ -429,7 +434,7 @@ procedures:
       eAmmoPack.iSniperBullets = iSniperBullets;
 
       if (epass.penOther->ReceiveItem(eAmmoPack)) {
-        if (!GetSP()->sp_bAmmoStays || (m_bPickupOnce || m_bRespawn)) {
+        if (!IsItemLocal() || (m_bPickupOnce || m_bRespawn)) {
           jump CItem::ItemReceived();
         }
       }
@@ -490,7 +495,7 @@ procedures:
 
     // if health is received
     if (epass.penOther->ReceiveItem(eAmmo)) {
-      if (!GetSP()->sp_bAmmoStays || (m_bPickupOnce || m_bRespawn)) {
+      if (!IsItemLocal() || (m_bPickupOnce || m_bRespawn)) {
         jump CItem::ItemReceived();
       }
     }

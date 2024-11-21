@@ -293,12 +293,17 @@ functions:
     SetProperties();
   };
 
+  // [Cecil]
+  virtual BOOL IsItemLocal(void) const {
+    return GetSP()->sp_bWeaponsStay;
+  };
+
 procedures:
   ItemCollected(EPass epass) : CItem::ItemCollected {
     ASSERT(epass.penOther!=NULL);
 
     // if weapons stays
-    if (GetSP()->sp_bWeaponsStay && !(m_bPickupOnce||m_bRespawn)) {
+    if (IsItemLocal() && !(m_bPickupOnce||m_bRespawn)) {
       // if already picked by this player
       BOOL bWasPicked = MarkPickedBy(epass.penOther);
       if (bWasPicked) {
@@ -314,7 +319,7 @@ procedures:
     eWeapon.bDropped = m_bDropped;
     // if weapon is received
     if (epass.penOther->ReceiveItem(eWeapon)) {
-      if (!GetSP()->sp_bWeaponsStay || m_bDropped || (m_bPickupOnce||m_bRespawn)) {
+      if (!IsItemLocal() || m_bDropped || (m_bPickupOnce||m_bRespawn)) {
         jump CItem::ItemReceived();
       }
     }

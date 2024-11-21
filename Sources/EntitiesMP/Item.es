@@ -107,6 +107,13 @@ functions:
       return FALSE;
     }
 
+    // Use engine physics with local items
+    if (IsItemLocal() && !m_bPickupOnce) {
+      if (!(GetSP()->sp_iPhysFlags & PHYSF_LOCALITEMS)) {
+        return FALSE;
+      }
+    }
+
     // Use engine physics with respawning items
     if (m_bRespawn) {
       return FALSE;
@@ -222,6 +229,11 @@ functions:
     m_ulPickedMask |= (1<<iPlayer);
     return bPickedAlready;
   }
+
+  // [Cecil] Determines whether the items are local for each player, like with "gam_bWeaponsStay"
+  virtual BOOL IsItemLocal(void) const {
+    return TRUE;
+  };
 
   // get maximum allowed range for predicting this entity
   FLOAT GetPredictionRange(void)
