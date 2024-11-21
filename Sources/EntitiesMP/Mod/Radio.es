@@ -197,7 +197,7 @@ procedures:
     }
 
     // Destroy physics object
-    DestroyObject();
+    DestroyObject(TRUE);
 
     // Cease to exist
     Destroy();

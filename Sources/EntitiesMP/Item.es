@@ -461,7 +461,7 @@ procedures:
     }
 
     // [Cecil] Destroy physics object
-    DestroyObject();
+    DestroyObject(TRUE);
 
     // wait for sound to end
     autowait(m_fPickSoundLen+0.5f);

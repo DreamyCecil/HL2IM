@@ -89,7 +89,7 @@ functions:
     switch (ee.ee_slEvent) {
       // Destroy entity on death
       case EVENTCODE_EDeath: {
-        DestroyObject();
+        DestroyObject(TRUE);
 
         if (GetRenderType() == RT_BRUSH) {
           // Hide brushes

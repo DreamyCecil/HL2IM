@@ -438,17 +438,24 @@ functions:
 /****************************************************************/
 
   // Create a new physical object
-  void CreateObject(void) {
+  BOOL CreateObject(void) {
     // Delete last object
     PhysObj().Clear(TRUE);
 
-    if (!ODE_IsStarted() || !UseRealisticPhysics()) { return; }
+    // Add this object to the controller during the game
+    if (IsPlayingGame()) {
+      if (_penGlobalController != NULL && !_penGlobalController->m_cPhysEntities.IsReferenced(this)) {
+        _penGlobalController->m_cPhysEntities.Add(PhysObj().nPhysOwner);
+      }
+    }
+
+    if (!ODE_IsStarted() || !UseRealisticPhysics()) { return FALSE; }
 
     // Hidden (or destroyed, in brush's case)
-    if (GetFlags() & ENF_HIDDEN) { return; }
+    if (GetFlags() & ENF_HIDDEN) { return FALSE; }
 
     // Empty brush
-    if (GetRenderType() == RT_BRUSH && IsEmptyBrush()) { return; }
+    if (GetRenderType() == RT_BRUSH && IsEmptyBrush()) { return FALSE; }
 
     // Begin creating a new object
     CPlacement3D plOffset;
@@ -484,11 +491,9 @@ functions:
     m_tmLastMovement = _pTimer->CurrentTick();
     m_bCreatedOOB = !IsInsideAnySector(this);
 
-    // Add this object to the controller
-    _penGlobalController->m_cPhysEntities.Add(PhysObj().nPhysOwner);
-
     // Reset health
     SetHealth(m_fPhysHealth);
+    return TRUE;
   };
 
   // Add physics object geometry
@@ -504,14 +509,15 @@ functions:
   };
 
   // Destory physics object
-  void DestroyObject(void) {
-    // Drop this object
+  BOOL DestroyObject(BOOL bEntityDestruction) {
+    // Drop this object on entity destruction
+    // [Cecil] TEMP: And also until the physics flags are fixed for the gravity gun
     GravityGunObjectDrop(m_syncGravityGun);
 
-    if (!PhysicsUsable()) { return; }
+    if (!PhysicsUsable()) { return FALSE; }
 
     const FLOAT3D vCenter = PhysObj().GetPosition();
-    PhysObj().Clear(TRUE);
+    PhysObj().Clear(bEntityDestruction);
 
     // Update other objects around it
     if (_penGlobalController != NULL) {
@@ -530,6 +536,8 @@ functions:
 
       _penGlobalController->UpdatePhysObjects(box);
     }
+
+    return TRUE;
   };
 
 /****************************************************************/
