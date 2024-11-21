@@ -279,11 +279,49 @@ functions:
     return m_bPhysDynamic;
   };
 
+  // Check if the object is close enough to any player
+  BOOL IsPhysNearAnyPlayer(FLOAT fDistance) {
+    for (INDEX i = 0; i < CEntity::GetMaxPlayers(); i++) {
+      CEntity *pen = CEntity::GetPlayerEntity(i);
+
+      if (pen == NULL || pen->GetFlags() & ENF_DELETED) {
+        continue;
+      }
+
+      FLOAT3D vDiff = (pen->GetPlacement().pl_PositionVector - GetPlacement().pl_PositionVector);
+      vDiff(2) = 0.0f;
+
+      if (vDiff.Length() <= fDistance) {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
+  };
+
+  // Check if realistic physics can be enabled at a distance
+  BOOL CanEnablePhysicsAtDistance(void) {
+    const FLOAT fDistance = DistanceForDisablingPhysics();
+    return fDistance > 0.0f && IsPhysNearAnyPlayer(fDistance);
+  };
+
+  // Check if realistic physics can be disabled at a distance
+  BOOL CanDisablePhysicsAtDistance(void) {
+    const FLOAT fDistance = DistanceForDisablingPhysics();
+    return fDistance > 0.0f && !IsPhysNearAnyPlayer(fDistance);
+  };
+
   // Process physics object before the actual physics simulation
   void OnPhysStep(void) {
     // Using engine physics
     if (!PhysicsUsable()) {
       PhysStepEngine();
+
+      // Reenable physics in close proximity to any player
+      if (CanEnablePhysicsAtDistance() && CreateObject()) {
+        // Notify the object after it's created
+        SendEvent(EPhysicsStart());
+      }
       return;
     }
 
@@ -324,6 +362,15 @@ functions:
         m_mValidRot = PhysObj().GetMatrix();
         m_tmLastMovement = _pTimer->CurrentTick() + _tmValidPosUpdateFrequency;
       }
+    }
+
+    // Disable physics far enough from every player
+    if (CanDisablePhysicsAtDistance()) {
+      if (DestroyObject(FALSE)) {
+        // Notify the object after it's destroyed
+        SendEvent(EPhysicsStop());
+      }
+      return;
     }
 
     if (PhysObj().IsFrozen()) {
@@ -402,6 +449,9 @@ functions:
   // Check whether realistic physics should be used
   virtual BOOL UseRealisticPhysics(void) const { return m_bPhysEnabled; };
 
+  // Disable physics for objects further than this distance from any player (if greater than 0)
+  virtual FLOAT DistanceForDisablingPhysics(void) const { return -1.0f; };
+
   // Get physics object material
   virtual INDEX GetPhysMaterial(void) const { return -1; };
 
@@ -447,7 +497,8 @@ functions:
       }
     }
 
-    if (!ODE_IsStarted() || !UseRealisticPhysics()) { return FALSE; }
+    // Simulation is off, not using realistic physics, or far enough from every player
+    if (!ODE_IsStarted() || !UseRealisticPhysics() || CanDisablePhysicsAtDistance()) { return FALSE; }
 
     // Hidden (or destroyed, in brush's case)
     if (GetFlags() & ENF_HIDDEN) { return FALSE; }
