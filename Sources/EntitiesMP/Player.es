@@ -410,10 +410,11 @@ extern FLOAT hud_tmWeaponsOnScreen = 3.0f;
 extern FLOAT hud_tmLatencySnapshot = 1.0f;
 extern INDEX hud_bShowMatchInfo = TRUE;
 
-// [Cecil] UI Customization
+// [Cecil] New commands
 static FLOAT hl2_fCaptionsWidth = 384.0f;
 static INDEX hl2_iHUDPreset = 0;
 extern INDEX hl2_bReduceGravityGunFlash;
+extern INDEX hl2_bItemFlares;
 
 static void ResetColors(void) {
   INDEX colMain = hl2_colUIMain;
@@ -922,13 +923,14 @@ void CPlayer_OnInitClass(void)
   _pShell->DeclareSymbol("INDEX cht_bDumpPlayerShading;", &cht_bDumpPlayerShading);
   _pShell->DeclareSymbol("persistent user INDEX hud_bShowMatchInfo;", &hud_bShowMatchInfo);
 
-  // [Cecil] UI Customization
+  // [Cecil] New commands
   _pShell->DeclareSymbol("persistent user INDEX hl2_colUIMain;", &hl2_colUIMain);
   _pShell->DeclareSymbol("persistent user INDEX hl2_colUIEmpty;", &hl2_colUIEmpty);
   _pShell->DeclareSymbol("persistent user INDEX hl2_colUIBorder;", &hl2_colUIBorder);
   _pShell->DeclareSymbol("persistent user FLOAT hl2_fCaptionsWidth;", &hl2_fCaptionsWidth);
   _pShell->DeclareSymbol("user void hl2_ResetColors(void);", &ResetColors);
   _pShell->DeclareSymbol("persistent user INDEX hl2_iHUDPreset;", &hl2_iHUDPreset);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_bItemFlares;", &hl2_bItemFlares);
 
   // cheats
   _pShell->DeclareSymbol("user INDEX cht_bGod;",       &cht_bGod);

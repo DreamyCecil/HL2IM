@@ -184,8 +184,8 @@ functions:
           }
         }
 
-        // [Cecil] Random rotation and bigger size
-        //GetModelObject()->GetAttachmentModel(ITEMHOLDER_ATTACHMENT_ITEM)->amo_plRelative.pl_OrientationAngle(1) = FRnd() * 360.0f;
+        // [Cecil] Flare and bigger size
+        AddFlare();
         StretchItem(FLOAT3D(2.0f, 2.0f, 2.0f));
       }
     }

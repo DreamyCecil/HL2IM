@@ -160,8 +160,7 @@ functions:
         break;
     }
 
-    // [Cecil] Random rotation and bigger size
-    //GetModelObject()->GetAttachmentModel(ITEMHOLDER_ATTACHMENT_ITEM)->amo_plRelative.pl_OrientationAngle(1) = FRnd() * 360.0f;
+    // [Cecil] Bigger size
     StretchItem(FLOAT3D(1.5f, 1.5f, 1.5f));
 
     m_fValue = 1.0f;
@@ -279,8 +278,6 @@ procedures:
     m_bHL2Init = TRUE;
 
     Initialize(); // initialize base class
-    StartModelAnim(ITEMHOLDER_ANIM_DEFAULT_ANIMATION, AOF_LOOPING|AOF_NORESTART);
-    ForceCollisionBoxIndexChange(ITEMHOLDER_COLLISION_BOX_MEDIUM);
     SetProperties(); // set properties
 
     jump CItem::ItemLoop();

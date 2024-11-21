@@ -113,8 +113,6 @@ components:
  61 texture TEXTURE_CRYSTALSKULL    "ModelsMP\\Items\\Keys\\CrystalSkull\\Skull.tex",
 
  // ********* MISC *********
-250 texture TEXTURE_FLARE       "ModelsMP\\Items\\Flares\\Flare.tex",
-251 model   MODEL_FLARE         "ModelsMP\\Items\\Flares\\Flare.mdl",
 252 texture TEX_REFL_GOLD01     "ModelsMP\\ReflectionTextures\\Gold01.tex",
 253 texture TEX_REFL_METAL01    "ModelsMP\\ReflectionTextures\\LightMetal01.tex",
 254 texture TEX_SPEC_MEDIUM     "ModelsMP\\SpecularTextures\\Medium.tex",

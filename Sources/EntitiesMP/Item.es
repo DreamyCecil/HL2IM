@@ -12,6 +12,9 @@
 // [Cecil] Static items on the ground
 #define EPF_GROUND_ITEM (EPF_COLLIDEWITHCUSTOM | EPF_COLLIDEWITHCUSTOM_EXCL | \
   EPF_ONBLOCK_STOPEXACT|EPF_PUSHABLE|EPF_MOVABLE|EPF_TRANSLATEDBYGRAVITY|EPF_ORIENTEDBYGRAVITY)
+
+// [Cecil] Flare switch
+INDEX hl2_bItemFlares = TRUE;
 %}
 
 // [Cecil] New base class
@@ -60,6 +63,10 @@ properties:
 
 components:
  1 model MODEL_ITEM "Models\\Items\\ItemHolder.mdl",
+
+// [Cecil] Universal flare model
+ 2 model   MODEL_FLARE   "Models\\Items\\Flares\\Flare.mdl",
+ 3 texture TEXTURE_FLARE "Models\\Items\\Flares\\Flare.tex",
 
 // [Cecil] Classes
 10 class CLASS_ROLLERMINE "Classes\\RollerMine.ecl",
@@ -150,10 +157,16 @@ functions:
     CAttachmentModelObject *pamo = GetModelObject()->GetAttachmentModel(ITEMHOLDER_ATTACHMENT_FLARE);
     if( pamo != NULL)
     {
-      FLOAT fRatio = (Clamp( fMipFactor, 5.0f, 7.0f)-5.0f)/2.0f;
-      UBYTE ubRatio = UBYTE(255*fRatio);
-      COLOR colMutiply = RGBToColor(ubRatio,ubRatio,ubRatio)|CT_OPAQUE;
-      pamo->amo_moModelObject.mo_colBlendColor = colMutiply;
+      // [Cecil] Hide the flare
+      if (!hl2_bItemFlares) {
+        pamo->amo_moModelObject.mo_colBlendColor = 0;
+
+      } else {
+        FLOAT fRatio = (Clamp( fMipFactor, 5.0f, 7.0f)-5.0f)/2.0f;
+        UBYTE ubRatio = UBYTE(255*fRatio);
+        COLOR colMutiply = RGBToColor(ubRatio,ubRatio,ubRatio)|CT_OPAQUE;
+        pamo->amo_moModelObject.mo_colBlendColor = colMutiply;
+      }
     }
 
     // if never picked
@@ -321,6 +334,17 @@ functions:
         GetAttachmentModel(iAttachment)->amo_moModelObject;
     mo.PlayAnim(iAnim, 0);
   }
+
+  // [Cecil] Attach universal flare model
+  void AddFlare(void) {
+    if (!m_bRespawn && !m_bDropped) {
+      AddAttachmentToModel(this, *GetModelObject(), ITEMHOLDER_ATTACHMENT_FLARE, MODEL_FLARE, TEXTURE_FLARE, 0, 0, 0);
+
+      CAttachmentModelObject *pamo = GetModelObject()->GetAttachmentModel(ITEMHOLDER_ATTACHMENT_FLARE);
+      pamo->amo_moModelObject.StretchModel(FLOAT3D(3.0f, 3.0f, 0.3f));
+      pamo->amo_plRelative.pl_PositionVector = FLOAT3D(0.0f, 0.5f, 0.0f);
+    }
+  };
 
   // Stretch item
   void StretchItem(const FLOAT3D &vStretch) {

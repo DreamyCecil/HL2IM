@@ -30,10 +30,6 @@ components:
   1 model   MODEL_PERGAMENT      "Models\\Items\\Pergament\\Pergament.mdl",
   2 texture TEXTURE_PERGAMENT    "Models\\Items\\Pergament\\Pergament.tex",
 
-  // ********* MISC *********
-255 texture TEXTURE_FLARE       "Models\\Items\\Flares\\Flare.tex",
-256 model   MODEL_FLARE         "Models\\Items\\Flares\\Flare.mdl",
-
 // ************** SOUNDS **************
 301 sound   SOUND_KEY         "Sounds\\Items\\Key.wav",
 
