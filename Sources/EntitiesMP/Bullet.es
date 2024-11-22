@@ -13,6 +13,8 @@
 #include "EntitiesMP/Mod/BetaEnemies/Headcrab.h"
 #include "EntitiesMP/Beast.h"
 #include "EntitiesMP/Gizmo.h"
+
+#define CECILSOUND_TAG 321
 %}
 
 uses "EntitiesMP/BasicEffects";
@@ -148,6 +150,9 @@ functions:
     FLOAT3D vHitDirection;
     AnglesToDirectionVector(GetPlacement().pl_OrientationAngle, vHitDirection);
 
+    // [Cecil] Entity to play the impact sound for
+    CEntity *penImpactSoundFor = NULL;
+
     INDEX ctCasts = 0;
     while (ctCasts < 10) {
       if (ctCasts == 0) {
@@ -235,6 +240,9 @@ functions:
 
       // if not brush
       if (crRay.cr_penHit->GetRenderType() != RT_BRUSH) {
+        // [Cecil] Remember hit entity
+        penImpactSoundFor = crRay.cr_penHit;
+
         // if flesh entity
         if (crRay.cr_penHit->GetEntityInfo() != NULL) {
           if (((EntityInfo*)crRay.cr_penHit->GetEntityInfo())->Eeibt == EIBT_FLESH) {
@@ -278,51 +286,61 @@ functions:
             }
 
             SpawnHitTypeEffect(args);
-
-            // [Cecil] Impact sound
-            INDEX iImpactSound = 0;
-
-            {FOREACHINDYNAMICCONTAINER(GetWorld()->wo_cenEntities, CEntity, iten) {
-              CEntity *penCheck = iten;
-
-              // too many sounds
-              if (iImpactSound >= 4) {
-                break;
-              }
-
-              // not a sound
-              if (!IsOfClassID(penCheck, CCecilSound3D_ClassID)) {
-                continue;
-              }
-
-              // close
-              if (DistanceTo(penOfFlesh, penCheck) < 12.0f) {
-                iImpactSound++;
-              }
-            }}
-
-            // can play up to 4 sounds at once
-            if (iImpactSound < 4) {
-              CCecilSound3D *penSound = (CCecilSound3D *)&*CreateEntity(penOfFlesh->GetPlacement(), CLASS_SOUND3D);
-
-              SprayParticlesType sptType;
-              if (IsDerivedFromClass(penOfFlesh, "Enemy Base")) {
-                sptType = ((CEnemyBase&)*penOfFlesh).m_sptType;
-              } else {
-                sptType = SPT_BLOOD;
-              }
-
-              penSound->m_fnSound = SprayParticlesSound(penOfFlesh, sptType);
-              penSound->m_iFlags = SOF_3D|SOF_VOLUMETRIC;
-              penSound->SetParameters(50.0f, 5.0f, 1.0f, 1.0f);
-              penSound->Initialize();
-            }
             break;
           }
         }
 
         // stop casting ray if not brush
         break;
+      }
+    }
+
+    // [Cecil] Impact sound
+    if (penImpactSoundFor != NULL) {
+      SprayParticlesType sptType = SPT_NONE;
+
+      if (IsDerivedFromID(penImpactSoundFor, CEnemyBase_ClassID)) {
+        sptType = ((CEnemyBase &)*penImpactSoundFor).m_sptType;
+
+      } else if (IsOfClassID(penImpactSoundFor, CModelHolder2_ClassID)) {
+        CModelDestruction *penDestruction = ((CModelHolder2 &)*penImpactSoundFor).GetDestruction();
+
+        if (penDestruction != NULL) {
+          sptType = penDestruction->m_sptType;
+        }
+
+      } else if (IS_PLAYER(penImpactSoundFor)) {
+        sptType = SPT_BLOOD;
+      }
+
+      if (sptType != SPT_NONE) {
+        INDEX iImpactSound = 0;
+
+        {FOREACHINDYNAMICCONTAINER(GetWorld()->wo_cenEntities, CEntity, iten) {
+          CEntity *penCheck = iten;
+
+          // Too many sounds
+          if (iImpactSound >= 4) { break; }
+
+          // Not a sound
+          if (!IsOfClassID(penCheck, CCecilSound3D_ClassID)) { continue; }
+
+          // Close enough with the right tag
+          if (((CCecilSound3D &)*penCheck).m_iTag == CECILSOUND_TAG && DistanceTo(penImpactSoundFor, penCheck) < 12.0f) {
+            iImpactSound++;
+          }
+        }}
+
+        // Can play up to 4 sounds at once
+        if (iImpactSound < 4) {
+          CCecilSound3D *penSound = (CCecilSound3D *)&*CreateEntity(penImpactSoundFor->GetPlacement(), CLASS_SOUND3D);
+
+          penSound->m_fnSound = SprayParticlesSound(penImpactSoundFor, sptType);
+          penSound->m_iFlags = SOF_3D|SOF_VOLUMETRIC;
+          penSound->m_iTag = CECILSOUND_TAG;
+          penSound->SetParameters(50.0f, 5.0f, 1.0f, 1.0f);
+          penSound->Initialize();
+        }
       }
     }
 
