@@ -1991,8 +1991,10 @@ void CCecilMovableEntity::PreMoving(FLOAT3D &vRotationDir)
 
       // if wants to jump and can jump
       if (fJump < -0.01f && (bCanJumpFromSlope || bAllowedToJump)) {
-        // [Cecil] TEMP: Reset current vertical movement to prevent crazy vertical speeds
-        vTranslationAbsolute = HorizontalDiff(vTranslationAbsolute, en_vGravityDir);
+        // [Cecil] TEMP: Reset vertical movement if going upwards to prevent crazy speeds from extra jumping
+        const FLOAT3D vDiffV = VerticalDiff(vTranslationAbsolute, en_vGravityDir);
+        const FLOAT fDiffDir = (vDiffV % -en_vGravityDir);
+        if (fDiffDir < 0.0f) vTranslationAbsolute += vDiffV;
 
         vTranslationAbsolute += en_vGravityDir * fJump;
         en_tmJumped = _pTimer->CurrentTick();
@@ -2021,8 +2023,10 @@ void CCecilMovableEntity::PreMoving(FLOAT3D &vRotationDir)
 
       // if wants to jump and can jump
       if (fJump < -0.01f && bAllowedToJump) {
-        // [Cecil] TEMP: Reset current vertical movement to prevent crazy vertical speeds
-        vTranslationAbsolute = HorizontalDiff(vTranslationAbsolute, en_vGravityDir);
+        // [Cecil] TEMP: Reset vertical movement if going upwards to prevent crazy speeds from extra jumping
+        const FLOAT3D vDiffV = VerticalDiff(vTranslationAbsolute, en_vGravityDir);
+        const FLOAT fDiffDir = (vDiffV % -en_vGravityDir);
+        if (fDiffDir < 0.0f) vTranslationAbsolute += vDiffV;
 
         vTranslationAbsolute += en_vGravityDir * fJump;
         en_tmJumped = _pTimer->CurrentTick();
