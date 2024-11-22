@@ -7224,6 +7224,13 @@ functions:
       CPlayerWeapons &enGG = *GetPlayerWeapons();
       const TIME tmGGFlare = (enGG.m_tmLaunchEffect - _pTimer->GetLerpedCurrentTick());
 
+      // Absolute or relative hit position
+      FLOAT3D vGGHit = enGG.m_vGGHitPos;
+
+      if (enGG.m_penGGHit != NULL) {
+        vGGHit += enGG.m_penGGHit->GetLerpedPlacement().pl_PositionVector;
+      }
+
       if (enGG.m_iCurrentWeapon == WEAPON_GRAVITYGUN && tmGGFlare > 0.0f) {
         FLOAT3D vSource = GetLerpedPlacement().pl_PositionVector;
 
@@ -7251,14 +7258,14 @@ functions:
               plAttach = GetAttachmentPlacement(pmo, *pamo);
               vSource += (plAttach.pl_PositionVector + FLOAT3D(0.0f, 0.3f, -0.4f)) * mViewRot;
 
-              Particles_GravityGunCharge(vSource, enGG.m_vGGHitPos);
+              Particles_GravityGunCharge(vSource, vGGHit);
             }
           }
         }
       }
 
       // Hit particles
-      Particles_BulletSpray(en_ulID, enGG.m_vGGHitPos, en_vGravityDir, EPT_BULLET_METAL, enGG.m_tmGGLaunch, -enGG.m_vGGHitDir, 2.0f);
+      Particles_BulletSpray(en_ulID, vGGHit, en_vGravityDir, EPT_BULLET_METAL, enGG.m_tmGGLaunch, -enGG.m_vGGHitDir, 2.0f);
     }
 
     // spirit particles

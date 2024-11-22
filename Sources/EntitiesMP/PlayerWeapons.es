@@ -592,6 +592,7 @@ properties:
 337 FLOAT3D m_vLastGGFlare = FLOAT3D(1, 1, 1),
 338 FLOAT3D m_vGGHitPos = FLOAT3D(0, 0, 0),
 339 FLOAT3D m_vGGHitDir = FLOAT3D(0, 1, 0),
+340 CEntityPointer m_penGGHit,
 
 // New ammo system
 350 INDEX m_iUSP  = 0,
@@ -1800,6 +1801,11 @@ functions:
 
         // Hit point relative to the view
         CPlacement3D plHit(m_vGGHitPos, ANGLE3D(0, 0, 0));
+
+        if (m_penGGHit != NULL) {
+          plHit.pl_PositionVector += m_penGGHit->GetLerpedPlacement().pl_PositionVector;
+        }
+
         plHit.AbsoluteToRelativeSmooth(plOldView);
 
         // Adjust position relative to the weapon model based on the FOV difference between the weapon and the view
@@ -6183,8 +6189,14 @@ procedures:
       m_tmGGLaunch = _pTimer->CurrentTick();
       m_tmLaunchEffect = m_tmGGLaunch + 0.15f;
 
+      m_penGGHit = penTarget;
       m_vGGHitPos = m_vRayHit;
       m_vGGHitDir = vTargetDir;
+
+      // Use relative position if hit something
+      if (m_penGGHit != NULL) {
+        m_vGGHitPos -= m_penGGHit->GetPlacement().pl_PositionVector;
+      }
 
       // Increase flare
       CAttachmentModelObject *pamo = m_moWeapon.GetAttachmentModel(10);
