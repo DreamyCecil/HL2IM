@@ -328,6 +328,10 @@ functions:
       return;
     }
 
+    // Reset information about standing on some entity, which is irrelevant during realistic physics
+    en_penReference = NULL;
+    en_pbpoStandOn = NULL;
+
     const FLOAT3D vLastPos = m_vObjPos;
 
     if (!m_bCreatedOOB) {
