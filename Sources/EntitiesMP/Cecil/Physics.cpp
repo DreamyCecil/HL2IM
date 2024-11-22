@@ -238,7 +238,10 @@ void GravityGunStop(CEntity *penObject, ULONG ulFlags, BOOL bRestoreFlags) {
 
   // Physical object
   if (IsEntityPhysical(penObject)) {
-    ((CPhysBase *)penObject)->PhysObj().ResetSpeed();
+    // Less speed on release
+    odeObject &obj = ((CPhysBase *)penObject)->PhysObj();
+    obj.SetCurrentTranslation(obj.GetCurrentTranslation() * 0.5f);
+    obj.SetCurrentRotation(obj.GetCurrentRotation() * 0.5f);
 
   } else {
     ((CMovableEntity *)penObject)->SetDesiredTranslation(FLOAT3D(0, 0, 0));
