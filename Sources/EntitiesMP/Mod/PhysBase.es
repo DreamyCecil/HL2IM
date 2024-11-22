@@ -107,6 +107,8 @@ inline FLOAT GetDensityMultiplier(INDEX iMaterial) {
   return 1.0f;
 };
 
+#define CECILSOUND_TAG 5100
+
 // [Cecil] TEMP
 extern INDEX ode_bRenderPosition;
 extern void Particles_ColoredBox(const CPlacement3D &plCenter, const FLOAT3D &vSize, COLOR col);
@@ -139,6 +141,7 @@ properties:
 
 14 FLOAT m_tmPhysContactTick = -100.0f, // When the last physics contact occurred
 15 FLOAT m_fPhysDeepestContact = -1.0f, // What length the deepest contact has been since that tick
+16 CEntityPointer m_penPhysContactSound, // Currently playing contact sound
 
 // Last valid position for restoration
 20 FLOAT3D m_vValidPos = FLOAT3D(0, 0, 0),
@@ -778,14 +781,13 @@ functions:
       m_tmPhysContactTick = _pTimer->CurrentTick();
     }
 
-    // This contact is shorter than the last
-    if (fSpeed <= m_fPhysDeepestContact) {
-      return;
-    }
-
-    // Process the current contact and remember the new depth
+    // Process the current contact
     PhysOnImpact(vHit, vDir, fSpeed);
-    m_fPhysDeepestContact = fSpeed;
+
+    // Remember the new depth if this contact is longer than the last
+    if (fSpeed > m_fPhysDeepestContact) {
+      m_fPhysDeepestContact = fSpeed;
+    }
   };
 
   // Called on the strongest physical impact this tick
@@ -794,16 +796,35 @@ functions:
     if (fSpeed < 0.1f) { return; }
 
     // Play impact sound
-    CTFileName fnmSound = PhysImpactSound(fSpeed > 0.5f);
+    const BOOL bHardImpact = (fSpeed > 0.5f);
+
+    CTFileName fnmSound = PhysImpactSound(bHardImpact);
     if (fnmSound == "") { return; }
 
-    CPlacement3D plSound(PhysObj().GetPosition(), ANGLE3D(0, 0, 0));
+    CPlacement3D plSound(vHit, ANGLE3D(0, 0, 0));
+    
+    // Play new contact sound
+    if (m_penPhysContactSound == NULL || (m_penPhysContactSound->GetFlags() & ENF_DELETED)) {
+      m_penPhysContactSound = CreateEntity(plSound, CLASS_SOUND3D);
+      CCecilSound3D &enSound = (CCecilSound3D &)*m_penPhysContactSound;
 
-    CCecilSound3D *penSound = (CCecilSound3D *)&*CreateEntity(plSound, CLASS_SOUND3D);
-    penSound->m_fnSound = fnmSound;
-    penSound->m_iFlags = SOF_3D;
-    penSound->SetParameters(64.0f, 2.0f, 1.0f, 1.0f);
-    penSound->Initialize();
+      enSound.m_fnSound = fnmSound;
+      enSound.m_iFlags = SOF_3D;
+      enSound.m_iTag = (bHardImpact ? CECILSOUND_TAG : CECILSOUND_TAG - 1);
+      enSound.SetParameters(64.0f, 2.0f, 1.0f, 1.0f);
+      enSound.Initialize();
+
+    // Replace current sound with a more impactful one
+    } else if (fSpeed > m_fPhysDeepestContact) {
+      CCecilSound3D &enSound = (CCecilSound3D &)*m_penPhysContactSound;
+
+      // If not hard impact yet
+      if (enSound.m_iTag != CECILSOUND_TAG) {
+        enSound.m_fnSound = fnmSound;
+        enSound.m_iTag = CECILSOUND_TAG;
+        enSound.Play();
+      }
+    }
   };
 
   // Get sound for physics object impact on contact (empty string if no sound)
