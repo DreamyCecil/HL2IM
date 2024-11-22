@@ -4742,7 +4742,7 @@ functions:
       }
 
       // if switch and near enough
-      if (IsOfClass(pen, "Switch") && penWeapons->m_fRayHitDistance < 2.0f) {
+      if (IsOfClass(pen, "Switch") && penWeapons->m_fRayHitDistance < 3.0f) {
         CSwitch &enSwitch = (CSwitch&)*pen;
         // if switch is useable
         if (enSwitch.m_bUseable) {
@@ -4777,6 +4777,9 @@ functions:
           // add the message
           ReceiveComputerMessage(fnmMessage, CMF_ANALYZE);
           bSomethingToUse = TRUE;
+
+          // [Cecil]
+          iUseSound = SOUND_APPLY;
         }
       }
     }
