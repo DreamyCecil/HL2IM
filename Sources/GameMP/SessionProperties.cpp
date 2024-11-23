@@ -51,7 +51,7 @@ extern INDEX hl2_bAutoBunnyhop;
 
 extern INDEX hl2_iNewEnemies;
 extern INDEX hl2_bEnemyDrops;
-extern INDEX hl2_bUseMaterials;
+extern INDEX hl2_iUseMaterials;
 extern INDEX hl2_bAdminMenu;
 
 extern INDEX hl2_bEnablePhysics;
@@ -147,14 +147,15 @@ static void HL2_Parameters(CSessionProperties &sp) {
   const BOOL bNewEnemies = (hl2_iNewEnemies == 2);
 
   // Flags
-  sp.sp_iHL2Flags |= (hl2_bInfiniteAlt  ? HL2F_INFALT    : 0)
-                   | (hl2_bBunnyhopping ? HL2F_BHOP      : 0)
-                   | (hl2_bAutoBunnyhop ? HL2F_AUTOBHOP  : 0)
-                   | (bBetaEnemies      ? HL2F_ENEMIES1  : 0)
-                   | (bNewEnemies       ? HL2F_ENEMIES2  : 0)
-                   | (hl2_bUseMaterials ? HL2F_MATERIALS : 0)
-                   | (hl2_bEnemyDrops   ? HL2F_ENEMYDROP : 0)
-                   | (hl2_bAdminMenu    ? HL2F_ADMINMENU : 0);
+  sp.sp_iHL2Flags |= (hl2_bInfiniteAlt      ? HL2F_INFALT     : 0)
+                   | (hl2_bBunnyhopping     ? HL2F_BHOP       : 0)
+                   | (hl2_bAutoBunnyhop     ? HL2F_AUTOBHOP   : 0)
+                   | (bBetaEnemies          ? HL2F_ENEMIES1   : 0)
+                   | (bNewEnemies           ? HL2F_ENEMIES2   : 0)
+                   | (hl2_iUseMaterials > 0 ? HL2F_MATERIALS  : 0)
+                   | (hl2_iUseMaterials > 1 ? HL2F_VANILLASUR : 0)
+                   | (hl2_bEnemyDrops       ? HL2F_ENEMYDROP  : 0)
+                   | (hl2_bAdminMenu        ? HL2F_ADMINMENU  : 0);
 
   // Physics flags
   sp.sp_iPhysFlags |= (hl2_bEnablePhysics  ? PHYSF_ENABLE     : 0)

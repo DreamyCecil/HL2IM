@@ -295,6 +295,9 @@ BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime) {
       case SURFACE_GRASS:
       case SURFACE_WOOD:
       case SURFACE_SNOW:
+        // Proceed further if allowed to replace vanilla surfaces
+        if (GetSP()->sp_iHL2Flags & HL2F_VANILLASUR) break;
+        // Otherwise ignore it and skip to the next polygon
         continue;
 
       // Sliding

@@ -122,7 +122,7 @@ INDEX hl2_bAutoBunnyhop = FALSE;
 // [Cecil] TEMP: Use beta enemies until enough new ones are added
 INDEX hl2_iNewEnemies = 1; // 0 - No, 1 - Beta 0.7, 2 - Yes
 INDEX hl2_bEnemyDrops = FALSE;
-INDEX hl2_bUseMaterials = TRUE;
+INDEX hl2_iUseMaterials = 2; // 0 - No, 1 - Only replace stone surfaces, 2 - Replace any surface
 INDEX hl2_bAdminMenu = FALSE;
 
 INDEX hl2_bEnablePhysics = TRUE;
@@ -996,7 +996,7 @@ void CGame::InitInternal( void)
 
   _pShell->DeclareSymbol("persistent user INDEX hl2_iNewEnemies;", &hl2_iNewEnemies);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bEnemyDrops;", &hl2_bEnemyDrops);
-  _pShell->DeclareSymbol("persistent user INDEX hl2_bUseMaterials;", &hl2_bUseMaterials);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_iUseMaterials;", &hl2_iUseMaterials);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bAdminMenu;", &hl2_bAdminMenu);
 
   _pShell->DeclareSymbol("persistent user INDEX hl2_bEnablePhysics;", &hl2_bEnablePhysics);

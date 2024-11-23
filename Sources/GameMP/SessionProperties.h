@@ -1,12 +1,13 @@
 // [Cecil] New options flags
-#define HL2F_INFALT    (1<<0) // Infinite Alt Ammo
-#define HL2F_BHOP      (1<<1) // Bunnyhopping
-#define HL2F_AUTOBHOP  (1<<2) // Automatically jump after landing
-#define HL2F_ENEMIES1  (1<<3) // Use enemy replacements from Beta 0.7
-#define HL2F_ENEMIES2  (1<<4) // Use new enemy replacements
-#define HL2F_MATERIALS (1<<5) // Use texture materials or not
-#define HL2F_ENEMYDROP (1<<7) // Enemies drop their weapons
-#define HL2F_ADMINMENU (1<<8) // Everyone is allowed to use the admin menu
+#define HL2F_INFALT     (1 << 0) // Infinite Alt Ammo
+#define HL2F_BHOP       (1 << 1) // Bunnyhopping
+#define HL2F_AUTOBHOP   (1 << 2) // Automatically jump after landing
+#define HL2F_ENEMIES1   (1 << 3) // Use enemy replacements from Beta 0.7
+#define HL2F_ENEMIES2   (1 << 4) // Use new enemy replacements
+#define HL2F_MATERIALS  (1 << 5) // Replace certain texture surfaces with new ones
+#define HL2F_VANILLASUR (1 << 6) // Force texture surface replacement on vanilla non-stone surfaces
+#define HL2F_ENEMYDROP  (1 << 7) // Enemies drop their weapons
+#define HL2F_ADMINMENU  (1 << 8) // Everyone is allowed to use the admin menu
 
 // [Cecil] Realistic physics flags
 #define PHYSF_ENABLE     (1 << 0) // Use realistic physics
