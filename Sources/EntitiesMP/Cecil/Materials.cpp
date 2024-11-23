@@ -288,7 +288,6 @@ BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime) {
     // Determine generic type from the surface
     switch (iSurfaceType) {
       // Leave certain surfaces as is if they've already been set
-      case SURFACE_LAVA:
       case SURFACE_SAND:
       case SURFACE_WATER:
       case SURFACE_RED_SAND:
@@ -298,6 +297,10 @@ BOOL ApplyMaterials(BOOL bWorld, BOOL bFirstTime) {
         // Proceed further if allowed to replace vanilla surfaces
         if (GetSP()->sp_iHL2Flags & HL2F_VANILLASUR) break;
         // Otherwise ignore it and skip to the next polygon
+        continue;
+
+      // Lava always applies damage, so don't replace it
+      case SURFACE_LAVA:
         continue;
 
       // Sliding
