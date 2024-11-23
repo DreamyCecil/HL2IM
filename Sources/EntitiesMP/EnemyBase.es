@@ -2891,7 +2891,9 @@ procedures:
       if (GetSP()->sp_bCooperative) {
         EComputerMessage eMsg;
         eMsg.fnmMessage = GetComputerMessageName();
-        if (eMsg.fnmMessage!="") {
+
+        // [Cecil] Make sure the file exists at all
+        if (eMsg.fnmMessage != "" && FileExists(eMsg.fnmMessage)) {
           penKiller->SendEvent(eMsg);
         }
       }
