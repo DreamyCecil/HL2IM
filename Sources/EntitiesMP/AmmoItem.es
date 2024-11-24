@@ -133,6 +133,18 @@ functions:
     CAmmoItem_Precache();
   };
 
+  // [Cecil] Patch types
+  void Read_t(CTStream *istr) {
+    CItem::Read_t(istr);
+
+    switch (m_EaitType) {
+      case AIT_NUKEBALL:
+      case AIT_MP7GRENADES: m_EaitType = AIT_SMG1; break;
+      case AIT_ROCKETS:
+      case AIT_ENERGYBALLS: m_EaitType = AIT_AR2; break;
+    }
+  };
+
   // [Cecil] Physics overrides
   virtual INDEX GetPhysMaterial(void) const {
     switch (m_EaitType) {

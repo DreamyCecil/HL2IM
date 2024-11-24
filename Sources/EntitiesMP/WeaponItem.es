@@ -119,6 +119,17 @@ functions:
     CWeaponItem_Precache();
   };
 
+  // [Cecil] Patch types
+  void Read_t(CTStream *istr) {
+    CItem::Read_t(istr);
+
+    switch (m_EwitType) {
+      case WIT_DOUBLESHOTGUN: m_EwitType = WIT_SMG1; break;
+      case WIT_MINIGUN: m_EwitType = WIT_SPAS; break;
+      case WIT_ROCKETLAUNCHER: m_EwitType = WIT_AR2; break;
+    }
+  };
+
   // [Cecil] Physics overrides
   virtual INDEX GetPhysMaterial(void) const {
     switch (m_EwitType) {
