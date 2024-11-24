@@ -154,7 +154,7 @@ functions:
 
     CPlayerWeapons *ppw = ((CPlayer&) *m_penOwner).GetPlayerWeapons();
     if (bFollowCrossHair) {
-      FLOAT3D vTarget = vBase-ppw->m_vRayHit;
+      FLOAT3D vTarget = vBase-ppw->m_vCrosshairRayHit; // [Cecil] New property
       FLOAT fLen = vTarget.Length();
       if (fLen>0.01) {
         vTarget/=fLen;

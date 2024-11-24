@@ -579,6 +579,7 @@ properties:
 308 BOOL m_bCrowbarKill = FALSE,
 
 310 CEntityPointer m_penMissle,
+311 FLOAT3D m_vCrosshairRayHit = FLOAT3D(0, 0, 0),
 
 320 INDEX m_iArmsRaceLevel = 0,
 
@@ -1951,6 +1952,15 @@ functions:
     // [Cecil] Cast several rays for the gravity gun
     FLOAT3D vRayOrigin, vRayTarget, vRayHit;
 
+    // [Cecil] Cast original "real crosshair" ray for proper logic and third person camera targeting
+    CCecilCastRay crCrosshairRay(m_penPlayer, plCrosshair);
+    crCrosshairRay.cr_bHitTranslucentPortals = FALSE;
+    crCrosshairRay.cr_bPhysical = FALSE;
+    crCrosshairRay.cr_ttHitModels = CCecilCastRay::TT_CUSTOM;
+    crCrosshairRay.Cast(GetWorld());
+
+    m_vCrosshairRayHit = crCrosshairRay.cr_vHit;
+
     if (m_iCurrentWeapon == WEAPON_GRAVITYGUN) {
       CPlacement3D plRay[5];
       plRay[0] = plCrosshair;
@@ -1981,20 +1991,13 @@ functions:
       }
 
     } else {
-      // cast ray
-      CCecilCastRay crRay(m_penPlayer, plCrosshair);
-      crRay.cr_bHitTranslucentPortals = FALSE;
-      crRay.cr_bPhysical = FALSE;
-      crRay.cr_ttHitModels = CCecilCastRay::TT_CUSTOM;
-      crRay.Cast(GetWorld());
-
-      vRayOrigin = crRay.cr_vOrigin;
-      vRayTarget = crRay.cr_vTarget;
-
       // store required cast ray results
-      m_penRayHit = crRay.cr_penHit;
-      vRayHit = crRay.cr_vHit;
-      m_fRayHitDistance = crRay.cr_fHitDistance;
+      vRayOrigin = crCrosshairRay.cr_vOrigin;
+      vRayTarget = crCrosshairRay.cr_vTarget;
+
+      m_penRayHit = crCrosshairRay.cr_penHit;
+      vRayHit = m_vCrosshairRayHit;
+      m_fRayHitDistance = crCrosshairRay.cr_fHitDistance;
     }
     
     m_vRayHitLast = m_vRayHit; // for lerping purposes

@@ -4189,7 +4189,7 @@ procedures:
 
       } else if (m_penLauncher != NULL && !(m_penLauncher->GetFlags() & ENF_DELETED)) {
         if (IS_PLAYER(m_penLauncher) && m_penLauncher->GetFlags() & ENF_ALIVE) {
-          m_vTarget = ((CPlayer*)&*m_penLauncher)->GetPlayerWeapons()->m_vRayHit;
+          m_vTarget = ((CPlayer*)&*m_penLauncher)->GetPlayerWeapons()->m_vCrosshairRayHit; // [Cecil] New property
           bTarget = TRUE;
         }
       }

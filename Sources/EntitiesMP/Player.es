@@ -2021,7 +2021,7 @@ functions:
 
       // Spawn rollermine
       case 4: {
-        FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir;
+        FLOAT3D vPos = GetPlayerWeapons()->m_vCrosshairRayHit - en_vGravityDir;
         CEntity *pen = CreateEntity(CPlacement3D(vPos, ANGLE3D(0, 0, 0)), CLASS_ROLLERMINE);
         ((CRollerMine *)pen)->m_fPhysHealth = 200.0f;
         ((CRollerMine *)pen)->m_bPhysEnvDamage = FALSE;
@@ -2047,7 +2047,7 @@ functions:
 
       // Spawn radio
       case 6: {
-        FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir * 0.1f;
+        FLOAT3D vPos = GetPlayerWeapons()->m_vCrosshairRayHit - en_vGravityDir * 0.1f;
         ANGLE3D aAngle = GetViewPlacement(CPlacement3D(FLOAT3D(0, 0, 0), ANGLE3D(180, 0, 0)), FLOAT3D(-1, 0, 0), 1.0f).pl_OrientationAngle;
 
         CEntity *pen = CreateEntity(CPlacement3D(vPos, aAngle), CLASS_RADIO);
@@ -2079,7 +2079,7 @@ functions:
           penModel->Initialize();
         }
 
-        FLOAT3D vPos = GetPlayerWeapons()->m_vRayHit - en_vGravityDir * 0.3f;
+        FLOAT3D vPos = GetPlayerWeapons()->m_vCrosshairRayHit - en_vGravityDir * 0.3f;
         ANGLE3D aAngle = GetViewPlacement(CPlacement3D(FLOAT3D(0, 0, 0), ANGLE3D(180, 0, 0)), FLOAT3D(-1, 0, 0), 1.0f).pl_OrientationAngle;
 
         CEntity *pen = GetWorld()->CreateEntity_t(CPlacement3D(vPos, aAngle), CTString("Classes\\PhysObject.ecl"));
@@ -5987,13 +5987,15 @@ functions:
 
       if (m_bFlashlight) {
         FLOAT3D vView = GetPlacement().pl_PositionVector + en_plViewpoint.pl_PositionVector * GetRotationMatrix();
-        FLOAT3D vTarget = GetPlayerWeapons()->m_vRayHit;
-        const FLOAT fRayDist = GetPlayerWeapons()->m_fRayHitDistance;
+        FLOAT3D vTarget = GetPlayerWeapons()->m_vCrosshairRayHit;
+
+        const FLOAT3D vRayDiff = (vTarget - vView);
+        const FLOAT fRayDist = vRayDiff.Length();
         const FLOAT fDist = ClampDn(fRayDist * 0.9f, 0.0f);
 
         // limited target position
-        FLOAT3D vDir = (vTarget-vView).Normalize();
-        vTarget = vView + vDir * Min(fDist, 32.0f);
+        const FLOAT3D vRayDir = (vRayDiff / fRayDist);
+        vTarget = vView + vRayDir * Min(fDist, 32.0f);
         FLOAT fRatio = Clamp(fRayDist, 1.0f, 32.0f);
 
         CLightSource lsFlashlight;
