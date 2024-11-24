@@ -86,8 +86,14 @@ functions:
     PhysObj().BeginShape(GetPlacement(), 1.0f, OBJF_BODY);
     PhysObj().SetCollision(OBJC_WORLD, OBJC_REGULAR);
 
+    // Determine if the brush is flat to offset some polygons
+    FLOATaabbox3D boxBrush;
+    GetSize(boxBrush);
+    FLOAT3D vBrushSize = boxBrush.Size();
+    const BOOL bOffset = (vBrushSize(1) < 0.05f || vBrushSize(2) < 0.05f || vBrushSize(3) < 0.05f);
+
     // No vertices added
-    if (!PhysObj().mesh.FromBrush(GetBrush(), NULL, FALSE)) {
+    if (!PhysObj().mesh.FromBrush(GetBrush(), NULL, FALSE, bOffset)) {
       return;
     }
 
