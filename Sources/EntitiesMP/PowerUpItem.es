@@ -193,8 +193,8 @@ functions:
 
   // [Cecil] Reload model
   void AdjustDifficulty(void) {
-    if (!m_bRespawn && GetSP()->sp_iHLGamemode != HLGM_BUNNYHUNT) {
-      SetFlags(GetFlags() & ~ENF_SEETHROUGH);
+    if (GetSP()->sp_iHLGamemode != HLGM_BUNNYHUNT) {
+      RemoveSeeThroughFlag();
     }
 
     SetModel(MODEL_ITEM);

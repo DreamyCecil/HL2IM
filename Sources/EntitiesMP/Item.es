@@ -15,6 +15,11 @@
 
 // [Cecil] Flare switch
 INDEX hl2_bItemFlares = TRUE;
+
+// [Cecil] Check for physical respawning items
+inline BOOL UsingPhysicalRespawningItems(void) {
+  return !!(GetSP()->sp_iPhysFlags & PHTSF_RESPAWNING);
+};
 %}
 
 // [Cecil] New base class
@@ -60,6 +65,8 @@ properties:
 
  51 BOOL m_bGravityGunInteract "Gravity gun can interact" = TRUE,
  52 BOOL m_bDifficultyAdjusted = FALSE,
+ 53 CPlacement3D m_plOrigin = CPlacement3D(FLOAT3D(0, 0, 0), ANGLE3D(0, 0, 0)),
+ 54 FLOAT m_tmAwayFromOrigin = 0.0f,
 
 components:
  1 model MODEL_ITEM "Models\\Items\\ItemHolder.mdl",
@@ -107,16 +114,17 @@ functions:
       return FALSE;
     }
 
+    // Determine realistic physics for respawning items
+    if (m_bRespawn) {
+      if (!(GetSP()->sp_iPhysFlags & PHTSF_RESPAWNING)) {
+        return FALSE;
+      }
+
     // Use engine physics with local items
-    if (IsItemLocal() && !m_bPickupOnce) {
+    } else if (IsItemLocal() && !m_bPickupOnce) {
       if (!(GetSP()->sp_iPhysFlags & PHYSF_LOCALITEMS)) {
         return FALSE;
       }
-    }
-
-    // Use engine physics with respawning items
-    if (m_bRespawn) {
-      return FALSE;
     }
 
     return CPhysBase::UseRealisticPhysics();
@@ -124,7 +132,9 @@ functions:
 
   virtual BOOL CanGravityGunInteract(CCecilPlayerEntity *penPlayer) const {
     // Ignore respawning and invisible items
-    if (!m_bGravityGunInteract || m_bRespawn || en_RenderType == RT_EDITORMODEL || en_RenderType == RT_SKAEDITORMODEL) {
+    const BOOL bNonPhysRespawn = (m_bRespawn && !UsingPhysicalRespawningItems());
+
+    if (!m_bGravityGunInteract || bNonPhysRespawn || en_RenderType == RT_EDITORMODEL || en_RenderType == RT_SKAEDITORMODEL) {
       return FALSE;
     }
 
@@ -137,12 +147,45 @@ functions:
 
   virtual BOOL CanGravityGunPickUp(void) const {
     // Only if it doesn't respawn
-    return !m_bRespawn;
+    const BOOL bNonPhysRespawn = (m_bRespawn && !UsingPhysicalRespawningItems());
+    return !bNonPhysRespawn;
   };
 
   virtual FLOAT GetPhysMass(void) const { return 0.5f; };
   virtual FLOAT GetPhysFriction(void) const { return 0.7f; };
   virtual FLOAT GetPhysBounce(void) const { return 0.7f; };
+
+  // [Cecil] Restore physical respawning items if they are too far away from their origin point
+  void RestorePhysicalRespawningItems(void) {
+    if (!m_bRespawn) { return; }
+
+    const FLOAT3D vDiffFromOrigin = m_plOrigin.pl_PositionVector - GetPlacement().pl_PositionVector;
+
+    // Keep updating the timer until the item moves too far away
+    if (vDiffFromOrigin.Length() <= 16.0f) {
+      m_tmAwayFromOrigin = _pTimer->CurrentTick();
+
+    // Restore the item to its origin point after some time
+    } else if (_pTimer->CurrentTick() - m_tmAwayFromOrigin > 10.0f) {
+      m_soPick.Set3DParameters(32.0f, 1.0f, 1.0f, 1.0f);
+      PlaySound(m_soPick, (IRnd() & 1) ? SOUND_RESPAWN1 : SOUND_RESPAWN2, SOF_3D|SOF_VOLUMETRIC);
+
+      GravityGunObjectDrop(m_syncGravityGun);
+
+      Teleport(m_plOrigin, FALSE);
+      m_tmAwayFromOrigin = _pTimer->CurrentTick();
+    }
+  };
+
+  virtual void PhysStepFrozen(void) {
+    CPhysBase::PhysStepFrozen();
+    RestorePhysicalRespawningItems();
+  };
+
+  virtual void PhysStepRealistic(void) {
+    CPhysBase::PhysStepRealistic();
+    RestorePhysicalRespawningItems();
+  };
 
   void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType, FLOAT fDamage, const FLOAT3D &vHitPoint, const FLOAT3D &vDirection) {
     if (PhysicsUsable()) {
@@ -316,6 +359,13 @@ functions:
     }
   };
 
+  // [Cecil] Remove "see-through" flag, if needed
+  void RemoveSeeThroughFlag(void) {
+    if (!m_bRespawn || UsingPhysicalRespawningItems()) {
+      SetFlags(GetFlags() & ~ENF_SEETHROUGH);
+    }
+  };
+
 /************************************************************
  *                   SET MODEL AND ATTACHMENT               *
  ************************************************************/
@@ -446,6 +496,9 @@ procedures:
     // [Cecil] Readjust the flags
     SetItemFlags(PhysicsUsable());
 
+    // [Cecil] Remember origin position
+    m_plOrigin = GetPlacement();
+
     wait() {
       on (EBegin) : { resume; }
       on (EPass epass) : { 
@@ -518,10 +571,21 @@ procedures:
     if (m_bRespawn) {
       ASSERT(m_fRespawnTime>0.0f);
 
+      // [Cecil] Destroy physical items
+      if (DestroyObject(FALSE)) {
+        // Notify the object after it's destroyed
+        SendEvent(EPhysicsStop());
+      }
+
       // wait to respawn
       wait(m_fRespawnTime) {
         on (EBegin) : { resume; }
         on (ETimer) : { stop; }
+
+        // [Cecil] Pass physics events
+        on (EPhysicsStart) : { pass; }
+        on (EPhysicsStop) : { pass; }
+
         otherwise() : { resume; }
       }
       // show yourself
@@ -530,6 +594,14 @@ procedures:
       // [Cecil] Play respawn sound
       m_soPick.Set3DParameters(32.0f, 1.0f, 1.0f, 1.0f);
       PlaySound(m_soPick, (IRnd() & 1) ? SOUND_RESPAWN1 : SOUND_RESPAWN2, SOF_3D|SOF_VOLUMETRIC);
+
+      // [Cecil] Restore physical items on their origin position
+      if (CreateObject()) {
+        Teleport(m_plOrigin, FALSE);
+
+        // Notify the object after it's created
+        SendEvent(EPhysicsStart());
+      }
 
     // cease to exist
     } else {

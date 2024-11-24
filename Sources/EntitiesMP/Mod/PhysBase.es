@@ -700,6 +700,7 @@ functions:
 
         PhysObj().SetPosition(vPos);
         PhysObj().SetMatrix(mRot);
+        PhysObj().Unfreeze();
 
         // Reset current position
         m_vObjPos = vPos;

@@ -200,9 +200,7 @@ functions:
     }
 
     // [Cecil] Reload model
-    if (!m_bRespawn) {
-      SetFlags(GetFlags() & ~ENF_SEETHROUGH);
-    }
+    RemoveSeeThroughFlag();
 
     SetModel(MODEL_ITEM);
     SetProperties();

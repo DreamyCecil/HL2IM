@@ -129,6 +129,7 @@ INDEX hl2_bEnablePhysics = TRUE;
 INDEX hl2_iPhysicsIterations = 4;
 INDEX hl2_iItemPhysics = 1;
 INDEX hl2_bPropFlying = FALSE;
+INDEX hl2_bRespawningItemPhysics = FALSE;
 
 // [Cecil] Menu music
 static INDEX hl2_bMenuMusic = TRUE;
@@ -1003,6 +1004,7 @@ void CGame::InitInternal( void)
   _pShell->DeclareSymbol("persistent user INDEX hl2_iPhysicsIterations;", &hl2_iPhysicsIterations);
   _pShell->DeclareSymbol("persistent user INDEX hl2_iItemPhysics;", &hl2_iItemPhysics);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bPropFlying;", &hl2_bPropFlying);
+  _pShell->DeclareSymbol("persistent user INDEX hl2_bRespawningItemPhysics;", &hl2_bRespawningItemPhysics);
 
   // [Cecil] Menu music
   _pShell->DeclareSymbol("persistent user INDEX hl2_bMenuMusic;", &hl2_bMenuMusic);

@@ -14,6 +14,7 @@
 #define PHYSF_ITEMS      (1 << 1) // Enable physics for items
 #define PHYSF_PROPFLYING (1 << 2) // Make it easier to fly using objects held by the Gravity Gun
 #define PHYSF_LOCALITEMS (1 << 3) // Enable physics for items even if every player picks them up separately
+#define PHTSF_RESPAWNING (1 << 4) // Enable physics for respawning items and restore their positions every respawn
 
 // [Cecil] New gamemodes
 enum EHL2Gamemode {
