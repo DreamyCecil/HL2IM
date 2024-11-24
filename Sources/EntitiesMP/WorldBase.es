@@ -702,12 +702,6 @@ void CWorldBase_OnWorldInit(CWorld *pwo) {
   _pShell->DeclareSymbol("user void DoLevelSafetyChecks(void);", &DoLevelSafetyChecks);
 };
 
-void CWorldBase_OnWorldEnd(CWorld *pwo) {
-  // [Cecil] Clear bullet holes
-  extern CDynamicContainer<CEntity> _cenBulletHoles;
-  _cenBulletHoles.Clear();
-};
-
 void CWorldBase_OnWorldRender(CWorld *pwo) {
   // get current tick
   TIME tmNow = _pTimer->GetLerpedCurrentTick();
@@ -935,7 +929,6 @@ name      "WorldBase";
 thumbnail "Thumbnails\\WorldBase.tbn";
 features  "HasName", "HasDescription", 
   "ImplementsOnWorldRender", "ImplementsOnWorldInit",
-  "ImplementsOnWorldEnd", // [Cecil]
   "ImplementsOnInitClass", "ImplementsOnEndClass";
 
 

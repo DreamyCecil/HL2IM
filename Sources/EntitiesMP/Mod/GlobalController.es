@@ -35,6 +35,9 @@ properties:
 
   // Kinematic objects that currently exist in the world
   CEntityReferences m_cKinematicEntities;
+
+  // List of currently existing bullet hole effects
+  CDynamicContainer<CEntity> m_cenBulletHoles;
 }
 
 components:
@@ -65,6 +68,13 @@ functions:
 
     FOREACHNODEINREFS(m_cKinematicEntities, itnK) {
       *ostr << itnK->GetOwner()->en_ulID;
+    }
+
+    // Write bullet holes
+    *ostr << m_cenBulletHoles.Count();
+
+    FOREACHINDYNAMICCONTAINER(m_cenBulletHoles, CEntity, itenBulletHole) {
+      *ostr << itenBulletHole->en_ulID;
     }
   };
 
@@ -99,6 +109,20 @@ functions:
       ASSERT(pObj != NULL);
 
       m_cKinematicEntities.Add(pObj->nPhysOwner);
+    }
+
+    // Read bullet holes
+    *istr >> ct;
+
+    for (i = 0; i < ct; i++) {
+      ULONG ulID;
+      *istr >> ulID;
+
+      CEntity *penBulletHole = GetWorld()->EntityFromID(ulID);
+
+      if (penBulletHole != NULL) {
+        m_cenBulletHoles.Add(penBulletHole);
+      }
     }
   };
 
@@ -250,6 +274,33 @@ functions:
 
     FOREACHINDYNAMICCONTAINER(cObjects, CPhysBase, iten) {
       iten->PhysObj().Unfreeze();
+    }
+  };
+
+  // Add new bullet hole to the list
+  void AddBulletHole(CEntity *pen) {
+    // Hide other bullet holes in close proximity to this one
+    CDynamicContainer<CEntity> cenToRemove;
+
+    FOREACHINDYNAMICCONTAINER(m_cenBulletHoles, CEntity, itenFind) {
+      if (DistanceTo(pen, itenFind) < 0.075f) {
+        cenToRemove.Add(itenFind);
+      }
+    }
+
+    FOREACHINDYNAMICCONTAINER(cenToRemove, CEntity, itenToRemove) {
+      m_cenBulletHoles.Remove(itenToRemove);
+      itenToRemove->SwitchToEditorModel();
+    }
+
+    // Add this bullet hole
+    m_cenBulletHoles.Add(pen);
+  };
+
+  // Remove bullet hole from the list
+  void RemoveBulletHole(CEntity *pen) {
+    if (m_cenBulletHoles.IsMember(pen)) {
+      m_cenBulletHoles.Remove(pen);
     }
   };
 

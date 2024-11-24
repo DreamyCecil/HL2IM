@@ -22,9 +22,6 @@
 
 // [Cecil] 2.0 in vanilla game
 #define BULLET_LIFETIME 60.0f
-
-// [Cecil] List of currently existing bullet holes
-CDynamicContainer<CEntity> _cenBulletHoles;
 %}
 
 uses "EntitiesMP/Light";
@@ -1592,27 +1589,8 @@ procedures:
 
     // [Cecil] Bullet hole behaviour
     if (m_betType == BET_BULLETHOLE) {
-      // Find all bullet holes in the proximity of this one
-      CDynamicContainer<CEntity> cenToRemove;
-
-      FOREACHINDYNAMICCONTAINER(_cenBulletHoles, CEntity, iten) {
-        if (DistanceTo(this, iten) < 0.075f) {
-          cenToRemove.Add(iten);
-        }
-      }
-
-      // Hide bullet holes that need to be removed
-      while (cenToRemove.Count() > 0) {
-        CEntity *pen = cenToRemove.Pointer(0);
-
-        cenToRemove.Remove(pen);
-        _cenBulletHoles.Remove(pen);
-
-        pen->SwitchToEditorModel();
-      }
-
       // Add this bullet hole to the list
-      _cenBulletHoles.Add(this);
+      _penGlobalController->AddBulletHole(this);
     }
 
     // setup light source
@@ -1626,9 +1604,7 @@ procedures:
     }
 
     // [Cecil] Remove from the bullet hole list
-    if (_cenBulletHoles.IsMember(this)) {
-      _cenBulletHoles.Remove(this);
-    }
+    _penGlobalController->RemoveBulletHole(this);
 
     // cease to exist
     Destroy();
