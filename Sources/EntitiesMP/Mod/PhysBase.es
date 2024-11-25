@@ -155,6 +155,14 @@ properties:
 31 BOOL m_bPhysEnvDamage "Phys only environment damage" = FALSE,
 32 CEntityPointer m_penPhysDeath "Phys death target",
 
+// [Cecil] TEMP: Longest and shortest axes of object dimensions
+200 INDEX m_iLongest1 = -1,
+201 INDEX m_iLongest2 = -1,
+202 INDEX m_iShortest1 = -1,
+203 INDEX m_iShortest2 = -1,
+204 FLOAT3D m_vLongestAxis1 = FLOAT3D(0, 0, 0),
+205 FLOAT3D m_vLongestAxis2 = FLOAT3D(0, 0, 0),
+
 {
   SPhysObject m_obj; // Actual physics object simulated by the external physics engine
   FLOAT3D m_vObjPos; // Physics object position before simulation update
@@ -388,6 +396,14 @@ functions:
     // Continue with proper physics
     PhysStepRealistic();
 
+    // Determine lengths of the longest axes from the center
+    FLOAT3D vSize;
+    GetPhysCollision(vSize);
+
+    m_vLongestAxis1 = m_vLongestAxis2 = FLOAT3D(0, 0, 0);
+    if (m_iLongest1 != -1) { m_vLongestAxis1(m_iLongest1) = vSize(m_iLongest1) * 0.5f; }
+    if (m_iLongest2 != -1) { m_vLongestAxis2(m_iLongest2) = vSize(m_iLongest2) * 0.5f; }
+
     // Regular gravity acceleration multiplier
     FLOAT fAccMul = en_fGravityA / 30.0f; // 30 seems to be regular gravity acceleration in sectors
 
@@ -403,6 +419,29 @@ functions:
         - (ctUp.ct_fDensity / fDensity) * (1 - en_fImmersionFactor), -1.0f, +1.0f
     );
 
+    // [Cecil] TODO: Determine en_fImmersionFactor using the entire volume of the object instead of only its single longest axis
+    // (or use all three and pick the longest one relative to the polygon plane between sectors) to make this code more reliable
+    if (en_fImmersionFactor < 1.0f) {
+      // Make physics object orient itself along the longest dimensions while floating on water
+      if (m_iLongest1 != -1) {
+        const FLOAT3D vSizeDir = (m_vLongestAxis1 * PhysObj().GetMatrix()).SafeNormalize();
+        const FLOAT fFloatDir = (vSizeDir % en_vGravityDir);
+        const FLOAT3D vGravForce = en_vGravityDir * fAccMul * fFloatDir * 0.2f;
+
+        PhysObj().UpdateGravity(TRUE,  vGravForce, -m_vLongestAxis1);
+        PhysObj().UpdateGravity(TRUE, -vGravForce,  m_vLongestAxis1);
+      }
+
+      if (m_iLongest2 != -1) {
+        const FLOAT3D vSizeDir = (m_vLongestAxis2 * PhysObj().GetMatrix()).SafeNormalize();
+        const FLOAT fFloatDir = (vSizeDir % en_vGravityDir);
+        const FLOAT3D vGravForce = en_vGravityDir * fAccMul * fFloatDir * 0.2f;
+
+        PhysObj().UpdateGravity(TRUE,  vGravForce, -m_vLongestAxis2);
+        PhysObj().UpdateGravity(TRUE, -vGravForce,  m_vLongestAxis2);
+      }
+    }
+
     if (fBouyancy < 0) {
       // [Cecil] NOTE: I really don't like this "difference, dot product, random constants" formula for multiplying
       // fAccMul but it produces the best results I could achieve without making objects swiftly shoot out of water
@@ -416,13 +455,6 @@ functions:
     } else {
       fAccMul *= fBouyancy;
     }
-
-    // [Cecil] TODO: Add relative torque while the object is floating between two sectors to align it
-    // parallel to the polygon depending on the longest axes of the object size. It can be two axes if
-    // they're both longer than a single shortest axis, otherwise use a single longest axis. For example:
-    // - Rotate by [P  or B] if [Y] is the longest
-    // - Rotate by [H  or B] if [X] is the longest
-    // - Rotate by [P and B] if [X and Z] are the longest (or Y is the shortest)
 
     // Apply manual sector gravity only if the gravity vector deviates from -Y or the acceleration is multiplied too much
     const BOOL bManualGravity = PhysicsUseSectorGravity() && (en_vGravityDir(2) >= -0.99f || Abs(fAccMul - 1) > 0.02f);
@@ -531,6 +563,51 @@ functions:
     // Add geoms of a specific max size
     FLOAT3D vMaxSize;
     ECollisionShape eShape = GetPhysCollision(vMaxSize);
+
+    // [Cecil] TEMP: Determine longest axes of the object and remember them
+    m_iLongest1 = m_iLongest2 = m_iShortest1 = m_iShortest2 = -1;
+
+    // All axes are equal in a sphere
+    if (eShape != COLSH_SPHERE) {
+      // Determine the first longest axis
+      if (vMaxSize(3) >= vMaxSize(1) && vMaxSize(3) >= vMaxSize(2)) {
+        m_iShortest1 = 1;
+        m_iShortest2 = 2;
+        m_iLongest1  = 3;
+
+      } else if (vMaxSize(1) >= vMaxSize(2) && vMaxSize(1) >= vMaxSize(3)) {
+        m_iLongest1  = 1;
+        m_iShortest1 = 2;
+        m_iShortest2 = 3;
+
+      } else if (vMaxSize(2) >= vMaxSize(1) && vMaxSize(2) >= vMaxSize(3)) {
+        m_iShortest1 = 1;
+        m_iLongest1  = 2;
+        m_iShortest2 = 3;
+      }
+
+      // Determine the second longest axis from the short ones
+
+      // If it's at least 90% of the longest one
+      if (vMaxSize(m_iShortest1) >= vMaxSize(m_iLongest1) * 0.9f) {
+        m_iLongest2 = m_iShortest1;
+        m_iShortest1 = -1;
+
+      } else if (vMaxSize(m_iShortest2) >= vMaxSize(m_iLongest1) * 0.9f) {
+        m_iLongest2 = m_iShortest2;
+        m_iShortest2 = -1;
+
+      // If it's at least 10% longer than the other short one
+      } else if (vMaxSize(m_iShortest1) > vMaxSize(m_iShortest2) * 1.1f) {
+        m_iLongest2 = m_iShortest1;
+        m_iShortest1 = -1;
+
+      } else if (vMaxSize(m_iShortest2) > vMaxSize(m_iShortest1) * 1.1f) {
+        m_iLongest2 = m_iShortest2;
+        m_iShortest2 = -1;
+      }
+    }
+
     AddPhysGeoms(eShape, vMaxSize);
 
     // Finish up the object
