@@ -22,6 +22,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "EntitiesMP/Mod/Sound3D.h"
 #include "EntitiesMP/EnemyBase.h"
 
+#include <Extras/XGizmo/Interfaces/Data.h>
+
 // How long to wait before returning to the last valid physical position
 static const TIME _tmOutOfBoundsLimit = 1.0f;
 static const TIME _tmValidPosUpdateFrequency = 1.0f;
@@ -111,7 +113,123 @@ inline FLOAT GetDensityMultiplier(INDEX iMaterial) {
 
 // [Cecil] TEMP
 extern INDEX ode_bRenderPosition;
+extern INDEX ode_bDebugInfo;
 extern void Particles_ColoredBox(const CPlacement3D &plCenter, const FLOAT3D &vSize, COLOR col);
+
+namespace IPhysDebugInfo {
+  static CPhysBase *_penPhys = NULL;
+
+  static FLOAT3D _vFloatForce1(0, 0, 0);
+  static FLOAT3D _vFloatForce2(0, 0, 0);
+
+  inline void DrawOneAxis(CDrawPort *pdp, CAnyProjection3D &apr, const FLOAT3D &vAxis, const FLOAT3D &vForce, BOOL bAltColors)
+  {
+    if (vAxis == FLOAT3D(0, 0, 0)) return;
+
+    const COLOR colLine = (bAltColors ? 0xFFFF00FF : 0x00FF00FF);
+    const COLOR colMin = (bAltColors ? 0x00FFFFFF : 0x0000FFFF);
+    const COLOR colMax = (bAltColors ? 0xFF00FFFF : 0xFF0000FF);
+
+    const FLOAT3D vPhys = _penPhys->GetLerpedPhysPlacement().pl_PositionVector;
+    FLOATmatrix3D mPhys;
+    MakeRotationMatrix(mPhys, _penPhys->GetLerpedPhysPlacement().pl_OrientationAngle);
+
+    const FLOAT3D vMin = vPhys - vAxis * mPhys;
+    const FLOAT3D vMax = vPhys + vAxis * mPhys;
+
+    FLOAT3D vEnd1, vEnd2, vForce1, vForce2;
+
+    // Object ends
+    apr->ProjectCoordinate(vMin, vEnd1);
+    apr->ProjectCoordinate(vMax, vEnd2);
+    vEnd1(2) = pdp->GetHeight() - vEnd1(2);
+    vEnd2(2) = pdp->GetHeight() - vEnd2(2);
+
+    if (vEnd1(3) < 0 && vEnd2(3) < 0) pdp->DrawLine(vEnd1(1), vEnd1(2), vEnd2(1), vEnd2(2), colLine);
+
+    if (vEnd1(3) < 0) pdp->DrawPoint(vEnd1(1), vEnd1(2), colMin, 4);
+    if (vEnd2(3) < 0) pdp->DrawPoint(vEnd2(1), vEnd2(2), colMax, 4);
+
+    // Floating force vectors
+    if (_penPhys->en_fImmersionFactor >= 1.0f) return;
+
+    apr->ProjectCoordinate(vMin + vForce * 4.0f, vForce1);
+    apr->ProjectCoordinate(vMax - vForce * 4.0f, vForce2);
+    vForce1(2) = pdp->GetHeight() - vForce1(2);
+    vForce2(2) = pdp->GetHeight() - vForce2(2);
+
+    if (vEnd1(3) < 0 && vForce1(3) < 0) pdp->DrawLine(vEnd1(1), vEnd1(2), vForce1(1), vForce1(2), colMin);
+    if (vEnd2(3) < 0 && vForce2(3) < 0) pdp->DrawLine(vEnd2(1), vEnd2(2), vForce2(1), vForce2(2), colMax);
+
+    if (vForce1(3) < 0) pdp->DrawPoint(vForce1(1), vForce1(2), colMin, 8);
+    if (vForce2(3) < 0) pdp->DrawPoint(vForce2(1), vForce2(2), colMax, 8);
+  };
+
+  void DrawInfo(CDrawPort *pdp, CAnyProjection3D &apr) {
+    // No debug info or playing on some server
+    if (!ode_bDebugInfo || (_pNetwork->IsNetworkEnabled() && !_pNetwork->IsServer())) {
+      return;
+    }
+
+    // No physics object
+    if (_penPhys == NULL || !_penPhys->PhysicsUsable()) return;
+
+    // Draw any longest dimensions of the object
+    DrawOneAxis(pdp, apr, _penPhys->m_vLongestAxis1, _vFloatForce1, FALSE);
+    DrawOneAxis(pdp, apr, _penPhys->m_vLongestAxis2, _vFloatForce2, TRUE);
+
+    // Display various info
+    FLOAT3D vPhys;
+    apr->ProjectCoordinate(_penPhys->GetLerpedPhysPlacement().pl_PositionVector, vPhys);
+    if (vPhys(3) > 0) return;
+
+    vPhys(2) = pdp->GetHeight() - vPhys(2);
+
+    pdp->DrawPoint(vPhys(1), vPhys(2), 0x7F, 8);
+    pdp->DrawPoint(vPhys(1), vPhys(2), 0xBBD1EBFF, 4);
+
+    pdp->SetFont(_pfdConsoleFont);
+    pdp->SetTextScaling(1.0f);
+    pdp->SetTextAspect(1.0f);
+
+    // Basic entity info and collision shape
+    CTString strInfo(0, "ID:%u (%s)\n", _penPhys->en_ulID, _penPhys->GetClass()->ec_pdecDLLClass->dec_strName);
+
+    FLOAT3D vSize;
+    ECollisionShape eShape = _penPhys->GetPhysCollision(vSize);
+
+    static const char *_strShapes[4] = { "Box", "Sphere", "Cylinder", "Capsule" };
+    strInfo += CTString(0, " Collision: %g, %g, %g (%s)\n", vSize(1), vSize(2), vSize(3), _strShapes[eShape]);
+
+    static const char *_strAxes[4] = { 0, "1x", "2y", "3z" };
+
+    strInfo += " Longest  axes:";
+    if (_penPhys->m_iLongest1 != -1) strInfo += CTString(0, "  %s", _strAxes[_penPhys->m_iLongest1]);
+    if (_penPhys->m_iLongest2 != -1) strInfo += CTString(0, "  %s", _strAxes[_penPhys->m_iLongest2]);
+
+    strInfo += "\n Shortest axes:";
+    if (_penPhys->m_iShortest1 != -1) strInfo += CTString(0, "  %s", _strAxes[_penPhys->m_iShortest1]);
+    if (_penPhys->m_iShortest2 != -1) strInfo += CTString(0, "  %s", _strAxes[_penPhys->m_iShortest2]);
+
+    // Physics properties
+    strInfo += CTString(0, "\n\n Material: %d (%s)\n Mass/friction: %g / %g\n Bounce/velocity: %g / %g\n",
+      _penPhys->GetPhysMaterial(), EWorldSurfaceType_enum.NameForValue(_penPhys->GetPhysMaterial()),
+      _penPhys->GetPhysMass(), _penPhys->GetPhysFriction(), _penPhys->GetPhysBounce(), _penPhys->GetPhysBounceVel());
+
+    const CContentType &ctUp = _penPhys->GetWorld()->wo_actContentTypes[_penPhys->en_iUpContent];
+    const CContentType &ctDn = _penPhys->GetWorld()->wo_actContentTypes[_penPhys->en_iDnContent];
+
+    // Floating properties
+    strInfo += CTString(0, "\nFloating between sectors\n Immersion: %.3f\n Up sector: %s\n Dn sector: %s\n",
+      _penPhys->en_fImmersionFactor, ctUp.ct_strName, ctDn.ct_strName);
+
+    const PIX pixW = pdp->GetTextWidth(strInfo);
+    const PIX pixH = _pfdConsoleFont->GetHeight() * IData::CountChar(strInfo, '\n');
+
+    pdp->Fill(vPhys(1) + 12, vPhys(2) + 12, pixW + 8, pixH + 8, 0x7F);
+    pdp->PutText(strInfo, vPhys(1) + 16, vPhys(2) + 16, 0xBBD1EBFF);
+  };
+};
 %}
 
 // Events sent upon toggling the physics simulation
@@ -221,6 +339,11 @@ functions:
   // Destructor
   virtual void PhysOnEnd(void) {
     PhysObj().Clear(TRUE);
+
+    // [Cecil] TEMP
+    if (IPhysDebugInfo::_penPhys == this) {
+      IPhysDebugInfo::_penPhys = NULL;
+    }
   };
 
   virtual void PhysWrite_t(CTStream *ostr) {
@@ -324,6 +447,11 @@ functions:
 
   // Process physics object before the actual physics simulation
   void OnPhysStep(void) {
+    // [Cecil] TEMP
+    if (m_syncGravityGun.IsSynced()) {
+      IPhysDebugInfo::_penPhys = this;
+    }
+
     // Using engine physics
     if (!PhysicsUsable()) {
       PhysStepEngine();
@@ -430,6 +558,11 @@ functions:
 
         PhysObj().UpdateGravity(TRUE,  vGravForce, -m_vLongestAxis1);
         PhysObj().UpdateGravity(TRUE, -vGravForce,  m_vLongestAxis1);
+
+        // [Cecil] TEMP
+        if (IPhysDebugInfo::_penPhys == this) {
+          IPhysDebugInfo::_vFloatForce1 = vGravForce;
+        }
       }
 
       if (m_iLongest2 != -1) {
@@ -439,6 +572,11 @@ functions:
 
         PhysObj().UpdateGravity(TRUE,  vGravForce, -m_vLongestAxis2);
         PhysObj().UpdateGravity(TRUE, -vGravForce,  m_vLongestAxis2);
+
+        // [Cecil] TEMP
+        if (IPhysDebugInfo::_penPhys == this) {
+          IPhysDebugInfo::_vFloatForce2 = vGravForce;
+        }
       }
     }
 

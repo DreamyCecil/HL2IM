@@ -38,6 +38,7 @@ static INDEX ode_bReportCollisions = FALSE;
 static INDEX ode_bReportOutOfBounds = FALSE;
 INDEX ode_iCollisionGrid = 0; // 1 - display cells at 0.5m; 2 - display cells at player's legs
 INDEX ode_bRenderPosition = FALSE;
+INDEX ode_bDebugInfo = FALSE;
 
 // Create new physics object
 SPhysObject::SPhysObject() {
@@ -349,6 +350,7 @@ CPhysEngine::CPhysEngine(void) {
   _pShell->DeclareSymbol("user INDEX ode_bReportOutOfBounds;", &ode_bReportOutOfBounds);
   _pShell->DeclareSymbol("user INDEX ode_iCollisionGrid;", &ode_iCollisionGrid);
   _pShell->DeclareSymbol("user INDEX ode_bRenderPosition;", &ode_bRenderPosition);
+  _pShell->DeclareSymbol("user INDEX ode_bDebugInfo;", &ode_bDebugInfo);
 
   _pShell->DeclareSymbol("user void ode_SaveState(void);", &ODE_SaveStateAsText);
 };

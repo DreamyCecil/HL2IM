@@ -92,6 +92,10 @@ extern void JumpFromBouncer(CEntity *penToBounce, CEntity *penBouncer);
 // [Cecil] TEMP
 extern INDEX ode_iCollisionGrid;
 extern void Particles_CollisionGridCells(const FLOATaabbox3D &box);
+
+namespace IPhysDebugInfo {
+  extern void DrawInfo(CDrawPort *pdp, CAnyProjection3D &apr);
+};
 %}
 
 // [Cecil] New base class
@@ -3619,6 +3623,9 @@ functions:
         // listen from here
         ListenFromEntity(this, plViewer);
       }
+
+      // [Cecil] TEMP: Physics object debug info
+      IPhysDebugInfo::DrawInfo(pdp, apr);
 
       RenderScroll(pdp);
       RenderTextFX(pdp);
