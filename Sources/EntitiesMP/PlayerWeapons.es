@@ -594,6 +594,7 @@ properties:
 338 FLOAT3D m_vGGHitPos = FLOAT3D(0, 0, 0),
 339 FLOAT3D m_vGGHitDir = FLOAT3D(0, 1, 0),
 340 CEntityPointer m_penGGHit,
+341 FLOAT m_tmGGTargeting = 0.0f,
 
 // New ammo system
 350 INDEX m_iUSP  = 0,
@@ -1461,8 +1462,8 @@ functions:
   void HoldingObject(void) {
     CEntity *penHolding = HeldObject().GetSyncedEntity();
 
-    // Not suitable anymore
-    if (!SuitableObject(penHolding, -1, FALSE)) {
+    // Not targeting for more than a second or not suitable anymore
+    if (_pTimer->CurrentTick() - m_tmGGTargeting > 1.0f || !SuitableObject(penHolding, -1, FALSE)) {
       StopHolding(TRUE);
       return;
     }
@@ -1517,8 +1518,12 @@ functions:
     // Adjust holding distance
     FLOAT fHoldDistance = vObjectSize.Length() * 0.5f + 1.5f;
 
+    // Remember when the held object was targeted last time
+    if (m_penRayHit == penHolding) {
+      m_tmGGTargeting = _pTimer->CurrentTick();
+
     // [Cecil] TEMP: Take hit distance if it's closer to prevent objects from entering walls and such
-    if (m_penRayHit != penHolding && m_fRayHitDistance < fHoldDistance) {
+    } else if (m_fRayHitDistance < fHoldDistance) {
       fHoldDistance = m_fRayHitDistance;
     }
 
@@ -1546,6 +1551,8 @@ functions:
     if (penObject == NULL) {
       return;
     }
+
+    m_tmGGTargeting = _pTimer->CurrentTick();
 
     EGravityGunStart eStart;
     eStart.penWeapons = this;
