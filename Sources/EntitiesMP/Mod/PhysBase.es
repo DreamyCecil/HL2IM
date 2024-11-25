@@ -934,11 +934,11 @@ functions:
         plEntity.RelativeToAbsolute(CCecilMovableModelEntity::GetLerpedPlacement());
 
         plPhys = plOffset;
-        plPhys.RelativeToAbsolute(GetLerpedPlacement());
+        plPhys.RelativeToAbsolute(GetLerpedPhysPlacement());
 
       } else {
         plEntity = CCecilMovableModelEntity::GetLerpedPlacement();
-        plPhys = GetLerpedPlacement();
+        plPhys = GetLerpedPhysPlacement();
       }
 
       // Bright red when physics are disabled
@@ -959,13 +959,8 @@ functions:
     }
   };
 
-  // Retrieve actual physics object placement for rendering purposes
-  virtual CPlacement3D GetLerpedPlacement(void) const {
-    // Use entity placement if physics are unavailable or while the object is being held
-    if (!PhysicsUsable() || m_syncGravityGun.IsSynced()) {
-      return CCecilMovableModelEntity::GetLerpedPlacement();
-    }
-
+  // Get lerped placement of the real physics object
+  CPlacement3D GetLerpedPhysPlacement(void) const {
     // Interpolate physics object placement between ticks
     CPlacement3D pl0, pl1, plResult;
 
@@ -984,17 +979,26 @@ functions:
     }
 
     plResult.Lerp(pl0, pl1, fRatio);
+    return plResult;
+  };
+
+  // Retrieve actual physics object placement for rendering purposes
+  virtual CPlacement3D GetLerpedPlacement(void) const {
+    // Use entity placement if physics are unavailable or while the object is being held
+    if (!PhysicsUsable() || m_syncGravityGun.IsSynced()) {
+      return CCecilMovableModelEntity::GetLerpedPlacement();
+    }
 
     CPlacement3D plOffset;
 
     if (GetPhysOffset(plOffset)) {
       plOffset.pl_PositionVector = -plOffset.pl_PositionVector;
       plOffset.pl_OrientationAngle = -plOffset.pl_OrientationAngle;
-      plOffset.RelativeToAbsoluteSmooth(plResult);
+      plOffset.RelativeToAbsoluteSmooth(GetLerpedPhysPlacement());
       return plOffset;
     }
 
-    return plResult;
+    return GetLerpedPhysPlacement();
   };
 
 procedures:
