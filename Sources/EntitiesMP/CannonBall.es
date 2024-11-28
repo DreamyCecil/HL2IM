@@ -302,6 +302,9 @@ void Explosion(FLOAT3D vCenter,
     if( IS_PLAYER( m_penLauncher)) {
       SpawnRangeSound( m_penLauncher, this, SNDT_PLAYER, 100.0f);
     }
+
+    // [Cecil] Add explosion shake
+    SExplosionShake::AddRegular(GetPlacement().pl_PositionVector);
   }
   // on plane
   if (GetNearestPolygon(vOnPlane, vPlaneNormal, fDistanceToEdge)) {

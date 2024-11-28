@@ -446,6 +446,9 @@ functions:
       eSpawnEffect.betType = BET_EXPLOSION_SMOKE;
       CEntityPointer penExplosionSmoke = CreateEntity(plExplosion, CLASS_BASIC_EFFECT);
       penExplosionSmoke->Initialize(eSpawnEffect);
+
+      // [Cecil] Add explosion shake
+      SExplosionShake::AddSmall(GetPlacement().pl_PositionVector);
     }
   };
 

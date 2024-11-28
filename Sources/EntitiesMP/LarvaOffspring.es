@@ -148,6 +148,9 @@ void LarvaTailExplosion(void) {
       SpawnEffect(CPlacement3D(vPoint+ese.vNormal/50.0f, ANGLE3D(0, 0, 0)), ese);
     }
   }
+
+  // [Cecil] Add explosion shake
+  SExplosionShake::AddSmall(GetPlacement().pl_PositionVector);
 }
 
 

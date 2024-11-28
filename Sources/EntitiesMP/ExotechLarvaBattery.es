@@ -146,6 +146,9 @@ functions:
     penExplosion = CreateEntity(pl, CLASS_BASIC_EFFECT);
     penExplosion->Initialize(eSpawnEffect);
     InflictRangeDamage( this, DMT_EXPLOSION, 25.0f, GetPlacement().pl_PositionVector, 5.0f, 25.0f);
+
+    // [Cecil] Add explosion shake
+    SExplosionShake::AddSmall(GetPlacement().pl_PositionVector);
   }
   
   void AddAttachments(void) {

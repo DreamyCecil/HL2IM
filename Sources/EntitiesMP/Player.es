@@ -419,6 +419,7 @@ static FLOAT hl2_fCaptionsWidth = 384.0f;
 static INDEX hl2_iHUDPreset = 0;
 extern INDEX hl2_bReduceGravityGunFlash;
 extern INDEX hl2_bItemFlares;
+extern FLOAT hl2_fExplosionShakeIntensity;
 
 static void ResetColors(void) {
   INDEX colMain = hl2_colUIMain;
@@ -935,6 +936,7 @@ void CPlayer_OnInitClass(void)
   _pShell->DeclareSymbol("user void hl2_ResetColors(void);", &ResetColors);
   _pShell->DeclareSymbol("persistent user INDEX hl2_iHUDPreset;", &hl2_iHUDPreset);
   _pShell->DeclareSymbol("persistent user INDEX hl2_bItemFlares;", &hl2_bItemFlares);
+  _pShell->DeclareSymbol("persistent user FLOAT hl2_fExplosionShakeIntensity;", &hl2_fExplosionShakeIntensity);
 
   // cheats
   _pShell->DeclareSymbol("user INDEX cht_bGod;",       &cht_bGod);
@@ -3331,6 +3333,29 @@ functions:
       
       plViewer.pl_PositionVector(1) += m_fChainsawShakeDX;
       plViewer.pl_PositionVector(3) += m_fChainsawShakeDY;
+    }
+
+    // [Cecil] Explosion shakes
+    if (hl2_fExplosionShakeIntensity > 0.0f && _penGlobalController != NULL) {
+      FLOAT fExplosionShake = 0.0f;
+
+      FOREACHINDYNAMICCONTAINER(_penGlobalController->m_cExplosionShakes, SExplosionShake, itShake) {
+        const TIME tmEnd = (itShake->tmStarted + itShake->tmLength) - _pTimer->GetLerpedCurrentTick();
+
+        // Shake speed
+        const FLOAT fModifier = SinFast(itShake->tmStarted * 1147.0f) * 10.0f;
+        const FLOAT fShake = SinFast(tmEnd * itShake->fSpeed * (321.0f + fModifier));
+
+        // Intensity at a distance and over time
+        const FLOAT fDistance = (plViewer.pl_PositionVector - itShake->vPos).Length();
+        FLOAT fIntensity = IntensityAtDistance(itShake->fFallOff, itShake->fHotSpot, fDistance);
+        fIntensity *= (1.0f - CosFast(tmEnd / itShake->tmLength * 90.0f)) * itShake->fIntensity;
+
+        // Resulting shake power
+        fExplosionShake += fShake * fIntensity;
+      }
+
+      plViewer.pl_OrientationAngle(3) += Clamp(fExplosionShake * hl2_fExplosionShakeIntensity, -5.0f, +5.0f);
     }
 
     CWorldSettingsController *pwsc = GetWSC(this);

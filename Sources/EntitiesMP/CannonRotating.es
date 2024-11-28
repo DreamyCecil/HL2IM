@@ -252,6 +252,9 @@ virtual CTString GetPlayerKillDescription(const CTString &strPlayerName, const E
     eSpawnEffect.vStretch = FLOAT3D(fSize,fSize,fSize);
     penExplosion->Initialize(eSpawnEffect);
 
+    // [Cecil] Add explosion shake
+    SExplosionShake::AddSmall(GetPlacement().pl_PositionVector);
+
     // hide yourself (must do this after spawning debris)
     SwitchToEditorModel();
     SetPhysicsFlags(EPF_MODEL_IMMATERIAL);

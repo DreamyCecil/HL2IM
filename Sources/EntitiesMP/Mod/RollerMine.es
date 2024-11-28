@@ -225,6 +225,9 @@ functions:
         SpawnEffect(CPlacement3D(vPoint+ese.vNormal/50.0f, ANGLE3D(0, 0, 0)), ese);
       }
     }
+
+    // Add explosion shake
+    SExplosionShake::AddRegular(GetPlacement().pl_PositionVector);
   };
 
   void SpawnEffect(const CPlacement3D &plEffect, const ESpawnEffect &eSpawnEffect) {

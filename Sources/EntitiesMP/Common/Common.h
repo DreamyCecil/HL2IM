@@ -1,10 +1,54 @@
 // [Cecil] New surface materials
 #include <EntitiesMP/Cecil/Materials.h>
 
+// [Cecil] Single global explosion shake effect
+struct SExplosionShake {
+  // When explosion happened and how long it lasts
+  TIME tmStarted;
+  TIME tmLength;
+
+  // Position and size
+  FLOAT3D vPos;
+  FLOAT fFallOff;
+  FLOAT fHotSpot;
+
+  // Explosion strength and shaking speed
+  FLOAT fIntensity;
+  FLOAT fSpeed;
+
+  SExplosionShake() {
+    tmStarted = -100.0f;
+    tmLength = 1.0f;
+
+    vPos = FLOAT3D(0, 0, 0);
+    fFallOff = 100.0f;
+    fHotSpot = 0.0f;
+
+    fIntensity = 1.0f;
+    fSpeed = 1.0f;
+  };
+
+  // Add regular explosion
+  static inline void AddRegular(FLOAT3D vPos);
+
+  // Add small explosion
+  static inline void AddSmall(FLOAT3D vPos);
+};
+
 // [Cecil] Global controller
 #include <XGizmo/Objects/EntityRefList.h>
 #include <EntitiesMP/Mod/GlobalController.h>
 DECL_DLL extern CGlobalController *_penGlobalController;
+
+// Add regular explosion
+void SExplosionShake::AddRegular(FLOAT3D vPos) {
+  _penGlobalController->AddExplosion(vPos, 64.0f, 8.0f, 5.0f, 10.0f, 2.0f);
+};
+
+// Add small explosion
+void SExplosionShake::AddSmall(FLOAT3D vPos) {
+  _penGlobalController->AddExplosion(vPos, 32.0f, 4.0f, 2.0f, 10.0f, 1.0f);
+};
 
 // Bit shifters for ammo
 #define AMMO_NAPALM        4 // [Cecil] 357

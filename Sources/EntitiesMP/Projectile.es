@@ -1133,12 +1133,12 @@ void WalkerRocket(void) {
 };
 
 void WalkerRocketExplosion(void) {
-  // [Cecil] Apply screen shake
-  PlayerRocketExplosion(TRUE);
+  // [Cecil] Apply small explosion shake
+  PlayerRocketExplosion(TRUE, TRUE);
 }
 
 // [Cecil] Apply screen shake or not
-void PlayerRocketExplosion(BOOL bShake) {
+void PlayerRocketExplosion(BOOL bShake, BOOL bSmall) {
   ESpawnEffect ese;
   FLOAT3D vPoint;
   FLOATplane3D vPlaneNormal;
@@ -1181,11 +1181,15 @@ void PlayerRocketExplosion(BOOL bShake) {
     }
   }
 
-  // [Cecil]
+  // [Cecil] Add explosion shake
   m_soEffect.Stop();
 
   if (bShake) {
-    ExplosionShake(FLOAT3D(5.0f, 1.0f, 1.0f), FLOAT3D(10.0f, 5.0f, 5.0f), 30.0f, 3.0f);
+    if (bSmall) {
+      SExplosionShake::AddSmall(GetPlacement().pl_PositionVector);
+    } else {
+      SExplosionShake::AddRegular(GetPlacement().pl_PositionVector);
+    }
   }
 };
 
@@ -1271,8 +1275,8 @@ void PlayerGrenadeExplosion(void) {
     }
   }
 
-  // [Cecil]
-  ExplosionShake(FLOAT3D(5.0f, 1.0f, 1.0f), FLOAT3D(10.0f, 5.0f, 5.0f), 30.0f, 3.0f);
+  // [Cecil] Add explosion shake
+  SExplosionShake::AddRegular(GetPlacement().pl_PositionVector);
 };
 
 void SMG1Grenade(void) {
@@ -1339,8 +1343,8 @@ void SMG1GrenadeExplosion(void) {
     }
   }
 
-  // [Cecil]
-  ExplosionShake(FLOAT3D(5.0f, 1.0f, 1.0f), FLOAT3D(10.0f, 5.0f, 5.0f), 30.0f, 3.0f);
+  // [Cecil] Add explosion shake
+  SExplosionShake::AddRegular(GetPlacement().pl_PositionVector);
 };
 
 // [Cecil] Energy Ball
@@ -1404,8 +1408,8 @@ void EnergyBallExplosion(void) {
   m_soExplosion.Set3DParameters(200.0f, 50.0f, 1.5f, 1.0f);
   PlaySound(m_soExplosion, SOUND_BALL_EXPLOSION, SOF_3D);
   
-  // [Cecil]
-  ExplosionShake(FLOAT3D(5.0f, 1.0f, 1.0f), FLOAT3D(10.0f, 5.0f, 5.0f), 30.0f, 3.0f);
+  // [Cecil] Add explosion shake
+  SExplosionShake::AddRegular(GetPlacement().pl_PositionVector);
 };
 
 // [Cecil] Crossbow Rod
@@ -1764,6 +1768,9 @@ void HeadmanBombermanExplosion(void) {
       SpawnEffect(CPlacement3D(vPoint+ese.vNormal/50.0f, ANGLE3D(0, 0, 0)), ese);
     }
   }
+
+  // [Cecil] Add explosion shake
+  SExplosionShake::AddSmall(GetPlacement().pl_PositionVector);
 };
 
 void CyborgBombExplosion(void) {
@@ -1789,6 +1796,9 @@ void CyborgBombExplosion(void) {
       SpawnEffect(CPlacement3D(vPoint+ese.vNormal/50.0f, ANGLE3D(0, 0, 0)), ese);
     }
   }
+
+  // [Cecil] Add explosion shake
+  SExplosionShake::AddSmall(GetPlacement().pl_PositionVector);
 };
 
 /************************************************************
@@ -2050,6 +2060,9 @@ void LavamanBombExplosion(void)
   eSpawnSpray.penOwner = this;
   penSpray->Initialize( eSpawnSpray);
 
+  // [Cecil] Add explosion shake
+  SExplosionShake::AddSmall(GetPlacement().pl_PositionVector);
+
   // spawn smaller lava bombs
   for( INDEX iDebris=0; iDebris<3+IRnd()%3; iDebris++)
   {
@@ -2122,6 +2135,9 @@ void LavamanBombDebrisExplosion(void) {
   eSpawnSpray.vDirection = en_vCurrentTranslationAbsolute/16.0f;
   eSpawnSpray.penOwner = this;
   penSpray->Initialize( eSpawnSpray);
+
+  // [Cecil] Add explosion shake
+  SExplosionShake::AddSmall(GetPlacement().pl_PositionVector);
 };
 
 /************************************************************
@@ -2589,6 +2605,9 @@ void DevilRocketExplosion(void) {
       SpawnEffect(CPlacement3D(vPoint+ese.vNormal/50.0f, ANGLE3D(0, 0, 0)), ese);
     }
   }
+
+  // [Cecil] Add explosion shake
+  SExplosionShake::AddSmall(GetPlacement().pl_PositionVector);
 };
 
 void DevilGuidedProjectile(void) {
@@ -2884,8 +2903,8 @@ void GuffyProjectile(void) {
 };
 
 void GuffyProjectileExplosion(void) {
-  // [Cecil] Don't apply screen shake
-  PlayerRocketExplosion(FALSE);
+  // [Cecil] Apply small explosion shake
+  PlayerRocketExplosion(TRUE, TRUE);
 }
 
 
@@ -3019,6 +3038,9 @@ void LarvaPlasmaExplosion(void) {
   eSpawnSpray.vDirection = FLOAT3D(0.0f, 2.5f, 0.0f);
   eSpawnSpray.penOwner = this;
   penSpray->Initialize( eSpawnSpray);
+
+  // [Cecil] Add explosion shake
+  SExplosionShake::AddSmall(GetPlacement().pl_PositionVector);
 };
 
 void LarvaTail(void) {
@@ -3057,8 +3079,8 @@ void LarvaTail(void) {
 }
 
 void LarvaTailExplosion(void) {
-  // [Cecil] Don't apply screen shake
-  PlayerRocketExplosion(FALSE);
+  // [Cecil] Apply small explosion shake
+  PlayerRocketExplosion(TRUE, TRUE);
 }
 
 
@@ -3191,6 +3213,9 @@ void MeteorExplosion() {
   }
   m_soExplosion.Set3DParameters(150.0f, 10.0f, 1.5f, 1.0f);
   PlaySound(m_soExplosion, SOUND_METEOR_BLAST, SOF_3D);
+
+  // [Cecil] Add explosion shake
+  SExplosionShake::AddSmall(GetPlacement().pl_PositionVector);
 }
 
 
@@ -3500,27 +3525,6 @@ void ReceiveDamage(CEntity *penInflictor, enum DamageType dmtType,
 
   CCecilMovableModelEntity::ReceiveDamage(penInflictor, 
     dmtType, fDamageAmmount, vHitPoint, vDirection);
-};
-
-// [Cecil] Explosion shake
-void ExplosionShake(FLOAT3D vIntensity, FLOAT3D vFrequency, FLOAT fFallOff, FLOAT fFadeTime) {
-  CWorldSettingsController *pwsc = GetWSC(this);
-
-  if (pwsc != NULL) {
-    pwsc->m_tmShakeStarted = _pTimer->CurrentTick();
-    pwsc->m_vShakePos = GetPlacement().pl_PositionVector;
-    pwsc->m_fShakeFalloff = fFallOff;
-    pwsc->m_fShakeFade = fFadeTime;
-
-    pwsc->m_fShakeIntensityB = vIntensity(1);
-    pwsc->m_tmShakeFrequencyB = vFrequency(1);
-    pwsc->m_fShakeIntensityZ = vIntensity(2);
-    pwsc->m_tmShakeFrequencyZ = vFrequency(2);
-    pwsc->m_fShakeIntensityY = vIntensity(3);
-    pwsc->m_tmShakeFrequencyY = vFrequency(3);
-
-    pwsc->m_bShakeFadeIn = FALSE;
-  }
 };
 
 /************************************************************
@@ -4497,7 +4501,7 @@ procedures:
     // projectile explosion
     switch (m_prtType) {
       case PRT_WALKER_ROCKET: WalkerRocketExplosion(); break;
-      case PRT_ROCKET: PlayerRocketExplosion(TRUE); break; // [Cecil]
+      case PRT_ROCKET: PlayerRocketExplosion(TRUE, FALSE); break; // [Cecil]
       case PRT_GRENADE: PlayerGrenadeExplosion(); break;
       case PRT_LASER_RAY: PlayerLaserWave(); break;
       case PRT_HEADMAN_BOMBERMAN: HeadmanBombermanExplosion(); break;

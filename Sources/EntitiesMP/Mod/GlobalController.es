@@ -16,6 +16,9 @@ CGlobalController *_penGlobalController = NULL;
 
 extern CPhysEngine *_pODE;
 
+// Explosion shake multiplier
+FLOAT hl2_fExplosionShakeIntensity = 1.0f;
+
 // [Cecil] TEMP
 extern INDEX ode_bRenderPosition;
 extern void Particles_ColoredBox(const CPlacement3D &plCenter, const FLOAT3D &vSize, COLOR col);
@@ -38,6 +41,9 @@ properties:
 
   // List of currently existing bullet hole effects
   CDynamicContainer<CEntity> m_cenBulletHoles;
+
+  // List of explosions that shake the screen (not multiplayer-synchronized)
+  CDynamicContainer<SExplosionShake> m_cExplosionShakes;
 }
 
 components:
@@ -48,6 +54,18 @@ functions:
   void CGlobalController(void) {
     // set pointer to this entity
     _penGlobalController = this;
+  };
+
+  // Destructor
+  void OnEnd(void) {
+    CRationalEntity::OnEnd();
+
+    // Delete explosion shakes
+    FOREACHINDYNAMICCONTAINER(m_cExplosionShakes, SExplosionShake, itShake) {
+      delete &*itShake;
+    }
+
+    m_cExplosionShakes.Clear();
   };
 
   // [Cecil] NOTE: Don't care about what or how things are being written or read
@@ -304,6 +322,42 @@ functions:
     }
   };
 
+  // Create a new explosion
+  void AddExplosion(FLOAT3D vPos, FLOAT fFallOff, FLOAT fHotSpot, FLOAT fIntensity, FLOAT fSpeed, TIME tmLength) {
+    if (hl2_fExplosionShakeIntensity <= 0.0f) { return; }
+
+    SExplosionShake *pShake = new SExplosionShake;
+    pShake->tmStarted = _pTimer->CurrentTick();
+    pShake->tmLength = tmLength;
+
+    pShake->vPos = vPos;
+    pShake->fFallOff = fFallOff;
+    pShake->fHotSpot = fHotSpot;
+
+    pShake->fIntensity = fIntensity;
+    pShake->fSpeed = fSpeed;
+
+    m_cExplosionShakes.Add(pShake);
+  };
+
+  // Delete expired explosions
+  void UpdateExplosions(void) {
+    CDynamicContainer<SExplosionShake> cToRemove;
+
+    FOREACHINDYNAMICCONTAINER(m_cExplosionShakes, SExplosionShake, itFind) {
+      // Time expired
+      if (_pTimer->CurrentTick() > itFind->tmStarted + itFind->tmLength) {
+        cToRemove.Add(itFind);
+      }
+    }
+
+    // Remove explosions from the container and then delete them
+    FOREACHINDYNAMICCONTAINER(cToRemove, SExplosionShake, itToRemove) {
+      m_cExplosionShakes.Remove(itToRemove);
+      delete &*itToRemove;
+    }
+  };
+
 procedures:
   MainLoop() {
     while (TRUE)
@@ -346,6 +400,8 @@ procedures:
       }
 
       ODE_DoSimulation(GetWorld());
+
+      UpdateExplosions();
     }
 
     return;
