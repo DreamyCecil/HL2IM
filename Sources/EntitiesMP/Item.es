@@ -33,6 +33,8 @@ extern ULONG _ulPlayerRenderingMask;
 void CItem_Precache(void) {
   CDLLEntityClass *pdec = &CItem_DLLClass;
 
+  pdec->PrecacheModel(MODEL_FLARE);
+  pdec->PrecacheTexture(TEXTURE_FLARE);
   pdec->PrecacheSound(SOUND_RESPAWN1);
   pdec->PrecacheSound(SOUND_RESPAWN2);
 };

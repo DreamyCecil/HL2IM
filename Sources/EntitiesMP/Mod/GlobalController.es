@@ -62,7 +62,8 @@ functions:
 
     // Delete explosion shakes
     FOREACHINDYNAMICCONTAINER(m_cExplosionShakes, SExplosionShake, itShake) {
-      delete &*itShake;
+      SExplosionShake *pShake = itShake;
+      delete pShake;
     }
 
     m_cExplosionShakes.Clear();
@@ -353,8 +354,9 @@ functions:
 
     // Remove explosions from the container and then delete them
     FOREACHINDYNAMICCONTAINER(cToRemove, SExplosionShake, itToRemove) {
-      m_cExplosionShakes.Remove(itToRemove);
-      delete &*itToRemove;
+      SExplosionShake *pShake = itToRemove;
+      m_cExplosionShakes.Remove(pShake);
+      delete pShake;
     }
   };
 

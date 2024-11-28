@@ -366,7 +366,8 @@ odeObject *CPhysEngine::AddWorldMesh(void) {
 // Clear all world meshes
 void CPhysEngine::ClearWorldMeshes(void) {
   FOREACHINDYNAMICCONTAINER(cWorldMeshes, odeObject, itObj) {
-    delete &*itObj;
+    odeObject *pObj = itObj;
+    delete pObj;
   }
 
   cWorldMeshes.Clear();
