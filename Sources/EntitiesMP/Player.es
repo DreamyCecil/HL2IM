@@ -5528,9 +5528,16 @@ functions:
       vTranslation(1) *= 2.0f;
       vTranslation(3) *= 2.0f;
     }
-    
-    en_fAcceleration = plr_fAcceleration;
-    en_fDeceleration = plr_fDeceleration;
+
+    // [Cecil] TEMP: Restore vanilla acc/dec when some force is applied
+    // (otherwise that spike room in Valley of the Jaguar is impassable)
+    if (en_fForceA > 0.01f) {
+      en_fAcceleration = 100.0f;
+      en_fDeceleration = 60.0f;
+    } else {
+      en_fAcceleration = plr_fAcceleration;
+      en_fDeceleration = plr_fDeceleration;
+    }
 
     // [Cecil] Allow moving mid-air if haven't jumped from a bouncer
     if (!m_bFakeJump) {
