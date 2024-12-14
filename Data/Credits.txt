@@ -1,4 +1,4 @@
-Serious Immersion: Half-Life 2 (Beta 0.8)
+Serious Immersion: Half-Life 2 (Beta 0.8.1)
 (c) Dreamy Cecil, 2020-2024
 
 Based on Half-Life series by Valve Corporation
@@ -26,6 +26,9 @@ https://www.getpaint.net/
 
 Serious Engine 1 Mod SDK
 https://github.com/DreamyCecil/SE1-ModSDK
+
+XGizmo
+https://github.com/SamClassicPatch/XGizmo
 
 
 BLENDER PLUGINS:
